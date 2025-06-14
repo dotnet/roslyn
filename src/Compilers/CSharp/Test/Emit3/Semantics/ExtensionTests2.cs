@@ -597,7 +597,7 @@ public static class E
     public static void M2<T>(this T t) { System.Console.Write("method2 "); }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should work
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : should work
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,12): error CS1061: '<anonymous type: string Name, int Age>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type '<anonymous type: string Name, int Age>' could be found (are you missing a using directive or an assembly reference?)
@@ -2388,7 +2388,7 @@ static class E2
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the diagnostic should describe what went wrong
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // var x = object.M; // 1
@@ -5392,7 +5392,7 @@ static class E
     public static void M2() { }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : cref, such unqualified references in CREF should work within context of enclosing static type
+        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : cref, such unqualified references in CREF should work within context of enclosing static type
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved

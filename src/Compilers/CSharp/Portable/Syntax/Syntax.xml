@@ -4359,7 +4359,7 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true" Override="true"/>
     <Field Name="Identifier" Type="SyntaxToken" Optional="true">
-      <!-- Tracked by https://github.com/dotnet/roslyn/issues/76130 : enforce that a ParameterSyntax cannot be created with both Type and Identifier missing -->
+      <!-- Tracked by https://github.com/dotnet/roslyn/issues/78961 : enforce that a ParameterSyntax cannot be created with both Type and Identifier missing -->
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>
