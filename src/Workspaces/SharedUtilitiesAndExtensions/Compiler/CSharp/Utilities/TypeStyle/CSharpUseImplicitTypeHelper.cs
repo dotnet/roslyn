@@ -321,7 +321,7 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
             return declaredType.Equals(initializerType) &&
                 declaredType is
                 {
-                    Name: nameof(Func<int>) or nameof(Action<int>),
+                    Name: nameof(Func<>) or nameof(Action<>),
                     ContainingSymbol: INamespaceSymbol { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
                 };
         }
