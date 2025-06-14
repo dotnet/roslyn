@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
+
 public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
     : AbstractPullDiagnosticTestsBase(testOutputHelper)
 {

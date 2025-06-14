@@ -6,5 +6,5 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal interface IWorkspaceTestLogger : IWorkspaceService
 {
-    public void Log(string message);
+    void Log(string message);
 }
