@@ -89,83 +89,80 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
     public enum RazorSpacePlacement
     {
         None = 0,
-        IgnoreAroundVariableDeclaration = 1,
-        AfterMethodDeclarationName = 1 << 1,
-        BetweenEmptyMethodDeclarationParentheses = 1 << 2,
-        WithinMethodDeclarationParenthesis = 1 << 3,
-        AfterMethodCallName = 1 << 4,
-        BetweenEmptyMethodCallParentheses = 1 << 5,
-        WithinMethodCallParentheses = 1 << 6,
-        AfterControlFlowStatementKeyword = 1 << 7,
-        WithinExpressionParentheses = 1 << 8,
-        WithinCastParentheses = 1 << 9,
-        BeforeSemicolonsInForStatement = 1 << 10,
-        AfterSemicolonsInForStatement = 1 << 11,
-        WithinOtherParentheses = 1 << 12,
-        AfterCast = 1 << 13,
-        BeforeOpenSquareBracket = 1 << 14,
-        BetweenEmptySquareBrackets = 1 << 15,
-        WithinSquareBrackets = 1 << 16,
-        AfterColonInBaseTypeDeclaration = 1 << 17,
-        BeforeColonInBaseTypeDeclaration = 1 << 18,
-        AfterComma = 1 << 19,
-        BeforeComma = 1 << 20,
-        AfterDot = 1 << 21,
-        BeforeDot = 1 << 22,
-        All = (1 << 23) - 1
+        IgnoreAroundVariableDeclaration = SpacePlacement.IgnoreAroundVariableDeclaration,
+        AfterMethodDeclarationName = SpacePlacement.AfterMethodDeclarationName,
+        BetweenEmptyMethodDeclarationParentheses = SpacePlacement.BetweenEmptyMethodDeclarationParentheses,
+        WithinMethodDeclarationParenthesis = SpacePlacement.WithinMethodDeclarationParenthesis,
+        AfterMethodCallName = SpacePlacement.AfterMethodCallName,
+        BetweenEmptyMethodCallParentheses = SpacePlacement.BetweenEmptyMethodCallParentheses,
+        WithinMethodCallParentheses = SpacePlacement.WithinMethodCallParentheses,
+        AfterControlFlowStatementKeyword = SpacePlacement.AfterControlFlowStatementKeyword,
+        WithinExpressionParentheses = SpacePlacement.WithinExpressionParentheses,
+        WithinCastParentheses = SpacePlacement.WithinCastParentheses,
+        BeforeSemicolonsInForStatement = SpacePlacement.BeforeSemicolonsInForStatement,
+        AfterSemicolonsInForStatement = SpacePlacement.AfterSemicolonsInForStatement,
+        WithinOtherParentheses = SpacePlacement.WithinOtherParentheses,
+        AfterCast = SpacePlacement.AfterCast,
+        BeforeOpenSquareBracket = SpacePlacement.BeforeOpenSquareBracket,
+        BetweenEmptySquareBrackets = SpacePlacement.BetweenEmptySquareBrackets,
+        WithinSquareBrackets = SpacePlacement.WithinSquareBrackets,
+        AfterColonInBaseTypeDeclaration = SpacePlacement.AfterColonInBaseTypeDeclaration,
+        BeforeColonInBaseTypeDeclaration = SpacePlacement.BeforeColonInBaseTypeDeclaration,
+        AfterComma = SpacePlacement.AfterComma,
+        BeforeComma = SpacePlacement.BeforeComma,
+        AfterDot = SpacePlacement.AfterDot,
+        BeforeDot = SpacePlacement.BeforeDot,
     }
 
     [Flags]
     public enum RazorNewLinePlacement
     {
         None = 0,
-        BeforeMembersInObjectInitializers = 1,
-        BeforeMembersInAnonymousTypes = 1 << 1,
-        BeforeElse = 1 << 2,
-        BeforeCatch = 1 << 3,
-        BeforeFinally = 1 << 4,
-        BeforeOpenBraceInTypes = 1 << 5,
-        BeforeOpenBraceInAnonymousTypes = 1 << 6,
-        BeforeOpenBraceInObjectCollectionArrayInitializers = 1 << 7,
-        BeforeOpenBraceInProperties = 1 << 8,
-        BeforeOpenBraceInMethods = 1 << 9,
-        BeforeOpenBraceInAccessors = 1 << 10,
-        BeforeOpenBraceInAnonymousMethods = 1 << 11,
-        BeforeOpenBraceInLambdaExpressionBody = 1 << 12,
-        BeforeOpenBraceInControlBlocks = 1 << 13,
-        BetweenQueryExpressionClauses = 1 << 14,
-        All = (1 << 15) - 1
+        BeforeMembersInObjectInitializers = NewLinePlacement.BeforeMembersInObjectInitializers,
+        BeforeMembersInAnonymousTypes = NewLinePlacement.BeforeMembersInAnonymousTypes,
+        BeforeElse = NewLinePlacement.BeforeElse,
+        BeforeCatch = NewLinePlacement.BeforeCatch,
+        BeforeFinally = NewLinePlacement.BeforeFinally,
+        BeforeOpenBraceInTypes = NewLinePlacement.BeforeOpenBraceInTypes,
+        BeforeOpenBraceInAnonymousTypes = NewLinePlacement.BeforeOpenBraceInAnonymousTypes,
+        BeforeOpenBraceInObjectCollectionArrayInitializers = NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers,
+        BeforeOpenBraceInProperties = NewLinePlacement.BeforeOpenBraceInProperties,
+        BeforeOpenBraceInMethods = NewLinePlacement.BeforeOpenBraceInMethods,
+        BeforeOpenBraceInAccessors = NewLinePlacement.BeforeOpenBraceInAccessors,
+        BeforeOpenBraceInAnonymousMethods = NewLinePlacement.BeforeOpenBraceInAnonymousMethods,
+        BeforeOpenBraceInLambdaExpressionBody = NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody,
+        BeforeOpenBraceInControlBlocks = NewLinePlacement.BeforeOpenBraceInControlBlocks,
+        BetweenQueryExpressionClauses = NewLinePlacement.BetweenQueryExpressionClauses,
     }
 
     [Flags]
     public enum RazorIndentationPlacement
     {
         None = 0,
-        Braces = 1,
-        BlockContents = 1 << 1,
-        SwitchCaseContents = 1 << 2,
-        SwitchCaseContentsWhenBlock = 1 << 3,
-        SwitchSection = 1 << 4,
-        All = (1 << 5) - 1
+        Braces = IndentationPlacement.Braces,
+        BlockContents = IndentationPlacement.BlockContents,
+        SwitchCaseContents = IndentationPlacement.SwitchCaseContents,
+        SwitchCaseContentsWhenBlock = IndentationPlacement.SwitchCaseContentsWhenBlock,
+        SwitchSection = IndentationPlacement.SwitchSection,
     }
 
     public enum RazorBinaryOperatorSpacingOptions
     {
-        Single = 0,
-        Ignore = 1,
-        Remove = 2,
+        Single = BinaryOperatorSpacingOptions.Single,
+        Ignore = BinaryOperatorSpacingOptions.Ignore,
+        Remove = BinaryOperatorSpacingOptions.Remove,
     }
 
     public enum RazorLabelPositionOptions
     {
-        LeftMost = 0,
-        OneLess = 1,
-        NoIndent = 2,
+        LeftMost = LabelPositionOptions.LeftMost,
+        OneLess = LabelPositionOptions.OneLess,
+        NoIndent = LabelPositionOptions.NoIndent,
     }
 
     public enum RazorNamespaceDeclarationPreference
     {
-        BlockScoped = 0,
-        FileScoped = 1,
+        BlockScoped = NamespaceDeclarationPreference.BlockScoped,
+        FileScoped = NamespaceDeclarationPreference.FileScoped,
     }
 }
