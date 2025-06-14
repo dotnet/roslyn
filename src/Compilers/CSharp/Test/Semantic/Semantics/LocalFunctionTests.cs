@@ -2374,11 +2374,13 @@ class C
             var local = model.GetDeclaredSymbol(declaration).GetSymbol<MethodSymbol>();
 
             Assert.True(local.IsIterator);
+            Assert.True(local.GetPublicSymbol().IsIterator);
             Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             model.GetOperation(declaration.Body);
 
             Assert.True(local.IsIterator);
+            Assert.True(local.GetPublicSymbol().IsIterator);
             Assert.Equal("System.Int32", local.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             comp.VerifyDiagnostics(
@@ -10708,6 +10710,90 @@ class C(string p)
                 //         static void init() => _field ??= p;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 42)
                 ] : []);
+        }
+
+        [Fact]
+        public void SimpleIteratorLocalFunction()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    void M()
+                    {
+                #pragma warning disable 8321 // The local function 'X' is declared but never used
+
+                        IEnumerable<int> I1()
+                        {
+                            yield return 1;
+                        }
+
+                        async IAsyncEnumerable<int> I2()
+                        {
+                            await Task.Yield();
+                            yield return 1;
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var localFunctionSyntaxes = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
+
+            var i1Syntax = localFunctionSyntaxes[0];
+            IMethodSymbol i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
+            Assert.True(i1Symbol.IsIterator);
+
+            var i2Syntax = localFunctionSyntaxes[1];
+            IMethodSymbol i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
+            Assert.True(i2Symbol.IsIterator);
+        }
+
+        [Fact]
+        public void LocalFunctionJustReturnsEnumerable_NotIterator()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                #pragma warning disable 8321 // The local function 'X' is declared but never used
+
+                        IEnumerable<int> I1()
+                        {
+                            return [];
+                        }
+
+                        IAsyncEnumerable<int> I2()
+                        {
+                            return default;
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var localFunctionSyntaxes = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
+
+            var i1Syntax = localFunctionSyntaxes[0];
+            IMethodSymbol i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
+            Assert.False(i1Symbol.IsIterator);
+
+            var i2Syntax = localFunctionSyntaxes[1];
+            IMethodSymbol i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
+            Assert.False(i2Symbol.IsIterator);
         }
     }
 }

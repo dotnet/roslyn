@@ -2286,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod))
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod, lambdaOrMethod.TryGetThisParameter(out var thisParameter) ? thisParameter : null))
             {
                 SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                     delegateMethod,
