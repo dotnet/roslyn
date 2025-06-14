@@ -61,6 +61,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedArraySegment`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedHashSetEqualityComparer`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ThrowHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\SR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynEnumerable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OneOrMany.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICollectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.cs" />
@@ -84,9 +86,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.ReadOnly.Set.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Singleton.Collection`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Singleton.Enumerator`1.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Internal\Strings.resx" GenerateSource="true" ClassName="Microsoft.CodeAnalysis.Collections.Internal.SR" ManifestResourceName="Microsoft.CodeAnalysis.Internal.Strings" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

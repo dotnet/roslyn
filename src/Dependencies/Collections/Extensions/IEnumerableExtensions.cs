@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
@@ -332,6 +335,72 @@ namespace Roslyn.Utilities
         public static bool IsEmpty<T>(this List<T> source)
         {
             return source.Count == 0;
+        }
+
+        public static bool HasDuplicates<T>(this IEnumerable<T> source)
+            => source.HasDuplicates(EqualityComparer<T>.Default);
+
+        public static bool HasDuplicates<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
+            => source.HasDuplicates(static x => x, comparer);
+
+        public static bool HasDuplicates<TItem, TValue>(this IEnumerable<TItem> source, Func<TItem, TValue> selector)
+            => source.HasDuplicates(selector, EqualityComparer<TValue>.Default);
+
+        /// <summary>
+        /// Determines whether duplicates exist using given equality comparer.
+        /// </summary>
+        /// <param name="source">Array to search for duplicates</param>
+        /// <returns>Whether duplicates were found</returns>
+        /// <remarks>
+        /// API proposal: https://github.com/dotnet/runtime/issues/30582.
+        /// <seealso cref="Microsoft.CodeAnalysis.ImmutableArrayExtensions.HasDuplicates{TItem, TValue}(ImmutableArray{TItem}, Func{TItem, TValue}, IEqualityComparer{TValue})"/>
+        /// </remarks>
+        public static bool HasDuplicates<TItem, TValue>(this IEnumerable<TItem> source, Func<TItem, TValue> selector, IEqualityComparer<TValue> comparer)
+        {
+            if (source is IReadOnlyList<TItem> list)
+            {
+                return list.HasDuplicates(selector, comparer);
+            }
+
+            TItem firstItem = default!;
+            HashSet<TValue>? set = null;
+            var isFirstItem = true;
+            var result = false;
+
+            foreach (var item in source)
+            {
+                if (isFirstItem)
+                {
+                    firstItem = item;
+                    isFirstItem = false;
+                    continue;
+                }
+
+                var value = selector(item);
+
+                if (set == null)
+                {
+                    var firstValue = selector(firstItem);
+
+                    if (comparer.Equals(value, firstValue))
+                    {
+                        result = true;
+                        break;
+                    }
+
+                    set = comparer == EqualityComparer<TValue>.Default ? PooledHashSet<TValue>.GetInstance() : new HashSet<TValue>(comparer);
+                    set.Add(firstValue);
+                    set.Add(value);
+                }
+                else if (!set.Add(value))
+                {
+                    result = true;
+                    break;
+                }
+            }
+
+            (set as PooledHashSet<TValue>)?.Free();
+            return result;
         }
 
         private static readonly Func<object, bool> s_notNullTest = x => x != null;

@@ -143,6 +143,7 @@ internal sealed class CSharpAccessibilityFacts : IAccessibilityFacts
                 SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
                 SyntaxKind.FileKeyword => DeclarationModifiers.File,
                 SyntaxKind.RequiredKeyword => DeclarationModifiers.Required,
+                SyntaxKind.FixedKeyword => DeclarationModifiers.Fixed,
                 _ => DeclarationModifiers.None,
             };
 

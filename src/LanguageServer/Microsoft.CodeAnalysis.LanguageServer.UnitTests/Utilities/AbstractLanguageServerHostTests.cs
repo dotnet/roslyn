@@ -46,8 +46,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILoggerFactory loggerFactory, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
         {
-            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-                loggerFactory, includeDevKitComponents, cacheDirectory, extensionPaths, out var _, out var assemblyLoader);
+            var (exportProvider, assemblyLoader) = await LanguageServerTestComposition.CreateExportProviderAsync(
+                loggerFactory, includeDevKitComponents, cacheDirectory, extensionPaths);
             var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);

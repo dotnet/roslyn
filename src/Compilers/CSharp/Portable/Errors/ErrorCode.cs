@@ -2400,13 +2400,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
 
         ERR_OperatorsMustBePublic = 9308,
-        // available 9309,
+        ERR_MisplacedExtension = 9309,
         ERR_OperatorMustReturnVoid = 9310,
         ERR_CloseUnimplementedInterfaceMemberOperatorMismatch = 9311,
         ERR_OperatorMismatchOnOverride = 9312,
         ERR_BadCompoundAssignmentOpArgs = 9313,
 
         ERR_PPShebangInProjectBasedProgram = 9314,
+
+        ERR_TooManyUserStrings_RestartRequired = 9315,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

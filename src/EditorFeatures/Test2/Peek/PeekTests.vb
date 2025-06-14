@@ -204,15 +204,15 @@ public class D
     }
 }
                                                           ]]></Document>
-                                                          <Document FilePath="Test.razor.g.cs"><![CDATA[
+                                                          <Document FilePath="Test.razor.g.cs">
 public class Component
 {
-#line 4 "Test.razor"
+#line 4 "<%= Path.Combine(TestWorkspace.RootDirectory, "Test.razor") %>"
     public void M()
     {
     }
 }
-                                                          ]]></Document>
+                                                          </Document>
                                                       </Project>
                                                   </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
@@ -234,13 +234,13 @@ public partial class D
         $$PartialMethod();
     }
 
-    partial void PartialMethod();
+    partial void {|Identifier:PartialMethod|}();
 }
                                                           ]]></Document>
                                                           <Document><![CDATA[
 public partial class D
 {
-    partial void {|Identifier:PartialMethod|}() { }
+    partial void PartialMethod() { }
 }
                                                           ]]></Document>
                                                       </Project>
@@ -289,7 +289,7 @@ public partial class D
         End Sub
 
         Private Shared Function CreateTestWorkspace(element As XElement) As EditorTestWorkspace
-            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeatures)
         End Function
 
         Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection

@@ -25,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private ReadOnly _changes As SymbolChanges
         Private ReadOnly _deepTranslator As VisualBasicSymbolMatcher.DeepTranslator
         Private ReadOnly _predefinedHotReloadExceptionConstructor As MethodSymbol
+        Private ReadOnly _options As EmitDifferenceOptions
 
         ''' <summary>
         ''' HotReloadException type. May be created even if not used. We might find out
@@ -46,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        changes As VisualBasicSymbolChanges,
                        emitOptions As EmitOptions,
+                       options As EmitDifferenceOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
@@ -54,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             _changes = changes
+            _options = options
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
             ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -89,6 +92,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
             Get
                 Return _changes.DefinitionMap.Baseline
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property FieldRvaSupported As Boolean
+            Get
+                Return _options.EmitFieldRva
             End Get
         End Property
 
@@ -251,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public Overrides Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            Return GetTopLevelTypeDefinitionsCore(context)
+            Return GetTopLevelTypeDefinitionsExcludingNoPiaAndRootModule(context, includePrivateImplementationDetails:=True)
         End Function
 
         Public Overrides Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)

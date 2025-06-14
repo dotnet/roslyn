@@ -3813,7 +3813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedTypeMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
 
-                    if (TypeKind == TypeKind.Class) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider tightening this check to only top-level non-generic static classes, however optimizing for error scenarios is usually not a goal.
+                    if (TypeKind == TypeKind.Class) // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider tightening this check to only top-level non-generic static classes, however optimizing for error scenarios is usually not a goal.
                     {
                         AddSynthesizedExtensionImplementationsIfNecessary(builder, declaredMembersAndInitializers);
                     }
@@ -3907,7 +3907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.ExtensionDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
@@ -4618,47 +4618,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void checkExtensionMember(Symbol member, BindingDiagnosticBag diagnostics)
             {
-                switch (member.Kind)
+                if (!IsAllowedExtensionMember(member))
                 {
-                    case SymbolKind.Method:
-                        var meth = (MethodSymbol)member;
-                        switch (meth.MethodKind)
-                        {
-                            case MethodKind.Constructor:
-                            case MethodKind.Conversion:
-                            case MethodKind.UserDefinedOperator:
-                            case MethodKind.Destructor:
-                            case MethodKind.EventAdd:
-                            case MethodKind.EventRemove:
-                            case MethodKind.StaticConstructor:
-                                break;
-                            case MethodKind.ExplicitInterfaceImplementation:
-                                // error, but reported elsewhere
-                                return;
-                            case MethodKind.Ordinary:
-                            case MethodKind.PropertyGet:
-                            case MethodKind.PropertySet:
-                                return;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(meth.MethodKind);
-                        }
-                        break;
-
-                    case SymbolKind.Property:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-                        return;
-
-                    case SymbolKind.Field:
-                    case SymbolKind.Event:
-                    case SymbolKind.NamedType:
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                    diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
                 }
-
-                diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
             }
+        }
+
+        internal static bool IsAllowedExtensionMember(Symbol member)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    var meth = (MethodSymbol)member;
+                    switch (meth.MethodKind)
+                    {
+                        case MethodKind.Constructor:
+                        case MethodKind.Conversion:
+                        case MethodKind.UserDefinedOperator:
+                        case MethodKind.Destructor:
+                        case MethodKind.EventAdd:
+                        case MethodKind.EventRemove:
+                        case MethodKind.StaticConstructor:
+                        case MethodKind.ExplicitInterfaceImplementation:
+                            break;
+                        case MethodKind.Ordinary:
+                        case MethodKind.PropertyGet:
+                        case MethodKind.PropertySet:
+                            return true;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(meth.MethodKind);
+                    }
+                    break;
+
+                case SymbolKind.Property:
+                    if (!((PropertySymbol)member).IsIndexer)
+                    {
+                        return true;
+                    }
+                    break;
+
+                case SymbolKind.Field:
+                case SymbolKind.Event:
+                case SymbolKind.NamedType:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+
+            return false;
         }
 
         private static void CheckForStructDefaultConstructors(

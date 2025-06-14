@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -566,7 +566,14 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var margin = await GetNavigationBarMarginAsync(textView, cancellationToken);
-        return margin.GetFieldValue<List<ComboBox>>("_combos");
+        try
+        {
+            return margin.GetFieldValue<List<ComboBox>>("_combos");
+        }
+        catch (FieldAccessException)
+        {
+            return margin.GetFieldValue<List<ComboBox>>("Combos");
+        }
     }
 
     private async Task<UIElement?> GetNavigationBarMarginAsync(IWpfTextView textView, CancellationToken cancellationToken)
@@ -1010,11 +1017,11 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         };
 
         var componentModelService = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(cancellationToken);
-        var commandHandlers = componentModelService.DefaultExportProvider.GetExports<ICommandHandler, NameMetadata>();
-        var goToImplementation = (GoToImplementationCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToImplementation).Value;
+
+        var goToImplementation = componentModelService.DefaultExportProvider.GetExportedValue<GoToImplementationNavigationService>();
         goToImplementation.GetTestAccessor().DelayHook = delayHook;
 
-        var goToBase = (GoToBaseCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToBase).Value;
+        var goToBase = componentModelService.DefaultExportProvider.GetExportedValue<GoToBaseNavigationService>();
         goToBase.GetTestAccessor().DelayHook = delayHook;
     }
 

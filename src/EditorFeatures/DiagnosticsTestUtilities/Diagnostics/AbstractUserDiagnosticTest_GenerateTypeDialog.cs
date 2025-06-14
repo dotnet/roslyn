@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 public abstract partial class AbstractUserDiagnosticTest
 {
     // TODO: IInlineRenameService requires WPF (https://github.com/dotnet/roslyn/issues/46153)
-    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
+    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
         .AddParts(
             typeof(TestGenerateTypeOptionsService),
             typeof(TestProjectManagementService));
@@ -99,11 +99,11 @@ public abstract partial class AbstractUserDiagnosticTest
         Assert.Equal(action.Title, FeaturesResources.Generate_new_type);
         var operations = await action.GetOperationsAsync(
             workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
-        Tuple<Solution, Solution> oldSolutionAndNewSolution = null;
+        Solution oldSolution, newSolution;
 
         if (!isNewFile)
         {
-            oldSolutionAndNewSolution = await TestOperationsAsync(
+            (oldSolution, newSolution) = await TestOperationsAsync(
                 testState.Workspace, expected, operations,
                 conflictSpans: [],
                 renameSpans: [],
@@ -113,11 +113,11 @@ public abstract partial class AbstractUserDiagnosticTest
         }
         else
         {
-            oldSolutionAndNewSolution = await TestAddDocument(
+            (oldSolution, newSolution) = await TestAddDocument(
                 testState.Workspace,
                 expected,
                 operations,
-                projectName != null,
+                hasProjectChange: projectName != null,
                 testState.ProjectToBeModified.Id,
                 newFileFolderContainers,
                 newFileName);
@@ -136,8 +136,6 @@ public abstract partial class AbstractUserDiagnosticTest
 
         if (checkIfUsingsNotIncluded)
         {
-            var oldSolution = oldSolutionAndNewSolution.Item1;
-            var newSolution = oldSolutionAndNewSolution.Item2;
             var changedDocumentIds = SolutionUtilities.GetChangedDocuments(oldSolution, newSolution);
 
             Assert.False(changedDocumentIds.Contains(testState.InvocationDocument.Id));
@@ -147,7 +145,6 @@ public abstract partial class AbstractUserDiagnosticTest
         if (projectName != null)
         {
             var appliedChanges = await ApplyOperationsAndGetSolutionAsync(testState.Workspace, operations);
-            var newSolution = appliedChanges.Item2;
             var triggeredProject = newSolution.GetProject(testState.TriggeredProject.Id);
 
             // Make sure the Project reference is present
