@@ -7,15 +7,15 @@
 ' code-generated into SyntaxNodes.vb, but some are easier to hand-write.
 '-----------------------------------------------------------------------------------------------------------
 
-Imports System.Threading
+Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports System.Text
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Syntax
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-Imports Microsoft.CodeAnalysis.Syntax
-Imports System.Collections.Immutable
-Imports System.ComponentModel
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -196,10 +196,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The input string</param>
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseTypeName(text As String, Optional offset As Integer = 0, Optional options As ParseOptions = Nothing, Optional consumeFullText As Boolean = True) As TypeSyntax
-            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(DirectCast(options, VisualBasicParseOptions), VisualBasicParseOptions.Default))
+            Dim vbOptions As VisualBasicParseOptions = DirectCast(options, VisualBasicParseOptions)
+            Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(vbOptions, VisualBasicParseOptions.Default))
                 p.GetNextToken()
                 Dim node = p.ParseGeneralType()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), TypeSyntax)
+                If consumeFullText Then
+                    node = p.ConsumeUnexpectedTokens(node)
+                End If
+                Return CreateRed(Of TypeSyntax)(node, p._scanner.Options)
             End Using
         End Function
 
@@ -246,8 +250,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="offset">The starting offset in the string</param>
         Public Shared Function ParseCompilationUnit(text As String, Optional offset As Integer = 0, Optional options As VisualBasicParseOptions = Nothing) As CompilationUnitSyntax
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(options, VisualBasicParseOptions.Default))
-                Return DirectCast(p.ParseCompilationUnit().CreateRed(Nothing, 0), CompilationUnitSyntax)
+                Dim node = p.ParseCompilationUnit()
+                Return CreateRed(Of CompilationUnitSyntax)(node, p._scanner.Options)
             End Using
+        End Function
+
+        Private Shared Function CreateRed(Of TSyntax As VisualBasicSyntaxNode)(green As InternalSyntax.VisualBasicSyntaxNode, options As VisualBasicParseOptions) As TSyntax
+            Dim red = DirectCast(green.CreateRed(), TSyntax)
+            Debug.Assert(red._syntaxTree Is Nothing)
+#Disable Warning RS0030 ' Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
+            red._syntaxTree = VisualBasicSyntaxTree.CreateWithoutClone(red, options)
+#Enable Warning RS0030
+            Return red
         End Function
 
         ''' <summary>

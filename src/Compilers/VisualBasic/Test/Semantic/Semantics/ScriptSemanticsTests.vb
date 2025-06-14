@@ -45,31 +45,17 @@ F(Function()
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             Dim node5 As MemberAccessExpressionSyntax = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
-            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol)
+            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString())
 
-            compilation.AssertTheseDiagnostics(
-<expected>
-BC30420: 'Sub Main' was not found in 'Errors_01'.
-BC30001: Statement is not valid in a namespace.
-System.Console.WriteLine(1)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</expected>
-            )
+            compilation.AssertTheseDiagnostics()
 
             compilation = CreateCompilationWithMscorlib461({syntaxTree}, options:=TestOptions.ReleaseExe.WithScriptClassName("Script"), assemblyName:="Errors_01")
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
-            Assert.Null(semanticModel.GetSymbolInfo(node5.Name).Symbol)
+            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel.GetSymbolInfo(node5.Name).Symbol.ToTestDisplayString())
 
-            compilation.AssertTheseDiagnostics(
-<expected>
-BC30420: 'Sub Main' was not found in 'Errors_01'.
-BC30001: Statement is not valid in a namespace.
-System.Console.WriteLine(1)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-</expected>
-            )
+            compilation.AssertTheseDiagnostics()
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe)
@@ -127,7 +113,7 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
                 )
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/78792")>
         <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
         Public Sub Errors_02()
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit("System.Console.WriteLine(1)", options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
