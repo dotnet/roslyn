@@ -25,6 +25,7 @@ internal sealed class LoadedProject : IDisposable
     private readonly string _projectDirectory;
 
     private readonly ProjectSystemProject _projectSystemProject;
+    public ProjectSystemProjectFactory ProjectFactory { get; }
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
     private readonly IFileChangeContext _sourceFileChangeContext;
     private readonly IFileChangeContext _projectFileChangeContext;
@@ -42,13 +43,14 @@ internal sealed class LoadedProject : IDisposable
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = [];
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = [];
 
-    public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
+    public LoadedProject(ProjectSystemProject projectSystemProject, ProjectSystemProjectFactory projectFactory, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
         Contract.ThrowIfNull(projectSystemProject.FilePath);
         _projectFilePath = projectSystemProject.FilePath;
 
         _projectSystemProject = projectSystemProject;
-        _optionsProcessor = new ProjectSystemProjectOptionsProcessor(projectSystemProject, solutionServices);
+        ProjectFactory = projectFactory;
+        _optionsProcessor = new ProjectSystemProjectOptionsProcessor(projectSystemProject, projectFactory.Workspace.CurrentSolution.Services);
         _targetFrameworkManager = targetFrameworkManager;
 
         // We'll watch the directory for all source file changes
