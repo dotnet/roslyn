@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -16,12 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class ControlFlowPass : AbstractFlowPass<ControlFlowPass.LocalState, ControlFlowPass.LocalFunctionState>
     {
-        private readonly PooledDictionary<LabelSymbol, BoundNode> _labelsDefined = PooledDictionary<LabelSymbol, BoundNode>.GetInstance();
+        private readonly PooledDictionary<LabelSymbol, BoundNode?> _labelsDefined = PooledDictionary<LabelSymbol, BoundNode?>.GetInstance();
         private readonly PooledHashSet<LabelSymbol> _labelsUsed = PooledHashSet<LabelSymbol>.GetInstance();
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
         private readonly ArrayBuilder<(LocalSymbol symbol, BoundBlock block)> _usingDeclarations = ArrayBuilder<(LocalSymbol, BoundBlock)>.GetInstance();
-        private BoundBlock _currentBlock = null;
+        private BoundBlock? _currentBlock = null;
+        // This dictionary is not owned by ControlFlowPass, it is returned to the caller of the pass who is responsible for freeing it.
+        private PooledDictionary<BoundNode, bool>? _asyncTryFinallyEndsReachable;
 
         protected override void Free()
         {
@@ -31,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.Free();
         }
 
-        internal ControlFlowPass(CSharpCompilation compilation, Symbol member, BoundNode node)
+        private ControlFlowPass(CSharpCompilation compilation, Symbol member, BoundNode node)
             : base(compilation, member, node)
         {
         }
 
-        internal ControlFlowPass(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
+        private protected ControlFlowPass(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
         {
         }
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode Visit(BoundNode node)
+        public override BoundNode? Visit(BoundNode node)
         {
             // there is no need to scan the contents of an expression, as expressions
             // do not contribute to reachability analysis (except for constants, which
@@ -151,9 +152,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform control flow analysis, reporting all necessary diagnostics.  Returns true if the end of
         /// the body might be reachable...
         /// </summary>
-        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundBlock block, DiagnosticBag diagnostics)
+        /// <param name="asyncTryFinallyEndsReachable">
+        /// When symbol is an async method, this dictionary contains information about the reachability of the end try-finally blocks, or things
+        /// that could be converted to try/finally blocks with awaits in the finally, such as await foreach or await using.
+        /// </param>
+        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundBlock block, DiagnosticBag? diagnostics, out PooledDictionary<BoundNode, bool>? asyncTryFinallyEndsReachable)
         {
             var walker = new ControlFlowPass(compilation, member, block);
+
+            if (member is MethodSymbol { IsAsync: true })
+            {
+                walker._asyncTryFinallyEndsReachable = PooledDictionary<BoundNode, bool>.GetInstance();
+                asyncTryFinallyEndsReachable = walker._asyncTryFinallyEndsReachable;
+            }
+            else
+            {
+                asyncTryFinallyEndsReachable = null;
+            }
 
             if (diagnostics != null)
             {
@@ -188,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// body might be reachable.
         /// </summary>
         /// <returns></returns>
-        protected bool Analyze(ref bool badRegion, DiagnosticBag diagnostics)
+        protected bool Analyze(ref bool badRegion, DiagnosticBag? diagnostics)
         {
             ImmutableArray<PendingBranch> returns = Analyze(ref badRegion);
 
@@ -271,6 +286,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void RecordTryFinallyReachability(BoundNode node)
+        {
+            Debug.Assert(node is BoundTryStatement
+                or BoundForEachStatement { AwaitOpt: not null }
+                or BoundUsingStatement { AwaitOpt: not null });
+
+            // If this is an async method, we need to track whether the end of the try block is reachable.
+            // This is used for async exception handler rewriting.
+            _asyncTryFinallyEndsReachable?.Add(node, State.Alive);
+        }
+
+        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+        {
+            var result = base.VisitForEachStatement(node);
+            if (node.AwaitOpt is not null)
+            {
+                RecordTryFinallyReachability(node);
+            }
+            return result;
+        }
+
+        public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+        {
+            var result = base.VisitUsingStatement(node);
+            if (node.AwaitOpt is not null)
+            {
+                RecordTryFinallyReachability(node);
+            }
+            return result;
+        }
+
+        public override BoundNode VisitTryStatement(BoundTryStatement node)
+        {
+            var result = base.VisitTryStatement(node);
+            RecordTryFinallyReachability(node);
+            return result;
+        }
+
         protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
         {
             if (node.CatchBlocks.IsEmpty)
@@ -325,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitLabel(node);
         }
 
-        public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
+        public override BoundNode? VisitLabeledStatement(BoundLabeledStatement node)
         {
             VisitLabel(node);
             CheckReachable(node);
@@ -358,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // target to branch to.
 
                     // Error if label and using are part of the same block
-                    if (_labelsDefined.TryGetValue(node.Label, out BoundNode target) && target == usingDecl.block)
+                    if (_labelsDefined.TryGetValue(node.Label, out BoundNode? target) && target == usingDecl.block)
                     {
                         Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
                         break;
@@ -400,19 +453,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parentBlock = _currentBlock;
             _currentBlock = node;
             var initialUsingCount = _usingDeclarations.Count;
+            var hadUsingDeclarations = false;
             foreach (var local in node.Locals)
             {
                 if (local.IsUsing)
                 {
                     _usingDeclarations.Add((local, node));
+                    hadUsingDeclarations = true;
                 }
             }
 
             var result = base.VisitBlock(node);
 
             _usingDeclarations.Clip(initialUsingCount);
+            if (_asyncTryFinallyEndsReachable is not null && hadUsingDeclarations)
+            {
+                UsingDeclarationVisitor.Visit(node, _asyncTryFinallyEndsReachable, State.Alive);
+            }
             _currentBlock = parentBlock;
             return result;
+        }
+
+        private sealed class UsingDeclarationVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            internal static void Visit(BoundBlock block, PooledDictionary<BoundNode, bool> dictionary, bool alive)
+            {
+                var instance = new UsingDeclarationVisitor(dictionary, alive);
+                instance.VisitList(block.Statements);
+            }
+
+            private UsingDeclarationVisitor(PooledDictionary<BoundNode, bool> dictionary, bool alive)
+            {
+                _dictionary = dictionary;
+                _alive = alive;
+            }
+
+            private readonly PooledDictionary<BoundNode, bool> _dictionary;
+            private readonly bool _alive;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+            private UsingDeclarationVisitor()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+            {
+            }
+
+            public override BoundNode? VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+            {
+                if (node.AwaitOpt is not null)
+                {
+                    _dictionary.Add(node, _alive);
+                }
+
+                return base.VisitUsingLocalDeclarations(node);
+            }
+
+            public override BoundNode? VisitBlock(BoundBlock node)
+            {
+                // Do not recurse through nested blocks, they will be visited by their own visits through the ControlFlowPass.
+                return null;
+            }
         }
     }
 }

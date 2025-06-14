@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundTemp,
                     awaitKeywordOpt: default,
                     awaitOpt: null,
-                    patternDisposeInfo: MethodArgumentInfo.CreateParameterlessMethod(lockTypeInfo.ScopeDisposeMethod));
+                    patternDisposeInfo: MethodArgumentInfo.CreateParameterlessMethod(lockTypeInfo.ScopeDisposeMethod),
+                    AsyncTryFinallyEndReachable.Ignored);
 
                 return new BoundBlock(
                     lockSyntax,
@@ -177,8 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 enterCall,
                                 rewrittenBody)),
                             ImmutableArray<BoundCatchBlock>.Empty,
-                            BoundBlock.SynthesizedNoLocals(lockSyntax,
-                                exitCall))));
+                            finallyBlockOpt: BoundBlock.SynthesizedNoLocals(lockSyntax,
+                                exitCall),
+                            AsyncTryFinallyEndReachable.Ignored)));
             }
             else
             {
@@ -226,7 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lockSyntax,
                             BoundBlock.SynthesizedNoLocals(lockSyntax, rewrittenBody),
                             ImmutableArray<BoundCatchBlock>.Empty,
-                            BoundBlock.SynthesizedNoLocals(lockSyntax, exitCall))));
+                            finallyBlockOpt: BoundBlock.SynthesizedNoLocals(lockSyntax, exitCall),
+                            AsyncTryFinallyEndReachable.Ignored)));
             }
         }
 

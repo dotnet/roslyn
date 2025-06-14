@@ -1567,7 +1567,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "");
             verifier.VerifyIL("Program.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
-  // Code size      426 (0x1aa)
+  // Code size      406 (0x196)
   .maxstack  3
   .locals init (int V_0,
                 object V_1,
@@ -1583,7 +1583,7 @@ class Program
     IL_0008:  brfalse.s  IL_001f
     IL_000a:  ldloc.0
     IL_000b:  ldc.i4.1
-    IL_000c:  beq        IL_0125
+    IL_000c:  beq        IL_0111
     IL_0011:  ldarg.0
     IL_0012:  ldnull
     IL_0013:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
@@ -1640,7 +1640,7 @@ class Program
         IL_0071:  ldloca.s   V_2
         IL_0073:  ldarg.0
         IL_0074:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<Main>d__0)""
-        IL_0079:  leave      IL_01a9
+        IL_0079:  leave      IL_0195
         IL_007e:  ldarg.0
         IL_007f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
         IL_0084:  stloc.2
@@ -1667,114 +1667,104 @@ class Program
         IL_00b5:  throw
         IL_00b6:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
         IL_00bb:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-        IL_00c0:  ldarg.0
-        IL_00c1:  ldfld      ""int Program.<Main>d__0.<>7__wrap4""
-        IL_00c6:  stloc.3
-        IL_00c7:  ldloc.3
-        IL_00c8:  ldc.i4.1
-        IL_00c9:  bne.un.s   IL_00cd
-        IL_00cb:  leave.s    IL_00db
-        IL_00cd:  ldarg.0
-        IL_00ce:  ldnull
-        IL_00cf:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
-        IL_00d4:  leave.s    IL_00d9
+        IL_00c0:  leave.s    IL_00c7
       }
       catch object
       {
-        IL_00d6:  pop
-        IL_00d7:  leave.s    IL_00d9
+        IL_00c2:  pop
+        IL_00c3:  leave.s    IL_00c5
       }
-      IL_00d9:  leave.s    IL_00ee
-      IL_00db:  ldarg.0
-      IL_00dc:  ldc.i4.1
-      IL_00dd:  stfld      ""int Program.<Main>d__0.<>7__wrap2""
-      IL_00e2:  leave.s    IL_00ee
+      IL_00c5:  leave.s    IL_00da
+      IL_00c7:  ldarg.0
+      IL_00c8:  ldc.i4.1
+      IL_00c9:  stfld      ""int Program.<Main>d__0.<>7__wrap2""
+      IL_00ce:  leave.s    IL_00da
     }
     catch object
     {
-      IL_00e4:  stloc.1
-      IL_00e5:  ldarg.0
-      IL_00e6:  ldloc.1
-      IL_00e7:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
-      IL_00ec:  leave.s    IL_00ee
+      IL_00d0:  stloc.1
+      IL_00d1:  ldarg.0
+      IL_00d2:  ldloc.1
+      IL_00d3:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
+      IL_00d8:  leave.s    IL_00da
     }
-    IL_00ee:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
-    IL_00f3:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
-    IL_00f8:  stloc.2
-    IL_00f9:  ldloca.s   V_2
-    IL_00fb:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
-    IL_0100:  brtrue.s   IL_0141
-    IL_0102:  ldarg.0
-    IL_0103:  ldc.i4.1
-    IL_0104:  dup
-    IL_0105:  stloc.0
-    IL_0106:  stfld      ""int Program.<Main>d__0.<>1__state""
-    IL_010b:  ldarg.0
-    IL_010c:  ldloc.2
-    IL_010d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
-    IL_0112:  ldarg.0
-    IL_0113:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
-    IL_0118:  ldloca.s   V_2
-    IL_011a:  ldarg.0
-    IL_011b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<Main>d__0)""
-    IL_0120:  leave      IL_01a9
-    IL_0125:  ldarg.0
-    IL_0126:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
-    IL_012b:  stloc.2
-    IL_012c:  ldarg.0
-    IL_012d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
-    IL_0132:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
-    IL_0138:  ldarg.0
-    IL_0139:  ldc.i4.m1
-    IL_013a:  dup
-    IL_013b:  stloc.0
-    IL_013c:  stfld      ""int Program.<Main>d__0.<>1__state""
-    IL_0141:  ldloca.s   V_2
-    IL_0143:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
-    IL_0148:  ldarg.0
-    IL_0149:  ldfld      ""object Program.<Main>d__0.<>7__wrap1""
-    IL_014e:  stloc.1
-    IL_014f:  ldloc.1
-    IL_0150:  brfalse.s  IL_0167
-    IL_0152:  ldloc.1
-    IL_0153:  isinst     ""System.Exception""
-    IL_0158:  dup
-    IL_0159:  brtrue.s   IL_015d
-    IL_015b:  ldloc.1
-    IL_015c:  throw
-    IL_015d:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
-    IL_0162:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
-    IL_0167:  ldarg.0
-    IL_0168:  ldfld      ""int Program.<Main>d__0.<>7__wrap2""
-    IL_016d:  stloc.3
-    IL_016e:  ldloc.3
-    IL_016f:  ldc.i4.1
-    IL_0170:  bne.un.s   IL_0174
-    IL_0172:  leave.s    IL_0196
-    IL_0174:  ldarg.0
-    IL_0175:  ldnull
-    IL_0176:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
-    IL_017b:  leave.s    IL_0196
+    IL_00da:  call       ""System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get""
+    IL_00df:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+    IL_00e4:  stloc.2
+    IL_00e5:  ldloca.s   V_2
+    IL_00e7:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get""
+    IL_00ec:  brtrue.s   IL_012d
+    IL_00ee:  ldarg.0
+    IL_00ef:  ldc.i4.1
+    IL_00f0:  dup
+    IL_00f1:  stloc.0
+    IL_00f2:  stfld      ""int Program.<Main>d__0.<>1__state""
+    IL_00f7:  ldarg.0
+    IL_00f8:  ldloc.2
+    IL_00f9:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
+    IL_00fe:  ldarg.0
+    IL_00ff:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+    IL_0104:  ldloca.s   V_2
+    IL_0106:  ldarg.0
+    IL_0107:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<Main>d__0)""
+    IL_010c:  leave      IL_0195
+    IL_0111:  ldarg.0
+    IL_0112:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
+    IL_0117:  stloc.2
+    IL_0118:  ldarg.0
+    IL_0119:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
+    IL_011e:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter""
+    IL_0124:  ldarg.0
+    IL_0125:  ldc.i4.m1
+    IL_0126:  dup
+    IL_0127:  stloc.0
+    IL_0128:  stfld      ""int Program.<Main>d__0.<>1__state""
+    IL_012d:  ldloca.s   V_2
+    IL_012f:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+    IL_0134:  ldarg.0
+    IL_0135:  ldfld      ""object Program.<Main>d__0.<>7__wrap1""
+    IL_013a:  stloc.1
+    IL_013b:  ldloc.1
+    IL_013c:  brfalse.s  IL_0153
+    IL_013e:  ldloc.1
+    IL_013f:  isinst     ""System.Exception""
+    IL_0144:  dup
+    IL_0145:  brtrue.s   IL_0149
+    IL_0147:  ldloc.1
+    IL_0148:  throw
+    IL_0149:  call       ""System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)""
+    IL_014e:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
+    IL_0153:  ldarg.0
+    IL_0154:  ldfld      ""int Program.<Main>d__0.<>7__wrap2""
+    IL_0159:  stloc.3
+    IL_015a:  ldloc.3
+    IL_015b:  ldc.i4.1
+    IL_015c:  bne.un.s   IL_0160
+    IL_015e:  leave.s    IL_0182
+    IL_0160:  ldarg.0
+    IL_0161:  ldnull
+    IL_0162:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
+    IL_0167:  leave.s    IL_0182
   }
   catch System.Exception
   {
-    IL_017d:  stloc.s    V_4
-    IL_017f:  ldarg.0
-    IL_0180:  ldc.i4.s   -2
-    IL_0182:  stfld      ""int Program.<Main>d__0.<>1__state""
-    IL_0187:  ldarg.0
-    IL_0188:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
-    IL_018d:  ldloc.s    V_4
-    IL_018f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_0194:  leave.s    IL_01a9
+    IL_0169:  stloc.s    V_4
+    IL_016b:  ldarg.0
+    IL_016c:  ldc.i4.s   -2
+    IL_016e:  stfld      ""int Program.<Main>d__0.<>1__state""
+    IL_0173:  ldarg.0
+    IL_0174:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+    IL_0179:  ldloc.s    V_4
+    IL_017b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0180:  leave.s    IL_0195
   }
-  IL_0196:  ldarg.0
-  IL_0197:  ldc.i4.s   -2
-  IL_0199:  stfld      ""int Program.<Main>d__0.<>1__state""
-  IL_019e:  ldarg.0
-  IL_019f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
-  IL_01a4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_01a9:  ret
+  IL_0182:  ldarg.0
+  IL_0183:  ldc.i4.s   -2
+  IL_0185:  stfld      ""int Program.<Main>d__0.<>1__state""
+  IL_018a:  ldarg.0
+  IL_018b:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+  IL_0190:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0195:  ret
 }");
         }
 
@@ -1809,7 +1799,7 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "");
             verifier.VerifyIL("Program.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
-  // Code size      320 (0x140)
+  // Code size      306 (0x132)
   .maxstack  3
   .locals init (int V_0,
                 object V_1,
@@ -1826,7 +1816,7 @@ class Program
     IL_000a:  ldarg.0
     IL_000b:  ldc.i4.0
     IL_000c:  stfld      ""int Program.<Main>d__0.<i>5__2""
-    IL_0011:  br         IL_0105
+    IL_0011:  br         IL_00f7
     IL_0016:  ldarg.0
     IL_0017:  newobj     ""System.IO.MemoryStream..ctor()""
     IL_001c:  stfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
@@ -1876,7 +1866,7 @@ class Program
       IL_0071:  ldloca.s   V_2
       IL_0073:  ldarg.0
       IL_0074:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, Program.<Main>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref Program.<Main>d__0)""
-      IL_0079:  leave      IL_013f
+      IL_0079:  leave      IL_0131
       IL_007e:  ldarg.0
       IL_007f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter Program.<Main>d__0.<>u__1""
       IL_0084:  stloc.2
@@ -1909,61 +1899,56 @@ class Program
       IL_00c7:  ldloc.3
       IL_00c8:  ldc.i4.1
       IL_00c9:  bne.un.s   IL_00cd
-      IL_00cb:  leave.s    IL_00f5
-      IL_00cd:  ldarg.0
-      IL_00ce:  ldnull
-      IL_00cf:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
-      IL_00d4:  leave.s    IL_00ee
+      IL_00cb:  leave.s    IL_00e7
+      IL_00cd:  ldnull
+      IL_00ce:  throw
     }
     finally
     {
-      IL_00d6:  ldloc.0
-      IL_00d7:  ldc.i4.0
-      IL_00d8:  bge.s      IL_00ed
-      IL_00da:  ldarg.0
-      IL_00db:  ldfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
-      IL_00e0:  brfalse.s  IL_00ed
-      IL_00e2:  ldarg.0
-      IL_00e3:  ldfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
-      IL_00e8:  callvirt   ""void System.IDisposable.Dispose()""
-      IL_00ed:  endfinally
+      IL_00cf:  ldloc.0
+      IL_00d0:  ldc.i4.0
+      IL_00d1:  bge.s      IL_00e6
+      IL_00d3:  ldarg.0
+      IL_00d4:  ldfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
+      IL_00d9:  brfalse.s  IL_00e6
+      IL_00db:  ldarg.0
+      IL_00dc:  ldfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
+      IL_00e1:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_00e6:  endfinally
     }
+    IL_00e7:  ldarg.0
+    IL_00e8:  ldfld      ""int Program.<Main>d__0.<i>5__2""
+    IL_00ed:  stloc.3
     IL_00ee:  ldarg.0
-    IL_00ef:  ldnull
-    IL_00f0:  stfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
-    IL_00f5:  ldarg.0
-    IL_00f6:  ldfld      ""int Program.<Main>d__0.<i>5__2""
-    IL_00fb:  stloc.3
-    IL_00fc:  ldarg.0
-    IL_00fd:  ldloc.3
-    IL_00fe:  ldc.i4.1
-    IL_00ff:  add
-    IL_0100:  stfld      ""int Program.<Main>d__0.<i>5__2""
-    IL_0105:  ldarg.0
-    IL_0106:  ldfld      ""int Program.<Main>d__0.<i>5__2""
-    IL_010b:  ldc.i4.5
-    IL_010c:  blt        IL_0016
-    IL_0111:  leave.s    IL_012c
+    IL_00ef:  ldloc.3
+    IL_00f0:  ldc.i4.1
+    IL_00f1:  add
+    IL_00f2:  stfld      ""int Program.<Main>d__0.<i>5__2""
+    IL_00f7:  ldarg.0
+    IL_00f8:  ldfld      ""int Program.<Main>d__0.<i>5__2""
+    IL_00fd:  ldc.i4.5
+    IL_00fe:  blt        IL_0016
+    IL_0103:  leave.s    IL_011e
   }
   catch System.Exception
   {
-    IL_0113:  stloc.s    V_4
-    IL_0115:  ldarg.0
-    IL_0116:  ldc.i4.s   -2
-    IL_0118:  stfld      ""int Program.<Main>d__0.<>1__state""
-    IL_011d:  ldarg.0
-    IL_011e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
-    IL_0123:  ldloc.s    V_4
-    IL_0125:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_012a:  leave.s    IL_013f
+    IL_0105:  stloc.s    V_4
+    IL_0107:  ldarg.0
+    IL_0108:  ldc.i4.s   -2
+    IL_010a:  stfld      ""int Program.<Main>d__0.<>1__state""
+    IL_010f:  ldarg.0
+    IL_0110:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+    IL_0115:  ldloc.s    V_4
+    IL_0117:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_011c:  leave.s    IL_0131
   }
-  IL_012c:  ldarg.0
-  IL_012d:  ldc.i4.s   -2
-  IL_012f:  stfld      ""int Program.<Main>d__0.<>1__state""
-  IL_0134:  ldarg.0
-  IL_0135:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
-  IL_013a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_013f:  ret
+  IL_011e:  ldarg.0
+  IL_011f:  ldc.i4.s   -2
+  IL_0121:  stfld      ""int Program.<Main>d__0.<>1__state""
+  IL_0126:  ldarg.0
+  IL_0127:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
+  IL_012c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0131:  ret
 }");
         }
 

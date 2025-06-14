@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      node.DeclarationsOpt.LocalDeclarations,
                                                      node.PatternDisposeInfoOpt,
                                                      node.AwaitOpt,
-                                                     awaitKeyword);
+                                                     awaitKeyword,
+                                                     node.EndIsReachable);
             }
         }
 
@@ -65,14 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
                                                        MethodArgumentInfo? patternDisposeInfo,
                                                        BoundAwaitableInfo? awaitOpt,
-                                                       SyntaxToken awaitKeyword)
+                                                       SyntaxToken awaitKeyword,
+                                                       AsyncTryFinallyEndReachable endIsReachable)
         {
             Debug.Assert(declarations != null);
 
             BoundBlock result = body;
             for (int i = declarations.Length - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
             {
-                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, awaitKeyword, awaitOpt, patternDisposeInfo);
+                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, awaitKeyword, awaitOpt, patternDisposeInfo, endIsReachable);
             }
 
             // Declare all locals in a single, top-level block so that the scope is correct in the debugger
@@ -96,8 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                ImmutableArray<LocalSymbol>.Empty,
                                                                usingDeclarations.LocalDeclarations,
                                                                usingDeclarations.PatternDisposeInfoOpt,
-                                                               awaitOpt: usingDeclarations.AwaitOpt,
-                                                               awaitKeyword: syntax.AwaitKeyword);
+                                                               usingDeclarations.AwaitOpt,
+                                                               syntax.AwaitKeyword,
+                                                               usingDeclarations.EndIsReachable);
 
             return usingStatement;
         }
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = Instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
-            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt, node.PatternDisposeInfoOpt);
+            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt, node.PatternDisposeInfoOpt, node.EndIsReachable);
 
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(
@@ -209,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock tryBlock,
             SyntaxToken awaitKeywordOpt,
             BoundAwaitableInfo? awaitOpt,
-            MethodArgumentInfo? patternDisposeInfo)
+            MethodArgumentInfo? patternDisposeInfo,
+            AsyncTryFinallyEndReachable endIsReachable)
         {
             Debug.Assert(localDeclaration.InitializerOpt is { });
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
@@ -251,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, declarationSyntax, tryBlock, boundTemp, awaitKeywordOpt, awaitOpt, patternDisposeInfo);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, declarationSyntax, tryBlock, boundTemp, awaitKeywordOpt, awaitOpt, patternDisposeInfo, endIsReachable);
 
                 return new BoundBlock(
                     syntax: declarationSyntax,
@@ -263,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, declarationSyntax, tryBlock, boundLocal, awaitKeywordOpt, awaitOpt, patternDisposeInfo);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, declarationSyntax, tryBlock, boundLocal, awaitKeywordOpt, awaitOpt, patternDisposeInfo, endIsReachable);
 
                 // localSymbol will be declared by an enclosing block
                 return BoundBlock.SynthesizedNoLocals(declarationSyntax, rewrittenDeclaration, tryFinally);
@@ -283,7 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal local,
             SyntaxToken awaitKeywordOpt,
             BoundAwaitableInfo? awaitOpt,
-            MethodArgumentInfo? patternDisposeInfo)
+            MethodArgumentInfo? patternDisposeInfo,
+            AsyncTryFinallyEndReachable endIsReachable)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -420,7 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: resourceSyntax,
                 tryBlock: tryBlock,
                 catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
-                finallyBlockOpt: BoundBlock.SynthesizedNoLocals(resourceSyntax, finallyStatement));
+                finallyBlockOpt: BoundBlock.SynthesizedNoLocals(resourceSyntax, finallyStatement),
+                endIsReachable);
 
             return tryFinally;
         }

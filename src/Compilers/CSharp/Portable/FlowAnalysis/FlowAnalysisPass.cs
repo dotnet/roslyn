@@ -6,11 +6,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var initialDiagnosticCount = diagnostics.ToReadOnly().Diagnostics.Length;
 #endif
             var compilation = method.DeclaringCompilation;
+            PooledDictionary<BoundNode, bool> asyncTryFinallyEndsReachable = null;
 
             if (method.ReturnsVoid || method.IsIterator || method.IsAsyncEffectivelyReturningTask(compilation))
             {
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool needsImplicitReturn = true;
                 // we don't analyze synthesized void methods.
                 if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) ||
-                    Analyze(compilation, method, block, diagnostics.DiagnosticBag, out needsImplicitReturn, out implicitlyInitializedFields))
+                    Analyze(compilation, method, block, diagnostics.DiagnosticBag, out needsImplicitReturn, out implicitlyInitializedFields, out asyncTryFinallyEndsReachable))
                 {
                     if (!implicitlyInitializedFields.IsDefault)
                     {
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (Analyze(compilation, method, block, diagnostics.DiagnosticBag, out var needsImplicitReturn, out var unusedImplicitlyInitializedFields))
+            else if (Analyze(compilation, method, block, diagnostics.DiagnosticBag, out var needsImplicitReturn, out var unusedImplicitlyInitializedFields, out asyncTryFinallyEndsReachable))
             {
                 Debug.Assert(unusedImplicitlyInitializedFields.IsDefault);
                 Debug.Assert(needsImplicitReturn);
@@ -89,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // return in cases where one was missing should never produce different Diagnostics.
                     IEnumerable<Diagnostic> getErrorsOnly(IEnumerable<Diagnostic> diags) => diags.Where(d => d.Severity == DiagnosticSeverity.Error);
                     var flowAnalysisDiagnostics = DiagnosticBag.GetInstance();
-                    Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics, needsImplicitReturn: out _, out unusedImplicitlyInitializedFields));
+                    Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics, needsImplicitReturn: out _, out unusedImplicitlyInitializedFields, out var discardedAsyncTryFinallyEndsReachable));
+                    discardedAsyncTryFinallyEndsReachable?.Free();
                     Debug.Assert(unusedImplicitlyInitializedFields.IsDefault);
                     // Ignore warnings since flow analysis reports nullability mismatches.
                     Debug.Assert(getErrorsOnly(flowAnalysisDiagnostics.ToReadOnly()).SequenceEqual(getErrorsOnly(diagnostics.ToReadOnly().Diagnostics.Skip(initialDiagnosticCount))));
@@ -102,6 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_ReturnExpected, method.GetFirstLocation(), method);
                 }
+            }
+
+            if (asyncTryFinallyEndsReachable is not null)
+            {
+                block = AsyncTryFinallyEndsReachableRewriter.Rewrite(block, asyncTryFinallyEndsReachable);
+                asyncTryFinallyEndsReachable.Free();
             }
 
             return block;
@@ -210,11 +218,92 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block,
             DiagnosticBag diagnostics,
             out bool needsImplicitReturn,
-            out ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt)
+            out ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt,
+            out PooledDictionary<BoundNode, bool> asyncTryFinallyEndsReachable)
         {
-            needsImplicitReturn = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
+            needsImplicitReturn = ControlFlowPass.Analyze(compilation, method, block, diagnostics, out asyncTryFinallyEndsReachable);
             DefiniteAssignmentPass.Analyze(compilation, method, block, diagnostics, out implicitlyInitializedFieldsOpt, requireOutParamsAssigned: true);
             return needsImplicitReturn || !implicitlyInitializedFieldsOpt.IsDefault;
+        }
+
+        internal sealed class AsyncTryFinallyEndsReachableRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            public static BoundBlock Rewrite(BoundBlock node, PooledDictionary<BoundNode, bool> asyncTryFinallyEndsReachable)
+            {
+                var rewriter = new AsyncTryFinallyEndsReachableRewriter(asyncTryFinallyEndsReachable);
+                Debug.Assert(asyncTryFinallyEndsReachable.All(kvp => kvp.Key is BoundTryStatement
+                    or BoundForEachStatement { AwaitOpt: not null }
+                    or BoundUsingStatement { AwaitOpt: not null }
+                    or BoundUsingLocalDeclarations { AwaitOpt: not null }));
+                return rewriter.Visit(node);
+            }
+
+            private readonly PooledDictionary<BoundNode, bool> _asyncTryFinallyEndsReachable;
+
+            private AsyncTryFinallyEndsReachableRewriter(PooledDictionary<BoundNode, bool> asyncTryFinallyEndsReachable)
+            {
+                _asyncTryFinallyEndsReachable = asyncTryFinallyEndsReachable;
+            }
+
+            private T Visit<T>(T node) where T : BoundNode => (T)base.Visit(node);
+
+            private AsyncTryFinallyEndReachable GetReachability(BoundNode node, AsyncTryFinallyEndReachable originalReachability)
+            {
+                if (_asyncTryFinallyEndsReachable.TryGetValue(node, out var returnValue))
+                {
+                    var reachability = returnValue ? AsyncTryFinallyEndReachable.Reachable : AsyncTryFinallyEndReachable.Unreachable;
+                    Debug.Assert(originalReachability == AsyncTryFinallyEndReachable.Unknown || originalReachability == reachability);
+                    return reachability;
+                }
+                else
+                {
+                    return originalReachability != AsyncTryFinallyEndReachable.Unknown
+                        ? originalReachability
+                        : AsyncTryFinallyEndReachable.Ignored;
+                }
+            }
+
+            public override BoundNode VisitTryStatement(BoundTryStatement node)
+                => node.Update(
+                    Visit(node.TryBlock),
+                    VisitList(node.CatchBlocks),
+                    Visit(node.FinallyBlockOpt),
+                    node.FinallyLabelOpt,
+                    node.PreferFaultHandler,
+                    GetReachability(node, node.EndIsReachable));
+
+            public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+                => node.Update(
+                    node.EnumeratorInfoOpt,
+                    Visit(node.ElementPlaceholder),
+                    Visit(node.ElementConversion),
+                    node.IterationVariableType,
+                    node.IterationVariables,
+                    Visit(node.IterationErrorExpressionOpt),
+                    Visit(node.Expression),
+                    Visit(node.DeconstructionOpt),
+                    Visit(node.AwaitOpt),
+                    Visit(node.Body),
+                    GetReachability(node, node.EndIsReachable),
+                    node.BreakLabel,
+                    node.ContinueLabel);
+
+            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+                => node.Update(
+                    node.Locals,
+                    Visit(node.DeclarationsOpt),
+                    Visit(node.ExpressionOpt),
+                    Visit(node.Body),
+                    Visit(node.AwaitOpt),
+                    node.PatternDisposeInfoOpt,
+                    GetReachability(node, node.EndIsReachable));
+
+            public override BoundNode VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node)
+                => node.Update(
+                    node.PatternDisposeInfoOpt,
+                    Visit(node.AwaitOpt),
+                    GetReachability(node, node.EndIsReachable),
+                    node.LocalDeclarations);
         }
     }
 }

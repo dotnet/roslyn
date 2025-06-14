@@ -129,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.AwaitOpt,
                 node.BreakLabel,
                 node.ContinueLabel,
-                rewrittenBody);
+                rewrittenBody,
+                node.EndIsReachable);
         }
 
         private BoundStatement RewriteForEachEnumerator(
@@ -143,7 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAwaitableInfo? awaitableInfo,
             LabelSymbol breakLabel,
             LabelSymbol continueLabel,
-            BoundStatement rewrittenBody)
+            BoundStatement rewrittenBody,
+            AsyncTryFinallyEndReachable endIsReachable)
         {
             var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
             bool isAsync = awaitableInfo != null;
@@ -258,7 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     forEachSyntax,
                     tryBlock: new BoundBlock(forEachSyntax, locals: ImmutableArray<LocalSymbol>.Empty, statements: ImmutableArray.Create(whileLoop)),
                     catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
-                    finallyBlockOpt: disposalFinallyBlock);
+                    finallyBlockOpt: disposalFinallyBlock,
+                    endIsReachable);
 
                 // E e = ((C)(x)).GetEnumerator();
                 // try {
