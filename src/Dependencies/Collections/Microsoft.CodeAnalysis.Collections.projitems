@@ -64,9 +64,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynEnumerable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)KeyValuePair.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OneOrMany.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TemporaryArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICollectionExtensions.cs" />

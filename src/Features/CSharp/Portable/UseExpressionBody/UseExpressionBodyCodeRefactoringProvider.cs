@@ -47,8 +47,8 @@ internal sealed class UseExpressionBodyCodeRefactoringProvider() : SyntaxEditorB
         {
             foreach (var helper in helpers)
             {
-                yield return KeyValuePairUtil.Create((helper, useExpressionBody: true), helper.GetType().Name + "_UseExpressionBody");
-                yield return KeyValuePairUtil.Create((helper, useExpressionBody: false), helper.GetType().Name + "_UseBlockBody");
+                yield return KeyValuePair.Create((helper, useExpressionBody: true), helper.GetType().Name + "_UseExpressionBody");
+                yield return KeyValuePair.Create((helper, useExpressionBody: false), helper.GetType().Name + "_UseBlockBody");
             }
         }
     }

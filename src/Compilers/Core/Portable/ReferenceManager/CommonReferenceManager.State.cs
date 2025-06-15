@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override IEnumerable<KeyValuePair<MetadataReference, IAssemblySymbolInternal>> GetReferencedAssemblies()
         {
-            return ReferencedAssembliesMap.Select(ra => KeyValuePairUtil.Create(ra.Key, (IAssemblySymbolInternal)ReferencedAssemblies[ra.Value]));
+            return ReferencedAssembliesMap.Select(ra => KeyValuePair.Create(ra.Key, (IAssemblySymbolInternal)ReferencedAssemblies[ra.Value]));
         }
 
         internal TAssemblySymbol? GetReferencedAssemblySymbol(MetadataReference reference)
