@@ -10,12 +10,19 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
+/// <summary>
+/// Allows the LSP server to create miscellaneous files documents.
+/// </summary>
+/// <remarks>
+/// No methods will be called concurrently, since we are dispatching LSP requests one at a time in the core dispatching loop.
+/// This does mean methods should be reasonably fast since they will block the LSP server from processing other requests while they are running.
+/// </remarks>
 internal interface ILspMiscellaneousFilesWorkspaceProvider : ILspService
 {
     /// <summary>
-    /// Returns the actual workspace that the documents are added to or removed from.
+    /// Returns whether the document is one that came from this provider.
     /// </summary>
-    Workspace Workspace { get; }
+    ValueTask<bool> IsProvidedDocumentAsync(TextDocument document);
 
     /// <summary>
     /// Adds a document to the workspace. Note that the implementation of this method should not depend on anything expensive such as RPC calls.
