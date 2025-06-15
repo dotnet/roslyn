@@ -17,12 +17,22 @@ namespace Microsoft.CodeAnalysis
     public interface IFieldSymbol : ISymbol
     {
         /// <summary>
+        /// <list type="bullet">
+        /// <item>
         /// If this field serves as a backing variable for an automatically generated
-        /// property or a field-like event, returns that 
-        /// property/event. Otherwise returns null.
+        /// property or a field-like event, returns that property/event
+        /// </item>
+        /// <item>
+        /// If this field serves as a backing variable for a captured primary constructor parameter,
+        /// returns that primary constructor parameter
+        /// </item>
+        /// </list>
+        /// Otherwise returns <see langword="null"/>
+        /// </summary>
+        /// <remarks>
         /// Note, the set of possible associated symbols might be expanded in the future to 
         /// reflect changes in the languages.
-        /// </summary>
+        /// </remarks>
         ISymbol? AssociatedSymbol { get; }
 
         /// <summary>
