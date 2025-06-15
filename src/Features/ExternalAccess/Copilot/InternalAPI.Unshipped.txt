@@ -51,9 +51,9 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.TypeParam = 2 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType.Value = 5 -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentTagType
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.AdditionalContext.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper?>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.AdditionalContext.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper!>
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.CopilotOnTheFlyDocsInfoWrapper(Microsoft.CodeAnalysis.QuickInfo.OnTheFlyDocsInfo! onTheFlyDocsInfo) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.DeclarationCode.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper?>
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.DeclarationCode.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsRelevantFileInfoWrapper!>
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.HasComments.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.IsContentExcluded.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotOnTheFlyDocsInfoWrapper.Language.get -> string!
