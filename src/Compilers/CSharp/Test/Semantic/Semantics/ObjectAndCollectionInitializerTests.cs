@@ -252,8 +252,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            // TODO: This should produce no diagnostics.
-            CreateCompilation(source, references: new MetadataReference[] { CSharpRef }).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -441,8 +440,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-            CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
-                VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3983,7 +3981,7 @@ public class Cc{
     }
 }
 ";
-            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
+            CompileAndVerify(source, expectedOutput: "Initialized");
         }
 
         [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]

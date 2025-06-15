@@ -4930,7 +4930,7 @@ public class Program738490379
             Task.WaitAll(tasks.ToArray());
         }
 
-        private static void PatternMatchingFuzz(int dt)
+        private void PatternMatchingFuzz(int dt)
         {
             Random r = new Random(dt);
 
@@ -8260,7 +8260,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithNetCoreApp(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -8487,7 +8487,7 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars is """";
 }
 ";
-            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithNetFrameworkAndSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(ReadOnlySpan<char> chars) => chars is "";
@@ -8516,7 +8516,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithNetFrameworkAndSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
@@ -8689,7 +8689,7 @@ class C
     static bool M1(ReadOnlySpan<char> chars) => chars is null;
     static bool M2(ReadOnlySpan<char> chars) => chars is default;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithNetCoreApp(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (5,58): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                 //     static bool M1(ReadOnlySpan<char> chars) => chars is null;
@@ -8762,7 +8762,7 @@ class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
 }";
-            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithNetCoreApp(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
                     // (5,63): error CS9133: A constant value of type 'ReadOnlySpan<char>' is expected
                     //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
@@ -9860,7 +9860,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithNetCoreApp(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -10087,7 +10087,7 @@ class C
     static bool M(Span<char> chars) => chars is """";
 }
 ";
-            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithNetFrameworkAndSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(Span<char> chars) => chars is "";
@@ -10116,7 +10116,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithNetFrameworkAndSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
@@ -10309,7 +10309,7 @@ class C
 {
     static bool M(Span<char> chars) => chars is (object)null;
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithNetCoreApp(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (4,49): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(Span<char> chars) => chars is (object)null;
@@ -10380,7 +10380,7 @@ class C
 {
     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithNetCoreApp(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (4,55): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
@@ -11178,7 +11178,7 @@ class Program
         };
     }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
+            var comp = CreateCompilationWithNetCoreApp(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"0
