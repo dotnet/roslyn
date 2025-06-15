@@ -22650,5 +22650,52 @@ public " + keyword + @" Test1(
                     m.GlobalNamespace.GetMember("Test1.<P1>P").GetAttributes().Select(a => a.ToString()));
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70208")]
+        public void AssociatedSymbolOfCapturedPrimaryParameterField()
+        {
+            var source = """
+                #pragma warning disable 0169 // The field 'C.justAnInnocentField' is never used
+
+                class C(int i)
+                {
+                    private int justAnInnocentField;
+
+                    int M()
+                    {
+                        return i;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var cType = comp.GetTypeByMetadataName("C");
+            var cFields = cType.GetMembers().OfType<FieldSymbol>().ToArray();
+            Assert.Equal(2, cFields.Length);
+
+            foreach (var field in cFields)
+            {
+                if (field.IsImplicitlyDeclared)
+                {
+                    var associatedSymbol = field.AssociatedSymbol;
+                    var associatedParameter = Assert.IsAssignableFrom<ParameterSymbol>(associatedSymbol);
+                    Assert.Equal("System.Int32 i", associatedParameter.ToTestDisplayString());
+                    Assert.Equal("C..ctor(System.Int32 i)", associatedParameter.ContainingSymbol.ToTestDisplayString());
+
+                    IFieldSymbol publicField = field.GetPublicSymbol();
+                    IParameterSymbol publicAssociatedParameter = Assert.IsAssignableFrom<IParameterSymbol>(publicField.AssociatedSymbol);
+                    Assert.Equal("System.Int32 i", publicAssociatedParameter.ToTestDisplayString());
+                    Assert.Equal("C..ctor(System.Int32 i)", publicAssociatedParameter.ContainingSymbol.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("justAnInnocentField", field.Name);
+                    Assert.Null(field.AssociatedSymbol);
+                    Assert.Null(field.GetPublicSymbol().AssociatedSymbol);
+                }
+            }
+        }
     }
 }
