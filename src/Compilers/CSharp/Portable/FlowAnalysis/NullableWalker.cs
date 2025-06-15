@@ -3866,7 +3866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We do not analyze the full call or all the arguments.
                         // We only analyze the single argument that represents the collection-expression element.
                         SetUnknownResultNullability(initializer);
-                        Debug.Assert(node.Placeholder is not null);
+                        Debug.Assert(node.Placeholder is { });
                         SetUnknownResultNullability(node.Placeholder);
 
                         var argIndex = initializer.AddMethod.IsExtensionMethod ? 1 : 0;
@@ -3939,11 +3939,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var completion1 = VisitOptionalImplicitConversion(elementExpr, targetElementType,
+                            var completion = VisitOptionalImplicitConversion(elementExpr, targetElementType,
                                 useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
 
-                            Debug.Assert(completion1 is not null);
-                            elementConversionCompletions.Add((elementType, _) => completion1(elementType));
+                            Debug.Assert(completion is not null);
+                            elementConversionCompletions.Add((elementType, _) => completion(elementType));
                         }
                         break;
                 }
