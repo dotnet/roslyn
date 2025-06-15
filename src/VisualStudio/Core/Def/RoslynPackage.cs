@@ -14,10 +14,12 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
@@ -215,11 +217,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
         ReportSessionWideTelemetry();
 
-        if (_solutionEventMonitor != null)
-        {
-            _solutionEventMonitor.Dispose();
-            _solutionEventMonitor = null;
-        }
+        _solutionEventMonitor?.Dispose();
+        _solutionEventMonitor = null;
 
         base.Dispose(disposing);
     }

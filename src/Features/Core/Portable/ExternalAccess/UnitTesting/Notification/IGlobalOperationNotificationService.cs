@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Notification;
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 
 /// <summary>
 /// Optional interface that can be used to hear about when expensive global operations (like a 'build') occur in the
