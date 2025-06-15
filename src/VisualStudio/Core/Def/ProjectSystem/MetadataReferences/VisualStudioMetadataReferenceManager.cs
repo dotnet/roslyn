@@ -17,6 +17,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -63,6 +64,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     private readonly IVsXMLMemberIndexService _xmlMemberIndexService;
     private readonly ReaderWriterLockSlim _smartOpenScopeLock = new();
 
+    private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly Workspace _workspace;
+
     /// <summary>
     /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
     /// use of this field or derived types should be synchronized with <see cref="_smartOpenScopeLock"/> to ensure
@@ -74,9 +78,12 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioMetadataReferenceManager(
         SVsServiceProvider serviceProvider,
-        VisualStudioWorkspace workspace)
+        VisualStudioWorkspace workspace,
+        FileChangeWatcherProvider fileChangeWatcherProvider)
     {
         _runtimeDirectories = GetRuntimeDirectories();
+        _fileChangeWatcher = fileChangeWatcherProvider.Watcher;
+        _workspace = workspace;
 
         _xmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
         Assumes.Present(_xmlMemberIndexService);
@@ -127,7 +134,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     }
 
     public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        => new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTracker: null);
+        => new VisualStudioPortableExecutableReference(this, properties, filePath, _fileChangeWatcher, _workspace);
 
     private bool VsSmartScopeCandidate(string fullPath)
         => _runtimeDirectories.Any(static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), fullPath);
