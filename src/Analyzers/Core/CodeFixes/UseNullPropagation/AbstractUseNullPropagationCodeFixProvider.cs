@@ -49,8 +49,6 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
     where TExpressionStatementSyntax : TStatementSyntax
     where TElementBindingArgumentListSyntax : SyntaxNode
 {
-    protected abstract bool TryGetBlock(SyntaxNode? node, [NotNullWhen(true)] out TStatementSyntax? block);
-    protected abstract TStatementSyntax ReplaceBlockStatements(TStatementSyntax block, TStatementSyntax newInnerStatement);
     protected abstract SyntaxNode PostProcessElseIf(TIfStatementSyntax ifStatement, TStatementSyntax newWhenTrueStatement);
     protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
@@ -198,9 +196,6 @@ internal abstract class AbstractUseNullPropagationCodeFixProvider<
             //     v?.M();
             // }
             // Applies only to C# since VB doesn't have a general-purpose block syntax
-            if (TryGetBlock(whenTrueStatement.Parent, out var block))
-                newWhenTrueStatement = ReplaceBlockStatements(block, newWhenTrueStatement);
-
             editor.ReplaceNode(ifStatement.Parent, PostProcessElseIf(ifStatement, newWhenTrueStatement));
         }
         else

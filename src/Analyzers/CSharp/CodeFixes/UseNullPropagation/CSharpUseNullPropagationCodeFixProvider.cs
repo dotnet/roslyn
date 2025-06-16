@@ -31,26 +31,15 @@ internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNul
     ExpressionStatementSyntax,
     BracketedArgumentListSyntax>
 {
-    protected override bool TryGetBlock(SyntaxNode? statement, [NotNullWhen(true)] out StatementSyntax? block)
-    {
-        if (statement is BlockSyntax statementBlock)
-        {
-            block = statementBlock;
-            return true;
-        }
+    private static BlockSyntax ReplaceBlockStatements(BlockSyntax block, StatementSyntax newInnerStatement)
+        => block.WithStatements([newInnerStatement, .. block.Statements.Skip(1).Select(s => s.WithAdditionalAnnotations(Formatter.Annotation))]);
 
-        block = null;
-        return false;
-    }
-
-    protected override StatementSyntax ReplaceBlockStatements(StatementSyntax blockStatement, StatementSyntax newInnerStatement)
+    protected override SyntaxNode PostProcessElseIf(
+        IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
     {
-        var block = (BlockSyntax)blockStatement;
-        return block.WithStatements([newInnerStatement, .. block.Statements.Skip(1).Select(s => s.WithAdditionalAnnotations(Formatter.Annotation))]);
-    }
+        if (ifStatement.Statement is BlockSyntax block)
+            newWhenTrueStatement = ReplaceBlockStatements(block, newWhenTrueStatement);
 
-    protected override SyntaxNode PostProcessElseIf(IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
-    {
         var elseClauseSyntax = (ElseClauseSyntax)ifStatement.Parent!;
         return elseClauseSyntax
             .WithElseKeyword(elseClauseSyntax.ElseKeyword.WithTrailingTrivia())
