@@ -334,7 +334,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
-                    Debug.Assert(!IsDisallowedExtensionInOlderLangVer(method));
 
                     inPlaceResult = new BoundCompoundAssignmentOperator(
                         node,
@@ -2648,7 +2647,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
-                    Debug.Assert(!IsDisallowedExtensionInOlderLangVer(method));
 
                     inPlaceResult = new BoundIncrementOperator(
                         node,
