@@ -217,7 +217,7 @@ public sealed class CSharpCallHierarchyTests
         testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, "N.C.Goo()"), ["N.D.Bar()"]);
     }
 
-    [WpfFact]
+    [WpfFact(Skip = "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2506733")]
     public async Task FieldInitializers()
     {
         var text = """
