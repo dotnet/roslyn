@@ -594,7 +594,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                         .Where(n => _syntaxFacts.IsVariableDeclarator(n)))
                     {
                         if (_syntaxFacts.GetInitializerOfVariableDeclarator(declarator)?.DescendantNodesAndSelf()
-                            .Contains(calleeMethodInvocationNode) == true)
+                            .Contains(calleeMethodInvocationNode) is true)
                         {
                             var fieldName = _syntaxFacts.GetIdentifierOfVariableDeclarator(declarator).ValueText;
                             return symbols.OfType<IFieldSymbol>()
