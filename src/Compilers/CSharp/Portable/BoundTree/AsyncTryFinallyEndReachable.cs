@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp;
 /// Only nodes that can have an await in the finally block are tracked with this enum, for use in <see cref="AsyncExceptionHandlerRewriter.VisitTryStatement(BoundTryStatement)"/>.
 /// Try/finally nodes that are synthesized by the compiler during lowering and do not have an await in the finally block can use <see cref="AsyncTryFinallyEndReachable.Ignored"/>.
 /// </summary>
+/// <remarks>
+/// This enum is only valid in valid code; for example, there could be an invalid using local declaration that gets an incorrect reachability value recorded, but as this is
+/// only considered during <see cref="AsyncExceptionHandlerRewriter"/> as part of lowering, code that is invalid due to this type of issue is not a concern.
+/// </remarks>
 internal enum AsyncTryFinallyEndReachable
 {
     /// <summary>

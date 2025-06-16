@@ -1399,6 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // If we ever support async enumerators in collection expressions, we will need to pass an awaitableInfo here.
                 statement = RewriteForEachEnumerator(
                     node,
                     convertedExpression,
@@ -1411,7 +1412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     breakLabel,
                     continueLabel,
                     rewrittenBody,
-                    endIsReachable: AsyncTryFinallyEndReachable.Reachable);
+                    endIsReachable: AsyncTryFinallyEndReachable.Ignored);
             }
 
             RemovePlaceholderReplacement(expressionPlaceholder);
