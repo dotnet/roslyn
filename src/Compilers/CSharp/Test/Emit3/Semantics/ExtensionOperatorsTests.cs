@@ -12263,8 +12263,8 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: Note, an attempt to do compile time optimization using non-dynamic static type of 's2' ignores true/false extensions .
-            //            One might say this is desirable because runtime binder wouldn't be able to use them as well.
+            // Note, an attempt to do compile time optimization using non-dynamic static type of 's2' ignores true/false extensions.
+            // This is desirable because runtime binder wouldn't be able to use them as well.
             comp.VerifyEmitDiagnostics(
                 // (26,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'object' must define operator 'false'.
                 //         _ = s2 && s1;
