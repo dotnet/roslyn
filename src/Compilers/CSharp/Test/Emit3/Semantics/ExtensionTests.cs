@@ -20971,10 +20971,10 @@ class C { }
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
     }
 
     [Fact]
@@ -22600,7 +22600,7 @@ _ = c is { Property: 42 };
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(2, 12));
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -23168,7 +23168,7 @@ _ = new C() { Property = 42 };
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 15));
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -23322,7 +23322,7 @@ _ = new S() with { Property = 42 };
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 20));
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
-        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
