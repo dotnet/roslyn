@@ -4,8 +4,10 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseNullPropagation;
 
@@ -41,8 +43,11 @@ internal sealed class CSharpUseNullPropagationCodeFixProvider() : AbstractUseNul
         return false;
     }
 
-    protected override StatementSyntax ReplaceBlockStatements(StatementSyntax block, StatementSyntax newInnerStatement)
-        => ((BlockSyntax)block).WithStatements([newInnerStatement]);
+    protected override StatementSyntax ReplaceBlockStatements(StatementSyntax blockStatement, StatementSyntax newInnerStatement)
+    {
+        var block = (BlockSyntax)blockStatement;
+        return block.WithStatements([newInnerStatement, .. block.Statements.Skip(1).Select(s => s.WithAdditionalAnnotations(Formatter.Annotation))]);
+    }
 
     protected override SyntaxNode PostProcessElseIf(IfStatementSyntax ifStatement, StatementSyntax newWhenTrueStatement)
     {
