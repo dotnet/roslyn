@@ -26,7 +26,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
 
     public bool RequiresLSPSolution => true;
 
-    private readonly ILogger<DotnetCliHelper> _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
+    private readonly ILogger<RestoreHandler> _logger = loggerFactory.CreateLogger<RestoreHandler>();
 
     public async Task<RestorePartialResult[]> HandleRequestAsync(RestoreParams request, RequestContext context, CancellationToken cancellationToken)
     {
