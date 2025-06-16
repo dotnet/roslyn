@@ -75,7 +75,8 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
         var changedDocuments = solutionChanges
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
-            .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
+            .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First())
+            .Concat(solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments());
 
         var textDiffService = renamedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
