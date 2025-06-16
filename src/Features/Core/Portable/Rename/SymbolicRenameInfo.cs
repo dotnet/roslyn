@@ -222,7 +222,7 @@ internal sealed class SymbolicRenameInfo
                 var solution = document.Project.Solution;
                 var sourceDocument = solution.GetRequiredDocument(location.SourceTree);
 
-                if (sourceDocument is SourceGeneratedDocument)
+                if (!allowRenameInGeneratedDocument && sourceDocument is SourceGeneratedDocument)
                 {
                     // The file is generated so doesn't count towards valid spans 
                     // we can edit.

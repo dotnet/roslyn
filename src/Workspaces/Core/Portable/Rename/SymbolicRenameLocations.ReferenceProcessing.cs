@@ -236,7 +236,7 @@ internal sealed partial class SymbolicRenameLocations
                 // If the location is in a source generated file, we won't rename it. Our assumption in this case is we
                 // have cascaded to this symbol from our original source symbol, and the generator will update this file
                 // based on the renamed symbol.
-                if (document is not SourceGeneratedDocument)
+                if (allowRenameInGeneratedDocument || document is not SourceGeneratedDocument)
                     results.Add(new RenameLocation(location, document.Id, isRenamableAccessor: isRenamableAccessor));
             }
         }
@@ -245,7 +245,7 @@ internal sealed partial class SymbolicRenameLocations
         {
             // We won't try to update references in source generated files; we'll assume the generator will rerun
             // and produce an updated document with the new name.
-            if (location.Document is SourceGeneratedDocument)
+            if (!allowRenameInGeneratedDocument && location.Document is SourceGeneratedDocument)
                 return [];
 
             var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, true, cancellationToken).ConfigureAwait(false);
