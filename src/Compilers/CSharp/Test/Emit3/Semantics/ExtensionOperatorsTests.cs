@@ -2891,6 +2891,147 @@ class Program
             CompileAndVerify(comp, expectedOutput: "operator1operator1:s1 => IIF(op_True(s1), 1, 0)").VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedUnaryOperator_RefStruct
+        /// </summary>
+        [Fact]
+        public void Unary_052_RefSafety()
+        {
+            var source = """
+class C
+{
+    S M1()
+    {
+        S s;
+        s = +s; // 1
+        return s;
+    }
+
+    S M2()
+    {
+        return +new S(); // 2
+    }
+
+    S M3(in S x)
+    {
+        S s;
+        s = +x; // 3
+        return s;
+    }
+
+    S M4(in S x)
+    {
+        return +x;
+    }
+
+    S M4s(scoped in S x)
+    {
+        return +x; // 4
+    }
+
+    S M5(in S x)
+    {
+        S s = +x;
+        return s;
+    }
+
+    S M5s(scoped in S x)
+    {
+        S s = +x;
+        return s; // 5
+    }
+
+    S M6()
+    {
+        S s = +new S();
+        return s; // 6
+    }
+
+    void M7(in S x)
+    {
+        scoped S s;
+        s = +x;
+        s = +new S();
+    }
+}
+
+ref struct S
+{
+}
+
+static class Extensions
+{
+    extension(S)
+    {
+        public static S operator+(in S s) => throw null;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = +s; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+s").WithArguments("Extensions.extension(S).operator +(in S)", "s").WithLocation(6, 13),
+                // (6,14): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                //         s = +s; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(6, 14),
+                // (12,16): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return +new S(); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+new S()").WithArguments("Extensions.extension(S).operator +(in S)", "s").WithLocation(12, 16),
+                // (12,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return +new S(); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(12, 17),
+                // (18,13): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = +x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+x").WithArguments("Extensions.extension(S).operator +(in S)", "s").WithLocation(18, 13),
+                // (18,14): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = +x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 14),
+                // (29,16): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return +x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+x").WithArguments("Extensions.extension(S).operator +(in S)", "s").WithLocation(29, 16),
+                // (29,17): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return +x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 17),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedUnaryOperator_RefStruct_Scoped
+        /// </summary>
+        [Fact]
+        public void Unary_053_RefSafety()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+        return !new R(0);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static R operator !(scoped R r) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
         [Theory]
         [CombinatorialData]
         public void Increment_001_Declaration([CombinatorialValues("++", "--")] string op)
@@ -6905,6 +7046,257 @@ class Program
                 //         Expression<System.Func<S1, S1>> ex = (s1) => --s1;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "--s1").WithLocation(21, 54)
                 );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void Increment_074_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(scoped C left) => throw null;
+    public void M(scoped C c1)
+    {
+#line 7
+        ++c1;
+#line 9
+        c1 = X(c1);
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator ++(scoped C left) => throw null;
+    }
+}
+""";
+
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void Increment_075_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(scoped C left) => throw null;
+    public C M(C c, scoped C c1)
+    {
+#line 7
+        c = ++c1;
+#line 9
+        c = X(c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator ++(scoped C left) => throw null;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (7,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = ++c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "++c1").WithArguments("scoped C c1").WithLocation(7, 13)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void Increment_076_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M(C c, scoped C c1)
+    {
+#line 7
+        c = c1++;
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator ++(scoped C left) => throw null;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (7,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c1++;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1++").WithArguments("scoped C c1").WithLocation(7, 13)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_01
+        /// </summary>
+        [Fact]
+        public void Increment_077_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M(scoped C c, C c1)
+    {
+        c = ++c1;
+        return c1;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator ++(C right) => right;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_01
+        /// </summary>
+        [Fact]
+        public void Increment_078_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M(scoped C c, C c1)
+    {
+        c = c1++;
+        return c1;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator ++(C right) => right;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void Increment_079_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public void X() => throw null;
+    public void M(scoped C c1)
+    {
+#line 7
+        ++c1;
+#line 9
+        c1.X();
+    }
+}
+
+static class Extensions
+{
+    extension(scoped ref C left)
+    {
+        public void operator ++() => throw null;
+    }
+}
+""";
+
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void Increment_080_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public void X() => throw null;
+    public C M(C c, scoped C c1)
+    {
+#line 7
+        c = ++c1;
+#line 9
+        c1.X();
+        c = c1;
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(scoped ref C left)
+    {
+        public void operator ++() => throw null;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (7,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = ++c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "++c1").WithArguments("scoped C c1").WithLocation(7, 13),
+                // (10,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(10, 13)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_01
+        /// </summary>
+        [Fact]
+        public void Increment_081_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M(scoped C c, C c1)
+    {
+        c = ++c1;
+        return c1;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C right)
+    {
+        public void operator ++() {}
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Theory]
@@ -12460,6 +12852,667 @@ class Program
                 );
         }
 
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct
+        /// </summary>
+        [Fact]
+        public void Binary_093_RefSafety()
+        {
+            var source = """
+class C
+{
+    S M1()
+    {
+        S s;
+        s = 100 + default(S); // 1
+        return s;
+    }
+
+    S M2()
+    {
+        return 200 + default(S); // 2
+    }
+
+    S M3(in int x)
+    {
+        S s;
+        s = x + default(S); // 3
+        return s;
+    }
+
+    S M4(in int x)
+    {
+        return x + default(S);
+    }
+
+    S M4s(scoped in int x)
+    {
+        return x + default(S); // 4
+    }
+
+    S M5(in int x)
+    {
+        S s = x + default(S);
+        return s;
+    }
+
+    S M5s(scoped in int x)
+    {
+        S s = x + default(S);
+        return s; // 5
+    }
+
+    S M6()
+    {
+        S s = 300 + default(S);
+        return s; // 6
+    }
+
+    void M7(in int x)
+    {
+        scoped S s;
+        s = x + default(S);
+        s = 100 + default(S);
+    }
+}
+
+ref struct S
+{
+}
+
+static class Extensions
+{
+    extension(S)
+    {
+        public static S operator+(in int x, S y) => throw null;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100 + default(S); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100 + default(S); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100 + default(S)").WithArguments("Extensions.extension(S).operator +(in int, S)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200 + default(S); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200 + default(S); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200 + default(S)").WithArguments("Extensions.extension(S).operator +(in int, S)", "x").WithLocation(12, 16),
+                // (18,13): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = x + default(S); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x + default(S); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x + default(S)").WithArguments("Extensions.extension(S).operator +(in int, S)", "x").WithLocation(18, 13),
+                // (29,16): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return x + default(S); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x + default(S); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x + default(S)").WithArguments("Extensions.extension(S).operator +(in int, S)", "x").WithLocation(29, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Nested
+        /// </summary>
+        [Fact]
+        public void Binary_094_RefSafety()
+        {
+            var source = """
+class C
+{
+    S M()
+    {
+        S s;
+        s = default(S) + 100 + 200;
+        return s;
+    }
+}
+
+ref struct S
+{
+}
+
+static class Extensions
+{
+    extension(S)
+    {
+        public static S operator+(S y, in int x) => throw null;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(S, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "default(S) + 100").WithArguments("Extensions.extension(S).operator +(S, in int)", "x").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'Extensions.extension(S).operator +(S, in int)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "default(S) + 100 + 200").WithArguments("Extensions.extension(S).operator +(S, in int)", "y").WithLocation(6, 13),
+                // (6,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 26)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void Binary_095_RefSafety()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+#line 11
+        return new R(1) + new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static R operator +(scoped R x, R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (11,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator +(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) + new R(2)").WithArguments("Extensions.extension(R).operator +(scoped R, R)", "y").WithLocation(11, 16),
+                // (11,27): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(11, 27),
+                // (11,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(11, 33)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Scoped_Right
+        /// </summary>
+        [Fact]
+        public void Binary_096_RefSafety()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+#line 11
+        return new R(1) + new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static R operator +(R x, scoped R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (11,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(11, 16),
+                // (11,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator +(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) + new R(2)").WithArguments("Extensions.extension(R).operator +(R, scoped R)", "x").WithLocation(11, 16),
+                // (11,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(11, 22)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Scoped_Both
+        /// </summary>
+        [Fact]
+        public void Binary_097_RefSafety()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+        return new R(1) + new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static R operator +(scoped R x, scoped R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Scoped_None
+        /// </summary>
+        [Fact]
+        public void Binary_098_RefSafety()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+#line 11
+        return new R(1) + new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static R operator +(R x, R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (11,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(11, 16),
+                // (11,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator +(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) + new R(2)").WithArguments("Extensions.extension(R).operator +(R, R)", "x").WithLocation(11, 16),
+                // (11,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(11, 22)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedLogical
+        /// </summary>
+        [Fact]
+        public void Binary_099_RefSafety_Logical()
+        {
+            var text = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+    }
+
+    S1 Test()
+    {
+        S1 global = default;
+        S1 local = stackalloc int[100];
+
+        // ok
+        local = global && local;
+        local = local && local;
+
+        // ok
+        global = global && global;
+
+        // error
+        global = local && global;
+
+        // error
+        return global || local;
+    }
+}
+
+ref struct S1
+{
+    public static implicit operator S1(Span<int> o) => default;
+}
+
+static class Extensions
+{
+    extension(S1)
+    {
+        public static bool operator true(S1 o) => true;
+        public static bool operator false(S1 o) => false;
+
+        public static S1 operator &(S1 x, S1 y) => x;
+        public static S1 operator |(S1 x, S1 y) => x;
+    }
+}
+";
+            CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (22,18): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local && global;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(22, 18),
+                // (22,18): error CS8347: Cannot use a result of 'Extensions.extension(S1).operator &(S1, S1)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         global = local && global;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "local && global").WithArguments("Extensions.extension(S1).operator &(S1, S1)", "x").WithLocation(22, 18),
+                // (25,16): error CS8347: Cannot use a result of 'Extensions.extension(S1).operator |(S1, S1)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return global || local;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "global || local").WithArguments("Extensions.extension(S1).operator |(S1, S1)", "y").WithLocation(25, 16),
+                // (25,26): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         return global || local;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(25, 26)
+                 );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedLogicalOperator_RefStruct
+        /// </summary>
+        [Fact]
+        public void Binary_100_RefSafety_Logical()
+        {
+            var source = """
+class C
+{
+    S M1(S s1, S s2)
+    {
+        S s = s1 && s2;
+        return s; // 1
+    }
+
+    S M2(S s1, S s2)
+    {
+        return s1 && s2; // 2
+    }
+
+    S M3(in S s1, in S s2)
+    {
+        S s = s1 && s2;
+        return s;
+    }
+
+    S M4(scoped in S s1, in S s2)
+    {
+        S s = s1 && s2;
+        return s; // 3
+    }
+
+    S M5(in S s1, scoped in S s2)
+    {
+        S s = s1 && s2;
+        return s; // 4
+    }
+}
+
+ref struct S
+{
+}
+
+static class Extensions
+{
+    extension(S)
+    {
+        public static bool operator true(in S s) => throw null;
+        public static bool operator false(in S s) => throw null;
+        public static S operator &(in S x, in S y) => throw null;
+        public static S operator |(in S x, in S y) => throw null;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(6, 16),
+                // (11,16): error CS8166: Cannot return a parameter by reference 's1' because it is not a ref parameter
+                //         return s1 && s2; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s1").WithArguments("s1").WithLocation(11, 16),
+                // (11,16): error CS8347: Cannot use a result of 'Extensions.extension(S).operator &(in S, in S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return s1 && s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "s1 && s2").WithArguments("Extensions.extension(S).operator &(in S, in S)", "x").WithLocation(11, 16),
+                // (23,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(23, 16),
+                // (29,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(29, 16)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedLogicalOperator_RefStruct_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void Binary_101_RefSafety_Logical()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+#line 13
+        return new R(1) || new R(2);
+    }
+
+    static R F2()
+    {
+        return new R(1) | new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static bool operator true(R r) => true;
+        public static bool operator false(R r) => false;
+        public static R operator |(scoped R x, R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator |(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("Extensions.extension(R).operator |(scoped R, R)", "y").WithLocation(13, 16),
+                // (13,28): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(13, 28),
+                // (13,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(13, 34),
+                // (18,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator |(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("Extensions.extension(R).operator |(scoped R, R)", "y").WithLocation(18, 16),
+                // (18,27): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(18, 27),
+                // (18,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(18, 33)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedLogicalOperator_RefStruct_Scoped_Right
+        /// </summary>
+        [Fact]
+        public void Binary_102_RefSafety_Logical()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+#line 13
+        return new R(1) || new R(2);
+    }
+
+    static R F2()
+    {
+        return new R(1) | new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static bool operator true(R r) => true;
+        public static bool operator false(R r) => false;
+        public static R operator |(R x, scoped R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator |(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("Extensions.extension(R).operator |(R, scoped R)", "x").WithLocation(13, 16),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22),
+                // (18,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(18, 16),
+                // (18,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator |(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("Extensions.extension(R).operator |(R, scoped R)", "x").WithLocation(18, 16),
+                // (18,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedLogicalOperator_RefStruct_Scoped_Both
+        /// </summary>
+        [Fact]
+        public void Binary_103_RefSafety_Logical()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+        return new R(1) || new R(2);
+    }
+
+    static R F2()
+    {
+        return new R(1) | new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static bool operator true(R r) => true;
+        public static bool operator false(R r) => false;
+        public static R operator |(scoped R x, scoped R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedLogicalOperator_RefStruct_Scoped_None
+        /// </summary>
+        [Fact]
+        public void Binary_104_RefSafety_Logical()
+        {
+            var source = """
+ref struct R
+{
+    private ref readonly int _i;
+    public R(in int i) { _i = ref i; }
+}
+class Program
+{
+    static R F()
+    {
+#line 13
+        return new R(1) || new R(2);
+    }
+
+    static R F2()
+    {
+        return new R(1) | new R(2);
+    }
+}
+
+static class Extensions
+{
+    extension(R)
+    {
+        public static bool operator true(R r) => true;
+        public static bool operator false(R r) => false;
+        public static R operator |(R x, R y) => default;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator |(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("Extensions.extension(R).operator |(R, R)", "x").WithLocation(13, 16),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22),
+                // (18,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(18, 16),
+                // (18,16): error CS8347: Cannot use a result of 'Extensions.extension(R).operator |(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("Extensions.extension(R).operator |(R, R)", "x").WithLocation(18, 16),
+                // (18,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void CompoundAssignment_001_Declaration([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
@@ -16862,10 +17915,1133 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "s1 += s1").WithLocation(21, 54)
                 );
         }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_01
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_081_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(C left, C right) => right;
+    public C M(C c, scoped C c1)
+    {
+#line 7
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c;
     }
 }
 
-// PROTOTYPE: Test unsafe and partial, IOperation/CFG , Linq expression tree, Nullable analysis
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C left, C right) => right;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,9): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("Extensions.extension(C).operator +(C, C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (8,13): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c + c1").WithArguments("Extensions.extension(C).operator +(C, C)", "right").WithLocation(8, 13),
+                // (8,17): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 17),
+                // (9,13): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(9, 13),
+                // (9,18): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(9, 18)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_02
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_082_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(C left, C right) => right;
+    public static C Y(C left) => left;
+    public C M1(C c, scoped C c1)
+    {
+#line 8
+        return Y(c += c1);
+    }
+    public C M2(C c, scoped C c1)
+    {
+        return Y(c = X(c, c1));
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C left, C right) => right;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c += c1)").WithArguments("C.Y(C)", "left").WithLocation(8, 16),
+                // (8,18): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("Extensions.extension(C).operator +(C, C)", "right").WithLocation(8, 18),
+                // (8,18): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("Extensions.extension(C).operator +(C, C)", "right").WithLocation(8, 18),
+                // (8,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 23),
+                // (8,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 23),
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_083_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(scoped C left, C right) => right;
+    public C M(C c, scoped C c1)
+    {
+#line 7
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(scoped C left, C right) => right;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (7,9): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("Extensions.extension(C).operator +(scoped C, C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (8,13): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c + c1").WithArguments("Extensions.extension(C).operator +(scoped C, C)", "right").WithLocation(8, 13),
+                // (8,17): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 17),
+                // (9,13): error CS8347: Cannot use a result of 'C.X(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(scoped C, C)", "right").WithLocation(9, 13),
+                // (9,18): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(9, 18)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Right
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_084_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(C left, scoped C right) => left;
+    public C M(C c, scoped C c1)
+    {
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C left, scoped C right) => left;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Both
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_085_RefSafety()
+        {
+            var source = """
+static class Extensions
+{
+    extension(C)
+    {
+#line 3
+        public static C operator +(scoped C left, scoped C right) => right;
+    }
+}
+
+public ref struct C
+{
+#line 4
+    public static C X(scoped C left, scoped C right) => right;
+    public C M(C c, scoped C c1)
+    {
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (3,70): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
+                //         public static C operator +(scoped C left, scoped C right) => right;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(3, 70),
+                // (4,57): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
+                //     public static C X(scoped C left, scoped C right) => right;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(4, 57)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_01
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_086_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(C left, C right) => right;
+    public C M(scoped C c, C c1)
+    {
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c1;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C left, C right) => right;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_02
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_087_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(C left, C right) => right;
+    public static C Y(C left) => left;
+    public C M1(scoped C c, C c1)
+    {
+#line 8
+        return Y(c += c1);
+    }
+    public C M2(scoped C c, C c1)
+    {
+        return Y(c = X(c, c1));
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C left, C right) => right;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c += c1)").WithArguments("C.Y(C)", "left").WithLocation(8, 16),
+                // (8,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 18),
+                // (8,18): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(C, C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("Extensions.extension(C).operator +(C, C)", "left").WithLocation(8, 18),
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_03
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_088_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(C left, scoped C right) => left;
+    public static C Y(C left) => left;
+    public C M1(scoped C c, C c1)
+    {
+#line 8
+        return Y(c += c1);
+    }
+    public C M2(scoped C c, C c1)
+    {
+        return Y(c = X(c, c1));
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C left, scoped C right) => left;
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c += c1)").WithArguments("C.Y(C)", "left").WithLocation(8, 16),
+                // (8,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 18),
+                // (8,18): error CS8347: Cannot use a result of 'Extensions.extension(C).operator +(C, scoped C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("Extensions.extension(C).operator +(C, scoped C)", "left").WithLocation(8, 18),
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_04
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_089_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(scoped C left, C right) => right;
+    public static C Y(C left) => left;
+    public C M1(scoped C c, C c1)
+    {
+        return Y(c += c1);
+    }
+    public C M2(scoped C c, C c1)
+    {
+#line 12
+        return Y(c = X(c, c1));
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(scoped C left, C right) => right; 
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left_ScopedTarget
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_090_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(scoped C left, C right) => right;
+    public C M(scoped C c, C c1)
+    {
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c1;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(scoped C left, C right) => right;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Right_ScopedTarget
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_091_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(C left, scoped C right) => left;
+    public C M(scoped C c, C c1)
+    {
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c1;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(C left, scoped C right) => left;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Both_ScopedTarget
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_092_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public static C X(scoped C left, scoped C right) => throw null;
+    public C M(scoped C c, C c1)
+    {
+        c += c1;
+        c = c + c1;
+        c = X(c, c1);
+        return c1;
+    }
+}
+
+static class Extensions
+{
+    extension(C)
+    {
+        public static C operator +(scoped C left, scoped C right) => throw null;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_RegressionTest1
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_093_RefSafety()
+        {
+            var source = """
+using System;
+
+public ref struct S1
+{
+    public S1(Span<int> span) { }
+
+    static void Test()
+    {
+        S1 stackLocal = new S1(stackalloc int[1]);
+        S1 heapLocal = new S1(default);
+
+        stackLocal += stackLocal;
+        stackLocal += heapLocal;
+        heapLocal += heapLocal;
+#line 16
+        heapLocal += stackLocal; // 1
+
+    }
+}
+
+static class Extensions
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 a, S1 b) => default;
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (16,9): error CS8347: Cannot use a result of 'Extensions.extension(S1).operator +(S1, S1)' in this context because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("Extensions.extension(S1).operator +(S1, S1)", "b").WithLocation(16, 9),
+                // (16,22): error CS8352: Cannot use variable 'stackLocal' in this context because it may expose referenced variables outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackLocal").WithArguments("stackLocal").WithLocation(16, 22)
+                );
+        }
+
+        /// <summary>
+        /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_RegressionTest2
+        /// </summary>
+        [Fact]
+        public void CompoundAssignment_094_RefSafety()
+        {
+            var source = """
+using System;
+
+public ref struct S1
+{
+    public S1(Span<int> span) { }
+
+    static void Test()
+    {
+        S1 stackLocal = new(stackalloc int[1]);
+        S1 heapLocal = new(default);
+
+        stackLocal += stackLocal;
+        stackLocal += heapLocal;
+        heapLocal += heapLocal;
+#line 16
+        heapLocal += stackLocal; // 1
+
+    }
+}
+
+public ref struct S2
+{
+    public S2(Span<int> span) { }
+
+    static void Test()
+    {
+        S2 stackLocal = new(stackalloc int[1]);
+        S2 heapLocal = new(default);
+
+        stackLocal += stackLocal;
+        stackLocal += heapLocal;
+        heapLocal += heapLocal;
+        heapLocal += stackLocal;
+    }
+}
+
+public ref struct S3
+{
+    public S3(Span<int> span) { }
+
+    static void Test()
+    {
+        S3 stackLocal = new(stackalloc int[1]);
+        S3 heapLocal = new(default);
+
+        stackLocal += stackLocal;
+        stackLocal += heapLocal;
+#line 50
+        heapLocal += heapLocal; // 2
+        heapLocal += stackLocal;  // 3
+    }
+}
+
+public ref struct S4
+{
+    public S4(Span<int> span) { }
+
+    static void Test()
+    {
+        S4 stackLocal = new(stackalloc int[1]);
+        S4 heapLocal = new(default);
+
+        stackLocal += stackLocal;
+        stackLocal += heapLocal;
+        heapLocal += heapLocal;
+#line 68
+        heapLocal += stackLocal; // 4
+    }
+}
+
+static class Extensions
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 a, S1 b) => default;
+    }
+    extension(S2)
+    {
+        public static S2 operator +(S2 a, scoped S2 b) => default;
+    }
+    extension(S3)
+    {
+        public static S3 operator +(in S3 a, in S3 b) => default;
+    }
+    extension(S4)
+    {
+        public static S4 operator +(scoped in S4 a, scoped in S4 b) => default;
+    }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (16,9): error CS8347: Cannot use a result of 'Extensions.extension(S1).operator +(S1, S1)' in this context because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("Extensions.extension(S1).operator +(S1, S1)", "b").WithLocation(16, 9),
+                // (16,22): error CS8352: Cannot use variable 'stackLocal' in this context because it may expose referenced variables outside of their declaration scope
+                //         heapLocal += stackLocal; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackLocal").WithArguments("stackLocal").WithLocation(16, 22),
+                // (50,9): error CS8168: Cannot return local 'heapLocal' by reference because it is not a ref local
+                //         heapLocal += heapLocal; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "heapLocal").WithArguments("heapLocal").WithLocation(50, 9),
+                // (50,9): error CS8347: Cannot use a result of 'Extensions.extension(S3).operator +(in S3, in S3)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         heapLocal += heapLocal; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += heapLocal").WithArguments("Extensions.extension(S3).operator +(in S3, in S3)", "a").WithLocation(50, 9),
+                // (51,9): error CS8168: Cannot return local 'heapLocal' by reference because it is not a ref local
+                //         heapLocal += stackLocal;  // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "heapLocal").WithArguments("heapLocal").WithLocation(51, 9),
+                // (51,9): error CS8347: Cannot use a result of 'Extensions.extension(S3).operator +(in S3, in S3)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         heapLocal += stackLocal;  // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("Extensions.extension(S3).operator +(in S3, in S3)", "a").WithLocation(51, 9),
+                // (68,9): error CS8347: Cannot use a result of 'Extensions.extension(S4).operator +(scoped in S4, scoped in S4)' in this context because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         heapLocal += stackLocal; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "heapLocal += stackLocal").WithArguments("Extensions.extension(S4).operator +(scoped in S4, scoped in S4)", "b").WithLocation(68, 9),
+                // (68,22): error CS8352: Cannot use variable 'stackLocal' in this context because it may expose referenced variables outside of their declaration scope
+                //         heapLocal += stackLocal; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackLocal").WithArguments("stackLocal").WithLocation(68, 22)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_095_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public void X(C right) {}
+    public C M1(C c, C c1)
+    {
+        c += c1;
+        return c;
+    }
+    public C M2(C c, C c1)
+    {
+        c.X(c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_096_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public void X(C right) {}
+    public C M1(C c, scoped C c1)
+    {
+#line 7
+        c += c1;
+        return c;
+    }
+    public C M2(C c, scoped C c1)
+    {
+        c.X(c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (7,9): error CS8350: This combination of arguments to 'Extensions.extension(ref C).operator +=(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c += c1").WithArguments("Extensions.extension(ref C).operator +=(C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (12,9): error CS8350: This combination of arguments to 'C.X(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c.X(c1);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c.X(c1)").WithArguments("C.X(C)", "right").WithLocation(12, 9),
+                // (12,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c.X(c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_097_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public void X(C right) {}
+    public C M1(scoped C c, C c1)
+    {
+        c += c1;
+#line 8
+        return c;
+    }
+    public C M2(scoped C c, C c1)
+    {
+        c.X(c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 16),
+                // (13,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_098_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public void X(C right) {}
+    public C M1(scoped C c, scoped C c1)
+    {
+        c += c1;
+#line 8
+        return c;
+    }
+    public C M2(scoped C c, scoped C c1)
+    {
+        c.X(c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (8,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 16),
+                // (13,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_099_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public void X(scoped C right) {}
+    public C M1(C c, scoped C c1)
+    {
+        c += c1;
+        return c;
+    }
+    public C M2(C c, scoped C c1)
+    {
+        c.X(c1);
+        return c;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(scoped C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_100_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M1(C c, C c1)
+    {
+        return c += c1;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_101_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M1(scoped C c, C c1)
+    {
+#line 6
+        return c += c1;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_102_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M1(C c, scoped C c1)
+    {
+#line 6
+        return c += c1;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (6,16): error CS8350: This combination of arguments to 'Extensions.extension(ref C).operator +=(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c += c1").WithArguments("Extensions.extension(ref C).operator +=(C)", "right").WithLocation(6, 16),
+                // (6,21): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_103_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M1(C c, scoped C c1)
+    {
+        return c += c1;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(scoped C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_104_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    public C M1(scoped C c, scoped C c1)
+    {
+#line 6
+        return c += c1;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_105_RefSafety()
+        {
+            var source = """
+public ref struct C
+{
+    static C X(C c) => throw null;
+    public C M1(scoped C c, scoped C c1)
+    {
+#line 7
+        return X(c += c1);
+    }
+}
+
+static class Extensions
+{
+    extension(ref C left)
+    {
+        public void operator +=(C right) {}
+    }
+}
+""";
+            CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
+                // (7,16): error CS8347: Cannot use a result of 'C.X(C)' in this context because it may expose variables referenced by parameter 'c' outside of their declaration scope
+                //         return X(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c += c1)").WithArguments("C.X(C)", "c").WithLocation(7, 16),
+                // (7,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return X(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_106_RefSafety()
+        {
+            var source = $$$"""
+ref struct C
+{
+    public C M1(C c1)
+    {
+#line 8
+        return c1 += 1;
+    }
+    public C M2(C c2)
+    {
+        return c2 -= 1;
+    }
+    public C M3(C c3, in int right)
+    {
+        return c3 += right;
+    }
+    public C M4(C c4, in int right)
+    {
+        return c4 -= right;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C x)
+    {
+        public void operator +=([System.Diagnostics.CodeAnalysis.UnscopedRef] in int right) {}
+        public static C operator -(C left, [System.Diagnostics.CodeAnalysis.UnscopedRef] in int right) => throw null;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (8,16): error CS8350: This combination of arguments to 'Extensions.extension(ref C).operator +=(in int)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c1 += 1;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c1 += 1").WithArguments("Extensions.extension(ref C).operator +=(in int)", "right").WithLocation(8, 16),
+                // (8,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c1 += 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(8, 22),
+                // (12,16): error CS8347: Cannot use a result of 'Extensions.extension(ref C).operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("Extensions.extension(ref C).operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'Extensions.extension(ref C).operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("Extensions.extension(ref C).operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (16,16): error CS8350: This combination of arguments to 'Extensions.extension(ref C).operator +=(in int)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c3 += right;
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c3 += right").WithArguments("Extensions.extension(ref C).operator +=(in int)", "right").WithLocation(16, 16),
+                // (16,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c3 += right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(16, 22),
+                // (20,16): error CS8347: Cannot use a result of 'Extensions.extension(ref C).operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c4 -= right").WithArguments("Extensions.extension(ref C).operator -(C, in int)", "right").WithLocation(20, 16),
+                // (20,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(20, 22)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_107_RefSafety()
+        {
+            var source = """
+ref struct C
+{
+    public C M1(C c1)
+    {
+        return c1 += 1;
+    }
+    public C M2(C c2)
+    {
+#line 12
+        return c2 -= 1;
+    }
+    public C M3(C c3, in int right)
+    {
+        return c3 += right;
+    }
+    public C M4(C c4, in int right)
+    {
+        return c4 -= right;
+    }
+}
+
+static class Extensions
+{
+    extension(ref C x)
+    {
+        public void operator +=(in int right) {}
+        public static C operator -(C left, in int right) => throw null;
+    }
+}
+""";
+            CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (12,16): error CS8347: Cannot use a result of 'Extensions.extension(ref C).operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("Extensions.extension(ref C).operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'Extensions.extension(ref C).operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c2 -= 1").WithArguments("Extensions.extension(ref C).operator -(C, in int)", "right").WithLocation(12, 16),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return c2 -= 1;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                // (20,16): error CS8347: Cannot use a result of 'Extensions.extension(ref C).operator -(C, in int)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c4 -= right").WithArguments("Extensions.extension(ref C).operator -(C, in int)", "right").WithLocation(20, 16),
+                // (20,22): error CS9077: Cannot return a parameter by reference 'right' through a ref parameter; it can only be returned in a return statement
+                //         return c4 -= right;
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(20, 22)
+                );
+        }
+    }
+}
+
+// PROTOTYPE: Test unsafe and partial, IOperation/CFG , Nullable analysis
 //            Assert result of operator for basic consumption scenarios
 //            Cover ErrorCode.ERR_ExtensionDisallowsMember for conversion operators
-//            Ref safety analysis?
+//            CRef binding
