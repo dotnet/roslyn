@@ -733,6 +733,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests", "src\Compilers\Core\SdkTaskTests\Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests.csproj", "{5399BBCC-417F-C710-46DE-EB0C0074C34D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.BuildClient.Package", "src\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.Package.csproj", "{5E4F7448-B00B-4F5B-859F-6ED0354253D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1807,6 +1809,10 @@ Global
 		{5399BBCC-417F-C710-46DE-EB0C0074C34D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5399BBCC-417F-C710-46DE-EB0C0074C34D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5399BBCC-417F-C710-46DE-EB0C0074C34D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E4F7448-B00B-4F5B-859F-6ED0354253D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E4F7448-B00B-4F5B-859F-6ED0354253D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E4F7448-B00B-4F5B-859F-6ED0354253D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E4F7448-B00B-4F5B-859F-6ED0354253D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2150,6 +2156,7 @@ Global
 		{1B4AC233-B345-123F-E004-DAA28DE1CB08} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{91F9EAA4-ACA2-87EE-868E-6CC3B73D6A11} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{5399BBCC-417F-C710-46DE-EB0C0074C34D} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{5E4F7448-B00B-4F5B-859F-6ED0354253D5} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
