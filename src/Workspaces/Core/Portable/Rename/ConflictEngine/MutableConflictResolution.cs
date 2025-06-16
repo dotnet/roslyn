@@ -70,7 +70,7 @@ internal sealed class MutableConflictResolution(
         {
             if (renamedSpansTracker.IsDocumentChanged(documentId))
             {
-                var document = CurrentSolution.GetRequiredDocument(documentId);
+                var document = await CurrentSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // For the computeReplacementToken and computeReplacementNode functions, use 

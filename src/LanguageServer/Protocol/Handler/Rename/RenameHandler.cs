@@ -79,7 +79,7 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
 
         var textDiffService = renamedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
-        var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
+        var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution, oldSolution,
             textDiffService, cancellationToken).ConfigureAwait(false);
 
         return new WorkspaceEdit { DocumentChanges = documentEdits };

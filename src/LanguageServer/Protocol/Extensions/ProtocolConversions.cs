@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -389,15 +390,15 @@ internal static partial class ProtocolConversions
     /// Compute all the <see cref="LSP.TextDocumentEdit"/> for the input list of changed documents.
     /// Additionally maps the locations of the changed documents if necessary.
     /// </summary>
-    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync<T>(IEnumerable<DocumentId> changedDocuments, Func<DocumentId, T> getNewDocumentFunc,
-            Func<DocumentId, T> getOldDocumentFunc, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken) where T : TextDocument
+    public static async Task<LSP.TextDocumentEdit[]> ChangedDocumentsToTextDocumentEditsAsync(IEnumerable<DocumentId> changedDocuments, Solution newSolution,
+            Solution oldSolution, IDocumentTextDifferencingService? textDiffService, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<(DocumentUri Uri, LSP.TextEdit TextEdit)>.GetInstance(out var uriToTextEdits);
 
         foreach (var docId in changedDocuments)
         {
-            var newDocument = getNewDocumentFunc(docId);
-            var oldDocument = getOldDocumentFunc(docId);
+            var newDocument = await newSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            var oldDocument = await oldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
             var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
