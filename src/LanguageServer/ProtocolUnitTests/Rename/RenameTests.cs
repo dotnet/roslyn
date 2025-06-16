@@ -190,6 +190,96 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         Assert.True(documentEdit.Edits.All(edit => edit.Unify().NewText == renameText));
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestRename_WithSourceGeneratedFile(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            public class A
+            {
+                public void {|caret:|}{|renamed:M|}()
+                {
+                }
+
+                void M2()
+                {
+                    {|renamed:M|}()
+                }
+            }
+            """;
+
+        var generatedMarkup = """
+            class B
+            {
+                void M()
+                {
+                    new A().{|renamed:M|}();
+
+                    var a = new A();
+                    a.{|renamed:M|}();
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
+            new InitializationOptions()
+            {
+                SourceGeneratedMarkups = [generatedMarkup]
+            });
+
+        var renameLocation = testLspServer.GetLocations("caret").First();
+        var renamePosition = ProtocolConversions.PositionToLinePosition(renameLocation.Range.Start);
+        var document = await testLspServer.GetDocumentAsync(renameLocation.DocumentUri);
+        var renameValue = "RENAME";
+        var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+        var results = await RenameHandler.GetRenameEditAsync(document, renamePosition, renameValue, allowRenameInGeneratedDocument: true, CancellationToken.None);
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestRename_OriginateInSourceGeneratedFile(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            public class A
+            {
+                public void {|renamed:M|}()
+                {
+                }
+
+                void M2()
+                {
+                    {|renamed:M|}()
+                }
+            }
+            """;
+
+        var generatedMarkup = """
+            class B
+            {
+                void M()
+                {
+                    new A().{|caret:|}{|renamed:M|}();
+
+                    var a = new A();
+                    a.{|renamed:M|}();
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
+            new InitializationOptions()
+            {
+                SourceGeneratedMarkups = [generatedMarkup]
+            });
+
+        var renameLocation = testLspServer.GetLocations("caret").First();
+        var renamePosition = ProtocolConversions.PositionToLinePosition(renameLocation.Range.Start);
+        var document = await testLspServer.GetDocumentAsync(renameLocation.DocumentUri);
+        var renameValue = "RENAME";
+        var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
+
+        var results = await RenameHandler.GetRenameEditAsync(document, renamePosition, renameValue, allowRenameInGeneratedDocument: true, CancellationToken.None);
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+    }
+
     private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)
         => new LSP.RenameParams()
         {
