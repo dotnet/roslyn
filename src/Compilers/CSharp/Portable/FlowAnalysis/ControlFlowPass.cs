@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If this is an async method, we need to track whether the end of the try block is reachable.
             // This is used for async exception handler rewriting.
-            _asyncTryFinallyEndsReachable?.Add(node, State.Alive);
+            _asyncTryFinallyEndsReachable?[node] = State.Alive;
         }
 
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private sealed class UsingDeclarationVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        private sealed class UsingDeclarationVisitor : BoundTreeWalker
         {
             internal static void Visit(BoundBlock block, PooledDictionary<BoundNode, bool> dictionary, bool alive)
             {
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.AwaitOpt is not null)
                 {
-                    _dictionary.Add(node, _alive);
+                    _dictionary[node] = _alive;
                 }
 
                 return base.VisitUsingLocalDeclarations(node);
@@ -510,6 +510,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode? VisitBlock(BoundBlock node)
             {
                 // Do not recurse through nested blocks, they will be visited by their own visits through the ControlFlowPass.
+                return null;
+            }
+
+            protected override BoundNode? VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
+            {
+                // No need to visit inside expressions, as they do not have interesting using declarations inside.
                 return null;
             }
         }

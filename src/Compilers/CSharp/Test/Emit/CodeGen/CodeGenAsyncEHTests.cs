@@ -1455,6 +1455,60 @@ class Test
         }
 
         [Fact]
+        public void AsyncInFinallyWithGotos()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Test
+                {
+                    static async Task<int> F()
+                    {
+                        return 2;
+                    }
+
+                    static async Task<int> G()
+                    {
+                        int x = 0;
+                        bool loop = true;
+
+                        goto afterLabel;
+                label:
+                        loop = false;
+
+                afterLabel:
+                        try
+                        {
+                            x = await F();
+                        }
+                        finally
+                        {
+                            x += await F();
+                        }
+
+                        if (loop)
+                        {
+                            goto label;
+                        }
+
+                        return x;
+                    }
+
+                    public static void Main()
+                    {
+                        Task<int> t2 = G();
+                        t2.Wait(1000 * 60);
+                        Console.WriteLine(t2.Result);
+                    }
+                }
+                """;
+
+            var expected = "4";
+            CompileAndVerify(source, expected);
+        }
+
+        [Fact]
         public void AsyncInFinallyNested001()
         {
             var source = @"
