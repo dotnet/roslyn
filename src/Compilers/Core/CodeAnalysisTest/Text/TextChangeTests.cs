@@ -59,6 +59,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestSubTextSubTextStart()
+        {
+            var text = SourceText.From("Hello World");
+            var subText = text.GetSubText(new TextSpan(0, 5));
+            var subSubText = subText.GetSubText(new TextSpan(0, 0));
+
+            Assert.Equal("Hello", subText.ToString());
+            Assert.Equal(0, subSubText.Length);
+        }
+
+        [Fact]
+        public void TestSubTextSubTextEnd()
+        {
+            var text = SourceText.From("Hello World");
+            var subText = text.GetSubText(6);
+            var subSubText = subText.GetSubText(subText.Length);
+
+            Assert.Equal("World", subText.ToString());
+            Assert.Equal(0, subSubText.Length);
+        }
+
+        [Fact]
         public void TestChangedText()
         {
             var text = SourceText.From("Hello World");
