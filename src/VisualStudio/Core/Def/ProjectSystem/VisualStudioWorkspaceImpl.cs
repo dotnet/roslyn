@@ -1497,7 +1497,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
             // Make sure we unsubscribe this, or otherwise this will cause a leak in unit tests since the UIContext for SolutionClosing is a static that is shared
             // across all tests.
-            _solutionClosingContext?.UIContextChanged -= SolutionClosingContext_UIContextChanged;
+            if (_solutionClosingContext is not null)
+                _solutionClosingContext.UIContextChanged -= SolutionClosingContext_UIContextChanged;
         }
 
         base.Dispose(finalize);
