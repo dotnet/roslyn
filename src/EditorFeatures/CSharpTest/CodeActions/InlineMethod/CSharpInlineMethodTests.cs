@@ -3900,8 +3900,8 @@ public sealed class CSharpInlineMethodTests
         static class C
         {
             static readonly object A = null!,
-                                    B = M();
-            
+                                   B = M();
+
             private static object M() => null!;
         }
         """, keepInlinedMethod: true);
@@ -3922,8 +3922,8 @@ public sealed class CSharpInlineMethodTests
         static class C
         {
             static readonly object A = M(),
-                                    B = null!;
-            
+                                   B = null!;
+
             private static object M() => null!;
         }
         """, keepInlinedMethod: true);
