@@ -158,7 +158,7 @@ internal sealed partial class SymbolicRenameLocations
         /// Given a ISymbol, returns the renameable locations for a given symbol.
         /// </summary>
         public static async Task<ImmutableArray<RenameLocation>> GetRenamableDefinitionLocationsAsync(
-            ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, CancellationToken cancellationToken)
+            ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
         {
             var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, false, cancellationToken).ConfigureAwait(false);
             if (!shouldIncludeSymbol)
@@ -180,7 +180,7 @@ internal sealed partial class SymbolicRenameLocations
             if (originalSymbol.Kind == SymbolKind.Alias)
             {
                 var location = originalSymbol.Locations.Single();
-                AddRenameLocationIfNotGenerated(location);
+                AddRenameLocationIfNotGenerated(location, allowRenameInGeneratedDocument);
                 return results.ToImmutableAndFree();
             }
 
@@ -189,7 +189,7 @@ internal sealed partial class SymbolicRenameLocations
             {
                 if (location.IsInSource)
                 {
-                    AddRenameLocationIfNotGenerated(location, isRenamableAccessor);
+                    AddRenameLocationIfNotGenerated(location, allowRenameInGeneratedDocument, isRenamableAccessor);
                 }
             }
 
@@ -218,7 +218,7 @@ internal sealed partial class SymbolicRenameLocations
                                 if (!syntaxFacts.IsReservedOrContextualKeyword(token) &&
                                     token.ValueText == referencedSymbol.Name)
                                 {
-                                    AddRenameLocationIfNotGenerated(location);
+                                    AddRenameLocationIfNotGenerated(location, allowRenameInGeneratedDocument);
                                 }
                             }
                         }
@@ -228,7 +228,7 @@ internal sealed partial class SymbolicRenameLocations
 
             return results.ToImmutableAndFree();
 
-            void AddRenameLocationIfNotGenerated(Location location, bool isRenamableAccessor = false)
+            void AddRenameLocationIfNotGenerated(Location location, bool allowRenameInGeneratedDocument, bool isRenamableAccessor = false)
             {
                 RoslynDebug.Assert(location.IsInSource);
                 var document = solution.GetRequiredDocument(location.SourceTree);
@@ -241,7 +241,7 @@ internal sealed partial class SymbolicRenameLocations
             }
         }
 
-        internal static async Task<IEnumerable<RenameLocation>> GetRenamableReferenceLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, CancellationToken cancellationToken)
+        internal static async Task<IEnumerable<RenameLocation>> GetRenamableReferenceLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
         {
             // We won't try to update references in source generated files; we'll assume the generator will rerun
             // and produce an updated document with the new name.

@@ -111,13 +111,13 @@ internal sealed class SymbolicRenameInfo
     }
 
     public static async Task<SymbolicRenameInfo> GetRenameInfoAsync(
-        Document document, int position, CancellationToken cancellationToken)
+        Document document, int position, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
     {
         var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
         if (triggerToken == default)
             return new SymbolicRenameInfo(FeaturesResources.You_must_rename_an_identifier);
 
-        return await GetRenameInfoAsync(document, triggerToken, cancellationToken).ConfigureAwait(false);
+        return await GetRenameInfoAsync(document, triggerToken, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<SyntaxToken> GetTriggerTokenAsync(Document document, int position, CancellationToken cancellationToken)
@@ -131,6 +131,7 @@ internal sealed class SymbolicRenameInfo
     private static async Task<SymbolicRenameInfo> GetRenameInfoAsync(
         Document document,
         SyntaxToken triggerToken,
+        bool allowRenameInGeneratedDocument,
         CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

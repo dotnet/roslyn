@@ -50,7 +50,7 @@ public static partial class Renamer
         if (string.IsNullOrEmpty(newName))
             throw new ArgumentException(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, nameof(newName));
 
-        var resolution = await RenameSymbolAsync(solution, symbol, newName, options, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+        var resolution = await RenameSymbolAsync(solution, symbol, newName, options, nonConflictSymbolKeys: default, allowRenameInGeneratedDocument: false, cancellationToken).ConfigureAwait(false);
 
         if (resolution.IsSuccessful)
         {
@@ -137,7 +137,20 @@ public static partial class Renamer
 
     /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
     internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CancellationToken cancellationToken)
-        => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, cancellationToken);
+        => FindRenameLocationsAsync(solution, symbol, options, allowRenameInGeneratedDocument: false, cancellationToken);
+
+    /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
+    internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
+        => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, allowRenameInGeneratedDocument, cancellationToken);
+
+    internal static Task<ConflictResolution> RenameSymbolAsync(
+        Solution solution,
+        ISymbol symbol,
+        string newName,
+        SymbolRenameOptions options,
+        ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+        CancellationToken cancellationToken)
+            => RenameSymbolAsync(solution, symbol, newName, options, nonConflictSymbolKeys, allowRenameInGeneratedDocument: false, cancellationToken);
 
     internal static async Task<ConflictResolution> RenameSymbolAsync(
         Solution solution,
@@ -145,6 +158,7 @@ public static partial class Renamer
         string newName,
         SymbolRenameOptions options,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+        bool allowRenameInGeneratedDocument,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(solution);
@@ -168,6 +182,7 @@ public static partial class Renamer
                             newName,
                             options,
                             nonConflictSymbolKeys,
+                            allowRenameInGeneratedDocument,
                             cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
@@ -181,7 +196,7 @@ public static partial class Renamer
 
         return await RenameSymbolInCurrentProcessAsync(
             solution, symbol, newName, options,
-            nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+            nonConflictSymbolKeys, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<ConflictResolution> RenameSymbolInCurrentProcessAsync(
@@ -190,6 +205,7 @@ public static partial class Renamer
         string newName,
         SymbolRenameOptions options,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+        bool allowRenameInGeneratedDocument,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(solution);
@@ -201,7 +217,7 @@ public static partial class Renamer
         // Since we know we're in the oop process, we know we won't need to make more OOP calls.  Since this is the
         // rename entry-point that does the entire rename, we can directly use the heavyweight RenameLocations type,
         // without having to go through any intermediary LightweightTypes.
-        var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cancellationToken).ConfigureAwait(false);
+        var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false);
         return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
             renameLocations, newName, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
     }
