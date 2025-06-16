@@ -50,6 +50,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить атрибут "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_negative_value_check">
+        <source>Add negative value check</source>
+        <target state="new">Add negative value check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_negative_value_or_zero_check">
+        <source>Add negative value or zero check</source>
+        <target state="new">Add negative value or zero check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Добавление проверки NULL для всех параметров</target>
@@ -3168,6 +3178,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">Основания: “{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative">
+        <source>'{0}' cannot be negative</source>
+        <target state="new">'{0}' cannot be negative</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative_or_zero">
+        <source>'{0}' cannot be negative or zero</source>
+        <target state="new">'{0}' cannot be negative or zero</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">

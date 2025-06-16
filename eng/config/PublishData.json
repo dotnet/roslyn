@@ -181,6 +181,15 @@
         "NonShipping"
       ],
       "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
+    "main-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.15 P1]"
     }

@@ -63,29 +63,10 @@ internal sealed partial class SuggestedActionsSourceProvider
 
             using var state = _state.TryAddReference();
             if (state is null)
-            {
                 return false;
-            }
 
-            var workspace = state.Target.Workspace;
-            if (workspace == null)
-            {
-                return false;
-            }
-
-            var documentId = workspace.GetDocumentIdInCurrentContext(state.Target.SubjectBuffer.AsTextContainer());
-            if (documentId == null)
-            {
-                return false;
-            }
-
-            var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                return false;
-            }
-
-            switch (project.Language)
+            var document = state.Target.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            switch (document?.Project.Language)
             {
                 case LanguageNames.CSharp:
                     telemetryId = s_CSharpSourceGuid;
@@ -170,10 +151,6 @@ internal sealed partial class SuggestedActionsSourceProvider
             Contract.ThrowIfFalse(
                 range.Snapshot.TextBuffer.Equals(state.Target.SubjectBuffer),
                 $"Invalid text buffer passed to {nameof(HasSuggestedActionsAsync)}");
-
-            var workspace = state.Target.Workspace;
-            if (workspace == null)
-                return null;
 
             using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
             var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
