@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -17,13 +18,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServiceRequestHandler<RestoreParams, RestorePartialResult[]>
+internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory) : ILspServiceRequestHandler<RestoreParams, RestorePartialResult[]>
 {
     internal const string MethodName = "workspace/_roslyn_restore";
 
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
+
+    private readonly ILogger<DotnetCliHelper> _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
 
     public async Task<RestorePartialResult[]> HandleRequestAsync(RestoreParams request, RequestContext context, CancellationToken cancellationToken)
     {
@@ -35,13 +38,16 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
         var restorePaths = GetRestorePaths(request, context.Solution, context);
         if (restorePaths.IsEmpty)
         {
+            _logger.LogInformation($"Restore was requested but no paths were provided.");
             progress.Report(new RestorePartialResult(LanguageServerResources.Restore, LanguageServerResources.Nothing_found_to_restore));
             return progress.GetValues() ?? [];
         }
 
+        _logger.LogInformation($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
         await RestoreAsync(restorePaths, progress, cancellationToken);
 
         progress.Report(new RestorePartialResult(LanguageServerResources.Restore, $"{LanguageServerResources.Restore_complete}{Environment.NewLine}"));
+        _logger.LogInformation($"Restore completed.");
         return progress.GetValues() ?? [];
     }
 

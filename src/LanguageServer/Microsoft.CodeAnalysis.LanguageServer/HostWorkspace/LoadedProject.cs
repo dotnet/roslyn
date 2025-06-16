@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -36,6 +37,7 @@ internal sealed class LoadedProject : IDisposable
     /// The most recent version of the file glob matcher.  Held onto 
     /// </summary>
     private Lazy<ImmutableArray<Matcher>>? _mostRecentFileMatchers;
+    private string? _mostRecentProjectAssetsFilePath;
     private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = [];
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = [];
@@ -64,6 +66,12 @@ internal sealed class LoadedProject : IDisposable
     {
         // If the project file itself changed, we almost certainly need to reload the project.
         if (string.Equals(filePath, _projectFilePath, StringComparison.OrdinalIgnoreCase))
+        {
+            NeedsReload?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        if (string.Equals(filePath, _mostRecentProjectAssetsFilePath, StringComparison.OrdinalIgnoreCase))
         {
             NeedsReload?.Invoke(this, EventArgs.Empty);
             return;
@@ -290,6 +298,7 @@ internal sealed class LoadedProject : IDisposable
             }
 
             _mostRecentProjectAssetsFileWatcher = currentWatcher;
+            _mostRecentProjectAssetsFilePath = currentProjectInfo.ProjectAssetsFilePath;
         }
     }
 

@@ -71,7 +71,7 @@ internal sealed class DotnetCliHelper
 
     public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput, bool redirectStandardInput = false)
     {
-        _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments {arguments}");
+        _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments '{string.Join(' ', arguments)}'");
 
         var startInfo = new ProcessStartInfo(_dotnetExecutablePath.Value)
         {
