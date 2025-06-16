@@ -504,7 +504,7 @@ internal static partial class SyntaxGeneratorExtensions
 
             return containingType.GetMembers()
                 .OfType<IFieldSymbol>()
-                .Where(field => !field.IsStatic)
+                .Where(field => !field.IsStatic && field.AssociatedSymbol is not IParameterSymbol)
                 .Select(field => field.AssociatedSymbol ?? field)
                 .Except(parameterToExistingFieldMap?.Values ?? [])
                 .Any();
