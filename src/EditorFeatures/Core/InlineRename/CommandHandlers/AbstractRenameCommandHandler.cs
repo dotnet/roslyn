@@ -74,7 +74,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
-            renameService.ActiveSession?.Cancel();
+            CancelRenameSession();
             nextHandler();
         }
         else
@@ -82,6 +82,11 @@ internal abstract partial class AbstractRenameCommandHandler(
             nextHandler();
             return;
         }
+    }
+
+    private void CancelRenameSession()
+    {
+        renameService.ActiveSession?.Cancel();
     }
 
     private bool IsRenameCommitInProgress()

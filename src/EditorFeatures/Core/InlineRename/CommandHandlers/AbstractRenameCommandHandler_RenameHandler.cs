@@ -82,7 +82,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, cancel the existing session and start a new one.
-                renameService.ActiveSession?.Cancel();
+                CancelRenameSession();
             }
         }
 

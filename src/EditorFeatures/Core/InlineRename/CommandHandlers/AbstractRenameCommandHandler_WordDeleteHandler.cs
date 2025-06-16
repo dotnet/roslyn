@@ -73,7 +73,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             }
             else
             {
-                renameService.ActiveSession?.Cancel();
+                CancelRenameSession();
             }
         }
 

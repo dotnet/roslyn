@@ -29,7 +29,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         if (IsRenameCommitInProgress())
             return true;
 
-        renameService.ActiveSession?.Cancel();
+        CancelRenameSession();
         return false;
     }
 }
