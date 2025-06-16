@@ -101,8 +101,13 @@ public abstract partial class AbstractMetadataAsSourceTests
             project ??= this.DefaultProject;
             Contract.ThrowIfNull(symbol);
 
+            var options = MetadataAsSourceOptions.Default with
+            {
+                NavigateToVirtualFile = this.UseVirtualFiles,
+            };
+
             // Generate and hold onto the result so it can be disposed of with this context
-            return _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.Default, CancellationToken.None);
+            return _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, options, CancellationToken.None);
         }
 
         public async Task<MetadataAsSourceFile> GenerateSourceAsync(
@@ -142,8 +147,13 @@ public abstract partial class AbstractMetadataAsSourceTests
                 }
             }
 
+            var options = MetadataAsSourceOptions.Default with
+            {
+                NavigateToVirtualFile = this.UseVirtualFiles,
+            };
+
             // Generate and hold onto the result so it can be disposed of with this context
-            var result = await _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, MetadataAsSourceOptions.Default, CancellationToken.None);
+            var result = await _metadataAsSourceService.GetGeneratedFileAsync(Workspace, project, symbol, signaturesOnly, options, CancellationToken.None);
 
             return result;
         }
@@ -153,9 +163,11 @@ public abstract partial class AbstractMetadataAsSourceTests
             string actual;
             if (this.UseVirtualFiles)
             {
+                Assert.True(file.FilePath.StartsWith(WorkspaceMetadataDocumentPersister.VirtualFileScheme));
                 var documentId = this.MetadataAsSourceWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(file.FilePath).Single();
                 var document = this.MetadataAsSourceWorkspace.CurrentSolution.GetRequiredDocument(documentId);
-                actual = document.GetTextSynchronously(CancellationToken.None).ToString();
+                var actualText = document.GetTextSynchronously(CancellationToken.None);
+                actual = actualText.ToString().Trim();
             }
             else
             {
@@ -322,32 +334,24 @@ public abstract partial class AbstractMetadataAsSourceTests
                 .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
                 .AddParts(typeof(DecompilationMetadataAsSourceFileProvider));
 
-            if (useVirtualFiles)
-            {
-                composition = composition.AddParts(typeof(TestWorkspaceMetadataDocumentPersisterFactory));
-            }
-
             return EditorTestWorkspace.Create(xmlString, composition: composition);
         }
 
         internal Document GetDocument(MetadataAsSourceFile file)
         {
-            SourceText stringText;
-            if (this.UseVirtualFiles)
+            var documentId = this.MetadataAsSourceWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(file.FilePath).Single();
+            var document = this.MetadataAsSourceWorkspace.CurrentSolution.GetRequiredDocument(documentId);
+            if (!this.UseVirtualFiles)
             {
-                var documentId = this.MetadataAsSourceWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(file.FilePath).Single();
-                var document = this.MetadataAsSourceWorkspace.CurrentSolution.GetRequiredDocument(documentId);
-                stringText = document.GetTextSynchronously(CancellationToken.None);
-            }
-            else
-            {
+                // Assert that the file on disk matches the text of the file in the workspace.
                 using var reader = File.OpenRead(file.FilePath);
-                stringText = EncodedStringText.Create(reader);
+                var stringText = EncodedStringText.Create(reader);
+
+                var documentText = document.GetTextSynchronously(CancellationToken.None);
+                Assert.Equal(stringText.ToString(), documentText.ToString());
             }
 
-            Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container, out var _));
-
-            return stringText.Container.GetRelatedDocuments().Single();
+            return document;
         }
 
         internal async Task<ISymbol> GetNavigationSymbolAsync()

@@ -6,18 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
@@ -42,13 +40,6 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     /// A lock to ensure we initialize <see cref="_workspace"/> and cleanup stale data only once.
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
-
-    /// <summary>
-    /// Stores the original text loader for documents that have been opened in the workspace.
-    /// When the document is closed, we set the text loader back to the original loader.
-    /// Concurrent access is guaranteed by callers on the UI thread.
-    /// </summary>
-    private readonly Dictionary<DocumentId, TextLoader> _openedDocumentReloaders = new();
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -84,14 +75,15 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             {
                 _workspace = new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
 
-                persister = _workspace.Services.GetRequiredService<IMetadataDocumentPersister>();
+                persister = GetPersister(_workspace, options);
+
                 // We're being initialized the first time.  Use this time to clean up any stale metadata-as-source files
                 // from previous VS sessions.
                 persister.CleanupGeneratedDocuments();
             }
             else
             {
-                persister = _workspace.Services.GetRequiredService<IMetadataDocumentPersister>();
+                persister = GetPersister(_workspace, options);
             }
 
             Contract.ThrowIfNull(_workspace);
@@ -108,7 +100,8 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             foreach (var lazyProvider in _providers.Value)
             {
                 var provider = lazyProvider.Value;
-                var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, telemetryMessage, persister, cancellationToken).ConfigureAwait(false);
+                var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject,
+                    symbol, signaturesOnly, options, telemetryMessage, persister, cancellationToken).ConfigureAwait(false);
                 if (result is not null)
                     return result;
             }
@@ -116,76 +109,25 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         // The decompilation provider can always return something
         throw ExceptionUtilities.Unreachable();
+
+        static IMetadataDocumentPersister GetPersister(MetadataAsSourceWorkspace workspace, MetadataAsSourceOptions options)
+        {
+            if (options.NavigateToVirtualFile)
+            {
+                // If we're configured to use virtual files, return the persister that only saves documents to the workspace.
+                return workspace.Services.GetRequiredService<WorkspaceMetadataDocumentPersister>();
+            }
+            else
+            {
+                return workspace.Services.GetRequiredService<FileSystemMetadataDocumentPersister>();
+            }
+        }
     }
 
     private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
     {
         var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
         Contract.ThrowIfFalse(threadingService.IsOnMainThread);
-    }
-
-    public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
-    {
-        var workspace = _workspace;
-        if (workspace is null)
-        {
-            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
-            // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
-            // MetadataAsSource instead of itself.
-            documentId = null;
-            return false;
-        }
-
-        // There are no linked files in the MetadataAsSource workspace, so we can just use the first document id
-        documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).SingleOrDefault();
-        if (documentId is null)
-        {
-            return false;
-        }
-
-        // Store a text loader for this document.  We'll need this when we close the document to avoid losing the text.
-        // todo - loader not stored.  can we just use the current source text?
-        // todo - should the workspace virtual text persister store this itself?
-        // persister can write text and persist to workspace at same time.  virtual can persis only to workspace
-        // todo - or have open / close be implemented by persister - do nothing for virtual.
-        // todo - test verifies workspace text after close.
-        var loader = TextLoader.From(TextAndVersion.Create(sourceTextContainer.CurrentText, VersionStamp.Default));
-        _openedDocumentReloaders.Add(documentId, loader);
-
-        workspace.OnDocumentOpened(documentId, sourceTextContainer);
-        return true;
-    }
-
-    public bool TryRemoveDocumentFromWorkspace(string filePath)
-    {
-        var workspace = _workspace;
-        if (workspace is null)
-        {
-            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
-            // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
-            // MetadataAsSource system to see if it owns the file and should handle that event.
-            return false;
-        }
-
-        // There are no linked files in the MetadataAsSource workspace, so we can just use the first document id
-        var documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
-        if (documentId is null)
-        {
-            return false;
-        }
-
-        // In LSP, while calls to TryAddDocumentToWorkspace and TryRemoveDocumentFromWorkspace are handled
-        // serially, it is possible that TryRemoveDocumentFromWorkspace called without TryAddDocumentToWorkspace first.
-        // This can happen if the document is immediately closed after opening - only feature requests that force us
-        // to materialize a solution will trigger TryAddDocumentToWorkspace, if none are made it is never called.
-        // However TryRemoveDocumentFromWorkspace is always called on close.
-        if (workspace.GetOpenDocumentIds().Contains(documentId))
-        {
-            var loader = _openedDocumentReloaders[documentId];
-            workspace.OnDocumentClosed(documentId, loader);
-        }
-
-        return true;
     }
 
     public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)
@@ -195,7 +137,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         var workspace = _workspace;
 
-        if (workspace == null)
+        if (_workspace == null)
         {
             try
             {
@@ -209,14 +151,14 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             return false;
         }
 
-        AssertIsMainThread(workspace);
+        AssertIsMainThread(_workspace);
 
         foreach (var provider in _providers.Value)
         {
             if (!provider.IsValueCreated)
                 continue;
 
-            if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
+            if (provider.Value.ShouldCollapseOnOpen(_workspace, filePath, blockStructureOptions))
                 return true;
         }
 

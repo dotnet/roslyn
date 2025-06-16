@@ -407,12 +407,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(Path.Combine(path, "ref"), Location.Embedded, Location.OnDisk, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(Path.Combine(path, "ref"), Location.Embedded, Location.OnDisk, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
             // Compile implementation assembly
             CompileTestSource(Path.Combine(path, "lib"), sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -437,7 +437,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
 
             // Compile implementation assembly
             CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -448,7 +448,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                 </FileList>
                 """);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -473,13 +473,13 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
 
             var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.M"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.M"), buildReferenceAssembly: true);
 
             var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition(useVirtualFiles));
+</Workspace>", composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
 
@@ -492,7 +492,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                 </FileList>
                 """);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -520,13 +520,13 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
 
             var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C"), buildReferenceAssembly: true);
 
             var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition(useVirtualFiles));
+</Workspace>", composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
 
@@ -554,7 +554,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                 </FileList>
                 """);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -572,12 +572,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             // Now delete the PDB
             File.Delete(GetPdbPath(path));
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -595,12 +595,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             // Now delete the DLL
             File.Delete(GetDllPath(path));
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -617,12 +617,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             // Now delete the source
             File.Delete(GetSourceFilePath(path));
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -639,10 +639,10 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true, useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
 
             //TODO: This should not be a null result: https://github.com/dotnet/roslyn/issues/55834
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -660,12 +660,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             // Now make the PDB a zero byte file
             File.WriteAllBytes(GetPdbPath(path), []);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -683,14 +683,14 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             // The first four bytes of this are BSJB so it is identified as a portable PDB.
             // The next two bytes are unimportant, they're just not valid PDB data.
             var corruptPdb = new byte[] { 66, 83, 74, 66, 68, 87 };
             File.WriteAllBytes(GetPdbPath(path), corruptPdb);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -715,7 +715,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             // Archive off the current PDB so we can restore it later
             var pdbFilePath = GetPdbPath(path);
@@ -728,7 +728,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             File.Delete(pdbFilePath);
             File.Move(archivePdbFilePath, pdbFilePath);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source1, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source1, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -753,11 +753,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         {
             MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
             File.WriteAllText(GetSourceFilePath(path), source2, Encoding.UTF8);
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, metadataSource, expectedSpan, expectNullResult: true, expectVirtualFiles: useVirtualFiles);
+            await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, metadataSource, expectedSpan, expectNullResult: true, useVirtualFiles: useVirtualFiles);
         });
     }
 
@@ -806,9 +806,9 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             using var ms = new MemoryStream(encoding.GetBytes(source));
             var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
 
-            var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
+            var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false, useVirtualFiles: useVirtualFiles);
 
             AssertEx.NotNull(actualText);
             AssertEx.NotNull(actualText.Encoding);
@@ -835,9 +835,9 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             using var ms = new MemoryStream(encoding.GetBytes(source));
             var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
 
-            var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
+            var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false, useVirtualFiles: useVirtualFiles);
 
             AssertEx.NotNull(actualText);
             AssertEx.NotNull(actualText.Encoding);
@@ -864,9 +864,9 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             using var ms = new MemoryStream(encoding.GetBytes(source));
             var encodedSourceText = EncodedStringText.Create(ms, encoding, canBeEmbedded: true);
 
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), fallbackEncoding: encoding, useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), fallbackEncoding: encoding);
 
-            var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
+            var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false, useVirtualFiles: useVirtualFiles);
 
             AssertEx.NotNull(actualText);
             AssertEx.NotNull(actualText.Encoding);
@@ -875,8 +875,8 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         });
     }
 
-    [Theory, CombinatorialData]
-    public async Task OptionTurnedOff_NullResult(bool useVirtualFiles)
+    [Fact]
+    public async Task OptionTurnedOff_NullResult()
     {
         var source = """
             public class C
@@ -888,7 +888,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
         await RunTestAsync(async path =>
         {
             var sourceText = SourceText.From(source, Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), useVirtualFiles: useVirtualFiles);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"));
 
             using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
 
@@ -945,7 +945,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition(useVirtualFiles));
+</Workspace>", composition: GetTestComposition());
 
             var project = workspace.CurrentSolution.Projects.First();
 
@@ -962,116 +962,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
-            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, source2.ToString(), expectedSpan, expectNullResult: false, expectVirtualFiles: useVirtualFiles);
-        });
-    }
-
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7532")]
-    public async Task OpenFileWithDifferentCase(bool useVirtualFiles)
-    {
-        var source = """
-            public class C
-            {
-                public int P { get; set; }
-            }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"), useVirtualFiles: useVirtualFiles);
-
-            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
-            var service = workspace.GetService<IMetadataAsSourceFileService>();
-            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
-
-            var requestPath = file.FilePath.ToUpperInvariant();
-
-            var result = service.TryAddDocumentToWorkspace(requestPath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
-            Assert.True(result);
-        });
-    }
-
-    [Theory, CombinatorialData]
-    public async Task OpenThenClose(bool useVirtualFiles)
-    {
-        var source = """
-            public class C
-            {
-                public int P { get; set; }
-            }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"), useVirtualFiles: useVirtualFiles);
-
-            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
-            var service = workspace.GetService<IMetadataAsSourceFileService>();
-            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
-
-            var openResult = service.TryAddDocumentToWorkspace(file.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
-            Assert.True(openResult);
-
-            var closeResult = service.TryRemoveDocumentFromWorkspace(file.FilePath);
-            Assert.True(closeResult);
-        });
-    }
-
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
-    public async Task CloseWithoutOpenDoesNotThrow(bool useVirtualFiles)
-    {
-        var source = """
-            public class C
-            {
-                public int P { get; set; }
-            }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"), useVirtualFiles: useVirtualFiles);
-
-            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
-            var service = workspace.GetService<IMetadataAsSourceFileService>();
-            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
-
-            var result = service.TryRemoveDocumentFromWorkspace(file.FilePath);
-            Assert.True(result);
-        });
-    }
-
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
-    public async Task OpenSameDocument(bool useVirtualFiles)
-    {
-        var source = """
-            public class C
-            {
-                public int P1 { get; set; }
-
-                public int P2 { get; set; }
-            }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P1"), useVirtualFiles: useVirtualFiles);
-
-            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
-            var service = workspace.GetService<IMetadataAsSourceFileService>();
-            var fileOne = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
-
-            var openResult = service.TryAddDocumentToWorkspace(fileOne.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
-            Assert.True(openResult);
-
-            var compilation = await project.GetCompilationAsync(CancellationToken.None);
-            var symbolTwo = compilation.GetMember("C.P2");
-            var fileTwo = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbolTwo, signaturesOnly: false, MetadataAsSourceOptions.Default, CancellationToken.None);
-            Assert.Equal(fileOne.FilePath, fileTwo.FilePath);
-            Assert.NotEqual(fileOne.IdentifierLocation, fileTwo.IdentifierLocation);
-
-            // Opening should still throw (should never be called as we should be able to find the previously
-            // opened document in the MAS workspace).
-            Assert.Throws<System.ArgumentException>(() => service.TryAddDocumentToWorkspace(fileTwo.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentIdTwo));
+            await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, source2.ToString(), expectedSpan, expectNullResult: false, useVirtualFiles: useVirtualFiles);
         });
     }
 }

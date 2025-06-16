@@ -1857,21 +1857,21 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestSymbolIdMatchesMetadata(bool useVirtualFiles)
     {
         await TestSymbolIdMatchesMetadataAsync(LanguageNames.CSharp, useVirtualFiles);
         await TestSymbolIdMatchesMetadataAsync(LanguageNames.VisualBasic, useVirtualFiles);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNotReusedOnAssemblyDiffers(bool useVirtualFiles)
     {
         await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.CSharp, useVirtualFiles);
         await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.VisualBasic, useVirtualFiles);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestThrowsOnGenerateNamespace(bool useVirtualFiles)
     {
         var namespaceSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol("Outerspace");
@@ -1883,7 +1883,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         });
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestReuseGenerateMemberOfGeneratedType(bool useVirtualFiles)
     {
         var metadataSource = "public class C { public bool Is; }";
@@ -1894,7 +1894,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         TestContext.VerifyDocumentReused(a, b);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestReuseRepeatGeneration(bool useVirtualFiles)
     {
         using var context = TestContext.Create(useVirtualFiles);
@@ -1903,7 +1903,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         TestContext.VerifyDocumentReused(a, b);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestWorkspaceContextHasReasonableProjectName(bool useVirtualFiles)
     {
         using var context = TestContext.Create(useVirtualFiles);
@@ -1916,7 +1916,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         Assert.Equal("mscorlib", openedDocument.Project.Name);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestReuseGenerateFromDifferentProject(bool useVirtualFiles)
     {
         using var context = TestContext.Create(useVirtualFiles);
@@ -1930,7 +1930,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         TestContext.VerifyDocumentReused(a, b);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNotReusedGeneratingForDifferentLanguage(bool useVirtualFiles)
     {
         using var context = TestContext.Create(useVirtualFiles, LanguageNames.CSharp);
@@ -3493,7 +3493,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestUnmanagedCSharpConstraint_Type(bool useVirtualFiles)
     {
         var metadata = """
@@ -3535,7 +3535,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestUnmanagedCSharpConstraint_Method(bool useVirtualFiles)
     {
         var metadata = """
@@ -3582,7 +3582,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestUnmanagedCSharpConstraint_Delegate(bool useVirtualFiles)
     {
         var metadata = """
@@ -5247,7 +5247,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNotNullCSharpConstraint_Type(bool useVirtualFiles)
     {
         var metadata = """
@@ -5291,7 +5291,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNotNullCSharpConstraint_Method(bool useVirtualFiles)
     {
         var metadata = """
@@ -5340,7 +5340,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNotNullCSharpConstraint_Delegate(bool useVirtualFiles)
     {
         var metadata = """
@@ -5378,7 +5378,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable1(bool useVirtualFiles)
     {
         var metadata = """
@@ -5443,7 +5443,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable2(bool useVirtualFiles)
     {
         var metadata = """
@@ -5505,7 +5505,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable3(bool useVirtualFiles)
     {
         var metadata = """
@@ -5575,7 +5575,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable4(bool useVirtualFiles)
     {
         var metadata = """
@@ -5632,7 +5632,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable5(bool useVirtualFiles)
     {
         var metadata = """
@@ -5690,7 +5690,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable6(bool useVirtualFiles)
     {
         var metadata = """
@@ -5745,7 +5745,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable7(bool useVirtualFiles)
     {
         var metadata = """
@@ -5800,7 +5800,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable8(bool useVirtualFiles)
     {
         var metadata = """
@@ -5853,7 +5853,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable9(bool useVirtualFiles)
     {
         var metadata = """
@@ -5906,7 +5906,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable10(bool useVirtualFiles)
     {
         var metadata = """
@@ -5959,7 +5959,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable11(bool useVirtualFiles)
     {
         var metadata = """
@@ -6010,7 +6010,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable12(bool useVirtualFiles)
     {
         var metadata = """
@@ -6081,7 +6081,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestNullableEnableDisable13(bool useVirtualFiles)
     {
         var metadata = """
@@ -6162,7 +6162,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, CombinatorialData]
+    [WpfTheory, CombinatorialData]
     public async Task TestDynamic1(bool useVirtualFiles)
     {
         var metadata = """

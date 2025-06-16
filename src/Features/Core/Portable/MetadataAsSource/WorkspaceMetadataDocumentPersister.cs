@@ -3,26 +3,34 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal class WorkspaceMetadataDocumentPersister : IMetadataDocumentPersister
+[ExportWorkspaceServiceFactory(typeof(WorkspaceMetadataDocumentPersister)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class WorkspaceMetadataDocumentPersisterFactory() : IWorkspaceServiceFactory
+{
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        return new WorkspaceMetadataDocumentPersister(workspaceServices.Workspace);
+    }
+}
+
+internal class WorkspaceMetadataDocumentPersister(Workspace workspace) : IMetadataDocumentPersister
 {
     public const string VirtualFileScheme = "roslyn-metadata";
-
-    private readonly Workspace _workspace;
-    public WorkspaceMetadataDocumentPersister(Workspace workspace)
-    {
-        _workspace = workspace;
-    }
 
     public void CleanupGeneratedDocuments()
     {
@@ -43,7 +51,7 @@ internal class WorkspaceMetadataDocumentPersister : IMetadataDocumentPersister
 
     public async Task<SourceText?> TryGetExistingTextAsync(string documentPath, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, Func<SourceText, bool> verifyExistingDocument, CancellationToken cancellationToken)
     {
-        var solution = _workspace.CurrentSolution;
+        var solution = workspace.CurrentSolution;
         var documentId = solution.GetDocumentIdsWithFilePath(documentPath).SingleOrDefault();
         if (documentId is null)
             // No document with this path exists in the workspace.

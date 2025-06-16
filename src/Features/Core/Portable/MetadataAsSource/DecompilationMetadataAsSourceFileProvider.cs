@@ -6,12 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DecompiledSource;
@@ -20,7 +18,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -100,16 +97,16 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         Location navigateLocation;
         if (!_generatedFilenameToInformation.TryGetValue(fileInfo.TemporaryFilePath, out var existingDocumentId))
         {
+            var sourceText = await persister.TryGetExistingTextAsync(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm,
+                verifyExistingDocument: text => true, cancellationToken).ConfigureAwait(false);
+
             // We don't have this file in the workspace.  We need to create a project to put it in.
             var (temporaryProjectInfo, temporaryDocumentId) = GenerateProjectAndDocumentInfo(fileInfo, metadataWorkspace.CurrentSolution.Services, sourceProject, topLevelNamedType);
             metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
             var temporaryDocument = metadataWorkspace.CurrentSolution
                 .GetRequiredDocument(temporaryDocumentId);
 
-            var sourceText = await persister.TryGetExistingTextAsync(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm,
-                verifyExistingDocument: text => true, cancellationToken).ConfigureAwait(false);
-
-            // Generate the file if it doesn't exist (we may still have it if there was a previous request for it that was then closed).
+            // Generate the file if it doesn't exist (we may still have it if there was a previous request for it that was cancelled / closed).
             if (sourceText is null)
             {
                 if (useDecompiler)

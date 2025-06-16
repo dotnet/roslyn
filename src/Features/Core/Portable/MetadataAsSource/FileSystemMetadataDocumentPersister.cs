@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-[ExportWorkspaceService(typeof(IMetadataDocumentPersister), ServiceLayer.Default), Shared]
+[ExportWorkspaceService(typeof(FileSystemMetadataDocumentPersister)), Shared]
 
-internal class FileSystemDocumentPersister : IMetadataDocumentPersister
+internal class FileSystemMetadataDocumentPersister : IMetadataDocumentPersister
 {
     /// <summary>
     /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
@@ -29,7 +29,7 @@ internal class FileSystemDocumentPersister : IMetadataDocumentPersister
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public FileSystemDocumentPersister()
+    public FileSystemMetadataDocumentPersister()
     {
         var guidString = Guid.NewGuid().ToString("N");
         _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);

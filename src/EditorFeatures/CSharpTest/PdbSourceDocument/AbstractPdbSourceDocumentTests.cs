@@ -95,8 +95,7 @@ public abstract class AbstractPdbSourceDocumentTests
             symbolMatcher,
             preprocessorSymbols,
             buildReferenceAssembly,
-            windowsPdb: false,
-            useVirtualFiles: useVirtualFiles);
+            windowsPdb: false);
 
         await GenerateFileAndVerifyAsync(project, symbol, sourceLocation, source, expectedSpan, expectNullResult, useVirtualFiles);
     }
@@ -108,9 +107,9 @@ public abstract class AbstractPdbSourceDocumentTests
         string expected,
         Text.TextSpan expectedSpan,
         bool expectNullResult,
-        bool expectVirtualFiles)
+        bool useVirtualFiles)
     {
-        var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, sourceLocation, expectNullResult, expectVirtualFiles);
+        var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, sourceLocation, expectNullResult, useVirtualFiles);
 
         if (actual is null)
             return;
@@ -127,15 +126,19 @@ public abstract class AbstractPdbSourceDocumentTests
         ISymbol symbol,
         Location sourceLocation,
         bool expectNullResult,
-        bool expectVirtualFiles)
+        bool useVirtualFiles)
     {
         using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
 
         var service = workspace.GetService<IMetadataAsSourceFileService>();
         try
         {
-            // Using default settings here because none of the tests exercise any of the settings
-            var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            // Other than virtual files, use default settings here because none of the tests exercise any other settings
+            var options = MetadataAsSourceOptions.Default with
+            {
+                NavigateToVirtualFile = useVirtualFiles,
+            };
+            var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
             if (expectNullResult)
             {
@@ -165,16 +168,6 @@ public abstract class AbstractPdbSourceDocumentTests
             var info = pdbService.GetTestAccessor().Documents[file.FilePath];
             var document = masWorkspace!.CurrentSolution.GetRequiredDocument(info.DocumentId);
 
-            if (expectVirtualFiles)
-            {
-                Assert.True(document.FilePath!.StartsWith(WorkspaceMetadataDocumentPersister.VirtualFileScheme));
-                Assert.False(File.Exists(document.FilePath!));
-            }
-            else
-            {
-                Assert.True(File.Exists(document.FilePath!));
-            }
-
             // Mapping the project from the generated document should map back to the original project
             var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
             var mappedProject = provider.MapDocument(document);
@@ -182,6 +175,18 @@ public abstract class AbstractPdbSourceDocumentTests
             Assert.Equal(project.Id, mappedProject!.Id);
 
             var actual = await document.GetTextAsync();
+
+            if (useVirtualFiles)
+            {
+                Assert.True(document.FilePath!.StartsWith(WorkspaceMetadataDocumentPersister.VirtualFileScheme));
+                Assert.False(File.Exists(document.FilePath!));
+            }
+            else
+            {
+                Assert.True(File.Exists(document.FilePath!));
+                Assert.Equal(File.ReadAllText(document.FilePath!, actual.Encoding), actual.ToString());
+            }
+
             var actualSpan = file!.IdentifierLocation.SourceSpan;
 
             return (actual, actualSpan);
@@ -201,11 +206,10 @@ public abstract class AbstractPdbSourceDocumentTests
         string[]? preprocessorSymbols = null,
         bool buildReferenceAssembly = false,
         bool windowsPdb = false,
-        Encoding? encoding = null,
-        bool useVirtualFiles = false)
+        Encoding? encoding = null)
     {
         var sourceText = SourceText.From(source, encoding: encoding ?? Encoding.UTF8);
-        return CompileAndFindSymbolAsync(path, pdbLocation, sourceLocation, sourceText, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, windowsPdb, useVirtualFiles: useVirtualFiles);
+        return CompileAndFindSymbolAsync(path, pdbLocation, sourceLocation, sourceText, symbolMatcher, preprocessorSymbols, buildReferenceAssembly, windowsPdb);
     }
 
     protected static async Task<(Project, ISymbol)> CompileAndFindSymbolAsync(
@@ -217,14 +221,13 @@ public abstract class AbstractPdbSourceDocumentTests
         string[]? preprocessorSymbols = null,
         bool buildReferenceAssembly = false,
         bool windowsPdb = false,
-        Encoding? fallbackEncoding = null,
-        bool useVirtualFiles = false)
+        Encoding? fallbackEncoding = null)
     {
         var preprocessorSymbolsAttribute = preprocessorSymbols?.Length > 0
             ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
             : "";
 
-        var composition = GetTestComposition(useVirtualFiles);
+        var composition = GetTestComposition();
 
         var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
@@ -247,7 +250,7 @@ public abstract class AbstractPdbSourceDocumentTests
         return (project, symbol);
     }
 
-    protected static TestComposition GetTestComposition(bool useVirtualFiles)
+    protected static TestComposition GetTestComposition()
     {
         // We construct our own composition here because we only want the decompilation metadata as source provider
         // to be available.
@@ -255,12 +258,6 @@ public abstract class AbstractPdbSourceDocumentTests
         var composition = EditorTestCompositions.EditorFeatures
             .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
             .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
-
-        if (useVirtualFiles)
-        {
-            composition = composition.AddParts(typeof(TestWorkspaceMetadataDocumentPersisterFactory));
-        }
-
         return composition;
     }
 
