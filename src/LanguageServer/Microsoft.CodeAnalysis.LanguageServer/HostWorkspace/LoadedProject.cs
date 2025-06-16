@@ -27,6 +27,7 @@ internal sealed class LoadedProject : IDisposable
     private readonly ProjectSystemProject _projectSystemProject;
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
     private readonly IFileChangeContext _fileChangeContext;
+    private readonly IFileChangeContext _projectAssetsFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
     /// <summary>
@@ -37,7 +38,6 @@ internal sealed class LoadedProject : IDisposable
     /// The most recent version of the file glob matcher.  Held onto 
     /// </summary>
     private Lazy<ImmutableArray<Matcher>>? _mostRecentFileMatchers;
-    private string? _mostRecentProjectAssetsFilePath;
     private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = [];
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = [];
@@ -56,22 +56,19 @@ internal sealed class LoadedProject : IDisposable
         _projectDirectory = Path.GetDirectoryName(_projectFilePath)!;
 
         _fileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
-        _fileChangeContext.FileChanged += FileChangedContext_FileChanged;
+        _fileChangeContext.FileChanged += FileChangeContext_FileChanged;
+
+        _projectAssetsFileChangeContext = fileWatcher.CreateContext([]);
+        _projectAssetsFileChangeContext.FileChanged += ProjectAssetsFileChangeContext_FileChanged;
 
         // Start watching for file changes for the project file as well
         _fileChangeContext.EnqueueWatchingFile(_projectFilePath);
     }
 
-    private void FileChangedContext_FileChanged(object? sender, string filePath)
+    private void FileChangeContext_FileChanged(object? sender, string filePath)
     {
         // If the project file itself changed, we almost certainly need to reload the project.
         if (string.Equals(filePath, _projectFilePath, StringComparison.OrdinalIgnoreCase))
-        {
-            NeedsReload?.Invoke(this, EventArgs.Empty);
-            return;
-        }
-
-        if (string.Equals(filePath, _mostRecentProjectAssetsFilePath, StringComparison.OrdinalIgnoreCase))
         {
             NeedsReload?.Invoke(this, EventArgs.Empty);
             return;
@@ -98,6 +95,11 @@ internal sealed class LoadedProject : IDisposable
                 return;
             }
         }
+    }
+
+    private void ProjectAssetsFileChangeContext_FileChanged(object? sender, string filePath)
+    {
+        NeedsReload?.Invoke(this, EventArgs.Empty);
     }
 
     public event EventHandler? NeedsReload;
@@ -229,7 +231,7 @@ internal sealed class LoadedProject : IDisposable
             document => _projectSystemProject.RemoveDynamicSourceFile(document.FilePath),
             "Project {0} now has {1} dynamic file(s).");
 
-        WatchProjectAssetsFile(newProjectInfo, _fileChangeContext);
+        WatchProjectAssetsFile(newProjectInfo);
 
         var needsRestore = ProjectDependencyHelper.NeedsRestore(newProjectInfo, _mostRecentFileInfo, logger);
 
@@ -280,7 +282,7 @@ internal sealed class LoadedProject : IDisposable
                 logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count);
         }
 
-        void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo, IFileChangeContext fileChangeContext)
+        void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo)
         {
             if (_mostRecentFileInfo?.ProjectAssetsFilePath == currentProjectInfo.ProjectAssetsFilePath)
             {
@@ -290,15 +292,9 @@ internal sealed class LoadedProject : IDisposable
 
             // Dispose of the last once since we're changing the file we're watching.
             _mostRecentProjectAssetsFileWatcher?.Dispose();
-
-            IWatchedFile? currentWatcher = null;
-            if (currentProjectInfo.ProjectAssetsFilePath != null)
-            {
-                currentWatcher = fileChangeContext.EnqueueWatchingFile(currentProjectInfo.ProjectAssetsFilePath);
-            }
-
-            _mostRecentProjectAssetsFileWatcher = currentWatcher;
-            _mostRecentProjectAssetsFilePath = currentProjectInfo.ProjectAssetsFilePath;
+            _mostRecentProjectAssetsFileWatcher = currentProjectInfo.ProjectAssetsFilePath is { } assetsFilePath
+                    ? _projectAssetsFileChangeContext.EnqueueWatchingFile(assetsFilePath)
+                    : null;
         }
     }
 

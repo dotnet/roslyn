@@ -44,15 +44,25 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
         }
 
         _logger.LogInformation($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
-        await RestoreAsync(restorePaths, progress, cancellationToken);
+        bool success = await RestoreAsync(restorePaths, progress, cancellationToken);
 
         progress.Report(new RestorePartialResult(LanguageServerResources.Restore, $"{LanguageServerResources.Restore_complete}{Environment.NewLine}"));
-        _logger.LogInformation($"Restore completed.");
+        if (success)
+        {
+            _logger.LogDebug($"Restore completed successfully.");
+        }
+        else
+        {
+            _logger.LogError($"Restore completed with errors. See '.NET NuGet Restore' output window for more details.");
+        }
+
         return progress.GetValues() ?? [];
     }
 
-    private async Task RestoreAsync(ImmutableArray<string> pathsToRestore, BufferedProgress<RestorePartialResult> progress, CancellationToken cancellationToken)
+    /// <returns>True if all restore invocations exited with code 0. Otherwise, false.</returns>
+    private async Task<bool> RestoreAsync(ImmutableArray<string> pathsToRestore, BufferedProgress<RestorePartialResult> progress, CancellationToken cancellationToken)
     {
+        bool success = true;
         foreach (var path in pathsToRestore)
         {
             var arguments = new string[] { "restore", path };
@@ -77,8 +87,11 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
             if (process.ExitCode != 0)
             {
                 ReportProgress(progress, stageName, string.Format(LanguageServerResources.Failed_to_run_restore_on_0, path));
+                success = false;
             }
         }
+
+        return success;
 
         static void ReportProgress(BufferedProgress<RestorePartialResult> progress, string stage, string? restoreOutput)
         {
