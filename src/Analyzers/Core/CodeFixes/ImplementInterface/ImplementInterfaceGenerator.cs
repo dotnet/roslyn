@@ -287,7 +287,7 @@ internal abstract partial class AbstractImplementInterfaceService
             ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
         {
             var factory = Document.GetRequiredLanguageService<SyntaxGenerator>();
-            var modifiers = new DeclarationModifiers(isStatic: member.IsStatic, isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
+            var modifiers = DeclarationModifiers.None.WithIsStatic(member.IsStatic).WithIsAbstract(generateAbstractly).WithIsNew(addNew).WithIsUnsafe(addUnsafe);
 
             var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
             var accessibility = member.Name == memberName || generateAbstractly

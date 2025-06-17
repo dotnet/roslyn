@@ -388,7 +388,7 @@ internal static class CodeGenerationSymbolFactory
         return CreateMethodSymbol(
             attributes,
             accessibility,
-            new DeclarationModifiers(isAbstract: statements == null),
+            DeclarationModifiers.None.WithIsAbstract(statements == null),
             returnType: null,
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,

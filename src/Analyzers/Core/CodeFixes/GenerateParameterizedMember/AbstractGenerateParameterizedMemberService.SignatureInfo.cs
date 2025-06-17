@@ -76,7 +76,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
+                modifiers: DeclarationModifiers.None.WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract),
                 type: await DetermineReturnTypeAsync(cancellationToken).ConfigureAwait(false),
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,
@@ -104,8 +104,8 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
                 accessibility: DetermineAccessibility(isAbstract),
-                modifiers: new DeclarationModifiers(
-                    isStatic: State.IsStatic, isAbstract: isAbstract, isUnsafe: isUnsafe, isAsync: knownTypes.IsTaskLike(returnType)),
+                modifiers: DeclarationModifiers.None
+                    .WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract).WithIsUnsafe(isUnsafe).WithAsync(knownTypes.IsTaskLike(returnType)),
                 returnType: returnType,
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,
