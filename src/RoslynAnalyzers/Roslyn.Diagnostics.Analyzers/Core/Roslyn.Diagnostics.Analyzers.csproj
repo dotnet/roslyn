@@ -9,7 +9,6 @@
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion)</MicrosoftCodeAnalysisVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <!-- <RootNamespace>Microsoft.CodeAnalysis</RootNamespace> -->
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CSharp.Analyzers" />
@@ -24,11 +23,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <!--<Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationKind.cs" Link="Editing\DeclarationKind.cs" />-->
-    <!--<Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationModifiers.cs" Link="Editing\DeclarationModifiers.cs" />-->
-    <!--<Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" Link="Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" />-->
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="RoslynDiagnosticsAnalyzersResources.resx" GenerateSource="true" />
   </ItemGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
@@ -39,9 +33,4 @@
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
-  
-  <!--
-  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
-  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared" />
-    <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems" Label="Shared" /> --> 
 </Project>
