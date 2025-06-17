@@ -501,14 +501,15 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <param name="operation">Operation representing the lambda or local function.</param>
         /// <param name="lambdaOrLocalFunction">Method symbol for the lambda or local function.</param>
-        public static PooledHashSet<ISymbol> GetCaptures(this IOperation operation, IMethodSymbol lambdaOrLocalFunction)
+        public static PooledDisposer<PooledHashSet<ISymbol>> GetCaptures(
+            this IOperation operation, IMethodSymbol lambdaOrLocalFunction, out PooledHashSet<ISymbol> builder)
         {
             Debug.Assert(operation is IAnonymousFunctionOperation anonymousFunction && anonymousFunction.Symbol.OriginalDefinition.ReturnTypeAndParametersAreSame(lambdaOrLocalFunction.OriginalDefinition) ||
                          operation is ILocalFunctionOperation localFunction && localFunction.Symbol.OriginalDefinition.Equals(lambdaOrLocalFunction.OriginalDefinition));
 
             lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
 
-            var builder = PooledHashSet<ISymbol>.GetInstance();
+            var builderDisposer = PooledHashSet<ISymbol>.GetInstance(out builder);
             using var _ = PooledHashSet<IMethodSymbol>.GetInstance(out var nestedLambdasAndLocalFunctions);
             nestedLambdasAndLocalFunctions.Add(lambdaOrLocalFunction);
 
@@ -517,11 +518,11 @@ namespace Analyzer.Utilities.Extensions
                 switch (child.Kind)
                 {
                     case OperationKind.LocalReference:
-                        ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local);
+                        ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local, builder);
                         break;
 
                     case OperationKind.ParameterReference:
-                        ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter);
+                        ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter, builder);
                         break;
 
                     case OperationKind.InstanceReference:
@@ -538,10 +539,10 @@ namespace Analyzer.Utilities.Extensions
                 }
             }
 
-            return builder;
+            return builderDisposer;
 
             // Local functions.
-            void ProcessLocalOrParameter(ISymbol symbol)
+            void ProcessLocalOrParameter(ISymbol symbol, PooledHashSet<ISymbol> builder)
             {
                 if (symbol.ContainingSymbol?.Kind == SymbolKind.Method &&
                     !nestedLambdasAndLocalFunctions.Contains(symbol.ContainingSymbol.OriginalDefinition))
