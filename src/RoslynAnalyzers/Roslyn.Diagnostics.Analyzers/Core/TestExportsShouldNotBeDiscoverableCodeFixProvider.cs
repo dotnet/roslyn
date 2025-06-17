@@ -75,7 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 {
                     if (attributeClass.Name == nameof(ExportAttribute))
                     {
-                        exportAttributeSymbol = (INamedTypeSymbol)attributeClass;
+                        exportAttributeSymbol = attributeClass;
                         break;
                     }
                 }

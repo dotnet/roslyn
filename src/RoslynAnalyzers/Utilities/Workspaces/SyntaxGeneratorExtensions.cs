@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Analyzer.Utilities
 {
-    using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-
     internal static class SyntaxGeneratorExtensions
     {
         private const string LeftIdentifierName = "left";
@@ -331,7 +329,7 @@ namespace Analyzer.Utilities
                 ],
                 generator.TypeExpression(SpecialType.System_Boolean),
                 Accessibility.Public,
-                Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Static,
+                DeclarationModifiers.Static,
                 statements);
         }
 
@@ -389,7 +387,7 @@ namespace Analyzer.Utilities
                 },
                 returnType: generator.TypeExpression(SpecialType.System_Boolean),
                 accessibility: Accessibility.Public,
-                modifiers: Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Override,
+                modifiers: DeclarationModifiers.Override,
                 statements: statements);
         }
 
@@ -410,7 +408,7 @@ namespace Analyzer.Utilities
                 WellKnownMemberNames.ObjectGetHashCode,
                 returnType: generator.TypeExpression(SpecialType.System_Int32),
                 accessibility: Accessibility.Public,
-                modifiers: Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Override,
+                modifiers: DeclarationModifiers.Override,
                 statements: generator.DefaultMethodBody(compilation));
         }
 
@@ -434,7 +432,7 @@ namespace Analyzer.Utilities
         {
             return generator.ThrowStatement(generator.ObjectCreationExpression(
                 generator.TypeExpression(
-                    compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName)!)));
+                    compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
         }
 
         public static SyntaxNode? TryGetContainingDeclaration(this SyntaxGenerator generator, SyntaxNode? node, DeclarationKind kind)

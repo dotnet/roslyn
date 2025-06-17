@@ -9,7 +9,7 @@
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion)</MicrosoftCodeAnalysisVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <!-- <RootNamespace>Microsoft.CodeAnalysis</RootNamespace> -->
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CSharp.Analyzers" />
@@ -25,7 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <!--<Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationKind.cs" Link="Editing\DeclarationKind.cs" />-->
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationModifiers.cs" Link="Editing\DeclarationModifiers.cs" />
+    <!--<Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationModifiers.cs" Link="Editing\DeclarationModifiers.cs" />-->
     <!--<Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" Link="Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" />-->
   </ItemGroup>
   <ItemGroup>

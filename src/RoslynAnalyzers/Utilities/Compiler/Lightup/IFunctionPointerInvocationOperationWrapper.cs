@@ -14,68 +14,68 @@ namespace Analyzer.Utilities.Lightup
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.Operations;
 
-    //[SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not a comparable instance.")]
-    //internal readonly struct IFunctionPointerInvocationOperationWrapper : IOperationWrapper
-    //{
-    //    internal const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation";
-    //    private static readonly Type? WrappedType = OperationWrapperHelper.GetWrappedType(typeof(IFunctionPointerInvocationOperationWrapper));
+    [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not a comparable instance.")]
+    internal readonly struct IFunctionPointerInvocationOperationWrapper : IOperationWrapper
+    {
+        internal const string WrappedTypeName = "Microsoft.CodeAnalysis.Operations.IFunctionPointerInvocationOperation";
+        private static readonly Type? WrappedType = OperationWrapperHelper.GetWrappedType(typeof(IFunctionPointerInvocationOperationWrapper));
 
-    //    private static readonly Func<IOperation, ImmutableArray<IArgumentOperation>> ArgumentsAccessor = LightupHelpers.CreateOperationPropertyAccessor<IOperation, ImmutableArray<IArgumentOperation>>(WrappedType, nameof(Arguments), fallbackResult: ImmutableArray<IArgumentOperation>.Empty);
-    //    private static readonly Func<IOperation, IOperation> TargetAccessor = LightupHelpers.CreateOperationPropertyAccessor<IOperation, IOperation>(WrappedType, nameof(Target), fallbackResult: null!);
+        private static readonly Func<IOperation, ImmutableArray<IArgumentOperation>> ArgumentsAccessor = LightupHelpers.CreateOperationPropertyAccessor<IOperation, ImmutableArray<IArgumentOperation>>(WrappedType, nameof(Arguments), fallbackResult: ImmutableArray<IArgumentOperation>.Empty);
+        private static readonly Func<IOperation, IOperation> TargetAccessor = LightupHelpers.CreateOperationPropertyAccessor<IOperation, IOperation>(WrappedType, nameof(Target), fallbackResult: null!);
 
-    //    private static readonly Func<IOperation, IMethodSymbol> GetFunctionPointerSignatureAccessor = CreateFunctionPointerSignatureAccessor(WrappedType);
+        private static readonly Func<IOperation, IMethodSymbol> GetFunctionPointerSignatureAccessor = CreateFunctionPointerSignatureAccessor(WrappedType);
 
-    //    private static Func<IOperation, IMethodSymbol> CreateFunctionPointerSignatureAccessor(Type? wrappedType)
-    //    {
-    //        if (wrappedType == null)
-    //        {
-    //            return op => null!;
-    //        }
+        private static Func<IOperation, IMethodSymbol> CreateFunctionPointerSignatureAccessor(Type? wrappedType)
+        {
+            if (wrappedType == null)
+            {
+                return op => null!;
+            }
 
-    //        var targetMethod = typeof(OperationExtensions).GetTypeInfo().GetDeclaredMethod("GetFunctionPointerSignature");
+            var targetMethod = typeof(OperationExtensions).GetTypeInfo().GetDeclaredMethod("GetFunctionPointerSignature");
 
-    //        if (targetMethod is null)
-    //        {
-    //            return op => null!;
-    //        }
+            if (targetMethod is null)
+            {
+                return op => null!;
+            }
 
-    //        var operation = Expression.Variable(typeof(IOperation));
+            var operation = Expression.Variable(typeof(IOperation));
 
-    //        return Expression.Lambda<Func<IOperation, IMethodSymbol>>(Expression.Call(targetMethod, Expression.Convert(operation, wrappedType)), operation).Compile();
-    //    }
+            return Expression.Lambda<Func<IOperation, IMethodSymbol>>(Expression.Call(targetMethod, Expression.Convert(operation, wrappedType)), operation).Compile();
+        }
 
-    //    private IFunctionPointerInvocationOperationWrapper(IOperation operation)
-    //    {
-    //        WrappedOperation = operation;
-    //    }
+        private IFunctionPointerInvocationOperationWrapper(IOperation operation)
+        {
+            WrappedOperation = operation;
+        }
 
-    //    public IOperation WrappedOperation { get; }
-    //    public ITypeSymbol? Type => WrappedOperation.Type;
-    //    public ImmutableArray<IArgumentOperation> Arguments => ArgumentsAccessor(WrappedOperation);
-    //    public IOperation Target => TargetAccessor(WrappedOperation);
+        public IOperation WrappedOperation { get; }
+        public ITypeSymbol? Type => WrappedOperation.Type;
+        public ImmutableArray<IArgumentOperation> Arguments => ArgumentsAccessor(WrappedOperation);
+        public IOperation Target => TargetAccessor(WrappedOperation);
 
-    //    public IMethodSymbol GetFunctionPointerSignature() => GetFunctionPointerSignatureAccessor(WrappedOperation);
+        public IMethodSymbol GetFunctionPointerSignature() => GetFunctionPointerSignatureAccessor(WrappedOperation);
 
-    //    public static IFunctionPointerInvocationOperationWrapper FromOperation(IOperation operation)
-    //    {
-    //        if (operation == null)
-    //        {
-    //            return default;
-    //        }
+        public static IFunctionPointerInvocationOperationWrapper FromOperation(IOperation operation)
+        {
+            if (operation == null)
+            {
+                return default;
+            }
 
-    //        if (!IsInstance(operation))
-    //        {
-    //            throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
-    //        }
+            if (!IsInstance(operation))
+            {
+                throw new InvalidCastException($"Cannot cast '{operation.GetType().FullName}' to '{WrappedTypeName}'");
+            }
 
-    //        return new IFunctionPointerInvocationOperationWrapper(operation);
-    //    }
+            return new IFunctionPointerInvocationOperationWrapper(operation);
+        }
 
-    //    public static bool IsInstance(IOperation operation)
-    //    {
-    //        return operation != null && LightupHelpers.CanWrapOperation(operation, WrappedType);
-    //    }
-    //}
+        public static bool IsInstance(IOperation operation)
+        {
+            return operation != null && LightupHelpers.CanWrapOperation(operation, WrappedType);
+        }
+    }
 }
 
 #endif
