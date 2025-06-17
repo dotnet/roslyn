@@ -19,7 +19,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Friend Class MockServiceProvider
         Implements IServiceProvider
         Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
-        Implements SVsRunningDocumentTable
         Implements IAsyncServiceProvider
         Implements IAsyncServiceProvider2
 
