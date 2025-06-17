@@ -2287,7 +2287,6 @@ Global
 		src\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems*{da973826-c985-4128-9948-0b445e638bdb}*SharedItemsImports = 13
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{db96c25f-39a9-4a6a-92bc-d1e42717308f}*SharedItemsImports = 5
 		src\Compilers\Server\VBCSCompiler\VBCSCompilerCommandLine.projitems*{dc8c78cc-b6fe-47bf-93b1-b65a1c67c08d}*SharedItemsImports = 5
-		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{dee77b19-9559-d47d-8ec4-c207152a9c2c}*SharedItemsImports = 5
 		src\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems*{e512c6c1-f085-4ad7-b0d9-e8f1a0a2a510}*SharedItemsImports = 5
 		src\Compilers\VisualBasic\vbc\VbcCommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 5
 		src\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems*{e645b517-5766-46fb-aa4a-d4d30c9e3be6}*SharedItemsImports = 5
