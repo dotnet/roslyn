@@ -8046,7 +8046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
                     return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [receiver], CreateErrorType());
 
                 default:
