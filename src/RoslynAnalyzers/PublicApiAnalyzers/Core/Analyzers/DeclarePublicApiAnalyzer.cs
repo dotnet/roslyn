@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private static bool TryGetApiData(CompilationStartAnalysisContext context, bool isPublic, List<Diagnostic> errors, [NotNullWhen(true)] out ImmutableDictionary<AdditionalText, SourceText>? additionalFiles, [NotNullWhen(true)] out ApiData? shippedData, [NotNullWhen(true)] out ApiData? unshippedData)
         {
-            using var allShippedData = ArrayBuilder<ApiData>.GetInstance();
-            using var allUnshippedData = ArrayBuilder<ApiData>.GetInstance();
+            using var _1 = ArrayBuilder<ApiData>.GetInstance(out var allShippedData);
+            using var _2 = ArrayBuilder<ApiData>.GetInstance(out var allUnshippedData);
 
             AddApiTexts(context, isPublic, out additionalFiles, allShippedData, allUnshippedData);
 

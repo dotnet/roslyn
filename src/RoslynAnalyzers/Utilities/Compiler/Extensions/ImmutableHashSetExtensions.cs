@@ -34,7 +34,7 @@ namespace System.Collections.Immutable
                 return set2;
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableHashSet();
         }
 
         public static ImmutableHashSet<T> IntersectSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
@@ -52,7 +52,7 @@ namespace System.Collections.Immutable
                 return set1.Contains(set2.First()) ? set2 : ImmutableHashSet<T>.Empty;
             }
 
-            using var builder = PooledHashSet<T>.GetInstance();
+            using var _ = PooledHashSet<T>.GetInstance(out var builder);
             foreach (var item in set1)
             {
                 if (set2.Contains(item))
@@ -70,7 +70,7 @@ namespace System.Collections.Immutable
                 return set2;
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableHashSet();
         }
 
         public static bool IsSubsetOfSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)

@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ComputationalComplexityMetrics computationalComplexityMetrics = ComputationalComplexityMetrics.Default;
 
             var nodesToProcess = new Queue<SyntaxNode>();
-            using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var applicableAttributeNodes);
 
             foreach (var declaration in declarations)
             {

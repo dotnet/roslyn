@@ -509,7 +509,7 @@ namespace Analyzer.Utilities.Extensions
             lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
 
             var builder = PooledHashSet<ISymbol>.GetInstance();
-            using var nestedLambdasAndLocalFunctions = PooledHashSet<IMethodSymbol>.GetInstance();
+            using var _ = PooledHashSet<IMethodSymbol>.GetInstance(out var nestedLambdasAndLocalFunctions);
             nestedLambdasAndLocalFunctions.Add(lambdaOrLocalFunction);
 
             foreach (var child in operation.Descendants())
