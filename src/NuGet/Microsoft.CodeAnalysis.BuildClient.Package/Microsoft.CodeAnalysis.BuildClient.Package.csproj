@@ -15,16 +15,6 @@
     </PackageDescription>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\CommandLine\BuildProtocol.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\CommandLine\CompilerServerLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\CommandLine\NativeMethods.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\Portable\CommitHashAttribute.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\BuildServerConnection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\NamedPipeUtil.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Compilers\Shared\RuntimeHostInfo.cs" />
-  </ItemGroup>
+  <Import Project="$(MSBuildThisFileDirectory)Microsoft.CodeAnalysis.BuildClient.targets" />
 
 </Project>
