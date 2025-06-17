@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities
 {
@@ -82,7 +83,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableHashSet();
         }
 
         private void EnsureDisposableFieldsMap()
