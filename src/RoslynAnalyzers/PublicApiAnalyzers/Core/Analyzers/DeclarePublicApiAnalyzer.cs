@@ -396,9 +396,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 errors.Add(Diagnostic.Create(descriptor, Location.None, InvalidReasonMisplacedNullableEnable));
             }
 
-            using var _ = PooledDictionary<string, ApiLine>.GetInstance(StringComparer.Ordinal, out var publicApiMap);
+            var publicApiMap = PooledDictionary<string, ApiLine>.GetInstance(StringComparer.Ordinal);
             ValidateApiList(additionalFiles, publicApiMap, shippedData.ApiList, isPublic, errors);
             ValidateApiList(additionalFiles, publicApiMap, unshippedData.ApiList, isPublic, errors);
+            publicApiMap.Free();
 
             return errors.Count == 0;
         }
