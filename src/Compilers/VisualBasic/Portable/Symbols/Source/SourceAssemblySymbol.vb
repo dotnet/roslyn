@@ -519,12 +519,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyNetModuleAttributesBag
         End Function
 
-        Private Function GetNetModuleAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            Dim attributesBag = Me.GetNetModuleAttributesBag()
-            Debug.Assert(attributesBag.IsSealed)
-            Return attributesBag.Attributes
-        End Function
-
         Friend Function GetNetModuleDecodedWellKnownAttributeData() As CommonAssemblyWellKnownAttributeData
             Dim attributesBag = Me.GetNetModuleAttributesBag()
             Debug.Assert(attributesBag.IsSealed)

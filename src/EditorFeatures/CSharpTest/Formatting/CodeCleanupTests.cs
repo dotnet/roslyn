@@ -782,7 +782,7 @@ public sealed partial class CodeCleanupTests
         where TCodefix : CodeFixProvider, new()
     {
 
-        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(TCodefix)));
 
         var project = workspace.CurrentSolution.Projects.Single();
         var analyzer = (DiagnosticAnalyzer)new TAnalyzer();
@@ -833,12 +833,12 @@ public sealed partial class CodeCleanupTests
         {
             if (language == LanguageNames.CSharp)
             {
-                return EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                return EditorTestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeatures);
             }
 
             if (language == LanguageNames.VisualBasic)
             {
-                return EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                return EditorTestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeatures);
             }
 
             return null;
@@ -871,7 +871,7 @@ public sealed partial class CodeCleanupTests
     /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
     private static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
     {
-        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeatures);
 
         // must set global options since incremental analyzer infra reads from global options
         workspace.SetAnalyzerFallbackAndGlobalOptions(new OptionsCollection(LanguageNames.CSharp)

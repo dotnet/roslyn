@@ -25,7 +25,7 @@ public sealed class CompletionProviderOrderTests
     [Fact]
     public void TestCompletionProviderOrder()
     {
-        var exportProvider = EditorTestCompositions.EditorFeaturesWpf.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
         var completionProviderExports = exportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>();
         var orderedCSharpCompletionProviders = ExtensionOrderer.Order(completionProviderExports.Where(export => export.Metadata.Language == LanguageNames.CSharp));
 

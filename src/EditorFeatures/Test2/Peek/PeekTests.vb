@@ -234,13 +234,13 @@ public partial class D
         $$PartialMethod();
     }
 
-    partial void PartialMethod();
+    partial void {|Identifier:PartialMethod|}();
 }
                                                           ]]></Document>
                                                           <Document><![CDATA[
 public partial class D
 {
-    partial void {|Identifier:PartialMethod|}() { }
+    partial void PartialMethod() { }
 }
                                                           ]]></Document>
                                                       </Project>
@@ -289,7 +289,7 @@ public partial class D
         End Sub
 
         Private Shared Function CreateTestWorkspace(element As XElement) As EditorTestWorkspace
-            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Return EditorTestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeatures)
         End Function
 
         Private Shared Function GetPeekResultCollection(element As XElement) As PeekResultCollection

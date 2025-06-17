@@ -30,6 +30,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.TraitItem(Mic
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.TraitItem(string! name, string! value, int importance = 0) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.init -> void
+Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper? other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper
@@ -125,6 +126,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.CodeSnippetItem? right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.operator !=(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.operator ==(Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? left, Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem? right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities.AnalyzeCopilotChangeAsync(Microsoft.CodeAnalysis.Document! document, bool accepted, string! featureId, string! proposalId, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Text.TextChange>! textChanges, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Create(System.Collections.Immutable.ImmutableArray<string!> values) -> Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper!
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.GetContainingMethodDeclarationAsync(Microsoft.CodeAnalysis.Document! document, int position, bool useFullSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.SyntaxNode?>!
 static Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotUtilities.GetCopilotSuggestionDiagnosticTag() -> string!

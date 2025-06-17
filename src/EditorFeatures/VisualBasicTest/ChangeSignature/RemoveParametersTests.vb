@@ -107,7 +107,7 @@ End Module
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                composition:=EditorTestCompositions.EditorFeaturesWpf)
+                composition:=EditorTestCompositions.EditorFeatures)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()

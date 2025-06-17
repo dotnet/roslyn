@@ -298,7 +298,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Packaging = nameof(Packaging);
             public const string PasteTracking = nameof(PasteTracking);
             public const string Peek = nameof(Peek);
-            public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
             public const string SarifErrorLogging = nameof(SarifErrorLogging);
             public const string QuickInfo = nameof(QuickInfo);
@@ -315,6 +314,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SmartIndent = nameof(SmartIndent);
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
+            public const string SolutionExplorer = nameof(SolutionExplorer);
             public const string SourceGenerators = nameof(SourceGenerators);
             public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
