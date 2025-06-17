@@ -38,12 +38,12 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper, ILoggerFac
         var restorePaths = GetRestorePaths(request, context.Solution, context);
         if (restorePaths.IsEmpty)
         {
-            _logger.LogInformation($"Restore was requested but no paths were provided.");
+            _logger.LogDebug($"Restore was requested but no paths were provided.");
             progress.Report(new RestorePartialResult(LanguageServerResources.Restore, LanguageServerResources.Nothing_found_to_restore));
             return progress.GetValues() ?? [];
         }
 
-        _logger.LogInformation($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
+        _logger.LogDebug($"Running restore on {restorePaths.Length} paths, starting with '{restorePaths.First()}'.");
         bool success = await RestoreAsync(restorePaths, progress, cancellationToken);
 
         progress.Report(new RestorePartialResult(LanguageServerResources.Restore, $"{LanguageServerResources.Restore_complete}{Environment.NewLine}"));
