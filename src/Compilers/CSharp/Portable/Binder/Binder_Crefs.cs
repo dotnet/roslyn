@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle extension operators
+            // Tracked by https://github.com/dotnet/roslyn/issues/78967 : cref, handle extension operators
             CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
 
             if (containerOpt is not NamedTypeSymbol namedContainer)

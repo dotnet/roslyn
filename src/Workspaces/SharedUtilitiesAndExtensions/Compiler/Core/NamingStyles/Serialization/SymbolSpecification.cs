@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 using System.Runtime.Serialization;
 using System.Diagnostics;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;

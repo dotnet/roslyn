@@ -67,7 +67,7 @@
     <SystemThreadingTasksDataflowVersion>9.0.0</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>9.0.0</SystemWindowsExtensionsVersion>
     <MicrosoftBclAsyncInterfacesVersion>9.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>4.0.1</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>5.0.0-1.25277.114</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftDiaSymReaderVersion>2.0.0</MicrosoftDiaSymReaderVersion>
     <MicrosoftExtensionsConfigurationVersion>9.0.0</MicrosoftExtensionsConfigurationVersion>
@@ -132,15 +132,15 @@
         -->
         <!-- Microsoft.CodeAnalysis versions for different purposes. -->
         <!-- Surface area that various projects compile against. These should have source-build reference packages -->
-        <MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>4.0.1</MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>
-        <MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>4.0.1</MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>
-        <MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>4.0.1</MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>
-        <MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>4.0.1</MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>
-        <MicrosoftCodeAnalysisVersionForResxSourceGenerators>4.0.1</MicrosoftCodeAnalysisVersionForResxSourceGenerators>
-        <MicrosoftCodeAnalysisVersionForTextAnalyzers>4.0.1</MicrosoftCodeAnalysisVersionForTextAnalyzers>
-        <MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>4.0.1</MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>
-        <MicrosoftCodeAnalysisVersionForToolsAndUtilities>4.0.1</MicrosoftCodeAnalysisVersionForToolsAndUtilities>
-        <MicrosoftCodeAnalysisVersionForMetrics>4.0.1</MicrosoftCodeAnalysisVersionForMetrics>
+        <MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>4.14.0</MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>
+        <MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>4.14.0</MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>
+        <MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>4.14.0</MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>
+        <MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>4.14.0</MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>
+        <MicrosoftCodeAnalysisVersionForResxSourceGenerators>4.14.0</MicrosoftCodeAnalysisVersionForResxSourceGenerators>
+        <MicrosoftCodeAnalysisVersionForTextAnalyzers>4.14.0</MicrosoftCodeAnalysisVersionForTextAnalyzers>
+        <MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>4.14.0</MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>
+        <MicrosoftCodeAnalysisVersionForToolsAndUtilities>4.14.0</MicrosoftCodeAnalysisVersionForToolsAndUtilities>
+        <MicrosoftCodeAnalysisVersionForMetrics>4.14.0</MicrosoftCodeAnalysisVersionForMetrics>
         <!-- Versions for tests and general utility execution. -->
         <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
             area versions. -->
@@ -150,7 +150,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <MicrosoftCodeAnalysisVersionFromSbrp>4.0.1</MicrosoftCodeAnalysisVersionFromSbrp>
+        <MicrosoftCodeAnalysisVersionFromSbrp>4.14.0</MicrosoftCodeAnalysisVersionFromSbrp>
         <MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>
         <MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>
         <MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>
