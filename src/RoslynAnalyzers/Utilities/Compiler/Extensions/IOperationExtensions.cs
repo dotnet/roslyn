@@ -154,40 +154,40 @@ namespace Analyzer.Utilities.Extensions
         //            return builder != null ? builder.ToImmutable() : operations;
         //        }
 
-        //        /// <summary>
-        //        /// Gets explicit descendants or self of the given <paramref name="operation"/> that have no explicit ancestor in
-        //        /// the operation tree rooted at <paramref name="operation"/>.
-        //        /// </summary>
-        //        /// <param name="operation">Operation</param>
-        //        public static ImmutableArray<IOperation> GetTopmostExplicitDescendants(this IOperation operation)
-        //        {
-        //            if (!operation.IsImplicit)
-        //            {
-        //                return ImmutableArray.Create(operation);
-        //            }
+        /// <summary>
+        /// Gets explicit descendants or self of the given <paramref name="operation"/> that have no explicit ancestor in
+        /// the operation tree rooted at <paramref name="operation"/>.
+        /// </summary>
+        /// <param name="operation">Operation</param>
+        public static ImmutableArray<IOperation> GetTopmostExplicitDescendants(this IOperation operation)
+        {
+            if (!operation.IsImplicit)
+            {
+                return ImmutableArray.Create(operation);
+            }
 
-        //            var builder = ImmutableArray.CreateBuilder<IOperation>();
-        //            var operationsToProcess = new Queue<IOperation>();
-        //            operationsToProcess.Enqueue(operation);
+            var builder = ImmutableArray.CreateBuilder<IOperation>();
+            var operationsToProcess = new Queue<IOperation>();
+            operationsToProcess.Enqueue(operation);
 
-        //            while (operationsToProcess.Count > 0)
-        //            {
-        //                operation = operationsToProcess.Dequeue();
-        //                if (!operation.IsImplicit)
-        //                {
-        //                    builder.Add(operation);
-        //                }
-        //                else
-        //                {
-        //                    foreach (var child in operation.Children)
-        //                    {
-        //                        operationsToProcess.Enqueue(child);
-        //                    }
-        //                }
-        //            }
+            while (operationsToProcess.Count > 0)
+            {
+                operation = operationsToProcess.Dequeue();
+                if (!operation.IsImplicit)
+                {
+                    builder.Add(operation);
+                }
+                else
+                {
+                    foreach (var child in operation.Children)
+                    {
+                        operationsToProcess.Enqueue(child);
+                    }
+                }
+            }
 
-        //            return builder.ToImmutable();
-        //        }
+            return builder.ToImmutable();
+        }
 
         /// <summary>
         /// True if this operation has no IOperation API support, i.e. <see cref="OperationKind.None"/> and

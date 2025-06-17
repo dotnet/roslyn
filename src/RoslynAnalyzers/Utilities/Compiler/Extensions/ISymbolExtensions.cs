@@ -104,10 +104,10 @@ namespace Analyzer.Utilities.Extensions
         //            return (symbol as IMethodSymbol)?.IsFinalizer() ?? false;
         //        }
 
-        //        public static bool IsIndexer([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        //        {
-        //            return symbol is IPropertySymbol { IsIndexer: true };
-        //        }
+        public static bool IsIndexer([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        {
+            return symbol is IPropertySymbol { IsIndexer: true };
+        }
 
         //        public static bool IsPropertyWithBackingField([NotNullWhen(returnValue: true)] this ISymbol? symbol, [NotNullWhen(true)] out IFieldSymbol? backingField)
         //        {
@@ -840,28 +840,28 @@ namespace Analyzer.Utilities.Extensions
         //            => symbol?.Name.StartsWith("_", StringComparison.Ordinal) == true &&
         //               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name[1..], out _) || symbol.Name.All(n => n.Equals('_')));
 
-        //        public static bool IsConst([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        //        {
-        //            return symbol switch
-        //            {
-        //                IFieldSymbol field => field.IsConst,
+        public static bool IsConst([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        {
+            return symbol switch
+            {
+                IFieldSymbol field => field.IsConst,
 
-        //                ILocalSymbol local => local.IsConst,
+                ILocalSymbol local => local.IsConst,
 
-        //                _ => false,
-        //            };
-        //        }
+                _ => false,
+            };
+        }
 
-        //        public static bool IsReadOnly([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        //            => symbol switch
-        //            {
-        //                IFieldSymbol field => field.IsReadOnly,
-        //                IPropertySymbol property => property.IsReadOnly,
-        //#if CODEANALYSIS_V3_OR_BETTER
-        //                IMethodSymbol method => method.IsReadOnly,
-        //                ITypeSymbol type => type.IsReadOnly,
-        //#endif
-        //                _ => false,
-        //            };
+        public static bool IsReadOnly([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => symbol switch
+            {
+                IFieldSymbol field => field.IsReadOnly,
+                IPropertySymbol property => property.IsReadOnly,
+#if CODEANALYSIS_V3_OR_BETTER
+                IMethodSymbol method => method.IsReadOnly,
+                ITypeSymbol type => type.IsReadOnly,
+#endif
+                _ => false,
+            };
     }
 }
