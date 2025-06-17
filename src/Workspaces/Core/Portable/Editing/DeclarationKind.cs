@@ -5,6 +5,8 @@
 using System;
 using System.ComponentModel;
 
+namespace Microsoft.CodeAnalysis.Editing;
+
 /// <devdocs>
 /// This should contain only language-agnostic declarations. Things like record struct should fall under struct, etc.
 /// </devdocs>
