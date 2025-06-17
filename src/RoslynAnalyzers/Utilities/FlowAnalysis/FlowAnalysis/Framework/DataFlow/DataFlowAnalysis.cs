@@ -173,9 +173,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             finally
             {
                 catchBlockInputDataMap.Values.Dispose();
-                catchBlockInputDataMap.Dispose();
+                catchBlockInputDataMap.Free();
                 inputDataFromInfeasibleBranchesMap.Values.Dispose();
-                inputDataFromInfeasibleBranchesMap.Dispose();
+                inputDataFromInfeasibleBranchesMap.Free();
             }
         }
 
