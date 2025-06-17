@@ -1694,7 +1694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = parser.ParseName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                return (NameSyntax)node.CreateRed();
+                return CreateRed<NameSyntax>(node, lexer.Options);
             }
         }
 

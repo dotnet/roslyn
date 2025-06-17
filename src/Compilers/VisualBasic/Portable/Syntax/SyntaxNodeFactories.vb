@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         disallowGenericArgumentsOnLastQualifiedName:=False,
                         allowEmptyGenericArguments:=True,
                         allowedEmptyGenericArguments:=True)
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), NameSyntax)
+                Return CreateRed(Of NameSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
             End Using
         End Function
 
@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseExpression()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ExpressionSyntax)
+                Return CreateRed(Of ExpressionSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
             End Using
         End Function
 
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ParseExecutableStatement(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As StatementSyntax
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 Dim node = p.ParseExecutableStatement()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), StatementSyntax)
+                Return CreateRed(Of StatementSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
             End Using
         End Function
 
@@ -255,15 +255,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
         End Function
 
-        Private Shared Function CreateRed(Of TSyntax As VisualBasicSyntaxNode)(green As InternalSyntax.VisualBasicSyntaxNode, options As VisualBasicParseOptions) As TSyntax
-            Dim red = DirectCast(green.CreateRed(), TSyntax)
-            Debug.Assert(red._syntaxTree Is Nothing)
-#Disable Warning RS0030 ' Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-            red._syntaxTree = VisualBasicSyntaxTree.CreateWithoutClone(red, options)
-#Enable Warning RS0030
-            Return red
-        End Function
-
         ''' <summary>
         ''' Parse a parameter list.
         ''' </summary>
@@ -273,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParameterList()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ParameterListSyntax)
+                Return CreateRed(Of ParameterListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
             End Using
         End Function
 
@@ -286,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParenthesizedArguments()
-                Return DirectCast(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node).CreateRed(Nothing, 0), ArgumentListSyntax)
+                Return CreateRed(Of ArgumentListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
             End Using
         End Function
 
@@ -312,13 +303,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim xmlName = InternalSyntax.SyntaxFactory.XmlName(
                     Nothing, InternalSyntax.SyntaxFactory.XmlNameToken(parentElementName, SyntaxKind.XmlNameToken, Nothing, Nothing))
 
-                    Return DirectCast(
-                    parser.ParseXmlAttribute(
+                    Dim xmlAttribute = parser.ParseXmlAttribute(
                         requireLeadingWhitespace:=False,
                         AllowNameAsExpression:=False,
-                        xmlElementName:=xmlName).CreateRed(Nothing, 0), BaseXmlAttributeSyntax)
+                        xmlElementName:=xmlName)
+                    Return CreateRed(Of BaseXmlAttributeSyntax)(xmlAttribute, scanner.Options)
                 End Using
             End Using
+        End Function
+
+        Private Shared Function CreateRed(Of TSyntax As VisualBasicSyntaxNode)(green As InternalSyntax.VisualBasicSyntaxNode, options As VisualBasicParseOptions) As TSyntax
+            Dim red = DirectCast(green.CreateRed(), TSyntax)
+            Debug.Assert(red._syntaxTree Is Nothing)
+#Disable Warning RS0030 ' Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
+            red._syntaxTree = VisualBasicSyntaxTree.CreateWithoutClone(red, options)
+#Enable Warning RS0030
+            Return red
         End Function
 
 #End Region
