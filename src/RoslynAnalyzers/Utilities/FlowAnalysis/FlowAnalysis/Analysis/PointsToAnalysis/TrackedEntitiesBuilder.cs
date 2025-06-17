@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -41,8 +42,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public void Dispose()
         {
-            AllEntities.Dispose();
-            PointsToValues.Dispose();
+            AllEntities.Free();
+            PointsToValues.Free();
         }
 
         public void AddEntityAndPointsToValue(AnalysisEntity analysisEntity, PointsToAbstractValue value)
@@ -63,6 +64,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             => PointsToValues.Contains(value);
 
         public (ImmutableHashSet<AnalysisEntity>, ImmutableHashSet<PointsToAbstractValue>) ToImmutable()
-            => (AllEntities.ToImmutable(), PointsToValues.ToImmutable());
+            => (AllEntities.ToImmutableHashSet(), PointsToValues.ToImmutableHashSet());
     }
 }
