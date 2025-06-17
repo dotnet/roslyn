@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 } while (nodesToProcess.Count != 0);
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableHashSet();
         }
 
         private static void AddUsedNamedTypeCore(ITypeSymbol? type, PooledHashSet<INamedTypeSymbol> builder, ref bool hasAccessToTypeFromWorkspaceAssemblies)

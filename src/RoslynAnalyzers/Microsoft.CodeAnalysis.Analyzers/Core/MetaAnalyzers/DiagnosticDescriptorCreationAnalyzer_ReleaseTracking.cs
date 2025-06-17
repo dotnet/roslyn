@@ -14,6 +14,7 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.ReleaseTracking.ReleaseTrackingHelper;
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             var diagnostics = new List<Diagnostic>();
-            using var reportedInvalidLines = PooledHashSet<TextLine>.GetInstance();
+            using var _ = PooledHashSet<TextLine>.GetInstance(out var reportedInvalidLines);
             shippedData = ReadReleaseTrackingData(shippedText.Path, shippedText.GetTextOrEmpty(cancellationToken), OnDuplicateEntryInRelease, OnInvalidEntry, isShippedFile: true);
             unshippedData = ReadReleaseTrackingData(unshippedText.Path, unshippedText.GetTextOrEmpty(cancellationToken), OnDuplicateEntryInRelease, OnInvalidEntry, isShippedFile: false);
 
