@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test with indexers (ie. "method") and in compound assignment (ie. "setMethod")
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test in compound assignment (ie. "setMethod")
                 return new MethodInfo(symbol, method, setMethod);
 
                 static MethodSymbol? replace(MethodSymbol? method)

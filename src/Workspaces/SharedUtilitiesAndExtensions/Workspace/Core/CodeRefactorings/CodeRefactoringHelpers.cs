@@ -24,7 +24,7 @@ internal static class CodeRefactoringHelpers
     /// name="selection"/> is treated more as a caret location.
     /// </para>
     /// <para>
-    /// It's intended to be used in conjunction with <see cref="IRefactoringHelpers.AddRelevantNodes"/> that, for
+    /// It's intended to be used in conjunction with <c>IRefactoringHelpers.AddRelevantNodes</c> that, for
     /// non-empty selections, returns the smallest encompassing node. A node that can, for certain refactorings, be too
     /// large given user-selection even though it is the smallest that can be retrieved.
     /// </para>
