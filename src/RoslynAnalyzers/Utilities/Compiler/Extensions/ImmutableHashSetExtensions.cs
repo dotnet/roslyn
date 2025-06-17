@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace System.Collections.Immutable
 {
@@ -11,7 +12,7 @@ namespace System.Collections.Immutable
     {
         public static ImmutableHashSet<T> AddRange<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
         {
-            using var builder = PooledHashSet<T>.GetInstance();
+            using var _1 = PooledHashSet<T>.GetInstance(out var builder);
 
             foreach (var item in set1)
             {
