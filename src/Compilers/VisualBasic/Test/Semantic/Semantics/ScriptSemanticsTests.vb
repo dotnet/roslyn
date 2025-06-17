@@ -125,15 +125,16 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
             Dim node2 As MemberAccessExpressionSyntax = ErrorTestsGetNode(syntaxTree2)
             Assert.Equal("WriteLine", node2.Name.ToString())
 
-            Dim compilation = CreateCompilationWithMscorlib461({syntaxTree1, syntaxTree2})
-            Dim semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
-            Dim semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
             Assert.Throws(Of InvalidOperationException)(
                 Sub()
+                    Dim compilation = CreateCompilationWithMscorlib461({syntaxTree1, syntaxTree2})
+                    Dim semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
+                    Dim semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
+
                     Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
                     Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
 
-                    compilation.AssertTheseDiagnostics(
+                    Compilation.AssertTheseDiagnostics(
 <expected>
 BC30001: Statement is not valid in a namespace.
 System.Console.WriteLine(1)
@@ -142,15 +143,16 @@ System.Console.WriteLine(1)
                     )
                 End Sub)
 
-            compilation = CreateCompilationWithMscorlib461({syntaxTree2, syntaxTree1})
-            semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
-            semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
             Assert.Throws(Of InvalidOperationException)(
                 Sub()
+                    Dim compilation = CreateCompilationWithMscorlib461({syntaxTree2, syntaxTree1})
+                    Dim semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
+                    Dim semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
+
                     Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
                     Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
 
-                    compilation.AssertTheseDiagnostics(
+                    Compilation.AssertTheseDiagnostics(
         <expected>
 BC30001: Statement is not valid in a namespace.
 System.Console.WriteLine(1)
