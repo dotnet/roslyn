@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers

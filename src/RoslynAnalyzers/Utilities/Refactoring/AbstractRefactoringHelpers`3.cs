@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Analyzer.Utilities

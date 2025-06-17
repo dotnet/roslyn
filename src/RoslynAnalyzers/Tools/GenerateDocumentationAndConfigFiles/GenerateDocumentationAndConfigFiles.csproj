@@ -6,6 +6,7 @@
     <UseAppHost>false</UseAppHost>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.CodeAnalysis.Analyzers\Core\MetaAnalyzers\ReleaseTrackingHelper.cs" Link="ReleaseTrackingHelper.cs" />
@@ -41,4 +42,9 @@
     <PackageVersion Remove="System.IO.Pipelines" />
     <PackageVersion Remove="System.Reflection.Metadata" />
   </ItemGroup>
+
+  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>
