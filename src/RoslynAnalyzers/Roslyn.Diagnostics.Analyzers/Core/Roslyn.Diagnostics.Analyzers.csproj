@@ -9,6 +9,7 @@
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion)</MicrosoftCodeAnalysisVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CSharp.Analyzers" />
