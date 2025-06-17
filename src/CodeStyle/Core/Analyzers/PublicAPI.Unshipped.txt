@@ -1,34 +1,3 @@
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.AddAccessor = 26 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Attribute = 22 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Class = 2 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.CompilationUnit = 1 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Constructor = 10 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.ConversionOperator = 9 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.CustomEvent = 17 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Delegate = 6 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Destructor = 11 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Enum = 5 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.EnumMember = 15 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Event = 16 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Field = 12 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.GetAccessor = 24 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Indexer = 14 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Interface = 4 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.LambdaExpression = 23 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Method = 7 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Namespace = 18 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.NamespaceImport = 19 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.None = 0 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Operator = 8 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Parameter = 20 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Property = 13 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RaiseAccessor = 28 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RecordClass = 29 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RemoveAccessor = 27 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.SetAccessor = 25 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Struct = 3 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Variable = 21 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.DeclarationModifiers() -> void
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAbstract.get -> bool

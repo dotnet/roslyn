@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeAndImportGenerationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\AbstractRefactoringHelpersService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CodeRefactoringContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CodeRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\IRefactoringHelpersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editing\ImportAdderService.cs" />
