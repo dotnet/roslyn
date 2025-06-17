@@ -1557,6 +1557,11 @@
         <target state="translated">인라인 배열 액세스에는 명명된 인수 지정자가 없을 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension member are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension member are not allowed as an argument to 'nameof'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 제약 조건은 'unmanaged' 제약 조건과 함께 사용할 수 없습니다.</target>

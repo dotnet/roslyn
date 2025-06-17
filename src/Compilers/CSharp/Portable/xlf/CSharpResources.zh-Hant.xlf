@@ -1557,6 +1557,11 @@
         <target state="translated">內嵌陣列存取不能有具名引數指定名稱</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension member are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension member are not allowed as an argument to 'nameof'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 條件約束不能和 'unmanaged' 條件約束一起使用</target>

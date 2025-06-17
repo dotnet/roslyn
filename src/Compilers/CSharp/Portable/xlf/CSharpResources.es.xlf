@@ -1557,6 +1557,11 @@
         <target state="translated">Un acceso de matriz insertado no puede tener un especificador de argumento con nombre</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension member are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension member are not allowed as an argument to 'nameof'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">La restricción "new()" no se puede utilizar con la restricción "unmanaged"</target>

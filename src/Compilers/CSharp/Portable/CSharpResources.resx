@@ -8188,4 +8188,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MisplacedExtension" xml:space="preserve">
     <value>An extension member syntax is disallowed in nested position within an extension member syntax</value>
   </data>
+  <data name="ERR_NameofExtensionMember" xml:space="preserve">
+    <value>Extension member are not allowed as an argument to 'nameof'.</value>
+  </data>
 </root>

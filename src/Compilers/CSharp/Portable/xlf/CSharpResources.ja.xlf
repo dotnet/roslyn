@@ -1557,6 +1557,11 @@
         <target state="translated">インライン配列のアクセスには名前付き引数の指定子を指定できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension member are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension member are not allowed as an argument to 'nameof'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 制約は 'unmanaged' 制約と一緒には使用できません</target>
