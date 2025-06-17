@@ -3853,11 +3853,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations /*targetElementType*/, TypeSymbol /*targetCollectionType*/, TypeWithState>>.GetInstance();
             foreach (var element in node.Elements)
             {
-                visitElement(element);
+                visitElement(element, node, targetElementType, elementConversionCompletions);
                 resultBuilder.Add(_visitResult);
             }
 
-            void visitElement(BoundNode element)
+            if (node.WasTargetTyped)
+            {
+                // We're in the context of a conversion, so the analysis of element conversions and the final visit result
+                // will be completed later (when that conversion is processed).
+                TargetTypedAnalysisCompletion[node] =
+                    (TypeWithAnnotations resultTypeWithAnnotations) => convertCollection(node, resultTypeWithAnnotations, elementConversionCompletions);
+            }
+            else
+            {
+                // We're not in the context of a conversion, so don't expect any target-type information to be provided later,
+                // so we're done. For example, `[1, 2].ToString()`.
+                elementConversionCompletions.Free();
+            }
+
+            var resultType = TypeWithAnnotations.Create(node.Type);
+            var visitResult = new VisitResult(TypeWithState.Create(resultType), resultType,
+                nestedVisitResults: resultBuilder.ToArrayAndFree());
+
+            SetResult(node, visitResult, updateAnalyzedNullability: !node.WasTargetTyped, isLvalue: false);
+            return null;
+
+            void visitElement(BoundNode element, BoundCollectionExpression node, TypeWithAnnotations targetElementType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> elementConversionCompletions)
             {
                 switch (element)
                 {
@@ -3927,7 +3948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             //
                             // In other words, the spread contains a BoundCollectionElementInitializer which needs to be further deconstructed and 'z1' converted to 'TElem'.
                             AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
-                            visitElement(iteratorBody);
+                            visitElement(iteratorBody, node, targetElementType, elementConversionCompletions);
                             RemovePlaceholderReplacement(elementPlaceholder);
                         }
                         break;
@@ -3948,27 +3969,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-
-            if (node.WasTargetTyped)
-            {
-                // We're in the context of a conversion, so the analysis of element conversions and the final visit result
-                // will be completed later (when that conversion is processed).
-                TargetTypedAnalysisCompletion[node] =
-                    (TypeWithAnnotations resultTypeWithAnnotations) => convertCollection(node, resultTypeWithAnnotations, elementConversionCompletions);
-            }
-            else
-            {
-                // We're not in the context of a conversion, so don't expect any target-type information to be provided later,
-                // so we're done. For example, `[1, 2].ToString()`.
-                elementConversionCompletions.Free();
-            }
-
-            var resultType = TypeWithAnnotations.Create(node.Type);
-            var visitResult = new VisitResult(TypeWithState.Create(resultType), resultType,
-                nestedVisitResults: resultBuilder.ToArrayAndFree());
-
-            SetResult(node, visitResult, updateAnalyzedNullability: !node.WasTargetTyped, isLvalue: false);
-            return null;
 
             TypeWithState convertCollection(BoundCollectionExpression node, TypeWithAnnotations targetCollectionType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> completions)
             {
