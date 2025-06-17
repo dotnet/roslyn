@@ -30,7 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicSmartTokenFormatter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\VisualBasicPrecedenceService.vb" />
-    <Compile Include="$(MSBuildThisFileDirectory)services\refactoringhelpers\VisualBasicRefactoringHelpers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\VisualBasicRefactoringHelpers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\VisualBasicSemanticFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicAccessibilityFacts.vb" />
