@@ -87,7 +87,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "TryParseInt64"
                 });
 
-            SanitizerInfos = builder.ToImmutableAndFree();
+            SanitizerInfos = builder.ToImmutableHashSet();
         }
     }
 }

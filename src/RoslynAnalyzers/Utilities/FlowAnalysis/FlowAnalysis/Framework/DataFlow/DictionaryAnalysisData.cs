@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             if (disposing)
             {
-                _coreAnalysisData.Dispose();
+                _coreAnalysisData.Free();
                 _coreAnalysisData = null!;
             }
 

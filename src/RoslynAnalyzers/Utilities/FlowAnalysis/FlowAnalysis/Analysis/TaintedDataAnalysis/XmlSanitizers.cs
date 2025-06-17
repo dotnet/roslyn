@@ -46,7 +46,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             // Consider SecurityElement.Escape().
 
-            SanitizerInfos = builder.ToImmutableAndFree();
+            SanitizerInfos = builder.ToImmutableHashSet();
         }
     }
 }

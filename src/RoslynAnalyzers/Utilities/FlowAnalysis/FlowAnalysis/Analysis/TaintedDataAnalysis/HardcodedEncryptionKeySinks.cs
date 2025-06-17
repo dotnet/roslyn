@@ -50,7 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( ".ctor", new[] { "key" }),
                 });
 
-            SinkInfos = builder.ToImmutableAndFree();
+            SinkInfos = builder.ToImmutableHashSet();
         }
     }
 }

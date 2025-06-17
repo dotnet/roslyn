@@ -31,7 +31,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "LoadWithInitialTemplateValidation", new[] { "xaml" }),
                 });
 
-            SinkInfos = builder.ToImmutableAndFree();
+            SinkInfos = builder.ToImmutableHashSet();
         }
     }
 }

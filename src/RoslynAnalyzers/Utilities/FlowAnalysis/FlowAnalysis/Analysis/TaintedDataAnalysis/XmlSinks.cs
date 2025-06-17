@@ -92,7 +92,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "WriteRaw", new[] { "buffer", "data" }),
                 });
 
-            SinkInfos = builder.ToImmutableAndFree();
+            SinkInfos = builder.ToImmutableHashSet();
         }
     }
 }

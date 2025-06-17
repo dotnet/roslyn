@@ -794,7 +794,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "Text"
                 },
                 taintedMethods: null);
-            SourceInfos = sourceInfosBuilder.ToImmutableAndFree();
+            SourceInfos = sourceInfosBuilder.ToImmutableHashSet();
         }
     }
 }

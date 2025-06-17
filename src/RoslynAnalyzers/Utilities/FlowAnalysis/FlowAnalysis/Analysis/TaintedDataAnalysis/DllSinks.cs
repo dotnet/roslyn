@@ -53,7 +53,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ("Load", new[] { "assemblyStream" } ),
                 });
 
-            SinkInfos = sinkInfosBuilder.ToImmutableAndFree();
+            SinkInfos = sinkInfosBuilder.ToImmutableHashSet();
         }
     }
 }

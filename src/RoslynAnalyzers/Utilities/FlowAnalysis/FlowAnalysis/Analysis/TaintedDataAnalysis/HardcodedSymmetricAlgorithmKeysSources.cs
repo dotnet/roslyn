@@ -107,7 +107,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintConstantArray: true,
                 constantArrayLengthMatcher: IsLegalKeySize);
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableHashSet();
         }
 
         private static bool IsLegalKeySize(int byteCount)
