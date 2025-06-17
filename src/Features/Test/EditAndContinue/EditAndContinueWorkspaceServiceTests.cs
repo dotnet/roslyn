@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -73,7 +74,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // E is not included in the compilation:
         var compilation = CSharpTestBase.CreateCompilation([sourceTreeA1, sourceTreeB1, sourceTreeC1], options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "P");
-        EmitLibrary(projectPId, compilation);
+        EmitLibrary(projectPId, compilation, manifestResources: []);
 
         // change content of B on disk:
         sourceFileB.WriteAllText(sourceB2, encodingB);
@@ -1757,7 +1758,7 @@ class C { int Y => 2; }
         EnterBreakState(debuggingSession);
 
         Assert.Equal(1, generatorExecutionCount);
-        var documentDifferences = new ProjectDocumentDifferences();
+        var projectDifferences = new ProjectDifferences();
 
         //
         // Add document
@@ -1786,10 +1787,11 @@ class C { int Y => 2; }
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<Diagnostic>();
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        Assert.Empty(documentDifferences.Deleted);
-        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
+        Assert.Empty(projectDifferences.DeletedDocuments);
+        Assert.False(projectDifferences.HasResourceChanges);
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1816,9 +1818,9 @@ class C { int Y => 2; }
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? new[] { documentId } : [],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        Assert.True(documentDifferences.IsEmpty);
+        Assert.True(projectDifferences.IsEmpty);
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1841,10 +1843,11 @@ class C { int Y => 2; }
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        Assert.Empty(documentDifferences.Deleted);
-        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
+        Assert.Empty(projectDifferences.DeletedDocuments);
+        Assert.False(projectDifferences.HasResourceChanges);
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1869,19 +1872,19 @@ class C { int Y => 2; }
         AssertEx.Equal([generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), projectDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
 
         if (documentKind == TextDocumentKind.Document)
         {
-            AssertEx.Equal([documentId], documentDifferences.Deleted.Select(d => d.Id));
+            AssertEx.Equal([documentId], projectDifferences.DeletedDocuments.Select(d => d.Id));
         }
         else
         {
-            AssertEx.Empty(documentDifferences.Deleted);
+            AssertEx.Empty(projectDifferences.DeletedDocuments);
         }
 
-        AssertEx.Equal([generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
+        AssertEx.Equal([generatedDocumentId], projectDifferences.ChangedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
     }
@@ -1934,7 +1937,7 @@ class C { int Y => 2; }
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
         EnterBreakState(debuggingSession);
 
-        var documentDiffences = new ProjectDocumentDifferences();
+        var diffences = new ProjectDifferences();
 
         //
         // Update document content
@@ -1952,10 +1955,10 @@ class C { int Y => 2; }
         AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(log, oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<Diagnostic>();
-        await EditSession.GetDocumentDifferencesAsync(log, oldProject, project, documentDiffences, diagnostics, CancellationToken.None);
+        await EditSession.GetProjectDifferencesAsync(log, oldProject, project, diffences, diagnostics, CancellationToken.None);
         Assert.Contains("System.InvalidOperationException: Source generator failed", diagnostics.Single().GetMessage());
-        AssertEx.Empty(documentDiffences.ChangedOrAdded);
-        AssertEx.Equal(["generated.cs"], documentDiffences.Deleted.Select(d => d.Name));
+        AssertEx.Empty(diffences.ChangedOrAddedDocuments);
+        AssertEx.Equal(["generated.cs"], diffences.DeletedDocuments.Select(d => d.Name));
 
         Assert.Equal(2, generatorExecutionCount);
 
@@ -1964,6 +1967,52 @@ class C { int Y => 2; }
 
         generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
         Assert.Contains("System.InvalidOperationException: Source generator failed", generatorDiagnostics.Single().GetMessage());
+    }
+
+    [Fact]
+    public async Task HasChanges_Resources()
+    {
+        using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
+
+        var pathA = Path.Combine(TempRoot.Root, "A.cs");
+        var pathResources = Path.Combine(TempRoot.Root, "R.resources");
+
+        solution = solution.
+            AddTestProject("A", out var projectId).
+            AddTestDocument("class A;", pathA).Project.Solution;
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        EnterBreakState(debuggingSession);
+
+        // add a resource:
+        var oldSolution = solution;
+        solution = solution.GetRequiredProject(projectId)
+            .WithManifestResources(new MetadataResourceInfo("resource", pathResources, linkedResourceFileName: null, isPublic: true, contentVersion: 0)).Solution;
+
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+        // change resource content:
+        oldSolution = solution;
+        solution = solution.GetRequiredProject(projectId)
+            .WithManifestResources(new MetadataResourceInfo("resource", pathResources, linkedResourceFileName: null, isPublic: true, contentVersion: 1)).Solution;
+
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+        // change resource properties:
+        oldSolution = solution;
+        solution = solution.GetRequiredProject(projectId)
+            .WithManifestResources(new MetadataResourceInfo("resource", pathResources, linkedResourceFileName: null, isPublic: false, contentVersion: 1)).Solution;
+
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+        // remove resource:
+        oldSolution = solution;
+        solution = solution.GetRequiredProject(projectId)
+            .WithManifestResources().Solution;
+
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+        EndDebuggingSession(debuggingSession);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1204")]
@@ -3501,6 +3550,55 @@ class C { int Y => 1; }
 
         // no emitted delta:
         Assert.Empty(updates.Updates);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task ResourceChange(bool isDelete)
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var resource = Temp.CreateDirectory().CreateFile("R.resources").WriteAllBytes(new byte[] { 1, 2, 3 });
+
+        solution = solution
+            .AddTestProject("A", out var projectId)
+            .WithManifestResources(new MetadataResourceInfo("resource", resource.Path, linkedResourceFileName: null, isPublic: false, contentVersion: 0))
+            .AddTestDocument("class A;", "A.cs", out var documentId).Project.Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectId));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // change resource:
+        var project = solution.GetRequiredProject(projectId);
+        solution = project.WithManifestResources(
+            isDelete ? [] : [new MetadataResourceInfo("resource", resource.Path, linkedResourceFileName: null, isPublic: false, contentVersion: 1)]).Solution;
+
+        var docDiagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        Assert.Empty(docDiagnostics);
+
+        // TODO: Set RestartWhenChangesHaveNoEffect=true and AllowPartialUpdate=true
+        // https://github.com/dotnet/roslyn/issues/78244
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty
+            .Add(projectId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true, AllowPartialUpdate = false });
+
+        // emit updates:
+        var result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
+
+        var (diagnosticId, message) = isDelete
+            ? ("ENC1009", FeaturesResources.Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit)
+            : ("ENC1010", FeaturesResources.Adding_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit);
+
+        AssertEx.SequenceEqual(
+        [
+            $"{project.FilePath}: (0,0)-(0,0): Warning {diagnosticId}: {string.Format(message, resource.Path)}"
+        ], InspectDiagnostics(result.Diagnostics.ToDiagnosticData(solution)));
+
+        Assert.Equal(ModuleUpdateStatus.None, result.ModuleUpdates.Status);
+        AssertEx.SetEqual(["A"], result.ProjectsToRestart.Select(p => p.Key.DebugName));
+        Assert.Empty(result.ModuleUpdates.Updates);
 
         EndDebuggingSession(debuggingSession);
     }

@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -63,6 +65,11 @@ public sealed class ProjectInfo
     /// The path to the reference assembly output file.
     /// </summary>
     public string? OutputRefFilePath => Attributes.OutputRefFilePath;
+
+    /// <summary>
+    /// List of manifest resources.
+    /// </summary>
+    internal ImmutableArray<MetadataResourceInfo> ManifestResources => Attributes.ManifestResources;
 
     /// <summary>
     /// The path to the compiler output file (module or assembly).
@@ -368,6 +375,9 @@ public sealed class ProjectInfo
     internal ProjectInfo WithRunAnalyzers(bool runAnalyzers)
         => With(attributes: Attributes.With(runAnalyzers: runAnalyzers));
 
+    internal ProjectInfo WithManifestResources(ImmutableArray<MetadataResourceInfo> resources)
+        => With(attributes: Attributes.With(manifestResources: resources));
+
     public ProjectInfo WithCompilationOptions(CompilationOptions? compilationOptions)
         => With(compilationOptions: compilationOptions);
 
@@ -425,7 +435,8 @@ public sealed class ProjectInfo
         bool isSubmission = false,
         bool hasAllInformation = true,
         bool runAnalyzers = true,
-        bool hasSdkCodeStyleAnalyzers = false)
+        bool hasSdkCodeStyleAnalyzers = false,
+        ImmutableArray<MetadataResourceInfo> manifestResources = default)
     {
         /// <summary>
         /// Matches names like: Microsoft.CodeAnalysis.Features (netcoreapp3.1)
@@ -514,6 +525,8 @@ public sealed class ProjectInfo
         /// </summary>
         public bool HasSdkCodeStyleAnalyzers { get; } = hasSdkCodeStyleAnalyzers;
 
+        public ImmutableArray<MetadataResourceInfo> ManifestResources { get; } = manifestResources.NullToEmpty();
+
         private SingleInitNullable<(string? name, string? flavor)> _lazyNameAndFlavor;
         private SingleInitNullable<Checksum> _lazyChecksum;
 
@@ -545,7 +558,8 @@ public sealed class ProjectInfo
             Optional<bool> hasAllInformation = default,
             Optional<bool> runAnalyzers = default,
             Optional<Guid> telemetryId = default,
-            Optional<bool> hasSdkCodeStyleAnalyzers = default)
+            Optional<bool> hasSdkCodeStyleAnalyzers = default,
+            ImmutableArray<MetadataResourceInfo> manifestResources = default)
         {
             var newId = id ?? Id;
             var newVersion = version ?? Version;
@@ -562,6 +576,7 @@ public sealed class ProjectInfo
             var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
             var newHasSdkCodeStyleAnalyzers = hasSdkCodeStyleAnalyzers.HasValue ? hasSdkCodeStyleAnalyzers.Value : HasSdkCodeStyleAnalyzers;
+            var newManifestResources = manifestResources.IsDefault ? ManifestResources : manifestResources;
 
             if (newId == Id &&
                 newVersion == Version &&
@@ -577,7 +592,8 @@ public sealed class ProjectInfo
                 newHasAllInformation == HasAllInformation &&
                 newRunAnalyzers == RunAnalyzers &&
                 newTelemetryId == TelemetryId &&
-                newHasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers)
+                newHasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers &&
+                newManifestResources == ManifestResources)
             {
                 return this;
             }
@@ -598,7 +614,8 @@ public sealed class ProjectInfo
                 newIsSubmission,
                 newHasAllInformation,
                 newRunAnalyzers,
-                newHasSdkCodeStyleAnalyzers);
+                newHasSdkCodeStyleAnalyzers,
+                newManifestResources);
         }
 
         public void WriteTo(ObjectWriter writer)
@@ -622,6 +639,7 @@ public sealed class ProjectInfo
             writer.WriteBoolean(RunAnalyzers);
             writer.WriteGuid(TelemetryId);
             writer.WriteBoolean(HasSdkCodeStyleAnalyzers);
+            writer.WriteArray(ManifestResources, static (w, r) => r.WriteTo(w));
 
             // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
             //       serialization, we should include those here as well.
@@ -646,6 +664,7 @@ public sealed class ProjectInfo
             var runAnalyzers = reader.ReadBoolean();
             var telemetryId = reader.ReadGuid();
             var hasSdkCodeStyleAnalyzers = reader.ReadBoolean();
+            var manifestResources = reader.ReadArray(MetadataResourceInfo.ReadFrom);
 
             return new ProjectAttributes(
                 projectId,
@@ -663,7 +682,8 @@ public sealed class ProjectInfo
                 isSubmission: isSubmission,
                 hasAllInformation: hasAllInformation,
                 runAnalyzers: runAnalyzers,
-                hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers);
+                hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers,
+                manifestResources);
         }
 
         public Checksum Checksum

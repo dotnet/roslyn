@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
@@ -35,10 +36,10 @@ internal static class SymReaderTestHelpers
             => throw new NotImplementedException();
     }
 
-    public static (ImmutableArray<byte> PEImage, ImmutableArray<byte> PdbImage) EmitToArrays(this Compilation compilation, EmitOptions options)
+    public static (ImmutableArray<byte> PEImage, ImmutableArray<byte> PdbImage) EmitToArrays(this Compilation compilation, EmitOptions options, IEnumerable<ResourceDescription> manifestResources = null)
     {
         var pdbStream = new MemoryStream();
-        var peImage = compilation.EmitToArray(options, pdbStream: pdbStream);
+        var peImage = compilation.EmitToArray(options, pdbStream: pdbStream, manifestResources: manifestResources);
         return (peImage, pdbStream.ToImmutable());
     }
 

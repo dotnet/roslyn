@@ -320,7 +320,8 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             project.Id,
             project.Documents.Select(d => (d.GetTextSynchronously(CancellationToken.None), d.FilePath ?? throw ExceptionUtilities.UnexpectedValue(null))),
             project.AssemblyName,
-            targetFramework: targetFramework);
+            targetFramework: targetFramework,
+            manifestResources: project.State.ManifestResources);
 
     internal Guid EmitLibrary(
         ProjectId projectId,
@@ -379,7 +380,8 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         Project? generatorProject = null,
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null,
-        TargetFramework targetFramework = DefaultTargetFramework)
+        TargetFramework targetFramework = DefaultTargetFramework,
+        IEnumerable<MetadataResourceInfo>? manifestResources = null)
     {
         var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
 
@@ -405,12 +407,16 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             compilation = outputCompilation;
         }
 
-        return EmitLibrary(projectId, compilation, pdbFormat);
+        return EmitLibrary(projectId, compilation, manifestResources ?? [], pdbFormat);
     }
 
-    internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+    internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, IEnumerable<MetadataResourceInfo> manifestResources, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
     {
-        var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
+        var resourceDescriptions = manifestResources.Select(info => info.IsLinked
+            ? new ResourceDescription(info.ResourceName, info.LinkedResourceFileName, () => File.OpenRead(info.FilePath), isPublic: info.IsPublic)
+            : new ResourceDescription(info.ResourceName, () => File.OpenRead(info.FilePath), isPublic: info.IsPublic));
+
+        var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat), resourceDescriptions);
         var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
 
         var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
