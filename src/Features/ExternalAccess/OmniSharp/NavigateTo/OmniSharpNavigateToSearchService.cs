@@ -36,7 +36,7 @@ internal static class OmniSharpNavigateToSearcher
 
     private sealed class OmniSharpNavigateToCallbackImpl(Solution solution, OmniSharpNavigateToCallback callback) : INavigateToSearchCallback
     {
-        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
+        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
             foreach (var result in results)
             {

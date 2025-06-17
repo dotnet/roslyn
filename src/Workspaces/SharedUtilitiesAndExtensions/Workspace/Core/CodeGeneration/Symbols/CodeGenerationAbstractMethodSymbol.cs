@@ -104,6 +104,8 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
     public bool IsConditional => false;
 
+    public bool IsIterator => false;
+
     public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
 
     public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => [];
