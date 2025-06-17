@@ -13,6 +13,7 @@ using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
@@ -211,7 +212,7 @@ namespace Analyzer.Utilities
 
         private static ImmutableArray<string> GetNamespaceNamesFromFullTypeName(string fullTypeName)
         {
-            using ArrayBuilder<string> namespaceNamesBuilder = ArrayBuilder<string>.GetInstance();
+            using var _ = ArrayBuilder<string>.GetInstance(out var namespaceNamesBuilder);
             RoslynDebug.Assert(namespaceNamesBuilder != null);
 
             int prevStartIndex = 0;
