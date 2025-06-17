@@ -16,6 +16,9 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using DeclarationKind = Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind;
+    using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
+
     public abstract class AbstractApplyTraitToClass<TAttributeSyntax> : CodeRefactoringProvider
         where TAttributeSyntax : SyntaxNode
     {
