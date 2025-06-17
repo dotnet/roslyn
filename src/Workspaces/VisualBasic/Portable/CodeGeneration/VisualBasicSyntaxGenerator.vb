@@ -2365,7 +2365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return mods
         End Function
 
-        Private Shared Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
+        Private Shared Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As Modifiers, ByRef isDefault As Boolean)
             VisualBasicAccessibilityFacts.GetAccessibilityAndModifiers(modifierTokens, accessibility, modifiers, isDefault)
         End Sub
 
