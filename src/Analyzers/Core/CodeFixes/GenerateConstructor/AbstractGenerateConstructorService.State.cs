@@ -18,12 +18,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 
@@ -440,7 +435,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: Accessibility.Public,
-                modifiers: new DeclarationModifiers(isUnsafe: generateUnsafe),
+                modifiers: new DeclarationModifiers().WithIsUnsafe(generateUnsafe),
                 typeName: TypeToGenerateIn.Name,
                 parameters: newParameters,
                 statements: assignments,
