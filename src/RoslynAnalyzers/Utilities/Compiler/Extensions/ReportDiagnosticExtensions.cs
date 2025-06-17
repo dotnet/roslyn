@@ -21,19 +21,19 @@ namespace Microsoft.CodeAnalysis
             };
         }
 
-        public static DiagnosticSeverity? ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic)
-        {
-            return reportDiagnostic switch
-            {
-                ReportDiagnostic.Error => DiagnosticSeverity.Error,
-                ReportDiagnostic.Warn => DiagnosticSeverity.Warning,
-                ReportDiagnostic.Info => DiagnosticSeverity.Info,
-                ReportDiagnostic.Hidden => DiagnosticSeverity.Hidden,
-                ReportDiagnostic.Suppress => null,
-                ReportDiagnostic.Default => null,
-                _ => throw new NotImplementedException(),
-            };
-        }
+        //public static DiagnosticSeverity? ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic)
+        //{
+        //    return reportDiagnostic switch
+        //    {
+        //        ReportDiagnostic.Error => DiagnosticSeverity.Error,
+        //        ReportDiagnostic.Warn => DiagnosticSeverity.Warning,
+        //        ReportDiagnostic.Info => DiagnosticSeverity.Info,
+        //        ReportDiagnostic.Hidden => DiagnosticSeverity.Hidden,
+        //        ReportDiagnostic.Suppress => null,
+        //        ReportDiagnostic.Default => null,
+        //        _ => throw new NotImplementedException(),
+        //    };
+        //}
 
         public static bool IsLessSevereThan(this ReportDiagnostic current, ReportDiagnostic other)
         {

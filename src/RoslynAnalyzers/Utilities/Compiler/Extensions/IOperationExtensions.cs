@@ -1116,11 +1116,11 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
-        {
-            var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
-            return containingMethod?.RefKind ?? RefKind.None;
-        }
+        //public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
+        //{
+        //    var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
+        //    return containingMethod?.RefKind ?? RefKind.None;
+        //}
 
         public static IMethodSymbol? TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation? operation)
         {
