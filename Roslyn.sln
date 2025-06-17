@@ -2266,7 +2266,6 @@ Global
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{ad0837be-7912-aedf-bda9-2d2e4fe0ce0b}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Refactoring\Refactoring.Utilities.projitems*{ad0837be-7912-aedf-bda9-2d2e4fe0ce0b}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{ad0837be-7912-aedf-bda9-2d2e4fe0ce0b}*SharedItemsImports = 5
-		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems*{ad0837be-7912-aedf-bda9-2d2e4fe0ce0b}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems*{ad0837be-7912-aedf-bda9-2d2e4fe0ce0b}*SharedItemsImports = 5
 		src\Compilers\CSharp\csc\CscCommandLine.projitems*{b021ccbc-b2af-4560-af28-ed055f0ed696}*SharedItemsImports = 13
 		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{b1481d94-682e-46ec-adbe-a16eb46feee9}*SharedItemsImports = 5

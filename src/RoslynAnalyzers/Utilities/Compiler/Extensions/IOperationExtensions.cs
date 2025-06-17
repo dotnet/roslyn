@@ -746,20 +746,20 @@ namespace Analyzer.Utilities.Extensions
         //            return operation;
         //        }
 
-        //        public static IOperation? GetThrownException(this IThrowOperation operation)
-        //        {
-        //            var thrownObject = operation.Exception;
+        public static IOperation? GetThrownException(this IThrowOperation operation)
+        {
+            var thrownObject = operation.Exception;
 
-        //            // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
-        //            // We also want to walk down explicit conversions such as "throw (Exception)new ArgumentNullException())".
-        //            if (thrownObject is IConversionOperation conversion &&
-        //                conversion.Conversion.Exists)
-        //            {
-        //                thrownObject = conversion.Operand;
-        //            }
+            // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
+            // We also want to walk down explicit conversions such as "throw (Exception)new ArgumentNullException())".
+            if (thrownObject is IConversionOperation conversion &&
+                conversion.Conversion.Exists)
+            {
+                thrownObject = conversion.Operand;
+            }
 
-        //            return thrownObject;
-        //        }
+            return thrownObject;
+        }
 
         public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
             => operation.GetThrownException()?.Type;

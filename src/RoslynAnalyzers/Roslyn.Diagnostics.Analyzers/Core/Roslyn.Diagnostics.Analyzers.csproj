@@ -25,7 +25,7 @@
   <ItemGroup>
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationKind.cs" Link="Editing\DeclarationKind.cs" />
     <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationModifiers.cs" Link="Editing\DeclarationModifiers.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" Link="Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" />
+    <!--<Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" Link="Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" />-->
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="RoslynDiagnosticsAnalyzersResources.resx" GenerateSource="true" />
@@ -40,5 +40,5 @@
   <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared" />
-  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
+<!--  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" /> -->
 </Project>

@@ -332,7 +332,7 @@ namespace Analyzer.Utilities
                 ],
                 generator.TypeExpression(SpecialType.System_Boolean),
                 Accessibility.Public,
-                DeclarationModifiers.Static,
+                Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Static,
                 statements);
         }
 
@@ -390,7 +390,7 @@ namespace Analyzer.Utilities
                 },
                 returnType: generator.TypeExpression(SpecialType.System_Boolean),
                 accessibility: Accessibility.Public,
-                modifiers: DeclarationModifiers.Override,
+                modifiers: Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Override,
                 statements: statements);
         }
 
@@ -411,7 +411,7 @@ namespace Analyzer.Utilities
                 WellKnownMemberNames.ObjectGetHashCode,
                 returnType: generator.TypeExpression(SpecialType.System_Int32),
                 accessibility: Accessibility.Public,
-                modifiers: DeclarationModifiers.Override,
+                modifiers: Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Override,
                 statements: generator.DefaultMethodBody(compilation));
         }
 
