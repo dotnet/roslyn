@@ -594,6 +594,12 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                         }
                     }
                 }
+
+                // Fall back to the current approach for the VB case
+                if (semanticModel.GetAllDeclaredSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbolFallBack)
+                {
+                    return fieldSymbolFallBack;
+                }
             }
 
             if (_syntaxFacts.IsAnonymousFunctionExpression(node))
