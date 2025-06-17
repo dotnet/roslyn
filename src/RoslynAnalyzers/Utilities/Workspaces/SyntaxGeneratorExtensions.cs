@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Analyzer.Utilities
 {
-    using DeclarationKind = Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind;
     using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
 
     internal static class SyntaxGeneratorExtensions
@@ -435,7 +434,7 @@ namespace Analyzer.Utilities
         {
             return generator.ThrowStatement(generator.ObjectCreationExpression(
                 generator.TypeExpression(
-                    compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName))));
+                    compilation.GetOrCreateTypeByMetadataName(SystemNotImplementedExceptionTypeName)!)));
         }
 
         public static SyntaxNode? TryGetContainingDeclaration(this SyntaxGenerator generator, SyntaxNode? node, DeclarationKind kind)

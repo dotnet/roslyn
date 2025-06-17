@@ -221,24 +221,24 @@ namespace Analyzer.Utilities.Extensions
         //                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
         //        }
 
-        //        /// <summary>
-        //        /// Checks if the given method has the signature "void Dispose()".
-        //        /// </summary>
-        //        private static bool HasDisposeMethodSignature(this IMethodSymbol method)
-        //        {
-        //            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
-        //                method.ReturnsVoid && method.Parameters.IsEmpty;
-        //        }
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose()".
+        /// </summary>
+        private static bool HasDisposeMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
 
-        //        /// <summary>
-        //        /// Checks if the given method matches Dispose method convention and can be recognized by "using".
-        //        /// </summary>
-        //        public static bool HasDisposeSignatureByConvention(this IMethodSymbol method)
-        //        {
-        //            return method.HasDisposeMethodSignature()
-        //                && !method.IsStatic
-        //                && !method.IsPrivate();
-        //        }
+        /// <summary>
+        /// Checks if the given method matches Dispose method convention and can be recognized by "using".
+        /// </summary>
+        public static bool HasDisposeSignatureByConvention(this IMethodSymbol method)
+        {
+            return method.HasDisposeMethodSignature()
+                && !method.IsStatic
+                && !method.IsPrivate();
+        }
 
         //        /// <summary>
         //        /// Checks if the given method has the signature "void Dispose(bool)".

@@ -20,8 +20,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
-    using DeclarationKind = Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind;
-
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(ExportedPartsShouldHaveImportingConstructorCodeFixProvider))]
     [Shared]
     [method: ImportingConstructor]

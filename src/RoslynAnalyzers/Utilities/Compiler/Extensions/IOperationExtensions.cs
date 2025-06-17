@@ -179,10 +179,12 @@ namespace Analyzer.Utilities.Extensions
                 }
                 else
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     foreach (var child in operation.Children)
                     {
                         operationsToProcess.Enqueue(child);
                     }
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
             }
 
@@ -1114,31 +1116,31 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        //        public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
-        //        {
-        //            var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
-        //            return containingMethod?.RefKind ?? RefKind.None;
-        //        }
+        public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
+        {
+            var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
+            return containingMethod?.RefKind ?? RefKind.None;
+        }
 
-        //        public static IMethodSymbol? TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation? operation)
-        //        {
-        //            operation = operation?.Parent;
-        //            while (operation != null)
-        //            {
-        //                switch (operation.Kind)
-        //                {
-        //                    case OperationKind.AnonymousFunction:
-        //                        return ((IAnonymousFunctionOperation)operation).Symbol;
+        public static IMethodSymbol? TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation? operation)
+        {
+            operation = operation?.Parent;
+            while (operation != null)
+            {
+                switch (operation.Kind)
+                {
+                    case OperationKind.AnonymousFunction:
+                        return ((IAnonymousFunctionOperation)operation).Symbol;
 
-        //                    case OperationKind.LocalFunction:
-        //                        return ((ILocalFunctionOperation)operation).Symbol;
-        //                }
+                    case OperationKind.LocalFunction:
+                        return ((ILocalFunctionOperation)operation).Symbol;
+                }
 
-        //                operation = operation.Parent;
-        //            }
+                operation = operation.Parent;
+            }
 
-        //            return null;
-        //        }
+            return null;
+        }
 
         //        /// <summary>
         //        /// Returns true if the given operation is a regular compound assignment,

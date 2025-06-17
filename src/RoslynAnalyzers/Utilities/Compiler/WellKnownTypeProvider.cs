@@ -15,6 +15,7 @@ using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Analyzer.Utilities
 {
