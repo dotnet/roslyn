@@ -451,11 +451,11 @@ internal sealed class SymbolSpecification(
         [DataMember(Order = 0)]
         public readonly ModifierKindEnum ModifierKindWrapper;
 
-        internal Modifiers Modifier { get; }
+        internal Modifiers Modifiers { get; }
 
         public ModifierKind(Modifiers modifier)
         {
-            this.Modifier = modifier;
+            this.Modifiers = modifier;
 
             if (modifier.HasFlag(Modifiers.Abstract))
             {
@@ -487,7 +487,7 @@ internal sealed class SymbolSpecification(
         {
             ModifierKindWrapper = modifierKind;
 
-            Modifier =
+            Modifiers =
                 (ModifierKindWrapper == ModifierKindEnum.IsAbstract ? Modifiers.Abstract : 0) |
                 (ModifierKindWrapper == ModifierKindEnum.IsStatic ? Modifiers.Static : 0) |
                 (ModifierKindWrapper == ModifierKindEnum.IsAsync ? Modifiers.Async : 0) |
@@ -497,19 +497,19 @@ internal sealed class SymbolSpecification(
 
         public bool MatchesSymbol(ISymbol symbol)
         {
-            if ((Modifier.HasFlag(Modifiers.Abstract) && symbol.IsAbstract) ||
-                (Modifier.HasFlag(Modifiers.Static) && symbol.IsStatic))
+            if ((Modifiers.HasFlag(Modifiers.Abstract) && symbol.IsAbstract) ||
+                (Modifiers.HasFlag(Modifiers.Static) && symbol.IsStatic))
             {
                 return true;
             }
 
             var kind = symbol.Kind;
-            if (Modifier.HasFlag(Modifiers.Async) && kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsAsync)
+            if (Modifiers.HasFlag(Modifiers.Async) && kind == SymbolKind.Method && ((IMethodSymbol)symbol).IsAsync)
             {
                 return true;
             }
 
-            if (Modifier.HasFlag(Modifiers.ReadOnly))
+            if (Modifiers.HasFlag(Modifiers.ReadOnly))
             {
                 if (kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsReadOnly)
                 {
@@ -517,7 +517,7 @@ internal sealed class SymbolSpecification(
                 }
             }
 
-            if (Modifier.HasFlag(Modifiers.Const))
+            if (Modifiers.HasFlag(Modifiers.Const))
             {
                 if ((kind == SymbolKind.Field && ((IFieldSymbol)symbol).IsConst) ||
                     (kind == SymbolKind.Local && ((ILocalSymbol)symbol).IsConst))

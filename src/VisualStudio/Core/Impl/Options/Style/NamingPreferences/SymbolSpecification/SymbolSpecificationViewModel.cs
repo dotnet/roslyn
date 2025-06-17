@@ -255,7 +255,7 @@ internal sealed class SymbolSpecificationViewModel : AbstractNotifyPropertyChang
             _modifier = modifier;
             Name = name;
 
-            IsChecked = specification.RequiredModifierList.Any(static (m, modifier) => m.Modifier == modifier.Modifiers, modifier);
+            IsChecked = specification.RequiredModifierList.Any(static (m, modifier) => m.Modifiers == modifier.Modifiers, modifier);
         }
     }
 }
