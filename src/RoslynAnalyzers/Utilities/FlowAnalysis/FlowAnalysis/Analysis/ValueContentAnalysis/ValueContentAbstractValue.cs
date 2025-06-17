@@ -12,6 +12,7 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 {
@@ -277,7 +278,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 }
             }
 
-            ImmutableHashSet<object?> mergedLiteralValues = builder.ToImmutableAndFree();
+            ImmutableHashSet<object?> mergedLiteralValues = builder.ToImmutableHashSet();
             ValueContainsNonLiteralState mergedNonLiteralState = Merge(NonLiteralState, otherState.NonLiteralState);
 
             return Create(mergedLiteralValues, mergedNonLiteralState);

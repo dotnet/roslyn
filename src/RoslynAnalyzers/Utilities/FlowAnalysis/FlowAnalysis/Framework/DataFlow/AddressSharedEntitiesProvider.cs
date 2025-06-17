@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
 
                 Debug.Assert(builder.All(e => !e.HasUnknownInstanceLocation));
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutableHashSet();
             }
 
             static void AddIfHasKnownInstanceLocation(AnalysisEntity entity, PooledHashSet<AnalysisEntity> builder)

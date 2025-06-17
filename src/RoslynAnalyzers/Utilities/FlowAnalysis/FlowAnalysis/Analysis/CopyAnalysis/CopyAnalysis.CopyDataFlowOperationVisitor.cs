@@ -13,6 +13,7 @@ using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -477,7 +478,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     returnValueAndPredicateKind.Value.Value.Kind.IsKnown() &&
                     DataFlowAnalysisContext.InterproceduralAnalysisData != null)
                 {
-                    using var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+                    using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var entitiesToFilterBuilder);
                     var copyValue = returnValueAndPredicateKind.Value.Value;
                     var copyValueEntities = copyValue.AnalysisEntities;
 
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             private void ApplyMissingCurrentAnalysisDataCore(CopyAnalysisData mergedData, Func<AnalysisEntity, bool>? predicate)
             {
-                using var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var processedEntities);
                 foreach (var kvp in CurrentAnalysisData.CoreAnalysisData)
                 {
                     var key = kvp.Key;

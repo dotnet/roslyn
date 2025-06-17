@@ -3438,11 +3438,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             var value = base.VisitInvocation(operation, argument)!;
 
-            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
-            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
+            using var _1 = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance(out var methodTargetsOptBuilder);
+            using var _2 = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance(out var lambdaTargets);
             if (ResolveLambdaOrDelegateOrLocalFunctionTargets(operation, methodTargetsOptBuilder, lambdaTargets))
             {
-                resolvedMethodTargets = methodTargetsOptBuilder.ToImmutable();
+                resolvedMethodTargets = methodTargetsOptBuilder.ToImmutableHashSet();
                 AnalyzePossibleTargetInvocations();
             }
             else

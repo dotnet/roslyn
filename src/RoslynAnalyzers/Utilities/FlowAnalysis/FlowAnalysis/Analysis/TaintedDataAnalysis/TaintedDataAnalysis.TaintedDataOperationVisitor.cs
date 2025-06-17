@@ -411,10 +411,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 }
                 finally
                 {
-                    taintedTargets?.Dispose();
-                    taintedParameterPairs?.Dispose();
-                    sanitizedParameterPairs?.Dispose();
-                    taintedParameterNamesCached?.Dispose();
+                    taintedTargets?.Free();
+                    taintedParameterPairs?.Free();
+                    sanitizedParameterPairs?.Free();
+                    taintedParameterNamesCached?.Free();
                 }
 
                 return result;
