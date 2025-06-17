@@ -4970,7 +4970,7 @@ unsafe class C
             """);
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
     public async Task TestAttributesWithAllValidParameters()

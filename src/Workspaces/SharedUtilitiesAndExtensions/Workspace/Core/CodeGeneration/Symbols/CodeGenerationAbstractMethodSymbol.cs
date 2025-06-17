@@ -7,7 +7,7 @@
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;

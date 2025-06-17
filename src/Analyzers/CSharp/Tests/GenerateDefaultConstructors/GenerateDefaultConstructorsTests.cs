@@ -19,7 +19,7 @@ using VerifyCodeFix = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpGenerateDefaultConstructorsCodeFixProvider>;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using VerifyRefactoring = CSharpCodeRefactoringVerifier<
     CSharpGenerateConstructorsCodeRefactoringProvider>;
 #endif
@@ -28,7 +28,7 @@ using VerifyRefactoring = CSharpCodeRefactoringVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
 public sealed class GenerateDefaultConstructorsTests
 {
-#if !CODE_STYLE
+#if WORKSPACE
     private static async Task TestRefactoringAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource,
@@ -66,12 +66,12 @@ public sealed class GenerateDefaultConstructorsTests
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
 
-#if !CODE_STYLE
+#if WORKSPACE
         await TestRefactoringMissingAsync(source);
 #endif
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
     private static async Task TestRefactoringMissingAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
     {
@@ -958,7 +958,7 @@ index: 3);
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 
-#if !CODE_STYLE
+#if WORKSPACE
         await TestRefactoringMissingAsync(source);
 #endif
     }
@@ -975,7 +975,7 @@ index: 3);
 
         await TestCodeFixMissingAsync(source);
 
-#if !CODE_STYLE
+#if WORKSPACE
         await TestRefactoringMissingAsync(source);
 #endif
     }
@@ -1098,7 +1098,7 @@ index: 3);
             """);
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
 
     [Fact]
     public async Task TestPrivateBase()

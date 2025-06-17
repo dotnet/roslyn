@@ -127,7 +127,7 @@ internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixPr
 
             if (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol methodSymbol)
             {
-#if CODE_STYLE
+#if !WORKSPACE
 
                 var references = await SymbolFinder.FindReferencesAsync(
                     methodSymbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);

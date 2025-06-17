@@ -158,7 +158,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
         var newDocument = document.WithSyntaxRoot(newCompilationUnitWithHeader);
 
         // Simplify usings now that they have been moved and are in the proper context.
-#if CODE_STYLE
+#if !WORKSPACE
 #pragma warning disable RS0030 // Do not used banned APIs (ReduceAsync with SimplifierOptions isn't public)
         return await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
 #pragma warning restore

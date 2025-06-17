@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -81,7 +81,7 @@ internal sealed class OptionsCollection(string languageName) : IReadOnlyCollecti
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 
-#if !CODE_STYLE
+#if WORKSPACE
     public OptionSet ToOptionSet()
         => new TestOptionSet(_options.ToImmutableDictionary(entry => new OptionKey(entry.Key.Option, entry.Key.Language), entry => entry.Value));
 

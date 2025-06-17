@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;

@@ -47,7 +47,7 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider() : Cod
         => [IDEDiagnosticIds.UsePrimaryConstructorDiagnosticId];
 
     public override FixAllProvider? GetFixAllProvider()
-#if CODE_STYLE
+#if !WORKSPACE
         => WellKnownFixAllProviders.BatchFixer;
 #else
         => new CSharpUsePrimaryConstructorFixAllProvider();

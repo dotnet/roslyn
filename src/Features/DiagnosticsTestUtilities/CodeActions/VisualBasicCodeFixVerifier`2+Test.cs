@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Xunit;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;

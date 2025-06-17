@@ -5,7 +5,7 @@
 using System;
 using System.Diagnostics;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #endif
 

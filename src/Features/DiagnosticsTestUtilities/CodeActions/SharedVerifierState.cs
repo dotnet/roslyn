@@ -5,7 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.Testing;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 #endif

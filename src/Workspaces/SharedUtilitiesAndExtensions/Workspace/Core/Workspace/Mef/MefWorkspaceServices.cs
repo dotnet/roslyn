@@ -62,7 +62,7 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
     {
         get
         {
-            //#if !CODE_STYLE
+            //#if WORKSPACE
             //                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
             //#endif
             return _workspace;
@@ -163,7 +163,7 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
 
     public override IEnumerable<string> SupportedLanguages => ComputeSupportedLanguages();
 
-#if CODE_STYLE
+#if !WORKSPACE
     internal ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
 #else
     internal override ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();

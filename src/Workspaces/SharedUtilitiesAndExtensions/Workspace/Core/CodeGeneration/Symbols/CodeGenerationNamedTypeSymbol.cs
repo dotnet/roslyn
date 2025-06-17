@@ -10,7 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;

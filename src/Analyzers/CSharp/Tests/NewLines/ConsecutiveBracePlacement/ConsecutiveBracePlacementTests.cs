@@ -769,7 +769,7 @@ public sealed class ConsecutiveBracePlacementTests
 
             using System;
 
-            #if CODE_STYLE
+            #if !WORKSPACE
             using System.Collections.Generic;
             #endif
 
@@ -778,13 +778,13 @@ public sealed class ConsecutiveBracePlacementTests
                 internal interface IOption { }
 
                 internal interface IOption2
-            #if !CODE_STYLE
+            #if WORKSPACE
                 : IOption
             #endif
                 {
                     string OptionDefinition { get; }
 
-            #if CODE_STYLE
+            #if !WORKSPACE
                     string Feature { get; }
                     string Name { get; }
                     Type Type { get; }
@@ -815,7 +815,7 @@ public sealed class ConsecutiveBracePlacementTests
 
             using System;
 
-            #if CODE_STYLE
+            #if !WORKSPACE
             using System.Collections.Generic;
             #endif
 
@@ -824,13 +824,13 @@ public sealed class ConsecutiveBracePlacementTests
                 internal interface IOption { }
 
                 internal interface IOption2
-            #if !CODE_STYLE
+            #if WORKSPACE
                 : IOption
             #endif
                 {
                     string OptionDefinition { get; }
 
-            #if CODE_STYLE
+            #if !WORKSPACE
                     string Feature { get; }
                     string Name { get; }
                     Type Type { get; }

@@ -1423,7 +1423,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
     }
 
-#if CODE_STYLE
+#if !WORKSPACE
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
 #else
     [Fact]
@@ -1448,7 +1448,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
         Assert.Equal("C", symbolRenamedOperation._newName);
     }
 
-#if CODE_STYLE
+#if !WORKSPACE
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
 #else
     [Fact]
@@ -1473,7 +1473,7 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
         Assert.Equal("ITest", symbolRenamedOperation._newName);
     }
 
-#if CODE_STYLE
+#if !WORKSPACE
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
 #else
     [Fact]

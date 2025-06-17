@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Roslyn.Utilities;
 #endif
 

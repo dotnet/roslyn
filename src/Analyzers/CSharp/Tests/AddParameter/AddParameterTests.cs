@@ -2063,7 +2063,7 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
         await TestInRegularAndScriptAsync(code, fix_All, index: 1);
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
 
     // CodeStyle layer does not support cross language application of fixes.
 

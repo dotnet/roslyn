@@ -1559,7 +1559,7 @@ public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProvid
             """, options);
     }
 
-#if !CODE_STYLE // Below test is not applicable for CodeStyle layer as attempting to fetch an editorconfig string representation for this invalid option fails.
+#if WORKSPACE // Below test is not applicable for CodeStyle layer as attempting to fetch an editorconfig string representation for this invalid option fails.
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37326")]
     public async Task RegressionTest_ShouldReportUnusedParameter_02()
     {

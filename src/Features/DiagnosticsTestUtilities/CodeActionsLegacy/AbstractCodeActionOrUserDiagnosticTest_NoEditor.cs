@@ -4,7 +4,7 @@
 
 #nullable disable
 
-#if CODE_STYLE
+#if !WORKSPACE
 extern alias CODESTYLE_UTILITIES;
 #endif
 
@@ -39,7 +39,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
 #else
 using OptionsCollectionAlias = OptionsCollection;
@@ -177,7 +177,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
            ? TestWorkspace.Create(XElement.Parse(workspaceMarkupOrCode), openDocuments: false, composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind)
            : TestWorkspace.Create(GetLanguage(), parameters.compilationOptions, parameters.parseOptions, files: [workspaceMarkupOrCode], composition: composition, documentServiceProvider: documentServiceProvider, workspaceKind: parameters.workspaceKind);
 
-#if !CODE_STYLE
+#if WORKSPACE
         if (parameters.testHost == TestHost.OutOfProcess && _logger != null)
         {
             var remoteHostProvider = (InProcRemoteHostClientProvider)workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
@@ -196,7 +196,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor
             AddAnalyzerConfigDocumentWithOptions(workspace, parameters.options);
         }
 
-#if !CODE_STYLE
+#if WORKSPACE
         parameters.globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
 #endif
         return workspace;

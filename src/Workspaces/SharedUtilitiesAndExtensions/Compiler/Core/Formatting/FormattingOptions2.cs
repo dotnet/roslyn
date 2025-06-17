@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.CodeStyle;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 #else
@@ -91,7 +91,7 @@ internal sealed partial class FormattingOptions2
         defaultValue: SyntaxFormattingOptions.CommonDefaults.ConditionalExpressionWrappingLength,
         isEditorConfigOption: true);
 
-#if !CODE_STYLE
+#if WORKSPACE
     /// <summary>
     /// Options that we expect the user to set in editorconfig.
     /// </summary>

@@ -46,7 +46,7 @@ internal abstract partial class AbstractResolveConflictMarkerCodeFixProvider : C
         FixableDiagnosticIds = [diagnosticId];
         _syntaxKinds = syntaxKinds;
 
-#if !CODE_STYLE
+#if WORKSPACE
         // Backdoor that allows this provider to use the high-priority bucket.
         this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
 #endif
@@ -301,7 +301,7 @@ internal abstract partial class AbstractResolveConflictMarkerCodeFixProvider : C
         {
             var codeAction = CodeAction.Create(title, action, equivalenceKey, CodeActionPriority.High);
 
-#if !CODE_STYLE
+#if WORKSPACE
             // Backdoor that allows this provider to use the high-priority bucket.
             codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
 #endif

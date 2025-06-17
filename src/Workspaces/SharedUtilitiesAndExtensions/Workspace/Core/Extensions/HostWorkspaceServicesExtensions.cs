@@ -20,7 +20,7 @@ internal static class HostWorkspaceServicesExtensions
     {
         var languageServices = hostWorkspaceServices.GetLanguageServices(languageName);
 
-#if CODE_STYLE
+#if !WORKSPACE
         languageServices = CodeStyleHostLanguageServices.GetRequiredMappedCodeStyleLanguageServices(languageServices);
 #endif
         return languageServices;

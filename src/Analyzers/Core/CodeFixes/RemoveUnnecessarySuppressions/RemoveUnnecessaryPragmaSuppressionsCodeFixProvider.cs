@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 
-#if !CODE_STYLE // Not exported in CodeStyle layer: https://github.com/dotnet/roslyn/issues/47942
+#if WORKSPACE // Not exported in CodeStyle layer: https://github.com/dotnet/roslyn/issues/47942
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryPragmaSuppressions), Shared]
 #endif
 [method: ImportingConstructor]

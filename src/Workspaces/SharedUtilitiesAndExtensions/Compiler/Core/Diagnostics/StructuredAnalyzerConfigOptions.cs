@@ -63,7 +63,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions,
             return true;
         }
 
-#if CODE_STYLE
+#if !WORKSPACE
         if (TryGetCorrespondingCodeStyleInstance(configOptions, out options))
         {
             return true;
@@ -74,7 +74,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions,
         return false;
     }
 
-#if CODE_STYLE
+#if !WORKSPACE
     // StructuredAnalyzerConfigOptions is defined in both Workspace and Code Style layers. It is not public and thus can't be shared between these two.
     // However, Code Style layer is compiled against the shared Workspace APIs. The ProjectState creates and holds onto an instance
     // of Workspace layer's version of StructuredAnalyzerConfigOptions. This version of the type is not directly usable by Code Style code.

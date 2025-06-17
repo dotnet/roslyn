@@ -20,13 +20,13 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
-#if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
+#if WORKSPACE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 
-#if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks enabling this fixer in CodeStyle layer.
+#if WORKSPACE  // https://github.com/dotnet/roslyn/issues/42218 tracks enabling this fixer in CodeStyle layer.
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
 #endif
@@ -88,7 +88,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         {
             context.RegisterCodeFix(
                 new FixNameCodeAction(
-#if !CODE_STYLE
+#if WORKSPACE
                     document.Project.Solution,
                     symbol,
                     fixedName,
@@ -110,7 +110,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
 
     private sealed class FixNameCodeAction : CodeAction
     {
-#if !CODE_STYLE
+#if WORKSPACE
         private readonly Solution _startingSolution;
         private readonly ISymbol _symbol;
         private readonly string _newName;
@@ -128,7 +128,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         public override ImmutableArray<string> Tags => [];
 
         public FixNameCodeAction(
-#if !CODE_STYLE
+#if WORKSPACE
             Solution startingSolution,
             ISymbol symbol,
             string newName,
@@ -137,7 +137,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             Func<CancellationToken, Task<Solution>> createChangedSolutionAsync,
             string equivalenceKey)
         {
-#if !CODE_STYLE
+#if WORKSPACE
             _startingSolution = startingSolution;
             _symbol = symbol;
             _newName = newName;
@@ -155,7 +155,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
             var codeAction = new ApplyChangesOperation(newSolution);
 
-#if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
+#if !WORKSPACE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
             return [codeAction];
 #else
 

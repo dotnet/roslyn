@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;

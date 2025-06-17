@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
 internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider
 {
-#if !CODE_STYLE // Currently depends on helpers only available in workspace layer.
+#if WORKSPACE // Currently depends on helpers only available in workspace layer.
 
     /// <summary>
     /// Specialized fix-all provider.  Needed because the fix ends up needing to invoke 'find references' to update

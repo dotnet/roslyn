@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -97,7 +97,7 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
             return parseOptions.WithLanguageVersion(LanguageVersion);
         }
 
-#if !CODE_STYLE
+#if WORKSPACE
         /// <summary>
         /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.OutOfProcess"/>
         /// if unspecified.

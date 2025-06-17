@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 
 internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider
 {
-#if !CODE_STYLE
+#if WORKSPACE
     private sealed class CSharpUseSystemThreadingLockFixAllProvider : FixAllProvider
     {
         public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)

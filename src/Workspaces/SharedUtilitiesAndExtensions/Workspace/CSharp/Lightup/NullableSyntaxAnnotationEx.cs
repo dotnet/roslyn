@@ -4,7 +4,7 @@
 
 using System.Reflection;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Roslyn.Utilities;
 #endif
@@ -25,7 +25,7 @@ internal static class NullableSyntaxAnnotationEx
             AnnotatedOrNotAnnotated = (SyntaxAnnotation?)nullableSyntaxAnnotation.GetField(nameof(AnnotatedOrNotAnnotated), BindingFlags.Static | BindingFlags.Public)?.GetValue(null);
         }
 
-#if !CODE_STYLE
+#if WORKSPACE
         Contract.ThrowIfFalse(ReferenceEquals(Oblivious, NullableSyntaxAnnotation.Oblivious));
         Contract.ThrowIfFalse(ReferenceEquals(AnnotatedOrNotAnnotated, NullableSyntaxAnnotation.AnnotatedOrNotAnnotated));
 #endif

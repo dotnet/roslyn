@@ -9,21 +9,21 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using System;
 using System.Collections.Immutable;
-#if !CODE_STYLE
+#if WORKSPACE
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace;
 
-#if !CODE_STYLE
+#if WORKSPACE
 [Export(typeof(CSharpMatchFolderAndNamespaceDiagnosticAnalyzer)), Shared]
 #endif
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer
     : AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax>
 {
-#if !CODE_STYLE
+#if WORKSPACE
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpMatchFolderAndNamespaceDiagnosticAnalyzer()

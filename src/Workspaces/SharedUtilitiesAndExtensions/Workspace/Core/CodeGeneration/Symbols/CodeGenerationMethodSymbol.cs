@@ -8,7 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;

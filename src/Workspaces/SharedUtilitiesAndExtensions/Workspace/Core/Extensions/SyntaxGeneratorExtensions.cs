@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
 #else
 using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;

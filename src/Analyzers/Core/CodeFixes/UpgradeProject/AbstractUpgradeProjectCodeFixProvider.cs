@@ -94,7 +94,7 @@ internal abstract partial class AbstractUpgradeProjectCodeFixProvider : CodeFixP
         => project.Language == language && IsUpgrade(project, version);
 }
 
-#if CODE_STYLE
+#if !WORKSPACE
 
 internal sealed class ProjectOptionsChangeAction : CodeAction
 {

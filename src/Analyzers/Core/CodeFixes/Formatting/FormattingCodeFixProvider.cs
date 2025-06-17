@@ -19,7 +19,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 {
     protected AbstractFormattingCodeFixProvider()
     {
-#if !CODE_STYLE
+#if WORKSPACE
         // Backdoor that allows this provider to use the high-priority bucket.
         this.CustomTags = this.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
 #endif
@@ -48,7 +48,7 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
                 nameof(AbstractFormattingCodeFixProvider),
                 CodeActionPriority.High);
 
-#if !CODE_STYLE
+#if WORKSPACE
             // Backdoor that allows this provider to use the high-priority bucket.
             codeAction.CustomTags = codeAction.CustomTags.Add(CodeAction.CanBeHighPriorityTag);
 #endif

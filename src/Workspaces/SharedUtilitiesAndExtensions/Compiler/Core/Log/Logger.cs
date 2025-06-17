@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Diagnostics.CodeAnalysis;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 #endif

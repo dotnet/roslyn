@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
-#if CODE_STYLE
+#if !WORKSPACE
 extern alias CODESTYLE_UTILITIES;
 #endif
 
@@ -33,7 +33,7 @@ using FixAllState = Microsoft.CodeAnalysis.CodeFixes.FixAllState;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
 #else
 using OptionsCollectionAlias = OptionsCollection;

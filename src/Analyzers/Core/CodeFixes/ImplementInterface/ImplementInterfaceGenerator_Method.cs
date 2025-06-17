@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
+#if !WORKSPACE
 using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
 #else
 using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;

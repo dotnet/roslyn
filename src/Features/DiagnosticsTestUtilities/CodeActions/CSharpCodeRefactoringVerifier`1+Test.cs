@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using System.Diagnostics.CodeAnalysis;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -111,7 +111,7 @@ public static partial class CSharpCodeRefactoringVerifier<TCodeRefactoring>
             return compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
         }
 
-#if !CODE_STYLE
+#if WORKSPACE
         /// <summary>
         /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.OutOfProcess"/> if unspecified.
         /// </summary>
