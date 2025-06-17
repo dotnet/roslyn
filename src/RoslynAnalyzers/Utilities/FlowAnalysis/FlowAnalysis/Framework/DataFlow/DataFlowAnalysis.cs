@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PooledDictionary<int, int> loopRangeMap,
             bool exceptionPathsAnalysisPostPass)
         {
-            using var unreachableBlocks = PooledHashSet<int>.GetInstance();
+            using var _ = PooledHashSet<int>.GetInstance(out var unreachableBlocks);
             // Add each basic block to the result.
             foreach (var block in cfg.Blocks)
             {
