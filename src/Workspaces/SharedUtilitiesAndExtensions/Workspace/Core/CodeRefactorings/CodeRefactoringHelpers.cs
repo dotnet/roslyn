@@ -93,29 +93,4 @@ internal static class CodeRefactoringHelpers
         // but fires up e.g.: `1 + [|2 + 3|]`.
         return beginningNode.Span.End <= selection.Start || endNode.Span.Start >= selection.End;
     }
-
-    /// <summary>
-    /// Trims leading and trailing whitespace from <paramref name="span"/>.
-    /// </summary>
-    /// <remarks>
-    /// Returns unchanged <paramref name="span"/> in case <see cref="TextSpan.IsEmpty"/>.
-    /// Returns empty Span with original <see cref="TextSpan.Start"/> in case it contains only whitespace.
-    /// </remarks>
-    public static TextSpan GetTrimmedTextSpan(ParsedDocument document, TextSpan span)
-    {
-        if (span.IsEmpty)
-            return span;
-
-        var sourceText = document.Text;
-        var start = span.Start;
-        var end = span.End;
-
-        while (start < end && char.IsWhiteSpace(sourceText[end - 1]))
-            end--;
-
-        while (start < end && char.IsWhiteSpace(sourceText[start]))
-            start++;
-
-        return TextSpan.FromBounds(start, end);
-    }
 }
