@@ -33,7 +33,7 @@ internal static class NamingStyleOptions
 }
 
 internal interface NamingStylePreferencesProvider
-#if !CODE_STYLE
+#if WORKSPACE
     : OptionsProvider<NamingStylePreferences>
 #endif
 {
