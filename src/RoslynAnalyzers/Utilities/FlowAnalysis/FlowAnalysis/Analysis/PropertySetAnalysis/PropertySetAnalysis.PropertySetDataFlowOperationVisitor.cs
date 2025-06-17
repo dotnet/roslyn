@@ -158,7 +158,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
                     else if (constructorMapper.MapFromPointsToAbstractValue != null)
                     {
-                        using ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
+                        using var _ = ArrayBuilder<PointsToAbstractValue>.GetInstance(out var builder);
 
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
@@ -170,8 +170,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     else if (constructorMapper.MapFromValueContentAbstractValue != null)
                     {
                         Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResult != null);
-                        using ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
-                        using ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
+                        using var _1 = ArrayBuilder<PointsToAbstractValue>.GetInstance(out var pointsToBuilder);
+                        using var _2 = ArrayBuilder<ValueContentAbstractValue>.GetInstance(out var valueContentBuilder);
 
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
@@ -447,7 +447,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         trackedAssignmentData.Free();
                     }
 
-                    this.TrackedFieldPropertyAssignments.Dispose();
+                    this.TrackedFieldPropertyAssignments.Free();
                     this.TrackedFieldPropertyAssignments = null;
                 }
             }
@@ -550,7 +550,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 }
                 finally
                 {
-                    hazardousUsageTypeNames?.Dispose();
+                    hazardousUsageTypeNames?.Free();
                 }
 
                 return false;

@@ -164,7 +164,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 newLength = this.KnownPropertyAbstractValues.Length;
             }
 
-            using ArrayBuilder<PropertySetAbstractValueKind> kinds = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength);
+            using var _ = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(newLength, out var kinds);
             kinds.AddRange(this.KnownPropertyAbstractValues);
 
             while (kinds.Count < newLength)

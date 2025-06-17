@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, ImmutableHashSet.Create(newRoot), newHeight);
             }
 
-            using var parentsBuilder = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance();
+            using var _ = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance(out var parentsBuilder);
             foreach (var parent in Parents)
             {
                 parentsBuilder.Add(parent.WithRootParent(newRoot));
