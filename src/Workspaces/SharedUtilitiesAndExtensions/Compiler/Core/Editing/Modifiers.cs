@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.Editing;
 [Flags]
 internal enum Modifiers
 {
+    // WARNING: Do not reorder these values.  The code style layer takes a dependency on this.  Sharing instances of
+    // this, with the workspace layer.  It is fine to add values to the end of this enum.
 #pragma warning disable format
     None        = 0,
     Static      = 1 << 0,
