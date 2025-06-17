@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.PooledObjects
     // NOTE: these dictionaries always have the default comparer.
     internal sealed partial class PooledDictionary<K, V>
     {
-
         public ImmutableDictionary<TKey, TValue> ToImmutableDictionaryAndFree<TKey, TValue>(
            Func<KeyValuePair<K, V>, TKey> keySelector, Func<KeyValuePair<K, V>, TValue> elementSelector, IEqualityComparer<TKey> comparer)
             where TKey : notnull
@@ -35,6 +34,30 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             _pool?.Free(this);
             return result;
+        }
+
+        private static readonly ConcurrentDictionary<IEqualityComparer<K>, ObjectPool<PooledDictionary<K, V>>> s_poolInstancesByComparer
+            = new();
+
+        public static PooledDictionary<K, V> GetInstance(IEqualityComparer<K>? keyComparer = null)
+        {
+            var pool = keyComparer == null ?
+                s_poolInstance :
+                s_poolInstancesByComparer.GetOrAdd(keyComparer, CreatePool);
+            var instance = pool.Allocate();
+            Debug.Assert(instance.Count == 0);
+            return instance;
+        }
+
+        public static PooledDictionary<K, V> GetInstance(IEnumerable<KeyValuePair<K, V>> initializer, IEqualityComparer<K>? keyComparer = null)
+        {
+            var instance = GetInstance(keyComparer);
+            foreach (var kvp in initializer)
+            {
+                instance.Add(kvp.Key, kvp.Value);
+            }
+
+            return instance;
         }
     }
 }

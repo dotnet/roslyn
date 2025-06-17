@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
