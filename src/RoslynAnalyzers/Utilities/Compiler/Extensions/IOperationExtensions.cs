@@ -799,7 +799,7 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
         {
-            using var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
+            using var _ = ArrayBuilder<IEnumerator<IOperation>>.GetInstance(out var stack);
             stack.Add(operation.Children.GetEnumerator());
 
             while (stack.Any())

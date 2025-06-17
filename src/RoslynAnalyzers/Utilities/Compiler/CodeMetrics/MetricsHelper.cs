@@ -15,6 +15,7 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #if LEGACY_CODE_METRICS_MODE
 using Analyzer.Utilities.Extensions;

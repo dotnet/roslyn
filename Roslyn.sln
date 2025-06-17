@@ -2198,6 +2198,10 @@ Global
 		src\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 5
 		src\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 5
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 5
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
+		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
+		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{41ed1bfa-fdad-4fe4-8118-db23fb49b0b0}*SharedItemsImports = 5
