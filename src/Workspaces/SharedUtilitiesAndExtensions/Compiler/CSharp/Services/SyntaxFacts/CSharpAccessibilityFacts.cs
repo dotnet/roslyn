@@ -3,15 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Diagnostics.CodeAnalysis;
-
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
@@ -101,10 +95,10 @@ internal sealed class CSharpAccessibilityFacts : IAccessibilityFacts
         return accessibility;
     }
 
-    public static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault)
+    public static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out Modifiers modifiers, out bool isDefault)
     {
         accessibility = Accessibility.NotApplicable;
-        modifiers = DeclarationModifiers.None;
+        modifiers = Modifiers.None;
         isDefault = false;
 
         foreach (var token in modifierList)
@@ -128,24 +122,24 @@ internal sealed class CSharpAccessibilityFacts : IAccessibilityFacts
 
             modifiers |= token.Kind() switch
             {
-                SyntaxKind.AbstractKeyword => DeclarationModifiers.Abstract,
-                SyntaxKind.NewKeyword => DeclarationModifiers.New,
-                SyntaxKind.OverrideKeyword => DeclarationModifiers.Override,
-                SyntaxKind.VirtualKeyword => DeclarationModifiers.Virtual,
-                SyntaxKind.StaticKeyword => DeclarationModifiers.Static,
-                SyntaxKind.AsyncKeyword => DeclarationModifiers.Async,
-                SyntaxKind.ConstKeyword => DeclarationModifiers.Const,
-                SyntaxKind.ReadOnlyKeyword => DeclarationModifiers.ReadOnly,
-                SyntaxKind.SealedKeyword => DeclarationModifiers.Sealed,
-                SyntaxKind.UnsafeKeyword => DeclarationModifiers.Unsafe,
-                SyntaxKind.PartialKeyword => DeclarationModifiers.Partial,
-                SyntaxKind.RefKeyword => DeclarationModifiers.Ref,
-                SyntaxKind.VolatileKeyword => DeclarationModifiers.Volatile,
-                SyntaxKind.ExternKeyword => DeclarationModifiers.Extern,
-                SyntaxKind.FileKeyword => DeclarationModifiers.File,
-                SyntaxKind.RequiredKeyword => DeclarationModifiers.Required,
-                SyntaxKind.FixedKeyword => DeclarationModifiers.Fixed,
-                _ => DeclarationModifiers.None,
+                SyntaxKind.AbstractKeyword => Modifiers.Abstract,
+                SyntaxKind.NewKeyword => Modifiers.New,
+                SyntaxKind.OverrideKeyword => Modifiers.Override,
+                SyntaxKind.VirtualKeyword => Modifiers.Virtual,
+                SyntaxKind.StaticKeyword => Modifiers.Static,
+                SyntaxKind.AsyncKeyword => Modifiers.Async,
+                SyntaxKind.ConstKeyword => Modifiers.Const,
+                SyntaxKind.ReadOnlyKeyword => Modifiers.ReadOnly,
+                SyntaxKind.SealedKeyword => Modifiers.Sealed,
+                SyntaxKind.UnsafeKeyword => Modifiers.Unsafe,
+                SyntaxKind.PartialKeyword => Modifiers.Partial,
+                SyntaxKind.RefKeyword => Modifiers.Ref,
+                SyntaxKind.VolatileKeyword => Modifiers.Volatile,
+                SyntaxKind.ExternKeyword => Modifiers.Extern,
+                SyntaxKind.FileKeyword => Modifiers.File,
+                SyntaxKind.RequiredKeyword => Modifiers.Required,
+                SyntaxKind.FixedKeyword => Modifiers.Fixed,
+                _ => Modifiers.None,
             };
 
             isDefault |= token.Kind() == SyntaxKind.DefaultKeyword;

@@ -6,11 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-namespace Microsoft.CodeAnalysis.Internal.Editing;
-#else
 namespace Microsoft.CodeAnalysis.Editing;
-#endif
 
 public readonly record struct DeclarationModifiers
 {
@@ -195,33 +191,6 @@ public readonly record struct DeclarationModifiers
 
     private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)
         => isSet ? (existing | modifier) : (existing & ~modifier);
-
-    [Flags]
-    private enum Modifiers
-    {
-#pragma warning disable format
-        None        = 0,
-        Static      = 1 << 0,
-        Abstract    = 1 << 1,
-        New         = 1 << 2,
-        Unsafe      = 1 << 3,
-        ReadOnly    = 1 << 4,
-        Virtual     = 1 << 5,
-        Override    = 1 << 6,
-        Sealed      = 1 << 7,
-        Const       = 1 << 8,
-        WithEvents  = 1 << 9,
-        Partial     = 1 << 10,
-        Async       = 1 << 11,
-        WriteOnly   = 1 << 12,
-        Ref         = 1 << 13,
-        Volatile    = 1 << 14,
-        Extern      = 1 << 15,
-        Required    = 1 << 16,
-        File        = 1 << 17,
-        Fixed       = 1 << 18,
-#pragma warning restore format
-    }
 
     public static DeclarationModifiers None => default;
 

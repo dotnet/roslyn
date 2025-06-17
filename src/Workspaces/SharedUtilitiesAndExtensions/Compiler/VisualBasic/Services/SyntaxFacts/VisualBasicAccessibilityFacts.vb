@@ -5,11 +5,7 @@
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Editing
-#Else
 Imports Microsoft.CodeAnalysis.Editing
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicAccessibilityFacts
