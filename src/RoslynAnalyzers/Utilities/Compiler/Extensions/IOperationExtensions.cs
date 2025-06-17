@@ -891,7 +891,7 @@ namespace Analyzer.Utilities.Extensions
         public static ImmutableArray<IArgumentOperation> GetArgumentsInParameterOrder(
             this ImmutableArray<IArgumentOperation> arguments)
         {
-            using var parameterOrderedArguments = ArrayBuilder<IArgumentOperation>.GetInstance(arguments.Length, null!);
+            using var _ = ArrayBuilder<IArgumentOperation>.GetInstance(arguments.Length, null!, out var parameterOrderedArguments);
 
             foreach (var argument in arguments)
             {
