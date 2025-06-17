@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             if (newAnalysisValues.Height == 0)
             {
                 return GlobalFlowStateAnalysisValueSet.Create(
-                    AnalysisValues.AddRange(newAnalysisValues.AnalysisValues), Parents, Height);
+                    ImmutableHashSetExtensions.AddRange(AnalysisValues, newAnalysisValues.AnalysisValues), Parents, Height);
             }
 
             return newAnalysisValues.WithRootParent(this);

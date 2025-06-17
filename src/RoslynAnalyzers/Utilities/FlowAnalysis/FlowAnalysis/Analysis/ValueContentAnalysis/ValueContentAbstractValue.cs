@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 throw new ArgumentNullException(nameof(otherState));
             }
 
-            ImmutableHashSet<object?> mergedLiteralValues = LiteralValues.AddRange(otherState.LiteralValues);
+            ImmutableHashSet<object?> mergedLiteralValues = ImmutableHashSetExtensions.AddRange(LiteralValues, otherState.LiteralValues);
             if (mergedLiteralValues.Count > LiteralsBound)
             {
                 return MayBeContainsNonLiteralState;
