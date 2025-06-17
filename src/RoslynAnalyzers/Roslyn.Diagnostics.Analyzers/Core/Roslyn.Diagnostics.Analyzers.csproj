@@ -8,6 +8,7 @@
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion)</MicrosoftCodeAnalysisVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CSharp.Analyzers" />
@@ -15,6 +16,9 @@
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
+    <PackageReference Include="System.Threading.Channels" />
+    
     <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
   </ItemGroup>
@@ -24,4 +28,12 @@
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Refactoring\Refactoring.Utilities.projitems" Label="Shared" />
+
+
+  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
 </Project>
