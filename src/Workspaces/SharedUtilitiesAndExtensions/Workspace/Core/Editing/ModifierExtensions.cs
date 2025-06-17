@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editing;
@@ -15,7 +16,7 @@ internal static class ModifierExtensions
 #if WORKSPACE
         return new DeclarationModifiers(modifiers);
 #else
-        throw new NotSupportedException();
+        return Unsafe.As<Modifiers, DeclarationModifiers>(ref modifiers);
 #endif
     }
 }
