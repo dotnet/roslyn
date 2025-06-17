@@ -146,7 +146,7 @@ internal sealed class SymbolSpecificationViewModel : AbstractNotifyPropertyChang
             ItemName,
             [.. SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolOrTypeOrMethodKind())],
             [.. AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility)],
-            [.. ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier))]);
+            [.. ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier.Modifiers))]);
     }
 
     internal bool TrySubmit()
@@ -255,7 +255,7 @@ internal sealed class SymbolSpecificationViewModel : AbstractNotifyPropertyChang
             _modifier = modifier;
             Name = name;
 
-            IsChecked = specification.RequiredModifierList.Any(static (m, modifier) => m.Modifier == modifier, modifier);
+            IsChecked = specification.RequiredModifierList.Any(static (m, modifier) => m.Modifier == modifier.Modifiers, modifier);
         }
     }
 }
