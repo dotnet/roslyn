@@ -113,8 +113,9 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
                 )
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/78792")>
+        <Fact>
         <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78792")>
         Public Sub Errors_02()
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit("System.Console.WriteLine(1)", options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             Dim syntaxTree1 = compilationUnit.SyntaxTree
@@ -127,30 +128,36 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
             Dim compilation = CreateCompilationWithMscorlib461({syntaxTree1, syntaxTree2})
             Dim semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
             Dim semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
-            Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
-            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
+            Assert.Throws(Of InvalidOperationException)(
+                Sub()
+                    Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
+                    Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
 
-            compilation.AssertTheseDiagnostics(
+                    compilation.AssertTheseDiagnostics(
 <expected>
 BC30001: Statement is not valid in a namespace.
 System.Console.WriteLine(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>
-            )
+                    )
+                End Sub)
 
             compilation = CreateCompilationWithMscorlib461({syntaxTree2, syntaxTree1})
             semanticModel1 = compilation.GetSemanticModel(syntaxTree1, True)
             semanticModel2 = compilation.GetSemanticModel(syntaxTree2, True)
-            Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
-            Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
+            Assert.Throws(Of InvalidOperationException)(
+                Sub()
+                    Assert.Null(semanticModel1.GetSymbolInfo(node1.Name).Symbol)
+                    Assert.Equal("Sub System.Console.WriteLine(value As System.Int32)", semanticModel2.GetSymbolInfo(node2.Name).Symbol.ToTestDisplayString())
 
-            compilation.AssertTheseDiagnostics(
-<expected>
+                    compilation.AssertTheseDiagnostics(
+        <expected>
 BC30001: Statement is not valid in a namespace.
 System.Console.WriteLine(1)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>
-            )
+                    )
+                End Sub)
         End Sub
 
         Private Shared Function ErrorTestsGetNode(syntaxTree As SyntaxTree) As MemberAccessExpressionSyntax
