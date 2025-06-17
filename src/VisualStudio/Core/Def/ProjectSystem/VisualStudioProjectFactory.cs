@@ -37,6 +37,8 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
     private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
 
+    private readonly JoinableTask _initializationTask;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioProjectFactory(
@@ -51,6 +53,23 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
         _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
         _solution = solution;
+
+        _initializationTask = _threadingContext.JoinableTaskFactory.RunAsync(
+            async () =>
+            {
+                var cancellationToken = _threadingContext.DisposalToken;
+
+                // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
+                // moved off we'll need to fix up it's constructor to be free-threaded.
+
+                // yield if on the main thread, as the VisualStudioMetadataReferenceManager construction can be fairly expensive
+                // and we don't want the case where VisualStudioProjectFactory is constructed on the main thread to block on that.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
+
+                _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+                _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
+            });
     }
 
     public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
@@ -59,6 +78,8 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
+        await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(false);
+
         // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
         // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
         // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
