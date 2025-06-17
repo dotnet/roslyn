@@ -64,8 +64,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CharExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VersionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\ICollectionExpressionOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IFunctionPointerInvocationOperationWrapper.cs" />
@@ -114,11 +112,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledSortedSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\TemporaryDictionary`2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\TemporarySet`1.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Range.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynHashCode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
