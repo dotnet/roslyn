@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
                 finally
                 {
-                    skippedNamespaces?.Free(cancellationToken);
+                    skippedNamespaces?.Free();
                 }
             }
 

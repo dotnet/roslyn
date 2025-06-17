@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             // Map to track and report duplicate entries for same rule ID.
-            using var lastEntriesByRuleMap = PooledDictionary<string, (Version version, ReleaseTrackingLine releaseTrackingLine)>.GetInstance();
+            using var _ = PooledDictionary<string, (Version version, ReleaseTrackingLine releaseTrackingLine)>.GetInstance(out var lastEntriesByRuleMap);
 
             // Process each entry in unshipped file to flag rules which are not seen.
             foreach (var (ruleId, releaseTrackingDataForRule) in unshippedData.ReleaseTrackingDataByRuleIdMap)

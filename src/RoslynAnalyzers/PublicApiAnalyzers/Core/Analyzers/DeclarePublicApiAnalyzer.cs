@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 errors.Add(Diagnostic.Create(descriptor, Location.None, InvalidReasonMisplacedNullableEnable));
             }
 
-            using var publicApiMap = PooledDictionary<string, ApiLine>.GetInstance(StringComparer.Ordinal);
+            using var _ = PooledDictionary<string, ApiLine>.GetInstance(StringComparer.Ordinal, out var publicApiMap);
             ValidateApiList(additionalFiles, publicApiMap, shippedData.ApiList, isPublic, errors);
             ValidateApiList(additionalFiles, publicApiMap, unshippedData.ApiList, isPublic, errors);
 
