@@ -44,7 +44,7 @@ namespace Analyzer.Utilities.PooledObjects
             }
 
             this.Clear();
-            _pool?.Free(this, cancellationToken);
+            _pool?.Free(this);
         }
 
         // global pool
