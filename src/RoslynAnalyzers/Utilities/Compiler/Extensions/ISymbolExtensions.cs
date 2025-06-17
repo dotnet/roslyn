@@ -584,17 +584,17 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        //        public static ITypeSymbol? GetMemberOrLocalOrParameterType(this ISymbol symbol)
-        //        {
-        //            return symbol.Kind switch
-        //            {
-        //                SymbolKind.Local => ((ILocalSymbol)symbol).Type,
+        public static ITypeSymbol? GetMemberOrLocalOrParameterType(this ISymbol symbol)
+        {
+            return symbol.Kind switch
+            {
+                SymbolKind.Local => ((ILocalSymbol)symbol).Type,
 
-        //                SymbolKind.Parameter => ((IParameterSymbol)symbol).Type,
+                SymbolKind.Parameter => ((IParameterSymbol)symbol).Type,
 
-        //                _ => GetMemberType(symbol),
-        //            };
-        //        }
+                _ => GetMemberType(symbol),
+            };
+        }
 
         //        public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
         //        {
