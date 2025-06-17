@@ -1409,8 +1409,11 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     public override Accessibility GetAccessibility(SyntaxNode declaration)
         => CSharpAccessibilityFacts.Instance.GetAccessibility(declaration);
 
-    private static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault)
-        => CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifierList, out accessibility, out modifiers, out isDefault);
+    private static void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers declarationModifiers, out bool isDefault)
+    {
+        CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifierList, out accessibility, out var modifiers, out isDefault);
+        declarationModifiers = modifiers.ToDeclarationModifiers();
+    }
 
     public override SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility)
     {
