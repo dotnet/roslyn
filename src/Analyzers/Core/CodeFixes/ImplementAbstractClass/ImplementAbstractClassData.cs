@@ -146,7 +146,7 @@ internal sealed class ImplementAbstractClassData(
         Compilation compilation, ISymbol member, ISymbol? throughMember, bool addUnsafe,
         ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
     {
-        var modifiers = new DeclarationModifiers().WithIsOverride(true).WithIsUnsafe(addUnsafe).WithIsRequired(member.IsRequired());
+        var modifiers = DeclarationModifiers.Override.WithIsUnsafe(addUnsafe).WithIsRequired(member.IsRequired());
         var accessibility = member.ComputeResultantAccessibility(ClassType);
 
         // only call through one of members for this symbol if we can actually access the symbol

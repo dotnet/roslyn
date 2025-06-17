@@ -56,7 +56,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
             return CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: accessibility,
-                modifiers: new DeclarationModifiers(),
+                modifiers: DeclarationModifiers.None,
                 typeName: classType.Name,
                 parameters: baseConstructor.Parameters.SelectAsArray(p => WithoutInaccessibleAttributes(p, classType)),
                 statements: default,

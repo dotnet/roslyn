@@ -434,7 +434,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
                 accessibility: Accessibility.Public,
-                modifiers: new DeclarationModifiers().WithIsUnsafe(generateUnsafe),
+                modifiers: DeclarationModifiers.None.WithIsUnsafe(generateUnsafe),
                 typeName: TypeToGenerateIn.Name,
                 parameters: newParameters,
                 statements: assignments,

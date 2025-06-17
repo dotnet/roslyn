@@ -10,7 +10,7 @@ internal static partial class ISymbolExtensions
 {
     public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
     {
-        return new DeclarationModifiers()
+        return DeclarationModifiers.None
             .WithIsStatic(symbol.IsStatic)
             .WithIsAbstract(symbol.IsAbstract)
             .WithIsUnsafe(symbol.RequiresUnsafeModifier())

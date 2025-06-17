@@ -471,7 +471,7 @@ internal static class CodeGenerationSymbolFactory
         var invokeMethod = CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             returnType: returnType,
             refKind: refKind,
             explicitInterfaceImplementations: default,

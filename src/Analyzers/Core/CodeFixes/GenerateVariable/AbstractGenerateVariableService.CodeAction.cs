@@ -66,7 +66,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: _state.DetermineMaximalAccessibility(),
-                    modifiers: new DeclarationModifiers().WithIsStatic(_state.IsStatic).WithIsUnsafe(generateUnsafe),
+                    modifiers: DeclarationModifiers.None.WithIsStatic(_state.IsStatic).WithIsUnsafe(generateUnsafe),
                     type: _state.TypeMemberType,
                     refKind: _refKind,
                     explicitInterfaceImplementations: default,
@@ -85,8 +85,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                     attributes: default,
                     accessibility: DetermineMinimalAccessibility(_state),
                     modifiers: _isConstant
-                        ? new DeclarationModifiers().WithIsConst(true).WithIsUnsafe(generateUnsafe)
-                        : new DeclarationModifiers().WithIsStatic(_state.IsStatic).WithIsReadOnly(_isReadonly).WithIsUnsafe(generateUnsafe),
+                        ? DeclarationModifiers.None.WithIsConst(true).WithIsUnsafe(generateUnsafe)
+                        : DeclarationModifiers.None.WithIsStatic(_state.IsStatic).WithIsReadOnly(_isReadonly).WithIsUnsafe(generateUnsafe),
                     type: _state.TypeMemberType,
                     name: _state.IdentifierToken.ValueText);
 

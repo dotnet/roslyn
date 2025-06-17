@@ -45,7 +45,7 @@ internal static partial class SyntaxGeneratorExtensions
         return CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(isOverride: true),
+            modifiers: DeclarationModifiers.Override,
             returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,
@@ -85,7 +85,7 @@ internal static partial class SyntaxGeneratorExtensions
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 methodSymbol,
-                modifiers: new DeclarationModifiers(),
+                modifiers: DeclarationModifiers.None,
                 explicitInterfaceImplementations: [methodSymbol],
                 parameters: parameters,
                 statements: statements);
@@ -94,7 +94,7 @@ internal static partial class SyntaxGeneratorExtensions
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 methodSymbol,
-                modifiers: new DeclarationModifiers(),
+                modifiers: DeclarationModifiers.None,
                 parameters: parameters,
                 statements: statements);
         }
