@@ -18,7 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CodeRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\IRefactoringHelpersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editing\ImportAdderService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)editing\ModifierExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\ModifierExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
