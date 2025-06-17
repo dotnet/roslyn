@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        [WorkItem(78989, "https://github.com/dotnet/roslyn/pull/78989")]
         public void TestSubTextSubTextEnd()
         {
             var text = SourceText.From("Hello World");
