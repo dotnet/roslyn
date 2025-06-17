@@ -16,6 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpEntryPointFinderService() : AbstractEntryPointFinderService
 {
-    public override IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation, bool findFormsOnly)
+    protected override IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation, bool findFormsOnly)
         => CSharpEntryPointFinder.FindEntryPoints(compilation);
 }

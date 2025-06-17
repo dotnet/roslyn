@@ -298,6 +298,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Packaging = nameof(Packaging);
             public const string PasteTracking = nameof(PasteTracking);
             public const string Peek = nameof(Peek);
+            public const string Progression = nameof(Progression);
             public const string ProjectSystemShims = nameof(ProjectSystemShims);
             public const string SarifErrorLogging = nameof(SarifErrorLogging);
             public const string QuickInfo = nameof(QuickInfo);

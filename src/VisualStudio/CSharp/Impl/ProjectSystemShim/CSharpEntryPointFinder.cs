@@ -18,7 +18,8 @@ internal sealed class CSharpEntryPointFinder(Compilation compilation)
     {
         // This differs from the VB implementation
         // (Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.EntryPointFinder) because we don't
-        // ever consider forms entry points.
+        // ever consider forms entry points. Technically, this is wrong but it just doesn't matter since the ref
+        // assemblies are unlikely to have a random Main() method that matches
         var visitor = new CSharpEntryPointFinder(compilation);
         visitor.Visit(compilation.SourceModule.GlobalNamespace);
         return visitor.EntryPoints;

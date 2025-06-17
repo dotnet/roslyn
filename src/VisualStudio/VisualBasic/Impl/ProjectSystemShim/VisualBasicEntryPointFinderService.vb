@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Public Sub New()
         End Sub
 
-        Public Overrides Function FindEntryPoints(compilation As Compilation, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
+        Protected Overrides Function FindEntryPoints(compilation As Compilation, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
             Return VisualBasicEntryPointFinder.FindEntryPoints(compilation, findFormsOnly)
         End Function
     End Class
