@@ -2236,6 +2236,10 @@ Global
 		src\Compilers\VisualBasic\vbc\VbcCommandLine.projitems*{810b02ad-2ea5-4422-88ac-b71b8ab0df0b}*SharedItemsImports = 13
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{8252a386-069a-0d7d-eab4-b2e77833b443}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{8252a386-069a-0d7d-eab4-b2e77833b443}*SharedItemsImports = 5
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
+		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
+		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
 		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{8e2a252e-a140-45a6-a81a-2652996ea589}*SharedItemsImports = 5
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{8e2a252e-a140-45a6-a81a-2652996ea589}*SharedItemsImports = 5
