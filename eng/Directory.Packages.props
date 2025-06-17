@@ -67,9 +67,6 @@
     <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.13.1100801-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.0.1306-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.Common" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.Interfaces" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="15.8.27812-alpha" />
