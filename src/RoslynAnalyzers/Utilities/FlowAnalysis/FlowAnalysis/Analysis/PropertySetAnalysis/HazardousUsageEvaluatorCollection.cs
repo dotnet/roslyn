@@ -104,7 +104,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         internal ImmutableDictionary<(INamedTypeSymbol, bool), string> GetTypeToNameMapping(WellKnownTypeProvider wellKnownTypeProvider)
         {
-            using PooledDictionary<(INamedTypeSymbol, bool), string> pooledDictionary = PooledDictionary<(INamedTypeSymbol, bool), string>.GetInstance();
+            using var _ = PooledDictionary<(INamedTypeSymbol, bool), string>.GetInstance(out var pooledDictionary);
             foreach (KeyValuePair<(HazardousUsageEvaluatorKind Kind, string? InstanceTypeName, string? MethodName, string? ParameterName, bool derivedClasses), HazardousUsageEvaluator> kvp
                     in this.HazardousUsageEvaluators)
             {

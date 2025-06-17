@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T> - CacheBasedEquatable handles equality
 
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     return string.Empty;
                 }
 
-                using var parentsBuilder = ArrayBuilder<string>.GetInstance(Parents.Count);
+                using var _ = ArrayBuilder<string>.GetInstance(Parents.Count, out var parentsBuilder);
                 foreach (var parent in Parents)
                 {
                     parentsBuilder.Add(parent.ToString());

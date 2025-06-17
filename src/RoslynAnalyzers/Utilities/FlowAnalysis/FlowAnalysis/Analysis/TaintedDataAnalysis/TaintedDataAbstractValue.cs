@@ -100,7 +100,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             return new TaintedDataAbstractValue(
                 TaintedDataAbstractValueKind.Tainted,
-                sourceOriginsBuilder.ToImmutableAndFree());
+                sourceOriginsBuilder.ToImmutableHashSet());
         }
     }
 }
