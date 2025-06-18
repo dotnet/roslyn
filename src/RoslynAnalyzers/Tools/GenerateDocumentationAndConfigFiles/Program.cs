@@ -18,7 +18,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;

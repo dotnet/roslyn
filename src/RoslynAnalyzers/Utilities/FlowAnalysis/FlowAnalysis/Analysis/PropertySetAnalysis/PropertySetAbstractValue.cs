@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis

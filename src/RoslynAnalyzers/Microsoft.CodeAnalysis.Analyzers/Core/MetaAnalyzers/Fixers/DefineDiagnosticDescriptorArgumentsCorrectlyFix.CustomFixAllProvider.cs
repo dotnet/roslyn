@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
