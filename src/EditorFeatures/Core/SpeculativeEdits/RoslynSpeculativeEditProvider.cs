@@ -35,9 +35,6 @@ internal sealed class RoslynSpeculativeEditProvider(
         // Clone the existing text into a new editor snapshot/buffer that we can fork independently of the original.
         var clonedSnapshotBeforeEdits = this.CloneWithEdits(options);
 
-        // Now create a forked solution that takes the original document and updates it to point at the current state
-        // of the text buffer with the edits applied.  Ensure that this properly updates linked files as well so everything
-        // is consistent.
         var clonedBuffer = clonedSnapshotBeforeEdits.TextBuffer;
         var textContainer = clonedBuffer.AsTextContainer();
 
