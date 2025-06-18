@@ -36,6 +36,11 @@ internal class PreviewWorkspace : Workspace
         TextDocument document, SourceTextContainer textContainer)
     {
         // Ensure the solution's view of this file is consistent across all linked files within it.
+
+        // Performance: Replace related documents to in thisworkspaces with the 
+        // relating SourceText. This prevents cascading forks as taggers call to
+        // GetOpenTextDocumentInCurrentContextWithChanges would eventually wind up
+        // calling Solution.WithDocumentText using the related ids.
         var newSolution = document.Project.Solution.WithDocumentText(
             document.Project.Solution.GetRelatedDocumentIds(document.Id),
             textContainer.CurrentText,
