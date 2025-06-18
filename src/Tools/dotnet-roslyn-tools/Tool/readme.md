@@ -40,7 +40,9 @@ Commands:
   nuget-publish <roslyn|roslyn-sdk>  Publishes packages built from a Roslyn repo. [default: roslyn]
   create-release-tags                Generates git tags for VS releases in the repo.
   vsbranchinfo                       Provides information about the state of Roslyn in one or more branches of Visual Studio.
-  dart-test                          Runs the dartlab pipeline for a given PR number and SHA.
+  dart-test                          Runs the dartlab pipeline for a given PR number and optionally SHA.
+  pr-val                             Runs the PR validation pipeline for a given PR number and optionally SHA and branch.
+  pr-suite                           Runs the PR validation pipeline and dartlab pipeline for a given PR number and optionally SHA and branch.
 ```
 
 For example you could run `dotnet roslyn-tools vsbranchinfo` to display information about the Roslyn package most recently inserted into Visual Studio's main branch.

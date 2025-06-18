@@ -20,6 +20,7 @@ internal class Razor : IProduct
     public string? VsPackageName => null;
     public string? VsPackagePropsFileName => null;
     public string? DartLabPipelineName => null;
+    public string? PRValidationPipelineName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => [];
 

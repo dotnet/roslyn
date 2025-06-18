@@ -19,6 +19,7 @@ internal class TypeScript : IProduct
     public string? VsPackageName => "VS.ExternalAPIs.TypeScript.SourceMapReader.dev15";
     public string? VsPackagePropsFileName => "src/ConfigData/Packages/TypeScriptSupport.props";
     public string? DartLabPipelineName => null;
+    public string? PRValidationPipelineName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => [];
 

@@ -12,7 +12,7 @@ using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
 
-namespace Microsoft.RoslynTools.DartTest;
+namespace Microsoft.RoslynTools.Validation;
 
 internal static class DartTest
 {
@@ -33,7 +33,7 @@ internal static class DartTest
             // If the user doesn't pass the SHA, retrieve the most recent from the PR.
             if (sha is null)
             {
-                sha = await GetLatestShaFromPullRequestAsync(product, remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
+                sha = await Utilities.GetLatestShaFromPullRequestAsync(product, remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
                 if (sha is null)
                 {
                     logger.LogError("Could not find a SHA for the given PR number.");
@@ -78,29 +78,10 @@ internal static class DartTest
         return 0;
     }
 
-    private static async Task<string?> GetLatestShaFromPullRequestAsync(IProduct product, HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)
-    {
-        var requestUri = $"/repos/dotnet/{product.Name.ToLower()}/pulls/{prNumber}";
-        var response = await gitHubClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
-
-        if (response.IsSuccessStatusCode)
-        {
-            var prData = await response.Content.ReadFromJsonAsync<JsonObject>(cancellationToken: cancellationToken).ConfigureAwait(false);
-            return prData?["head"]?["sha"]?.ToString();
-        }
-        else
-        {
-            logger.LogError("Failed to retrieve PR data from GitHub. Status code: {StatusCode}", response.StatusCode);
-        }
-
-        return null;
-    }
-
     private static async Task PushPRToInternalAsync(IProduct product, int prNumber, string azureBranchName, ILogger logger, string sha, string targetDirectory, CancellationToken cancellationToken)
     {
         var initCommand = $"init";
         await RunGitCommandAsync(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
-        ;
 
         var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
         await RunGitCommandAsync(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);

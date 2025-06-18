@@ -21,6 +21,8 @@ internal static class RootRoslynCommand
             CreateReleaseTagsCommand.GetCommand(),
             VSBranchInfoCommand.GetCommand(),
             DartTestCommand.GetCommand(),
+            PRValidationCommand.GetCommand(),
+            PRValidationSuiteCommand.GetCommand(),
         };
         command.Description = "The command line tool for performing infrastructure tasks.";
         return command;

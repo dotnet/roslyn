@@ -21,6 +21,7 @@ internal interface IProduct
     string? VsPackageName { get; }
     string? VsPackagePropsFileName { get; }
     string? DartLabPipelineName { get; }
+    string? PRValidationPipelineName { get; }
     string? ArtifactsFolderName { get; }
     string[] ArtifactsSubFolderNames { get; }
 

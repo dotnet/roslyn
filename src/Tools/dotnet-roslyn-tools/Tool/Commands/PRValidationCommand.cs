@@ -10,21 +10,30 @@ using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Commands;
 
-internal static class DartTestCommand
+internal static class PRValidationCommand
 {
-    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower())];
+    private static readonly string[] s_allProductNames = [.. VSBranchInfo.AllProducts.Where(p => p.PRValidationPipelineName != null).Select(p => p.Name.ToLower())];
 
-    private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
+    private static readonly PRValidationCommandDefaultHandler s_prValidationCommandHandler = new();
     internal static readonly Option<int> PrNumberOption = new("--prNumber", "-n")
     {
         Description = "PR number",
         Required = true,
     };
+
     internal static readonly Option<string> ShaOption = new("--sha", "-s")
     {
         Description = "Relevant SHA",
         Required = false,
     };
+
+    internal static readonly Option<string> BranchOption = new("--branch", "-b")
+    {
+        Description = "Branch to run pipeline from",
+        DefaultValueFactory = _ => "main",
+        Required = false,
+    };
+
     internal static readonly Option<string> ProductOption = new("--product", "-p")
     {
         Description = "Product to get info for",
@@ -32,31 +41,31 @@ internal static class DartTestCommand
         Required = false,
     };
 
-    static DartTestCommand()
+    static PRValidationCommand()
     {
         ProductOption.AcceptOnlyFromAmong(s_allProductNames);
     }
 
     public static Command GetCommand()
     {
-        var command = new Command("dart-test",
-            @"Runs the dartlab pipeline for a given PR number and SHA.
-It works by cloning the PR into the internal mirror and then running the dartlab pipeline from it.")
+        var command = new Command("pr-val",
+            @"Runs the PR Validation pipeline for a given PR number and SHA.")
         {
             PrNumberOption,
             ShaOption,
             ProductOption,
+            BranchOption,
             CommonOptions.GitHubTokenOption,
             CommonOptions.DevDivAzDOTokenOption,
             CommonOptions.DncEngAzDOTokenOption,
             CommonOptions.IsCIOption,
         };
 
-        command.Action = s_dartTestCommandHandler;
+        command.Action = s_prValidationCommandHandler;
         return command;
     }
 
-    private class DartTestCommandDefaultHandler : AsynchronousCommandLineAction
+    private class PRValidationCommandDefaultHandler : AsynchronousCommandLineAction
     {
         public override async Task<int> InvokeAsync(ParseResult parseResult, CancellationToken cancellationToken)
         {
@@ -81,14 +90,17 @@ It works by cloning the PR into the internal mirror and then running the dartlab
 
             var product = parseResult.GetValue(ProductOption)!;
 
+            var branch = parseResult.GetValue(BranchOption);
+
             using var remoteConnections = new RemoteConnections(settings);
 
-            return await Validation.DartTest.RunDartPipeline(
+            return await Validation.PRValidation.RunPRValidationPipeline(
                 product,
                 remoteConnections,
                 logger,
                 pr,
-                shaFromPR).ConfigureAwait(false);
+                shaFromPR,
+                branch).ConfigureAwait(false);
         }
     }
 }
