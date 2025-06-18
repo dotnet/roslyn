@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return Task.CompletedTask;
         }
 
-        private static async Task<Solution> GetFixAsync(TextDocument surfaceAreaDocument, CancellationToken cancellationToken)
+        private static async Task<Solution?> GetFixAsync(TextDocument surfaceAreaDocument, CancellationToken cancellationToken)
         {
             SourceText sourceText = await surfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SourceText newSourceText = AddNullableEnable(sourceText);
