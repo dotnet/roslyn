@@ -8,13 +8,13 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersion),'3.3'))">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersionForAnalyzers),'3.3'))">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_OR_BETTER</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersion),'3.7'))">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionGreaterThanOrEquals($(MicrosoftCodeAnalysisVersionForAnalyzers),'3.7'))">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_7_OR_BETTER</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionNotEquals('$(MicrosoftCodeAnalysisVersion)','1.2.1'))">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersionForAnalyzers)' == '' OR $([MSBuild]::VersionNotEquals('$(MicrosoftCodeAnalysisVersionForAnalyzers)','1.2.1'))">
     <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
     <HasIOperation>true</HasIOperation>
     <!-- Explicitly enable nullable for all projects that link Analyzer.Utilities.
