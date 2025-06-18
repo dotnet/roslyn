@@ -900,7 +900,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                 {
                     ILVerifyMessage = """
                         [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x2b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x29, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -911,10 +911,9 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
 
             verifier.VerifyIL("Test.G()", """
                 {
-                  // Code size       44 (0x2c)
+                  // Code size       42 (0x2a)
                   .maxstack  3
-                  .locals init (object V_0,
-                                object V_1)
+                  .locals init (object V_0)
                   IL_0000:  ldnull
                   IL_0001:  stloc.0
                   .try
@@ -929,18 +928,16 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                   IL_0007:  call       "System.Threading.Tasks.Task<int> Test.F()"
                   IL_000c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
                   IL_0011:  ldloc.0
-                  IL_0012:  stloc.1
-                  IL_0013:  ldloc.1
-                  IL_0014:  brfalse.s  IL_002b
-                  IL_0016:  ldloc.1
-                  IL_0017:  isinst     "System.Exception"
-                  IL_001c:  dup
-                  IL_001d:  brtrue.s   IL_0021
-                  IL_001f:  ldloc.1
-                  IL_0020:  throw
-                  IL_0021:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                  IL_0026:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                  IL_002b:  ret
+                  IL_0012:  brfalse.s  IL_0029
+                  IL_0014:  ldloc.0
+                  IL_0015:  isinst     "System.Exception"
+                  IL_001a:  dup
+                  IL_001b:  brtrue.s   IL_001f
+                  IL_001d:  ldloc.0
+                  IL_001e:  throw
+                  IL_001f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0024:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0029:  ret
                 }
                 """);
         }
@@ -1018,12 +1015,11 @@ class Test
 
             verifier.VerifyIL("Test.G()", """
                 {
-                  // Code size       61 (0x3d)
+                  // Code size       59 (0x3b)
                   .maxstack  2
                   .locals init (int V_0, //x
                                 object V_1,
-                                int V_2,
-                                object V_3)
+                                int V_2)
                   IL_0000:  ldc.i4.0
                   IL_0001:  stloc.0
                   IL_0002:  ldnull
@@ -1047,19 +1043,17 @@ class Test
                   IL_001f:  add
                   IL_0020:  stloc.0
                   IL_0021:  ldloc.1
-                  IL_0022:  stloc.3
-                  IL_0023:  ldloc.3
-                  IL_0024:  brfalse.s  IL_003b
-                  IL_0026:  ldloc.3
-                  IL_0027:  isinst     "System.Exception"
-                  IL_002c:  dup
-                  IL_002d:  brtrue.s   IL_0031
-                  IL_002f:  ldloc.3
-                  IL_0030:  throw
-                  IL_0031:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                  IL_0036:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                  IL_003b:  ldnull
-                  IL_003c:  throw
+                  IL_0022:  brfalse.s  IL_0039
+                  IL_0024:  ldloc.1
+                  IL_0025:  isinst     "System.Exception"
+                  IL_002a:  dup
+                  IL_002b:  brtrue.s   IL_002f
+                  IL_002d:  ldloc.1
+                  IL_002e:  throw
+                  IL_002f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0034:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0039:  ldnull
+                  IL_003a:  throw
                 }
                 """);
         }
@@ -1370,7 +1364,7 @@ class Test
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [G]: Unexpected type on the stack. { Offset = 0x4e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [G]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -1381,14 +1375,13 @@ class Test
 
             verifier.VerifyIL("Test.G()", """
                 {
-                  // Code size       81 (0x51)
+                  // Code size       75 (0x4b)
                   .maxstack  2
                   .locals init (int V_0, //x
                                 object V_1,
                                 int V_2,
                                 int V_3,
-                                int V_4,
-                                object V_5)
+                                int V_4)
                   IL_0000:  ldc.i4.0
                   IL_0001:  stloc.0
                   IL_0002:  ldnull
@@ -1419,24 +1412,22 @@ class Test
                   IL_0029:  add
                   IL_002a:  stloc.0
                   IL_002b:  ldloc.1
-                  IL_002c:  stloc.s    V_5
-                  IL_002e:  ldloc.s    V_5
-                  IL_0030:  brfalse.s  IL_0049
-                  IL_0032:  ldloc.s    V_5
-                  IL_0034:  isinst     "System.Exception"
-                  IL_0039:  dup
-                  IL_003a:  brtrue.s   IL_003f
-                  IL_003c:  ldloc.s    V_5
-                  IL_003e:  throw
-                  IL_003f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                  IL_0044:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                  IL_0049:  ldloc.2
-                  IL_004a:  ldc.i4.1
-                  IL_004b:  bne.un.s   IL_004f
-                  IL_004d:  ldloc.3
-                  IL_004e:  ret
-                  IL_004f:  ldnull
-                  IL_0050:  throw
+                  IL_002c:  brfalse.s  IL_0043
+                  IL_002e:  ldloc.1
+                  IL_002f:  isinst     "System.Exception"
+                  IL_0034:  dup
+                  IL_0035:  brtrue.s   IL_0039
+                  IL_0037:  ldloc.1
+                  IL_0038:  throw
+                  IL_0039:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_003e:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0043:  ldloc.2
+                  IL_0044:  ldc.i4.1
+                  IL_0045:  bne.un.s   IL_0049
+                  IL_0047:  ldloc.3
+                  IL_0048:  ret
+                  IL_0049:  ldnull
+                  IL_004a:  throw
                 }
                 """);
         }
@@ -1494,7 +1485,7 @@ class Test
                 {
                     ILVerifyMessage = """
                         [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x40, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x3e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -1505,12 +1496,11 @@ class Test
 
             verifier.VerifyIL("Test.G()", """
                 {
-                  // Code size       65 (0x41)
+                  // Code size       63 (0x3f)
                   .maxstack  2
                   .locals init (int V_0, //x
                                 object V_1,
-                                int V_2,
-                                object V_3)
+                                int V_2)
                   IL_0000:  ldc.i4.0
                   IL_0001:  stloc.0
                   .try
@@ -1535,30 +1525,28 @@ class Test
                     IL_001a:  add
                     IL_001b:  stloc.0
                     IL_001c:  ldloc.1
-                    IL_001d:  stloc.3
-                    IL_001e:  ldloc.3
-                    IL_001f:  brfalse.s  IL_0036
-                    IL_0021:  ldloc.3
-                    IL_0022:  isinst     "System.Exception"
-                    IL_0027:  dup
-                    IL_0028:  brtrue.s   IL_002c
-                    IL_002a:  ldloc.3
-                    IL_002b:  throw
-                    IL_002c:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                    IL_0031:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                    IL_0036:  leave.s    IL_003d
+                    IL_001d:  brfalse.s  IL_0034
+                    IL_001f:  ldloc.1
+                    IL_0020:  isinst     "System.Exception"
+                    IL_0025:  dup
+                    IL_0026:  brtrue.s   IL_002a
+                    IL_0028:  ldloc.1
+                    IL_0029:  throw
+                    IL_002a:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_002f:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0034:  leave.s    IL_003b
                   }
                   catch object
                   {
-                    IL_0038:  pop
-                    IL_0039:  ldloc.0
-                    IL_003a:  stloc.2
-                    IL_003b:  leave.s    IL_003f
+                    IL_0036:  pop
+                    IL_0037:  ldloc.0
+                    IL_0038:  stloc.2
+                    IL_0039:  leave.s    IL_003d
                   }
-                  IL_003d:  ldnull
-                  IL_003e:  throw
-                  IL_003f:  ldloc.2
-                  IL_0040:  ret
+                  IL_003b:  ldnull
+                  IL_003c:  throw
+                  IL_003d:  ldloc.2
+                  IL_003e:  ret
                 }
                 """);
         }
@@ -1791,12 +1779,11 @@ class Test
             );
             verifier.VerifyIL("Test.G()", """
                 {
-                  // Code size       80 (0x50)
+                  // Code size       78 (0x4e)
                   .maxstack  2
                   .locals init (int V_0, //x
                                 object V_1,
-                                int V_2,
-                                object V_3)
+                                int V_2)
                   IL_0000:  ldc.i4.0
                   IL_0001:  stloc.0
                   IL_0002:  ldnull
@@ -1825,19 +1812,17 @@ class Test
                   IL_0032:  add
                   IL_0033:  stloc.0
                   IL_0034:  ldloc.1
-                  IL_0035:  stloc.3
-                  IL_0036:  ldloc.3
-                  IL_0037:  brfalse.s  IL_004e
-                  IL_0039:  ldloc.3
-                  IL_003a:  isinst     "System.Exception"
-                  IL_003f:  dup
-                  IL_0040:  brtrue.s   IL_0044
-                  IL_0042:  ldloc.3
-                  IL_0043:  throw
-                  IL_0044:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                  IL_0049:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                  IL_004e:  ldnull
-                  IL_004f:  throw
+                  IL_0035:  brfalse.s  IL_004c
+                  IL_0037:  ldloc.1
+                  IL_0038:  isinst     "System.Exception"
+                  IL_003d:  dup
+                  IL_003e:  brtrue.s   IL_0042
+                  IL_0040:  ldloc.1
+                  IL_0041:  throw
+                  IL_0042:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0047:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_004c:  ldnull
+                  IL_004d:  throw
                 }
                 """);
         }
@@ -1893,7 +1878,7 @@ class Test
             {
                 ILVerifyMessage = """
                     [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [G]: Unexpected type on the stack. { Offset = 0x4b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [G]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyDiagnostics(
@@ -1903,13 +1888,12 @@ class Test
             );
             verifier.VerifyIL("Test.G()", """
                 {
-                  // Code size       76 (0x4c)
+                  // Code size       70 (0x46)
                   .maxstack  2
                   .locals init (int V_0, //x
                                 bool V_1, //loop
                                 object V_2,
-                                int V_3,
-                                object V_4)
+                                int V_3)
                   IL_0000:  ldc.i4.0
                   IL_0001:  stloc.0
                   IL_0002:  ldc.i4.1
@@ -1939,21 +1923,19 @@ class Test
                   IL_0027:  add
                   IL_0028:  stloc.0
                   IL_0029:  ldloc.2
-                  IL_002a:  stloc.s    V_4
-                  IL_002c:  ldloc.s    V_4
-                  IL_002e:  brfalse.s  IL_0047
-                  IL_0030:  ldloc.s    V_4
-                  IL_0032:  isinst     "System.Exception"
-                  IL_0037:  dup
-                  IL_0038:  brtrue.s   IL_003d
-                  IL_003a:  ldloc.s    V_4
-                  IL_003c:  throw
-                  IL_003d:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
-                  IL_0042:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
-                  IL_0047:  ldloc.1
-                  IL_0048:  brtrue.s   IL_0006
-                  IL_004a:  ldloc.0
-                  IL_004b:  ret
+                  IL_002a:  brfalse.s  IL_0041
+                  IL_002c:  ldloc.2
+                  IL_002d:  isinst     "System.Exception"
+                  IL_0032:  dup
+                  IL_0033:  brtrue.s   IL_0037
+                  IL_0035:  ldloc.2
+                  IL_0036:  throw
+                  IL_0037:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_003c:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0041:  ldloc.1
+                  IL_0042:  brtrue.s   IL_0006
+                  IL_0044:  ldloc.0
+                  IL_0045:  ret
                 }
                 """);
         }
@@ -2024,7 +2006,7 @@ class Test
                 {
                     ILVerifyMessage = """
                         [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0xcf, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xc1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -2112,7 +2094,7 @@ class Test
                 {
                     ILVerifyMessage = """
                         [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0xd5, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xc7, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -2204,7 +2186,7 @@ class Test
                 {
                     ILVerifyMessage = """
                         [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x9c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x96, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics(
@@ -2986,7 +2968,7 @@ hello
                 {
                     ILVerifyMessage = """
                         [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [G]: Unexpected type on the stack. { Offset = 0x178, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x16e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
@@ -3081,7 +3063,7 @@ hello
                 {
                     ILVerifyMessage = """
                         [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                        [<G>b__0]: Unexpected type on the stack. { Offset = 0x1b3, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [<G>b__0]: Unexpected type on the stack. { Offset = 0x1a9, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                         """
                 });
             verifier.VerifyDiagnostics();
