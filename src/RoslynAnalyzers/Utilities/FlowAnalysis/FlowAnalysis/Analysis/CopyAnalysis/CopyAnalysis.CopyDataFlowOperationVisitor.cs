@@ -388,8 +388,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             protected override void UpdateValuesForAnalysisData(CopyAnalysisData targetAnalysisData)
             {
                 // We need to trim the copy values to only include the entities that are existing keys in targetAnalysisData.
-                using var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-                using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(targetAnalysisData.CoreAnalysisData.Count);
+                using var _1 = PooledHashSet<AnalysisEntity>.GetInstance(out var processedEntities);
+                using var _2 = ArrayBuilder<AnalysisEntity>.GetInstance(targetAnalysisData.CoreAnalysisData.Count, out var builder);
                 builder.AddRange(targetAnalysisData.CoreAnalysisData.Keys);
 
                 for (int i = 0; i < builder.Count; i++)

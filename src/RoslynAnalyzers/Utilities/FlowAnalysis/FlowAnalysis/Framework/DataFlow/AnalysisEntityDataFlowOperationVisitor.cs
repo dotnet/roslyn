@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             base.ProcessOutOfScopeLocalsAndFlowCaptures(locals, flowCaptures);
 
-            using var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var allEntities);
             AddTrackedEntities(allEntities);
 
             // Stop tracking entities for locals and capture Ids that are now out of scope.
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (!parameterEntities.IsEmpty)
             {
-                using var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var allEntities);
                 AddTrackedEntities(allEntities);
 
                 foreach (var (parameter, parameterEntity) in parameterEntities)
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData? existingData, IOperation operation)
         {
             // Get tracked entities.
-            using var entitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var entitiesBuilder);
             AddTrackedEntities(entitiesBuilder);
 
             // Only non-child entities are tracked for now.
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var trackedEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
             AddTrackedEntities(trackedEntitiesBuilder);
             trackedEntitiesBuilder.RemoveWhere(entity => !predicate(entity));
-            return trackedEntitiesBuilder.ToImmutableAndFree();
+            return trackedEntitiesBuilder.ToImmutableHashSet();
         }
 
         #endregion

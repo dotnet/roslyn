@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 Debug.Assert(parentEntity.InstanceLocation == instanceLocation);
 
-                using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length);
+                using var _ = ArrayBuilder<AnalysisEntity>.GetInstance(tupleType.TupleElements.Length, out var builder);
                 foreach (var field in tupleType.TupleElements)
                 {
                     var tupleFieldName = field.CorrespondingTupleField!.Name;

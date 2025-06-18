@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 }
 
                 var currentNodes = new Queue<GlobalFlowStateAnalysisValueSet>();
-                using var candidateNodes = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance();
+                using var _1 = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance(out var candidateNodes);
                 int candidateHeight = 0;
                 if (value1.Height <= value2.Height)
                 {

@@ -2602,7 +2602,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
             }
 
-            using var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
+            using var _ = cfg.OriginalOperation.GetCaptures(invokedMethod, out var capturedVariables);
             if (capturedVariables.Count == 0)
             {
                 return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
@@ -3663,7 +3663,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue VisitTuple(ITupleOperation operation, object? argument)
         {
-            using var elementValueBuilder = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length);
+            using var _ = ArrayBuilder<TAbstractAnalysisValue>.GetInstance(operation.Elements.Length, out var elementValueBuilder);
 
             foreach (var element in operation.Elements)
             {
