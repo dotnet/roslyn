@@ -7,7 +7,6 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {

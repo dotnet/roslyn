@@ -5,7 +5,6 @@
 #nullable disable
 
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
