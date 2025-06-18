@@ -38,7 +38,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ),
                 });
 
-            SourceInfos = builder.ToImmutableHashSet();
+            SourceInfos = builder.ToImmutableAndFree();
         }
     }
 }

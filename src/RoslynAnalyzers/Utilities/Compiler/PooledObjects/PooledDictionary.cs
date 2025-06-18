@@ -13,6 +13,29 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
+    internal sealed partial class PooledHashSet<T>
+    {
+        public ImmutableHashSet<T> ToImmutableAndFree()
+        {
+            ImmutableHashSet<T> result;
+            if (Count == 0)
+            {
+                result = ImmutableHashSet<T>.Empty;
+            }
+            else
+            {
+                result = this.ToImmutableHashSet(Comparer);
+                this.Clear();
+            }
+
+            _pool?.Free(this);
+            return result;
+        }
+
+        public ImmutableHashSet<T> ToImmutable()
+            => Count == 0 ? ImmutableHashSet<T>.Empty : this.ToImmutableHashSet(Comparer);
+    }
+
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.
     internal sealed partial class PooledDictionary<K, V>

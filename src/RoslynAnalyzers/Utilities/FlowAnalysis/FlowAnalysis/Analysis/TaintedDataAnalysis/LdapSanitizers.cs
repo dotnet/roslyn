@@ -29,7 +29,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "LdapFilterEncode",
                 });
 
-            SanitizerInfos = builder.ToImmutableHashSet();
+            SanitizerInfos = builder.ToImmutableAndFree();
         }
     }
 }

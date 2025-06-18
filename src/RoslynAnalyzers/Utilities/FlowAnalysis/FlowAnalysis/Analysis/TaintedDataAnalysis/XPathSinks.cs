@@ -103,7 +103,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "SelectSingleNode", new[] { "xpath" }),
                 });
 
-            SinkInfos = builder.ToImmutableHashSet();
+            SinkInfos = builder.ToImmutableAndFree();
         }
     }
 }

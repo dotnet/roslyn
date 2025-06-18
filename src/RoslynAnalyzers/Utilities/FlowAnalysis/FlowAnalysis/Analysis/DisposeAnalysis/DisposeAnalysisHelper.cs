@@ -83,7 +83,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            return builder.ToImmutableHashSet();
+            return builder.ToImmutableAndFree();
         }
 
         private void EnsureDisposableFieldsMap()

@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 }
             }
 
-            ImmutableHashSet<object?> mergedLiteralValues = builder.ToImmutableHashSet();
+            ImmutableHashSet<object?> mergedLiteralValues = builder.ToImmutableAndFree();
             ValueContainsNonLiteralState mergedNonLiteralState = Merge(NonLiteralState, otherState.NonLiteralState);
 
             return Create(mergedLiteralValues, mergedNonLiteralState);

@@ -37,7 +37,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "StartsWith",
                 });
 
-            SanitizerInfos = builder.ToImmutableHashSet();
+            SanitizerInfos = builder.ToImmutableAndFree();
         }
     }
 }

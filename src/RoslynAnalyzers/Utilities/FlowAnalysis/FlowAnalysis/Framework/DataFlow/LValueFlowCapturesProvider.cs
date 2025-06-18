@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 #endif
 
-            return lvalueFlowCaptureIdBuilder.ToImmutableHashSet();
+            return lvalueFlowCaptureIdBuilder.ToImmutableAndFree();
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "ToString",
                 });
 
-            SourceInfos = builder.ToImmutableHashSet();
+            SourceInfos = builder.ToImmutableAndFree();
         }
     }
 }

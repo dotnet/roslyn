@@ -3442,7 +3442,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             using var _2 = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance(out var lambdaTargets);
             if (ResolveLambdaOrDelegateOrLocalFunctionTargets(operation, methodTargetsOptBuilder, lambdaTargets))
             {
-                resolvedMethodTargets = methodTargetsOptBuilder.ToImmutableHashSet();
+                resolvedMethodTargets = methodTargetsOptBuilder.ToImmutableAndFree();
                 AnalyzePossibleTargetInvocations();
             }
             else
@@ -4215,7 +4215,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 builder.Add(genericIReadOnlyCollection);
             }
 
-            return builder.ToImmutableHashSet();
+            return builder.ToImmutableAndFree();
         }
 
         private protected bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)

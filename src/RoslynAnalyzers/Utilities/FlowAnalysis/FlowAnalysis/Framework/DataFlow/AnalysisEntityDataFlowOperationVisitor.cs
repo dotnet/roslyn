@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var trackedEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
             AddTrackedEntities(trackedEntitiesBuilder);
             trackedEntitiesBuilder.RemoveWhere(entity => !predicate(entity));
-            return trackedEntitiesBuilder.ToImmutableHashSet();
+            return trackedEntitiesBuilder.ToImmutableAndFree();
         }
 
         #endregion

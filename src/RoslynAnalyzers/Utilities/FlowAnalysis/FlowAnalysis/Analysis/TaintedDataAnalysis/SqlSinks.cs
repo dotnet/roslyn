@@ -70,7 +70,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "SqlQuery", new[] { "sql", } ),
                 });
 
-            SinkInfos = sinkInfosBuilder.ToImmutableHashSet();
+            SinkInfos = sinkInfosBuilder.ToImmutableAndFree();
         }
     }
 }

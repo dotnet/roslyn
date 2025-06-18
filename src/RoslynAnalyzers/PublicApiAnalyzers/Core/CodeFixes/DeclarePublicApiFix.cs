@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                     }
 
-                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutableHashSet();
+                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutableAndFree();
 
                     // We shouldn't be attempting to remove any symbol name, while also adding it.
                     Debug.Assert(newSymbolNames.All(newSymbolName => !symbolNamesToRemove.Contains(newSymbolName)));

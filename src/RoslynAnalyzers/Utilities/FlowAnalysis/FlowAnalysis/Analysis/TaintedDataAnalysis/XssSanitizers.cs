@@ -131,7 +131,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "HtmlEncode",
                 });
 
-            SanitizerInfos = builder.ToImmutableHashSet();
+            SanitizerInfos = builder.ToImmutableAndFree();
         }
     }
 }

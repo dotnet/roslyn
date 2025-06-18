@@ -44,7 +44,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     ( "RedirectToRoutePermanent", new[] { "routeName" }),
                 });
 
-            SinkInfos = builder.ToImmutableHashSet();
+            SinkInfos = builder.ToImmutableAndFree();
         }
     }
 }

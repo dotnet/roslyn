@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 parentsBuilder.Add(parent.WithRootParent(newRoot));
             }
 
-            return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, parentsBuilder.ToImmutableHashSet(), newHeight);
+            return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, parentsBuilder.ToImmutableAndFree(), newHeight);
         }
 
         internal GlobalFlowStateAnalysisValueSet WithAdditionalAnalysisValues(GlobalFlowStateAnalysisValueSet newAnalysisValuesSet, bool negate)

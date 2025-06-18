@@ -67,7 +67,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 },
                 sinkMethodParameters: null);
 
-            SinkInfos = builder.ToImmutableHashSet();
+            SinkInfos = builder.ToImmutableAndFree();
         }
     }
 }

@@ -100,7 +100,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 taintedMethodsNeedsValueContentAnalysis: null,
                 taintConstantArray: true);
 
-            SourceInfos = builder.ToImmutableHashSet();
+            SourceInfos = builder.ToImmutableAndFree();
         }
     }
 }
