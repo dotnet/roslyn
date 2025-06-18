@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Analyzer.Utilities
 {
-    using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-
     internal static class SyntaxGeneratorExtensions
     {
         private const string LeftIdentifierName = "left";
