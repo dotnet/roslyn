@@ -3442,7 +3442,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             using var _2 = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance(out var lambdaTargets);
             if (ResolveLambdaOrDelegateOrLocalFunctionTargets(operation, methodTargetsOptBuilder, lambdaTargets))
             {
-                resolvedMethodTargets = methodTargetsOptBuilder.ToImmutableAndFree();
+                resolvedMethodTargets = methodTargetsOptBuilder.ToImmutable();
                 AnalyzePossibleTargetInvocations();
             }
             else
