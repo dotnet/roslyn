@@ -2257,6 +2257,7 @@ Global
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
 		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
+		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems*{8ce66034-25e2-8ff2-93a1-0bd3672ad86d}*SharedItemsImports = 5
 		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{8e2a252e-a140-45a6-a81a-2652996ea589}*SharedItemsImports = 5
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{8e2a252e-a140-45a6-a81a-2652996ea589}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{8e2a252e-a140-45a6-a81a-2652996ea589}*SharedItemsImports = 5
