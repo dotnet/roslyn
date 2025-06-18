@@ -46,6 +46,7 @@ internal class PreviewWorkspace : Workspace
             textContainer.CurrentText,
             PreservationMode.PreserveIdentity);
 
+        // Ensure we don't leak the preview workspace in the event that an exception happens below.
         using var previewWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(newSolution));
 
         // TODO: Determine if this is necesarry.  Existing code comments mention that this is needed so that things
