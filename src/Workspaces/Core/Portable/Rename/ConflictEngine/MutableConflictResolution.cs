@@ -83,7 +83,7 @@ internal sealed class MutableConflictResolution(
                     trivia: [],
                     computeReplacementTrivia: null);
 
-                // In a source generated document, we have to ensure we've realized the "old" tree in the modified solution of WithDocumentSyntaxRoot
+                // In a source generated document, we have to ensure we've realized the "old" tree in the modified solution or WithDocumentSyntaxRoot
                 // won't work. Performing a rename in a source generated document is opt-in, so we can assume that we only hit this condition in
                 // scenarios that wanted it.
                 if (documentId.IsSourceGenerated)
