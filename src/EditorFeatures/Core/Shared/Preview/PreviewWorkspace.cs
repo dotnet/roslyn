@@ -37,8 +37,8 @@ internal class PreviewWorkspace : Workspace
     {
         // Ensure the solution's view of this file is consistent across all linked files within it.
 
-        // Performance: Replace related documents to in thisworkspaces with the 
-        // relating SourceText. This prevents cascading forks as taggers call to
+        // Performance: Replace the SourceText of all related documents in this 
+        // workspace. This prevents cascading forks as taggers call to
         // GetOpenTextDocumentInCurrentContextWithChanges would eventually wind up
         // calling Solution.WithDocumentText using the related ids.
         var newSolution = document.Project.Solution.WithDocumentText(
