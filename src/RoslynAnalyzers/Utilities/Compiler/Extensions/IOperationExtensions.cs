@@ -180,8 +180,13 @@ namespace Analyzer.Utilities.Extensions
                 }
                 else
                 {
+<<<<<<< HEAD
 #pragma warning disable CS0618 // Type or member is obsolete
+=======
+#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
+>>>>>>> upstream/main
                     foreach (var child in operation.Children)
+#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
                     {
                         operationsToProcess.Enqueue(child);
                     }
@@ -1358,7 +1363,12 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
         {
             using var _ = ArrayBuilder<IEnumerator<IOperation>>.GetInstance(out var stack);
+#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
             stack.Add(operation.Children.GetEnumerator());
+<<<<<<< HEAD
+>>>>>>> upstream/main
+=======
+#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
 >>>>>>> upstream/main
 
         //            while (stack.Any())
@@ -1380,10 +1390,19 @@ namespace Analyzer.Utilities.Extensions
         //                            return true;
         //                        }
 
+<<<<<<< HEAD
         //                        stack.Add(current.Children.GetEnumerator());
         //                    }
         //                }
         //            }
+=======
+#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
+                        stack.Add(current.Children.GetEnumerator());
+#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
+                    }
+                }
+            }
+>>>>>>> upstream/main
 
         //            return false;
         //        }
