@@ -64,6 +64,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             => PointsToValues.Contains(value);
 
         public (ImmutableHashSet<AnalysisEntity>, ImmutableHashSet<PointsToAbstractValue>) ToImmutable()
-            => (AllEntities.ToImmutableAndFree(), PointsToValues.ToImmutableAndFree());
+            => (AllEntities.ToImmutable(), PointsToValues.ToImmutable());
     }
 }
