@@ -13,7 +13,7 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+// using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Analyzer.Utilities
 {
