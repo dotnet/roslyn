@@ -11,10 +11,10 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Diagnostics.Analyzers;
 using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
@@ -285,7 +285,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                     }
 
-                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutableAndFree();
+                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutableHashSet();
+                    symbolNamesToRemoveBuilder.Free();
 
                     // We shouldn't be attempting to remove any symbol name, while also adding it.
                     Debug.Assert(newSymbolNames.All(newSymbolName => !symbolNamesToRemove.Contains(newSymbolName)));
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 
                 // NOTE: We need to avoid creating duplicate files for multi-tfm projects. See https://github.com/dotnet/roslyn-analyzers/issues/3952.
-                using var uniqueProjectPaths = PooledHashSet<string>.GetInstance();
+                using var _ = PooledHashSet<string>.GetInstance(out var uniqueProjectPaths);
                 foreach (KeyValuePair<ProjectId, SourceText> pair in addedPublicSurfaceAreaText)
                 {
                     var project = newSolution.GetProject(pair.Key);

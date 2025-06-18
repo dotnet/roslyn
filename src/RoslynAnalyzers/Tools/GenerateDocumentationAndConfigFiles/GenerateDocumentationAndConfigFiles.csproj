@@ -6,6 +6,7 @@
     <UseAppHost>false</UseAppHost>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.CodeAnalysis.Analyzers\Core\MetaAnalyzers\ReleaseTrackingHelper.cs" Link="ReleaseTrackingHelper.cs" />
@@ -15,10 +16,6 @@
     <Compile Include="..\..\Utilities\Compiler\FxCopWellKnownDiagnosticTags.cs" Link="FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="..\..\Utilities\Compiler\Options\MSBuildItemOptionNames.cs" Link="MSBuildItemOptionNames.cs" />
     <Compile Include="..\..\Utilities\Compiler\Options\MSBuildPropertyOptionNames.cs" Link="MSBuildPropertyOptionNames.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ArrayBuilder.cs" Link="ArrayBuilder.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ArrayBuilder.Enumerator.cs" Link="ArrayBuilder.Enumerator.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ObjectPool.cs" Link="ObjectPool.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\PooledHashSet.cs" Link="PooledHashSet.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
@@ -41,4 +38,9 @@
     <PackageVersion Remove="System.IO.Pipelines" />
     <PackageVersion Remove="System.Reflection.Metadata" />
   </ItemGroup>
+
+  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

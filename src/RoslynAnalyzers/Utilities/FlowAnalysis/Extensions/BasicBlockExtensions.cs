@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -199,8 +199,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return false;
             }
 
-            using var processedOrdinals = PooledHashSet<int>.GetInstance();
-            using var unprocessedOrdinals = ArrayBuilder<int>.GetInstance();
+            using var _1 = PooledHashSet<int>.GetInstance(out var processedOrdinals);
+            using var _2 = ArrayBuilder<int>.GetInstance(out var unprocessedOrdinals);
             foreach (var predecessor in basicBlock.Predecessors)
             {
                 var sourceBlock = predecessor.Source;

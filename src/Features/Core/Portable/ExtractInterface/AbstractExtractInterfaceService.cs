@@ -140,7 +140,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
             attributes: default,
             accessibility: ShouldIncludeAccessibilityModifier(refactoringResult.TypeNode) ? refactoringResult.TypeToExtractFrom.DeclaredAccessibility : Accessibility.NotApplicable,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             typeKind: TypeKind.Interface,
             name: extractInterfaceOptions.InterfaceName,
             typeParameters: ExtractTypeHelpers.GetRequiredTypeParametersForMembers(refactoringResult.TypeToExtractFrom, extractInterfaceOptions.IncludedMembers),

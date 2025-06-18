@@ -6125,7 +6125,7 @@ static class E
             Dim e = DirectCast(comp.GlobalNamespace.GetMembers("E").Single(), ITypeSymbol)
             Dim extension = e.GetMembers().OfType(Of ITypeSymbol).Single()
 
-            ' Tracked by https://github.com/dotnet/roslyn/issues/76130 : the arity should not be included in the extension type name
+            ' Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, the arity should not be included in the extension type name
             Assert.True(extension.IsExtension)
             Assert.Equal("E.<>E__0`1(Of T)", SymbolDisplay.ToDisplayString(extension, format))
 
