@@ -12,6 +12,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <PackageDescription>
       Package containing sources of Microsoft .NET Compiler Platform ("Roslyn") build client API. For internal use only.
+      Relying on APIs from this package is explicitly not supported, they can and will break on a regular basis.
     </PackageDescription>
   </PropertyGroup>
 
