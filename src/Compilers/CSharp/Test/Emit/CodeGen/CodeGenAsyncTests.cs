@@ -52,9 +52,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 public delegate void Action();
                 public delegate void Action<T>(T obj);
                 public delegate void Action<T1, T2>(T1 arg1, T2 arg2);
+                public class AggregateException : Exception
+                {
+                    public AggregateException() {}
+                    public AggregateException(string message) : base(message) {}
+                }
                 public class ArgumentNullException : Exception
                 {
+                    public ArgumentNullException() : base("") {}
                     public ArgumentNullException(string message) : base(message) {}
+                }
+                public class Array
+                {
+                    public int Length => throw null!;
                 }
                 public class Attribute {}
                 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
@@ -89,8 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     public static void Write(object i) {}
                     public static void Write(int i) {}
-                    public static void WriteLine(string s) {}
+                    public static void WriteLine(bool b) {}
                     public static void WriteLine(int i) {}
+                    public static void WriteLine(string s) {}
                 }
                 public class Delegate {}
                 public class DivideByZeroException : Exception
@@ -106,33 +117,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public virtual string Message { get; }
                     public virtual Type GetType() => null!;
                 }
-                public class AggregateException : Exception
+                public delegate TResult Func<TResult>();
+                public delegate TResult Func<T, TResult>(T arg);
+                public interface IDisposable
                 {
-                    public AggregateException() {}
-                    public AggregateException(string message) : base(message) {}
+                    void Dispose();
                 }
-                public class NotImplementedException : Exception
-                {
-                    public NotImplementedException() {}
-                    public NotImplementedException(string message) : base(message) {}
-                }
+                public struct Int16 {}
+                public struct Int32 {}
+                public struct IntPtr {}
                 public class InvalidOperationException : Exception
                 {
                     public InvalidOperationException() {}
                     public InvalidOperationException(string message) : base(message) {}
                 }
-                public class OperationCanceledException : Exception
-                {
-                    public OperationCanceledException() {}
-                    public OperationCanceledException(string message) : base(message) {}
-                }
-                public delegate TResult Func<TResult>();
-                public delegate TResult Func<T, TResult>(T arg);
-                public struct Int16 {}
-                public struct Int32 {}
-                public struct IntPtr {}
                 public class MulticastDelegate {}
-                public struct Nullable<T>(T t) where T : struct {}
+                public class NotImplementedException : Exception
+                {
+                    public NotImplementedException() {}
+                    public NotImplementedException(string message) : base(message) {}
+                }
+                public struct Nullable<T> where T : struct
+                {
+                    public T GetValueOrDefault() => throw null!;
+                    public bool HasValue => throw null!;
+                    public Nullable() {}
+                    public Nullable(T value) {}
+                    public T Value => throw null!;
+                }
                 public class NullReferenceException : Exception
                 {
                     public NullReferenceException(string message) : base(message) {}
@@ -141,6 +153,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     public virtual string ToString() => null!;
                     public static bool ReferenceEquals(object objA, object objB) => false;
+                }
+                public class OperationCanceledException : Exception
+                {
+                    public OperationCanceledException() {}
+                    public OperationCanceledException(string message) : base(message) {}
                 }
                 public class ParamArrayAttribute {}
                 public struct RuntimeTypeHandle {}
