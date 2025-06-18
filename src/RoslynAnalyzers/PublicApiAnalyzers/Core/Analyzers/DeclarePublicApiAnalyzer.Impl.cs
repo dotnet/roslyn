@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 
-                if (IsNamespaceSkipped(symbol, cancellationToken))
+                if (IsNamespaceSkipped(symbol))
                 {
                     return false;
                 }
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return IsTrackedApiCore(symbol, cancellationToken);
             }
 
-            private bool IsNamespaceSkipped(ISymbol symbol, CancellationToken cancellationToken)
+            private bool IsNamespaceSkipped(ISymbol symbol)
             {
                 var @namespace = symbol as INamespaceSymbol ?? symbol.ContainingNamespace;
 
