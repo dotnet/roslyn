@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
-using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
 using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
 using Microsoft.CodeAnalysis.Scripting.TestUtilities;

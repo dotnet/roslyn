@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using System.Collections.Immutable;
 using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;

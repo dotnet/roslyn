@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
 
 namespace Microsoft.CodeAnalysis.Formatting;

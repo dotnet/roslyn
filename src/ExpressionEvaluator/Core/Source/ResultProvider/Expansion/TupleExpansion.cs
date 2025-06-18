@@ -12,7 +12,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using FieldInfo = Microsoft.VisualStudio.Debugger.Metadata.FieldInfo;
-using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

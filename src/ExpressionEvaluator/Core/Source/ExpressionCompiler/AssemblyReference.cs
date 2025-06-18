@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

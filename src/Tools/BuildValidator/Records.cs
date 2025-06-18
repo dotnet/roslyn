@@ -4,10 +4,6 @@
 
 using System;
 using System.IO;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.Rebuild;
-using Microsoft.CodeAnalysis.Text;
 
 namespace BuildValidator
 {
