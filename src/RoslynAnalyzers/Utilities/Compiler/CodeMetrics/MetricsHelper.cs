@@ -393,9 +393,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     or SpecialType.System_ValueType
                     or SpecialType.System_Void => true,
                     _ => namedType.IsAnonymousType
-                        || namedType.GetAttributes().Any(static (a, wellKnownTypeProvider) =>
+                        || namedType.GetAttributes().Any((a) =>
                             a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesCompilerGeneratedAttribute)) ||
-                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute)), wellKnownTypeProvider),
+                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute))),
                 };
             }
         }
