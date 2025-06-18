@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if !WORKSPACE
+#if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
 using Microsoft.CodeAnalysis.Editing;

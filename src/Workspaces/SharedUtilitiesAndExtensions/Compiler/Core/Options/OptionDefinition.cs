@@ -96,7 +96,7 @@ internal abstract class OptionDefinition : IEquatable<OptionDefinition?>
            type == typeof(long?) ||
            type.IsEnum ||
            Nullable.GetUnderlyingType(type)?.IsEnum == true ||
-#if WORKSPACE
+#if !CODE_STYLE
            typeof(ICodeStyleOption).IsAssignableFrom(type) ||
 #endif
            typeof(ICodeStyleOption2).IsAssignableFrom(type) ||

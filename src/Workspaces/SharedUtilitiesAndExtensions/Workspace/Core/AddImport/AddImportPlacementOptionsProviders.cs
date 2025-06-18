@@ -15,7 +15,7 @@ internal static class AddImportPlacementOptionsProviders
     // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
     // our edit to their domain appropriate.
     public static bool AllowImportsInHiddenRegions(this Document document)
-#if !WORKSPACE
+#if CODE_STYLE
         => AddImportPlacementOptions.Default.AllowInHiddenRegions;
 #else
         => document.DocumentServiceProvider.GetService<Host.ISpanMappingService>()?.SupportsMappingImportDirectives == true;

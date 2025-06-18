@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if !WORKSPACE
+#if CODE_STYLE
 using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
 #else
 using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;

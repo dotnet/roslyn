@@ -163,7 +163,7 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
 
     public override IEnumerable<string> SupportedLanguages => ComputeSupportedLanguages();
 
-#if !WORKSPACE
+#if CODE_STYLE
     internal ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
 #else
     internal override ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();

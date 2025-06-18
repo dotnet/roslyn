@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class TextDocumentExtensions
 {
-#if !WORKSPACE
+#if CODE_STYLE
     public static ValueTask<SourceText> GetValueTextAsync(this TextDocument document, CancellationToken cancellationToken)
     {
         if (document.TryGetText(out var text))

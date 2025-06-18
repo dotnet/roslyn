@@ -40,7 +40,7 @@ internal static class LayeredServiceUtilities
             }
         }
 
-#if WORKSPACE
+#if !CODE_STYLE
         // test layer overrides all other layers and workspace kinds:
         service = servicesOfMatchingType.SingleOrDefault(static lz => lz.lazyService?.Metadata.Layer == ServiceLayer.Test);
         if (service.lazyService != null)

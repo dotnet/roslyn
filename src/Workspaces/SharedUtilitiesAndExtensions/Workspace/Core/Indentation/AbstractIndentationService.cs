@@ -42,7 +42,7 @@ internal abstract partial class AbstractIndentationService<TSyntaxRoot>
 
         var lineToBeIndented = document.Text.Lines[lineNumber];
 
-#if !WORKSPACE
+#if CODE_STYLE
         var baseIndentationRule = NoOpFormattingRule.Instance;
 #else
         var formattingRuleFactory = document.SolutionServices.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
