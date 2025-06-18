@@ -4,7 +4,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;

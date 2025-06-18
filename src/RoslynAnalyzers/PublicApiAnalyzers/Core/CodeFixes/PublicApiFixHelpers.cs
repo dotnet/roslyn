@@ -37,7 +37,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         internal static DocumentId? CreateDocIdFromEquivalenceKey(this FixAllContext fixAllContext, out bool isPublic)
         {
-            var split = fixAllContext.CodeActionEquivalenceKey.Split(SemicolonSplit, StringSplitOptions.RemoveEmptyEntries);
+            var equivalenceKey = fixAllContext.CodeActionEquivalenceKey;
+            if (equivalenceKey is null)
+            {
+                isPublic = false;
+                return null;
+            }
+
+            var split = equivalenceKey.Split(SemicolonSplit, StringSplitOptions.RemoveEmptyEntries);
 
             isPublic = bool.Parse(split[^1]);
 

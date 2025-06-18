@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -32,17 +32,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 public void Free()
                 {
-                    this.AssignmentsWithUnknownLocation?.Dispose();
+                    this.AssignmentsWithUnknownLocation?.Free();
                     this.AssignmentsWithUnknownLocation = null;
 
                     if (this.AbstractLocationsToAssignments != null)
                     {
                         foreach (PooledHashSet<IAssignmentOperation> hashSet in this.AbstractLocationsToAssignments.Values)
                         {
-                            hashSet?.Dispose();
+                            hashSet?.Free();
                         }
 
-                        this.AbstractLocationsToAssignments.Dispose();
+                        this.AbstractLocationsToAssignments.Free();
                         this.AbstractLocationsToAssignments = null;
                     }
                 }

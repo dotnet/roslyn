@@ -19,12 +19,6 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SyntaxGeneratorExtensions
@@ -51,7 +45,7 @@ internal static partial class SyntaxGeneratorExtensions
         return CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(isOverride: true),
+            modifiers: DeclarationModifiers.Override,
             returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,
@@ -91,7 +85,7 @@ internal static partial class SyntaxGeneratorExtensions
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 methodSymbol,
-                modifiers: new DeclarationModifiers(),
+                modifiers: DeclarationModifiers.None,
                 explicitInterfaceImplementations: [methodSymbol],
                 parameters: parameters,
                 statements: statements);
@@ -100,7 +94,7 @@ internal static partial class SyntaxGeneratorExtensions
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 methodSymbol,
-                modifiers: new DeclarationModifiers(),
+                modifiers: DeclarationModifiers.None,
                 parameters: parameters,
                 statements: statements);
         }
@@ -480,7 +474,7 @@ internal static partial class SyntaxGeneratorExtensions
         var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
             attributes: default,
             accessibility: accessibility,
-            modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
+            modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
             typeName: typeName,
             parameters: parameters,
             statements: statements,

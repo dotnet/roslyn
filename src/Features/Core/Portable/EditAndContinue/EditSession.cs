@@ -943,7 +943,7 @@ internal sealed class EditSession
 
                     if (mvid == Guid.Empty)
                     {
-                        Log.Write($"Changes not applied to {newProject.Name} '{newProject.FilePath}': project not built");
+                        Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: project not built");
                         UpdateChangedDocumentsStaleness(isStale: true);
                         continue;
                     }
@@ -970,7 +970,7 @@ internal sealed class EditSession
                     {
                         // The project is considered stale as long as it has at least one document that is out-of-sync.
                         // Treat the project the same as if it hasn't been built. We won't produce delta for it until it gets rebuilt.
-                        Log.Write($"Changes not applied to {newProject.Name} '{newProject.FilePath}': binaries not up-to-date");
+                        Log.Write($"Changes not applied to {newProject.GetLogDisplay()}: binaries not up-to-date");
 
                         projectsToStale.Add(newProject.Id);
                         UpdateChangedDocumentsStaleness(isStale: true);
@@ -999,7 +999,7 @@ internal sealed class EditSession
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    Log.Write($"Project summary for {newProject.Name} '{newProject.FilePath}': {projectSummary}");
+                    Log.Write($"Project summary for {newProject.GetLogDisplay()}: {projectSummary}");
 
                     if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
                     {
@@ -1050,7 +1050,7 @@ internal sealed class EditSession
                         continue;
                     }
 
-                    Log.Write($"Emitting update of {newProject.Name} '{newProject.FilePath}': project not built");
+                    Log.Write($"Emitting update of {newProject.GetLogDisplay()}");
 
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
