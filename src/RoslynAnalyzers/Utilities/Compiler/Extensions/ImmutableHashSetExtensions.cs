@@ -34,7 +34,7 @@ namespace System.Collections.Immutable
                 return set2;
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         public static ImmutableHashSet<T> IntersectSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
@@ -70,7 +70,7 @@ namespace System.Collections.Immutable
                 return set2;
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         public static bool IsSubsetOfSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
