@@ -782,7 +782,7 @@ internal sealed class CSharpGenerateTypeService() :
         return CodeGenerationSymbolFactory.CreatePropertySymbol(
             attributes: [],
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             explicitInterfaceImplementations: default,
             name: propertyName.Identifier.ValueText,
             type: propertyType,
