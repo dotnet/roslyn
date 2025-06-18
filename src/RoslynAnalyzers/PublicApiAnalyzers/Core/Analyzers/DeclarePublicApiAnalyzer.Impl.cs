@@ -13,9 +13,9 @@ using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Lightup;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     return false;
                 }
 
-                if (IsNamespaceSkipped(symbol, cancellationToken))
+                if (IsNamespaceSkipped(symbol))
                 {
                     return false;
                 }
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return IsTrackedApiCore(symbol, cancellationToken);
             }
 
-            private bool IsNamespaceSkipped(ISymbol symbol, CancellationToken cancellationToken)
+            private bool IsNamespaceSkipped(ISymbol symbol)
             {
                 var @namespace = symbol as INamespaceSymbol ?? symbol.ContainingNamespace;
 
@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
                 finally
                 {
-                    skippedNamespaces?.Free(cancellationToken);
+                    skippedNamespaces?.Free();
                 }
             }
 
