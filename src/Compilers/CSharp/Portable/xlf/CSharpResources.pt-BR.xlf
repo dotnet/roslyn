@@ -1558,8 +1558,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NameofExtensionMember">
-        <source>Extension member are not allowed as an argument to 'nameof'.</source>
-        <target state="new">Extension member are not allowed as an argument to 'nameof'.</target>
+        <source>Extension members are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
