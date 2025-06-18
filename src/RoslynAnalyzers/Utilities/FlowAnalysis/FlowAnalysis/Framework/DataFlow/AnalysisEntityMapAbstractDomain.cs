@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             AssertValidAnalysisData(map2);
 
             var resultMap = new DictionaryAnalysisData<AnalysisEntity, TValue>();
-            using var newKeys = PooledHashSet<AnalysisEntity>.GetInstance();
-            using var valuesToMergeBuilder = ArrayBuilder<TValue>.GetInstance(5);
+            using var _1 = PooledHashSet<AnalysisEntity>.GetInstance(out var newKeys);
+            using var _2 = ArrayBuilder<TValue>.GetInstance(5, out var valuesToMergeBuilder);
 
             var map2LookupIgnoringInstanceLocation = map2.Keys.Where(IsAnalysisEntityForFieldOrProperty)
                                                               .ToLookup(entity => entity.EqualsIgnoringInstanceLocationId);

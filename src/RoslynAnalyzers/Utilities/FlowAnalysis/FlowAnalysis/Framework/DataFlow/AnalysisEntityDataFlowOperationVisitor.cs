@@ -488,12 +488,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     isLambdaOrLocalFunction, hasParameterWithDelegateType);
             }
 
-            using var candidateEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            using var interproceduralEntitiesToRetainBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            using var worklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-            using var worklistPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
-            using var processedPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
-            using var childWorklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var _1 = PooledHashSet<AnalysisEntity>.GetInstance(out var candidateEntitiesBuilder);
+            using var _2 = PooledHashSet<AnalysisEntity>.GetInstance(out var interproceduralEntitiesToRetainBuilder);
+            using var _3 = PooledHashSet<AnalysisEntity>.GetInstance(out var worklistEntities);
+            using var _4 = PooledHashSet<PointsToAbstractValue>.GetInstance(out var worklistPointsToValues);
+            using var _5 = PooledHashSet<PointsToAbstractValue>.GetInstance(out var processedPointsToValues);
+            using var _6 = PooledHashSet<AnalysisEntity>.GetInstance(out var childWorklistEntities);
 
             // All tracked entities are candidates to be retained for initial interprocedural
             // analysis data.
