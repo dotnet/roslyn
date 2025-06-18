@@ -431,7 +431,11 @@ namespace Microsoft.CodeAnalysis
                 builder[i] = await selector(array[i], cancellationToken).ConfigureAwait(false);
             }
 
+#if ROSLYN_ANALYZERS
+            return ImmutableArray.Create(builder);
+#else
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
         }
 
         /// <summary>
@@ -449,7 +453,11 @@ namespace Microsoft.CodeAnalysis
                 builder[i] = await selector(array[i], arg, cancellationToken).ConfigureAwait(false);
             }
 
+#if ROSLYN_ANALYZERS
+            return ImmutableArray.Create(builder);
+#else
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
         }
 
         public static ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<ImmutableArray<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
@@ -510,7 +518,11 @@ namespace Microsoft.CodeAnalysis
                         builder[i] = map(self[i], other[i]);
                     }
 
-                    return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#if ROSLYN_ANALYZERS
+                    return ImmutableArray.Create(builder);
+#else
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
             }
         }
 
@@ -849,7 +861,11 @@ namespace Microsoft.CodeAnalysis
                 copy[0] = copy[last];
                 copy[last] = temp;
 
+#if ROSLYN_ANALYZERS
+                return ImmutableArray.Create(copy);
+#else
                 return ImmutableCollectionsMarshal.AsImmutableArray(copy);
+#endif
             }
 #endif
             return array;
@@ -906,7 +922,11 @@ namespace Microsoft.CodeAnalysis
                 builder[index++] = item;
             }
 
+#if ROSLYN_ANALYZERS
+            return ImmutableArray.Create(builder);
+#else
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
@@ -934,7 +954,11 @@ namespace Microsoft.CodeAnalysis
                 builder[index++] = item;
             }
 
+#if ROSLYN_ANALYZERS
+            return ImmutableArray.Create(builder);
+#else
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
@@ -967,7 +991,11 @@ namespace Microsoft.CodeAnalysis
                 builder[index++] = item;
             }
 
+#if ROSLYN_ANALYZERS
+            return ImmutableArray.Create(builder);
+#else
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
@@ -1005,7 +1033,11 @@ namespace Microsoft.CodeAnalysis
                 builder[index++] = item;
             }
 
+#if ROSLYN_ANALYZERS
+            return ImmutableArray.Create(builder);
+#else
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
@@ -1038,7 +1070,11 @@ namespace Microsoft.CodeAnalysis
                 builder[index++] = item;
             }
 
+#if ROSLYN_ANALYZERS
+            return ImmutableArray.Create(builder);
+#else
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+#endif
         }
 
         internal static bool HasDuplicates<T>(this ImmutableArray<T> array)

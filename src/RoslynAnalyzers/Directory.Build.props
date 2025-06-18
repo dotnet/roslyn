@@ -4,6 +4,7 @@
 
   <PropertyGroup>
     <RoslynAnalyzersProject>true</RoslynAnalyzersProject>
+    <DefineConstants>$(DefineConstants),ROSLYN_ANALYZERS</DefineConstants>
     <AssetsDir>$(MSBuildThisFileDirectory)assets\</AssetsDir>
 
     <!-- Set 'NoDefaultExcludes' to ensure that we can package .editorconfig files into our analyzer NuGet packages -->
