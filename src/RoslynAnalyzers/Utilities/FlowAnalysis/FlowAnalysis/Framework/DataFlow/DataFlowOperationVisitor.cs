@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> newAnalysisData)
             where TKey : notnull
         {
-            using var builder = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count);
+            using var _ = ArrayBuilder<TKey>.GetInstance(targetAnalysisData.Count, out var builder);
             builder.AddRange(targetAnalysisData.Keys);
 
             for (int i = 0; i < builder.Count; i++)
@@ -3283,8 +3283,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Debug.Assert(IsPointsToAnalysis);
 
             var hasEscapes = false;
-            using var methodTargetsOptBuilder = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance();
-            using var lambdaTargets = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance();
+            using var _1 = PooledHashSet<(IMethodSymbol method, IOperation? instance)>.GetInstance(out var methodTargetsOptBuilder);
+            using var _2 = PooledHashSet<IFlowAnonymousFunctionOperation>.GetInstance(out var lambdaTargets);
             if (ResolveLambdaOrDelegateOrLocalFunctionTargets(pointsToAbstractValue, methodTargetsOptBuilder, lambdaTargets))
             {
                 foreach (var (targetMethod, _) in methodTargetsOptBuilder)

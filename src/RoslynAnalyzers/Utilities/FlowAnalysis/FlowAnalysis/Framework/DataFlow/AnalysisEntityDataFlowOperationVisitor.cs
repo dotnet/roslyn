@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 AnalysisDataForUnhandledThrowOperations != null &&
                 AnalysisDataForUnhandledThrowOperations.Values.Any(HasAnyAbstractValue))
             {
-                using var allAnalysisEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var allAnalysisEntities);
 
                 foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
                 {

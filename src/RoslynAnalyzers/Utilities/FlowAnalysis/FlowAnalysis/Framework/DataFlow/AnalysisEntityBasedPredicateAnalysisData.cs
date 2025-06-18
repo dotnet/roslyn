@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Ensure that we perform these state updates after the foreach loop to avoid modifying the
             // underlying CoreAnalysisData within the loop.
             // See https://github.com/dotnet/roslyn-analyzers/issues/6929 for more details.
-            using var builder = ArrayBuilder<(AnalysisEntity, TValue)>.GetInstance(CoreAnalysisData.Count);
+            using var _ = ArrayBuilder<(AnalysisEntity, TValue)>.GetInstance(CoreAnalysisData.Count, out var builder);
             foreach (var entity in CoreAnalysisData.Keys)
             {
                 if (entity.Indices.Length != analysisEntity.Indices.Length ||

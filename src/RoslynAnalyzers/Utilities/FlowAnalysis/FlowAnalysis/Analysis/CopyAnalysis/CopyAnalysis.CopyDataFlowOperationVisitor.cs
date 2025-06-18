@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
             {
-                using var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var processedEntities);
                 var analysisData = new CopyAnalysisData();
                 foreach (var entity in withEntities)
                 {
