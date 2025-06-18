@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview;
 
@@ -29,6 +30,19 @@ internal class PreviewWorkspace : Workspace
         var (oldSolution, newSolution) = this.SetCurrentSolutionEx(solution);
 
         this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+    }
+
+    public static ReferenceCountedDisposable<PreviewWorkspace> CreateWithDocumentContents(
+        TextDocument document, SourceTextContainer textContainer)
+    {
+        using var previewWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(document.Project.Solution));
+
+        // TODO: Determine if this is necesarry.  Existing code comments mention that this is needed so that things
+        // like the LightBulb work.  But it is unclear if that's actually the case.  It is possible some features
+        // may do things slightly differently if a doc is open or not.  But those cases should be rare.
+        previewWorkspace.Target.OpenDocument(document.Id, textContainer);
+
+        return previewWorkspace.TryAddReference() ?? throw ExceptionUtilities.Unreachable();
     }
 
     public override bool CanApplyChange(ApplyChangesKind feature)

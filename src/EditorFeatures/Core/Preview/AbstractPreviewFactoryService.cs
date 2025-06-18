@@ -286,8 +286,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         // Create PreviewWorkspace around the buffer to be displayed in the diff preview
         // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
-        using var rightWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(document.Project.Solution));
-        rightWorkspace.Target.OpenDocument(document.Id, newEditorDocument.TextBuffer.AsTextContainer());
+        using var rightWorkspace = PreviewWorkspace.CreateWithDocumentContents(document, newEditorDocument.TextBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
         return await CreateAddedDocumentPreviewViewCoreAsync(newEditorDocument, rightWorkspace, document, zoomLevel, cancellationToken);
@@ -368,8 +367,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         // Create PreviewWorkspace around the buffer to be displayed in the diff preview
         // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
-        using var leftWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(document.Project.Solution));
-        leftWorkspace.Target.OpenDocument(document.Id, oldEditorDocument.TextBuffer.AsTextContainer());
+        using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(document, oldEditorDocument.TextBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
         return await CreateRemovedDocumentPreviewViewCoreAsync(oldEditorDocument, leftWorkspace, document, zoomLevel, cancellationToken);
@@ -487,8 +485,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         var allLeftIds = leftSolution.GetRelatedDocumentIds(oldDocument.Id);
         leftSolution = leftSolution.WithDocumentText(allLeftIds, oldBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveIdentity);
 
-        using var leftWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(leftSolution));
-        leftWorkspace.Target.OpenDocument(oldDocument.Id, oldBuffer.AsTextContainer());
+        using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(leftSolution.GetRequiredDocument(oldDocument.Id), oldBuffer.AsTextContainer());
 
         var rightSolution = newDocument.Project.Solution;
         var allRightIds = rightSolution.GetRelatedDocumentIds(newDocument.Id);
@@ -550,11 +547,9 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         // Create PreviewWorkspaces around the buffers to be displayed on the left and right
         // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
-        using var leftWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(oldDocument.Project.Solution));
-        leftWorkspace.Target.OpenDocument(oldDocument.Id, oldBuffer.AsTextContainer());
+        using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(oldDocument, oldBuffer.AsTextContainer());
 
-        using var rightWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(newDocument.Project.Solution));
-        rightWorkspace.Target.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
+        using var rightWorkspace = PreviewWorkspace.CreateWithDocumentContents(newDocument, newBuffer.AsTextContainer());
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
         return await CreateChangedDocumentViewAsync(
