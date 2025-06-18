@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if !WORKSPACE
+#if CODE_STYLE
 namespace Microsoft.CodeAnalysis.Internal.Editing;
 #else
 namespace Microsoft.CodeAnalysis.Editing;
