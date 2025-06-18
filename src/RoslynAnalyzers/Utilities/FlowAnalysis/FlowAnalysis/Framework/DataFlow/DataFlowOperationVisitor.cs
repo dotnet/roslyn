@@ -4215,7 +4215,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 builder.Add(genericIReadOnlyCollection);
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableHashSet();
         }
 
         private protected bool IsDisposable([NotNullWhen(returnValue: true)] ITypeSymbol? type)
