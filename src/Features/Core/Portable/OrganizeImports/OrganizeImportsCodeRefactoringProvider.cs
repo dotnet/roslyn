@@ -26,6 +26,9 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
 {
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => [FixAllScope.Project, FixAllScope.Solution];
 
+    /// <summary>
+    /// Matches 'remove unnecessary imports' code fix.  This way we don't show 'sort imports' above it.
+    /// </summary>
     protected override CodeActionRequestPriority ComputeRequestPriority()
         => CodeActionRequestPriority.Low;
 
