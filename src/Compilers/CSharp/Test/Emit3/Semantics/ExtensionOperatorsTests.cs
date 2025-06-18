@@ -18591,7 +18591,7 @@ public ref struct C
 
 static class Extensions
 {
-    extension(ref C left)
+    extension(scoped ref C left)
     {
         public void operator +=(C right) {}
     }
@@ -18622,16 +18622,16 @@ public ref struct C
 
 static class Extensions
 {
-    extension(ref C left)
+    extension(scoped ref C left)
     {
         public void operator +=(C right) {}
     }
 }
 """;
             CreateCompilation([source, CompilerFeatureRequiredAttribute]).VerifyDiagnostics(
-                // (7,9): error CS8350: This combination of arguments to 'Extensions.extension(ref C).operator +=(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                // (7,9): error CS8350: This combination of arguments to 'Extensions.extension(scoped ref C).operator +=(C)' is disallowed because it may expose variables referenced by parameter 'right' outside of their declaration scope
                 //         c += c1;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "c += c1").WithArguments("Extensions.extension(ref C).operator +=(C)", "right").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "c += c1").WithArguments("Extensions.extension(scoped ref C).operator +=(C)", "right").WithLocation(7, 9),
                 // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         c += c1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
@@ -18666,7 +18666,7 @@ public ref struct C
 
 static class Extensions
 {
-    extension(ref C left)
+    extension(scoped ref C left)
     {
         public void operator +=(C right) {}
     }
@@ -18704,7 +18704,7 @@ public ref struct C
 
 static class Extensions
 {
-    extension(ref C left)
+    extension(scoped ref C left)
     {
         public void operator +=(C right) {}
     }
@@ -18741,7 +18741,7 @@ public ref struct C
 
 static class Extensions
 {
-    extension(ref C left)
+    extension(scoped ref C left)
     {
         public void operator +=(scoped C right) {}
     }
