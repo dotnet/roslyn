@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,9 +26,13 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
 {
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => [FixAllScope.Project, FixAllScope.Solution];
 
+    protected override CodeActionRequestPriority ComputeRequestPriority()
+        => CodeActionRequestPriority.Low;
+
     private static async Task<(SyntaxNode oldRoot, SyntaxNode newRoot)> RemoveImportsAsync(
-        Document document, IOrganizeImportsService organizeImportsService, CancellationToken cancellationToken)
+        Document document, CancellationToken cancellationToken)
     {
+        var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
         var oldRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -39,8 +45,7 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<TextSpan> fixAllSpans, SyntaxEditor editor, string? equivalenceKey, CancellationToken cancellationToken)
     {
-        var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-        var (oldRoot, newRoot) = await RemoveImportsAsync(document, organizeImportsService, cancellationToken).ConfigureAwait(false);
+        var (oldRoot, newRoot) = await RemoveImportsAsync(document, cancellationToken).ConfigureAwait(false);
 
         // If no changes were made, then we don't need to do anything.
         if (oldRoot == newRoot)
@@ -53,15 +58,28 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
     {
         var (document, span, cancellationToken) = context;
 
-        var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-        var (oldRoot, newRoot) = await RemoveImportsAsync(document, organizeImportsService, cancellationToken).ConfigureAwait(false);
+        var oldRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = oldRoot.FindToken(span.Start);
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var importNode = token.GetAncestors<SyntaxNode>().FirstOrDefault(syntaxFacts.IsUsingOrExternOrImport);
+        if (importNode is null)
+            return;
+
+        var (_, newRoot) = await RemoveImportsAsync(document, cancellationToken).ConfigureAwait(false);
 
         // If no changes were made, then we don't need to do anything.
         if (oldRoot == newRoot)
             return;
 
+        // Find the containing namespace/compilation unit of this import.  We'll use that to determine the span
+        // this refactoring applies to.
+        var ancestor = importNode.Ancestors().FirstOrDefault(syntaxFacts.IsBaseNamespaceDeclaration) ?? oldRoot;
+        var imports = ancestor.ChildNodes().Where(syntaxFacts.IsUsingOrExternOrImport);
+
         context.RegisterRefactoring(CodeAction.Create(
-            organizeImportsService.SortImportsDisplayStringWithAccelerator,
-            cancellationToken => Task.FromResult(document.WithSyntaxRoot(newRoot))));
+            document.GetRequiredLanguageService<IOrganizeImportsService>().SortImportsDisplayStringWithoutAccelerator,
+            cancellationToken => Task.FromResult(document.WithSyntaxRoot(newRoot))),
+            applicableToSpan: imports.GetContainedSpan());
     }
 }
