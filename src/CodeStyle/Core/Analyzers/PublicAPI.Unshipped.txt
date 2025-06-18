@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.DeclarationModifiers() -> void
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAbstract.get -> bool
@@ -67,3 +68,5 @@ static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Volatile.get
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithEvents.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WriteOnly.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers other) -> bool
+=======
+>>>>>>> upstream/main

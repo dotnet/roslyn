@@ -9,13 +9,16 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
+<<<<<<< HEAD
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
+=======
+>>>>>>> upstream/main
 using Microsoft.CodeAnalysis.Editing;
-#endif
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 

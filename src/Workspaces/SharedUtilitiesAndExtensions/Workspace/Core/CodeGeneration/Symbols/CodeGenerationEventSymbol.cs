@@ -4,11 +4,13 @@
 
 using System.Collections.Immutable;
 
+<<<<<<< HEAD
 #if !WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
+=======
+>>>>>>> upstream/main
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
