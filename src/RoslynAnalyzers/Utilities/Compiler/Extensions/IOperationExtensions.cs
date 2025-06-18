@@ -179,7 +179,9 @@ namespace Analyzer.Utilities.Extensions
                 }
                 else
                 {
+#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
                     foreach (var child in operation.Children)
+#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
                     {
                         operationsToProcess.Enqueue(child);
                     }
@@ -799,7 +801,9 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
         {
             using var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
+#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
             stack.Add(operation.Children.GetEnumerator());
+#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
 
             while (stack.Any())
             {
@@ -820,7 +824,9 @@ namespace Analyzer.Utilities.Extensions
                             return true;
                         }
 
+#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
                         stack.Add(current.Children.GetEnumerator());
+#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
                     }
                 }
             }
