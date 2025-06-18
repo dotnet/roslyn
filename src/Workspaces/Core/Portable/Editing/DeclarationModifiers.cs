@@ -6,12 +6,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-<<<<<<< HEAD
-#if !WORKSPACE
-namespace Microsoft.CodeAnalysis.Internal.Editing;
-#else
-=======
->>>>>>> upstream/main
 namespace Microsoft.CodeAnalysis.Editing;
 
 public readonly record struct DeclarationModifiers

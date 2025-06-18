@@ -8,12 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-<<<<<<< HEAD
-#if !WORKSPACE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-=======
->>>>>>> upstream/main
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;

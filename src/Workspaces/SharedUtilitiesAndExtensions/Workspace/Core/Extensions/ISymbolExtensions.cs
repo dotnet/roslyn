@@ -2,12 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-<<<<<<< HEAD
-#if !WORKSPACE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-=======
->>>>>>> upstream/main
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
