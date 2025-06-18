@@ -266,7 +266,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             sourceSpans: [firstLine, "\r\n", span], registryService: _contentTypeRegistryService);
 
         return await CreateNewDifferenceViewerAsync(
-            null, workspace, originalBuffer, changedBuffer, [newEditorDocument], zoomLevel, cancellationToken).ConfigureAwait(true);
+            leftWorkspace: null, workspace, originalBuffer, changedBuffer, [newEditorDocument], zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     private async Task<IDifferenceViewerPreview<TDifferenceViewer>> CreateAddedTextDocumentPreviewViewAsync<TDocument>(
