@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.10716.157 main
+VisualStudioVersion = 18.0.10716.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynDeployment", "src\Deployment\RoslynDeployment.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
 EndProject
@@ -2285,7 +2285,12 @@ Global
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{a1ebc0bc-d378-b9b7-7a57-ef7df11e3ed7}*SharedItemsImports = 5
 		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{a1ebc0bc-d378-b9b7-7a57-ef7df11e3ed7}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Refactoring.VisualBasic\Refactoring.VisualBasic.Utilities.projitems*{a4a3650e-164f-9339-fa7b-606effd06268}*SharedItemsImports = 5
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{a6844326-e313-f10a-7e99-89f54c73774c}*SharedItemsImports = 5
+		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{a6844326-e313-f10a-7e99-89f54c73774c}*SharedItemsImports = 5
+		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{a6844326-e313-f10a-7e99-89f54c73774c}*SharedItemsImports = 5
+		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{a6844326-e313-f10a-7e99-89f54c73774c}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{a6844326-e313-f10a-7e99-89f54c73774c}*SharedItemsImports = 5
+		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems*{a6844326-e313-f10a-7e99-89f54c73774c}*SharedItemsImports = 5
 		src\Analyzers\CSharp\Analyzers\CSharpAnalyzers.projitems*{aa87bfed-089a-4096-b8d5-690bdc7d5b24}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems*{aa87bfed-089a-4096-b8d5-690bdc7d5b24}*SharedItemsImports = 5
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{abdbac1e-350e-4dc3-bb45-3504404545ee}*SharedItemsImports = 5

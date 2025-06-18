@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         //        public const string Globalization = nameof(Globalization);
         //        public const string Interoperability = nameof(Interoperability);
         //        public const string Mobility = nameof(Mobility);
-        //        public const string Performance = nameof(Performance);
+        public const string Performance = nameof(Performance);
         //        public const string Reliability = nameof(Reliability);
         //        public const string Security = nameof(Security);
         //        public const string Usage = nameof(Usage);

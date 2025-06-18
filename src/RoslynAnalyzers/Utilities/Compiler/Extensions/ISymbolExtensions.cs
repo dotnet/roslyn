@@ -624,10 +624,10 @@ namespace Analyzer.Utilities.Extensions
         //            };
         //        }
 
-        //        public static AttributeData? GetAttribute(this ISymbol symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeType)
-        //        {
-        //            return symbol.GetAttributes(attributeType).FirstOrDefault();
-        //        }
+        public static AttributeData? GetAttribute(this ISymbol symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeType)
+        {
+            return symbol.GetAttributes(attributeType).FirstOrDefault();
+        }
 
         public static IEnumerable<AttributeData> GetAttributes(this ISymbol symbol, IEnumerable<INamedTypeSymbol?> attributesToMatch)
         {

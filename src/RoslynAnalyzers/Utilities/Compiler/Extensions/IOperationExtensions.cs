@@ -155,52 +155,52 @@ namespace Analyzer.Utilities.Extensions
         //            return builder != null ? builder.ToImmutable() : operations;
         //        }
 
-        //        /// <summary>
-        //        /// Gets explicit descendants or self of the given <paramref name="operation"/> that have no explicit ancestor in
-        //        /// the operation tree rooted at <paramref name="operation"/>.
-        //        /// </summary>
-        //        /// <param name="operation">Operation</param>
-        //        public static ImmutableArray<IOperation> GetTopmostExplicitDescendants(this IOperation operation)
-        //        {
-        //            if (!operation.IsImplicit)
-        //            {
-        //                return ImmutableArray.Create(operation);
-        //            }
+        /// <summary>
+        /// Gets explicit descendants or self of the given <paramref name="operation"/> that have no explicit ancestor in
+        /// the operation tree rooted at <paramref name="operation"/>.
+        /// </summary>
+        /// <param name="operation">Operation</param>
+        public static ImmutableArray<IOperation> GetTopmostExplicitDescendants(this IOperation operation)
+        {
+            if (!operation.IsImplicit)
+            {
+                return ImmutableArray.Create(operation);
+            }
 
-        //            var builder = ImmutableArray.CreateBuilder<IOperation>();
-        //            var operationsToProcess = new Queue<IOperation>();
-        //            operationsToProcess.Enqueue(operation);
+            var builder = ImmutableArray.CreateBuilder<IOperation>();
+            var operationsToProcess = new Queue<IOperation>();
+            operationsToProcess.Enqueue(operation);
 
-        //            while (operationsToProcess.Count > 0)
-        //            {
-        //                operation = operationsToProcess.Dequeue();
-        //                if (!operation.IsImplicit)
-        //                {
-        //                    builder.Add(operation);
-        //                }
-        //                else
-        //                {
-        //#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
-        //                    foreach (var child in operation.Children)
-        //#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
-        //                    {
-        //                        operationsToProcess.Enqueue(child);
-        //                    }
-        //                }
-        //            }
+            while (operationsToProcess.Count > 0)
+            {
+                operation = operationsToProcess.Dequeue();
+                if (!operation.IsImplicit)
+                {
+                    builder.Add(operation);
+                }
+                else
+                {
+#pragma warning disable CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
+                    foreach (var child in operation.Children)
+#pragma warning restore CS0618 // 'IOperation.Children' is obsolete: 'This API has performance penalties, please use ChildOperations instead.'
+                    {
+                        operationsToProcess.Enqueue(child);
+                    }
+                }
+            }
 
-        //            return builder.ToImmutable();
-        //        }
+            return builder.ToImmutable();
+        }
 
-        //        /// <summary>
-        //        /// True if this operation has no IOperation API support, i.e. <see cref="OperationKind.None"/> and
-        //        /// is the root operation, i.e. <see cref="Operation.Parent"/> is null.
-        //        /// For example, this returns true for attribute operations.
-        //        /// </summary>
-        //        public static bool IsOperationNoneRoot(this IOperation operation)
-        //        {
-        //            return operation.Kind == OperationKind.None && operation.Parent == null;
-        //        }
+        /// <summary>
+        /// True if this operation has no IOperation API support, i.e. <see cref="OperationKind.None"/> and
+        /// is the root operation, i.e. <see cref="Operation.Parent"/> is null.
+        /// For example, this returns true for attribute operations.
+        /// </summary>
+        public static bool IsOperationNoneRoot(this IOperation operation)
+        {
+            return operation.Kind == OperationKind.None && operation.Parent == null;
+        }
 
         //        /// <summary>
         //        /// Returns the topmost <see cref="IBlockOperation"/> containing the given <paramref name="operation"/>.
@@ -750,23 +750,23 @@ namespace Analyzer.Utilities.Extensions
         //            return operation;
         //        }
 
-        //        public static IOperation? GetThrownException(this IThrowOperation operation)
-        //        {
-        //            var thrownObject = operation.Exception;
+        public static IOperation? GetThrownException(this IThrowOperation operation)
+        {
+            var thrownObject = operation.Exception;
 
-        //            // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
-        //            // We also want to walk down explicit conversions such as "throw (Exception)new ArgumentNullException())".
-        //            if (thrownObject is IConversionOperation conversion &&
-        //                conversion.Conversion.Exists)
-        //            {
-        //                thrownObject = conversion.Operand;
-        //            }
+            // Starting C# 8.0, C# compiler wraps the thrown operation within an implicit conversion to System.Exception type.
+            // We also want to walk down explicit conversions such as "throw (Exception)new ArgumentNullException())".
+            if (thrownObject is IConversionOperation conversion &&
+                conversion.Conversion.Exists)
+            {
+                thrownObject = conversion.Operand;
+            }
 
-        //            return thrownObject;
-        //        }
+            return thrownObject;
+        }
 
-        //        public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
-        //            => operation.GetThrownException()?.Type;
+        public static ITypeSymbol? GetThrownExceptionType(this IThrowOperation operation)
+            => operation.GetThrownException()?.Type;
 
         //        /// <summary>
         //        /// Determines if the one of the invocation's arguments' values is an argument of the specified type, and if so, find
