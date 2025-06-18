@@ -35,7 +35,13 @@ internal class PreviewWorkspace : Workspace
     public static ReferenceCountedDisposable<PreviewWorkspace> CreateWithDocumentContents(
         TextDocument document, SourceTextContainer textContainer)
     {
-        using var previewWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(document.Project.Solution));
+        // Ensure the solution's view of this file is consistent across all linked files within it.
+        var newSolution = document.Project.Solution.WithDocumentText(
+            document.Project.Solution.GetRelatedDocumentIds(document.Id),
+            textContainer.CurrentText,
+            PreservationMode.PreserveIdentity);
+
+        using var previewWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(newSolution));
 
         // TODO: Determine if this is necesarry.  Existing code comments mention that this is needed so that things
         // like the LightBulb work.  But it is unclear if that's actually the case.  It is possible some features

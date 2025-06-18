@@ -41,18 +41,13 @@ internal sealed class RoslynSpeculativeEditProvider(
         var clonedBuffer = clonedSnapshotBeforeEdits.TextBuffer;
         var textContainer = clonedBuffer.AsTextContainer();
 
-        var newSolution = document.Project.Solution.WithDocumentText(
-            document.Project.Solution.GetRelatedDocumentIds(document.Id),
-            textContainer.CurrentText,
-            PreservationMode.PreserveIdentity);
-
         // Now, create a preview workspace with that forked document opened within it so that we can lightup features properly there.
         // Wrap everything we need into a final ISpeculativeEditSession for the caller.  It owns the lifetime of the data
         // and will dispose it when done. At that point, we can release the allocated preview workspace new 
         return new RoslynSpeculativeEditSession(
             options,
             clonedSnapshotBeforeEdits,
-            PreviewWorkspace.CreateWithDocumentContents(newSolution.GetRequiredDocument(document.Id), textContainer));
+            PreviewWorkspace.CreateWithDocumentContents(document, textContainer));
     }
 
     private sealed class RoslynSpeculativeEditSession(

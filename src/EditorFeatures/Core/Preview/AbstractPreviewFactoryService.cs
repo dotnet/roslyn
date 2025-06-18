@@ -156,42 +156,42 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
                 foreach (var metadataReference in projectChanges.GetAddedMetadataReferences())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId: null,
                         string.Format(EditorFeaturesResources.Adding_reference_0_to_1, metadataReference.Display, oldProject.Name)));
                 }
 
                 foreach (var metadataReference in projectChanges.GetRemovedMetadataReferences())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId: null,
                         string.Format(EditorFeaturesResources.Removing_reference_0_from_1, metadataReference.Display, oldProject.Name)));
                 }
 
                 foreach (var projectReference in projectChanges.GetAddedProjectReferences())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId: null,
                         string.Format(EditorFeaturesResources.Adding_reference_0_to_1, newSolution.GetRequiredProject(projectReference.ProjectId).Name, oldProject.Name)));
                 }
 
                 foreach (var projectReference in projectChanges.GetRemovedProjectReferences())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId: null,
                         string.Format(EditorFeaturesResources.Removing_reference_0_from_1, oldSolution.GetRequiredProject(projectReference.ProjectId).Name, oldProject.Name)));
                 }
 
                 foreach (var analyzer in projectChanges.GetAddedAnalyzerReferences())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId: null,
                         string.Format(EditorFeaturesResources.Adding_analyzer_reference_0_to_1, analyzer.Display, oldProject.Name)));
                 }
 
                 foreach (var analyzer in projectChanges.GetRemovedAnalyzerReferences())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
+                    previewItems.Add(new SolutionPreviewItem(oldProject.Id, documentId: null,
                         string.Format(EditorFeaturesResources.Removing_analyzer_reference_0_from_1, analyzer.Display, oldProject.Name)));
                 }
             }
@@ -199,21 +199,21 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             foreach (var project in solutionChanges.GetAddedProjects())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                previewItems.Add(new SolutionPreviewItem(project.Id, null,
+                previewItems.Add(new SolutionPreviewItem(project.Id, documentId: null,
                     string.Format(EditorFeaturesResources.Adding_project_0, project.Name)));
             }
 
             foreach (var project in solutionChanges.GetRemovedProjects())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                previewItems.Add(new SolutionPreviewItem(project.Id, null,
+                previewItems.Add(new SolutionPreviewItem(project.Id, documentId: null,
                     string.Format(EditorFeaturesResources.Removing_project_0, project.Name)));
             }
 
             foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(ProjectReferencesChanged))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null,
+                previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, documentId: null,
                     string.Format(EditorFeaturesResources.Changing_project_references_for_0, projectChanges.OldProject.Name)));
             }
 
@@ -265,9 +265,8 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
             sourceSpans: [firstLine, "\r\n", span], registryService: _contentTypeRegistryService);
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, [newEditorDocument], zoomLevel, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        return await CreateNewDifferenceViewerAsync(
+            null, workspace, originalBuffer, changedBuffer, [newEditorDocument], zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     private async Task<IDifferenceViewerPreview<TDifferenceViewer>> CreateAddedTextDocumentPreviewViewAsync<TDocument>(
@@ -280,17 +279,14 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         // createBufferAsync must be called from the main thread
         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        var newEditorDocument = await createEditorDocumentAsync(document, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        var newEditorDocument = await createEditorDocumentAsync(document, cancellationToken).ConfigureAwait(true);
 
         // Create PreviewWorkspace around the buffer to be displayed in the diff preview
         // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
         using var rightWorkspace = PreviewWorkspace.CreateWithDocumentContents(document, newEditorDocument.TextBuffer.AsTextContainer());
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateAddedDocumentPreviewViewCoreAsync(newEditorDocument, rightWorkspace, document, zoomLevel, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        return await CreateAddedDocumentPreviewViewCoreAsync(
+            newEditorDocument, rightWorkspace, document, zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     public Task<IDifferenceViewerPreview<TDifferenceViewer>> CreateAddedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
@@ -336,9 +332,8 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         var changedBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
             sourceSpans: [firstLine, "\r\n"], registryService: _contentTypeRegistryService);
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, [oldEditorDocument], zoomLevel, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        return await CreateNewDifferenceViewerAsync(
+            workspace, rightWorkspace: null, originalBuffer, changedBuffer, [oldEditorDocument], zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     private async Task<IDifferenceViewerPreview<TDifferenceViewer>> CreateRemovedTextDocumentPreviewViewAsync<TDocument>(
@@ -361,17 +356,14 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         // the diff view would long have been dismissed by the time user edits the code)
         // resulting in crashes. Instead we create a new buffer from the same content.
         // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        var oldEditorDocument = await createEditorDocumentAsync(document, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        var oldEditorDocument = await createEditorDocumentAsync(document, cancellationToken).ConfigureAwait(true);
 
         // Create PreviewWorkspace around the buffer to be displayed in the diff preview
         // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
         using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(document, oldEditorDocument.TextBuffer.AsTextContainer());
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateRemovedDocumentPreviewViewCoreAsync(oldEditorDocument, leftWorkspace, document, zoomLevel, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        return await CreateRemovedDocumentPreviewViewCoreAsync(
+            oldEditorDocument, leftWorkspace, document, zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     public Task<IDifferenceViewerPreview<TDifferenceViewer>> CreateRemovedDocumentPreviewViewAsync(Document document, double zoomLevel, CancellationToken cancellationToken)
@@ -416,12 +408,10 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         // the diff view would long have been dismissed by the time user edits the code)
         // resulting in crashes. Instead we create a new buffer from the same content.
         // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        var oldEditorDocument = await CreateNewBufferAsync(oldDocument, cancellationToken);
+        var oldEditorDocument = await CreateNewBufferAsync(oldDocument, cancellationToken).ConfigureAwait(true);
         var oldBuffer = oldEditorDocument.TextBuffer;
-        var newEditorDocument = await CreateNewBufferAsync(newDocument, cancellationToken);
+        var newEditorDocument = await CreateNewBufferAsync(newDocument, cancellationToken).ConfigureAwait(true);
         var newBuffer = newEditorDocument.TextBuffer;
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
         // Convert the diffs to be line based.  
         // Compute the diffs between the old text and the new.
@@ -436,9 +426,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         if (newDocument.SupportsSyntaxTree)
         {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-            var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
             var conflictNodes = newRoot.GetAnnotatedNodesAndTokens(ConflictAnnotation.Kind);
             var conflictSpans = conflictNodes.Select(n => n.Span.ToSpan()).ToList();
             var conflictDescriptions = conflictNodes.SelectMany(n => n.GetAnnotations(ConflictAnnotation.Kind))
@@ -481,24 +469,13 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         // relating SourceText. This prevents cascading forks as taggers call to
         // GetOpenTextDocumentInCurrentContextWithChanges would eventually wind up
         // calling Solution.WithDocumentText using the related ids.
-        var leftSolution = oldDocument.Project.Solution;
-        var allLeftIds = leftSolution.GetRelatedDocumentIds(oldDocument.Id);
-        leftSolution = leftSolution.WithDocumentText(allLeftIds, oldBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveIdentity);
 
-        using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(leftSolution.GetRequiredDocument(oldDocument.Id), oldBuffer.AsTextContainer());
+        using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(oldDocument, oldBuffer.AsTextContainer());
+        using var rightWorkspace = PreviewWorkspace.CreateWithDocumentContents(newDocument, newBuffer.AsTextContainer());
 
-        var rightSolution = newDocument.Project.Solution;
-        var allRightIds = rightSolution.GetRelatedDocumentIds(newDocument.Id);
-        rightSolution = rightSolution.WithDocumentText(allRightIds, newBuffer.AsTextContainer().CurrentText, PreservationMode.PreserveIdentity);
-
-        using var rightWorkspace = new ReferenceCountedDisposable<PreviewWorkspace>(new PreviewWorkspace(rightSolution));
-        rightWorkspace.Target.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
-
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
         return await CreateChangedDocumentViewAsync(
             oldEditorDocument, newEditorDocument, description, originalLineSpans, changedLineSpans,
-            leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            leftWorkspace, rightWorkspace, zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     // NOTE: We are only sharing this code between additional documents and analyzer config documents,
@@ -525,12 +502,10 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         // the diff view would long have been dismissed by the time user edits the code)
         // resulting in crashes. Instead we create a new buffer from the same content.
         // TODO: We could use ITextBufferCloneService instead here to clone the original buffer.
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        var oldEditorDocument = await CreateNewPlainTextBufferAsync(oldDocument, cancellationToken);
+        var oldEditorDocument = await CreateNewPlainTextBufferAsync(oldDocument, cancellationToken).ConfigureAwait(true);
         var oldBuffer = oldEditorDocument.TextBuffer;
-        var newEditorDocument = await CreateNewPlainTextBufferAsync(newDocument, cancellationToken);
+        var newEditorDocument = await CreateNewPlainTextBufferAsync(newDocument, cancellationToken).ConfigureAwait(true);
         var newBuffer = newEditorDocument.TextBuffer;
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
         // Convert the diffs to be line based.  
         // Compute the diffs between the old text and the new.
@@ -547,15 +522,13 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         // Create PreviewWorkspaces around the buffers to be displayed on the left and right
         // so that all IDE services (colorizer, squiggles etc.) light up in these buffers.
-        using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(oldDocument, oldBuffer.AsTextContainer());
 
+        using var leftWorkspace = PreviewWorkspace.CreateWithDocumentContents(oldDocument, oldBuffer.AsTextContainer());
         using var rightWorkspace = PreviewWorkspace.CreateWithDocumentContents(newDocument, newBuffer.AsTextContainer());
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
         return await CreateChangedDocumentViewAsync(
             oldEditorDocument, newEditorDocument, description: null, originalLineSpans, changedLineSpans,
-            leftWorkspace, rightWorkspace, zoomLevel, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            leftWorkspace, rightWorkspace, zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     public Task<IDifferenceViewerPreview<TDifferenceViewer>?> CreateChangedAdditionalDocumentPreviewViewAsync(TextDocument oldDocument, TextDocument newDocument, double zoomLevel, CancellationToken cancellationToken)
@@ -606,9 +579,8 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             description,
             [.. changedSpans]);
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, [oldEditorDocument, newEditorDocument], zoomLevel, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        return await CreateNewDifferenceViewerAsync(
+            leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, [oldEditorDocument, newEditorDocument], zoomLevel, cancellationToken).ConfigureAwait(true);
     }
 
     private static void AttachAnnotationsToBuffer(
@@ -627,9 +599,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
         var contentType = contentTypeService.GetDefaultContentType();
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateTextBufferCoreAsync(document, contentType, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        return await CreateTextBufferCoreAsync(document, contentType, cancellationToken).ConfigureAwait(true);
     }
 
     private async ValueTask<ITextDocument> CreateNewPlainTextBufferAsync(TextDocument document, CancellationToken cancellationToken)
@@ -639,18 +609,14 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         var contentType = _textBufferFactoryService.TextContentType;
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateTextBufferCoreAsync(document, contentType, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        return await CreateTextBufferCoreAsync(document, contentType, cancellationToken).ConfigureAwait(true);
     }
 
     private async ValueTask<ITextDocument> CreateTextBufferCoreAsync(TextDocument document, IContentType contentType, CancellationToken cancellationToken)
     {
         ThreadingContext.ThrowIfNotOnUIThread();
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        var text = await document.State.GetTextAsync(cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+        var text = await document.State.GetTextAsync(cancellationToken).ConfigureAwait(true);
 
         var buffer = _textBufferCloneService.Clone(text, contentType);
 
