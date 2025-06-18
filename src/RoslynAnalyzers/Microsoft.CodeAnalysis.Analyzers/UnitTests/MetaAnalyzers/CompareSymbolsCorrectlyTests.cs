@@ -1049,7 +1049,7 @@ public class C
         [|ImmutableHashSet.Create<ISymbol>()|];
         [|ImmutableHashSet.CreateBuilder<ISymbol>()|];
         [|ImmutableHashSet.CreateRange(symbols)|];
-        [|symbols.ToImmutableAndFree()|];
+        [|symbols.ToImmutableHashSet()|];
 
         [|ImmutableDictionary.Create<ISymbol, int>()|];
         [|ImmutableDictionary.CreateBuilder<ISymbol, int>()|];
@@ -1067,8 +1067,8 @@ public class C
         [|symbols.ToLookup(x => x)|];
         [|symbols.Union(symbols2)|];
 
-        [|ImmutableHashSet.ToImmutableAndFree(symbols)|];
-        symbols?[|.ToImmutableAndFree()|];
+        [|ImmutableHashSet.ToImmutableHashSet(symbols)|];
+        symbols?[|.ToImmutableHashSet()|];
     }
 
     public void MethodWithoutDiagnostics(IEnumerable<KeyValuePair<int, ISymbol>> kvps, IEnumerable<int> integers, int integer)
@@ -1076,7 +1076,7 @@ public class C
         ImmutableHashSet.Create<int>();
         ImmutableHashSet.CreateBuilder<int>();
         ImmutableHashSet.CreateRange(integers);
-        integers.ToImmutableAndFree();
+        integers.ToImmutableHashSet();
 
         ImmutableDictionary.Create<int, ISymbol>();
         ImmutableDictionary.CreateBuilder<int, ISymbol>();
@@ -1115,7 +1115,7 @@ public class C
         ImmutableHashSet.Create<ISymbol>(SymbolEqualityComparer.Default);
         ImmutableHashSet.CreateBuilder<ISymbol>(SymbolEqualityComparer.Default);
         ImmutableHashSet.CreateRange(SymbolEqualityComparer.Default, symbols);
-        symbols.ToImmutableAndFree(SymbolEqualityComparer.Default);
+        symbols.ToImmutableHashSet(SymbolEqualityComparer.Default);
 
         ImmutableDictionary.Create<ISymbol, int>(SymbolEqualityComparer.Default);
         ImmutableDictionary.CreateBuilder<ISymbol, int>(SymbolEqualityComparer.Default);
@@ -1133,8 +1133,8 @@ public class C
         symbols.ToLookup(x => x, SymbolEqualityComparer.Default);
         symbols.Union(symbols2, SymbolEqualityComparer.Default);
 
-        ImmutableHashSet.ToImmutableAndFree(symbols, SymbolEqualityComparer.Default);
-        symbols?.ToImmutableAndFree(SymbolEqualityComparer.Default);
+        ImmutableHashSet.ToImmutableHashSet(symbols, SymbolEqualityComparer.Default);
+        symbols?.ToImmutableHashSet(SymbolEqualityComparer.Default);
     }
 
     public void MethodWithoutDiagnostics(IEnumerable<KeyValuePair<int, ISymbol>> kvps, IEnumerable<int> integers, int integer)
@@ -1142,7 +1142,7 @@ public class C
         ImmutableHashSet.Create<int>();
         ImmutableHashSet.CreateBuilder<int>();
         ImmutableHashSet.CreateRange(integers);
-        integers.ToImmutableAndFree();
+        integers.ToImmutableHashSet();
 
         ImmutableDictionary.Create<int, ISymbol>();
         ImmutableDictionary.CreateBuilder<int, ISymbol>();
@@ -1184,7 +1184,7 @@ Public Class C
         Dim x1 = [|ImmutableHashSet.Create(Of ISymbol)()|]
         Dim x2 = [|ImmutableHashSet.CreateBuilder(Of ISymbol)()|]
         Dim x3 = [|ImmutableHashSet.CreateRange(symbols)|]
-        Dim x4 = [|symbols.ToImmutableAndFree()|]
+        Dim x4 = [|symbols.ToImmutableHashSet()|]
 
         Dim x5 = [|ImmutableDictionary.Create(Of ISymbol, Integer)()|]
         Dim x6 = [|ImmutableDictionary.CreateBuilder(Of ISymbol, Integer)()|]
@@ -1202,14 +1202,14 @@ Public Class C
         Dim x17 = [|symbols.ToLookup(Function(x) x)|]
         Dim x18 = [|symbols.Union(symbols2)|]
 
-        Dim x19 = [|ImmutableHashSet.ToImmutableAndFree(symbols)|]
+        Dim x19 = [|ImmutableHashSet.ToImmutableHashSet(symbols)|]
     End Sub
 
     Public Sub MethodWithoutDiagnostics(kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)), integers As IEnumerable(Of Integer), i As Integer)
         Dim x1 = ImmutableHashSet.Create(Of Integer)()
         Dim x2 = ImmutableHashSet.CreateBuilder(Of Integer)()
         Dim x3 = ImmutableHashSet.CreateRange(integers)
-        Dim x4 = integers.ToImmutableAndFree()
+        Dim x4 = integers.ToImmutableHashSet()
 
         Dim x5 = ImmutableDictionary.Create(Of Integer, ISymbol)()
         Dim x6 = ImmutableDictionary.CreateBuilder(Of Integer, ISymbol)()
@@ -1247,7 +1247,7 @@ Public Class C
         Dim x1 = ImmutableHashSet.Create(Of ISymbol)(SymbolEqualityComparer.Default)
         Dim x2 = ImmutableHashSet.CreateBuilder(Of ISymbol)(SymbolEqualityComparer.Default)
         Dim x3 = ImmutableHashSet.CreateRange(SymbolEqualityComparer.Default, symbols)
-        Dim x4 = symbols.ToImmutableAndFree(SymbolEqualityComparer.Default)
+        Dim x4 = symbols.ToImmutableHashSet(SymbolEqualityComparer.Default)
 
         Dim x5 = ImmutableDictionary.Create(Of ISymbol, Integer)(SymbolEqualityComparer.Default)
         Dim x6 = ImmutableDictionary.CreateBuilder(Of ISymbol, Integer)(SymbolEqualityComparer.Default)
@@ -1265,14 +1265,14 @@ Public Class C
         Dim x17 = symbols.ToLookup(Function(x) x, SymbolEqualityComparer.Default)
         Dim x18 = symbols.Union(symbols2, SymbolEqualityComparer.Default)
 
-        Dim x19 = ImmutableHashSet.ToImmutableAndFree(symbols, SymbolEqualityComparer.Default)
+        Dim x19 = ImmutableHashSet.ToImmutableHashSet(symbols, SymbolEqualityComparer.Default)
     End Sub
 
     Public Sub MethodWithoutDiagnostics(kvps As IEnumerable(Of KeyValuePair(Of Integer, ISymbol)), integers As IEnumerable(Of Integer), i As Integer)
         Dim x1 = ImmutableHashSet.Create(Of Integer)()
         Dim x2 = ImmutableHashSet.CreateBuilder(Of Integer)()
         Dim x3 = ImmutableHashSet.CreateRange(integers)
-        Dim x4 = integers.ToImmutableAndFree()
+        Dim x4 = integers.ToImmutableHashSet()
 
         Dim x5 = ImmutableDictionary.Create(Of Integer, ISymbol)()
         Dim x6 = ImmutableDictionary.CreateBuilder(Of Integer, ISymbol)()
