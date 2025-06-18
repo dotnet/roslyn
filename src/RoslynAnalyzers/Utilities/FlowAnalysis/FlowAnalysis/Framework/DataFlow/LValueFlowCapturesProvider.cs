@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-
 #if DEBUG
 using System.Collections.Generic;
 using System.Diagnostics;
