@@ -89,10 +89,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledHashSet.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.Enumerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ObjectPool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
@@ -113,8 +109,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledSortedSet.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\TemporaryDictionary`2.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\TemporarySet`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynHashCode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
