@@ -37429,6 +37429,119 @@ static class E
     public void Extern_09()
     {
         var source = """
+static class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+        extern void M();
+
+        extern int P
+        {
+            [method: System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+            get;
+
+            [method: System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+            set;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 i
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig 
+            instance void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname 
+            instance int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname 
+            instance void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+            .set instance void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static 
+        void M (
+            int32 i
+        ) cil managed internalcall 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+    } // end of method E::M
+    .method private hidebysig static 
+        int32 get_P (
+            int32 i
+        ) cil managed internalcall 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static 
+        void set_P (
+            int32 i,
+            int32 'value'
+        ) cil managed internalcall 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+    }
+
+    [Fact]
+    public void Extern_10()
+    {
+        var source = """
 using System.Runtime.InteropServices;
 static class E
 {
@@ -37461,7 +37574,7 @@ static class E
     }
 
     [Fact]
-    public void Extern_10()
+    public void Extern_11()
     {
         var source = """
 using System.Runtime.InteropServices;
@@ -37496,7 +37609,7 @@ static class E
     }
 
     [Fact]
-    public void Extern_11()
+    public void Extern_12()
     {
         var source = """
 using System.Runtime.InteropServices;
