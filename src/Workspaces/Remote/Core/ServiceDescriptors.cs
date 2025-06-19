@@ -60,7 +60,6 @@ internal sealed class ServiceDescriptors
         (typeof(IRemoteCodeLensReferencesService), null),
         (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
         (typeof(IRemoteCopilotChangeAnalysisService), null),
-        (typeof(IRemoteCopilotProposalAdjusterService), null),
         (typeof(IRemoteDependentTypeFinderService), null),
         (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
         (typeof(IRemoteDiagnosticAnalyzerService), null),
