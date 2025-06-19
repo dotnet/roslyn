@@ -25,7 +25,7 @@ internal static class CopilotEditorUtilities
             if (document is null)
                 return null;
 
-            // Only both for languages we can actually process semantics for.
+            // Only bother for languages we can actually process semantics for.
             if (document.SupportsSemanticModel)
                 return null;
 
