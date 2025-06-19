@@ -44,12 +44,23 @@ internal sealed class StackFrameViewModel(
     private TextDocument? _cachedDocument;
     private int _cachedLineNumber;
 
+    private CancellationTokenSource? _navigationCancellationSource;
+
     public override bool ShowMouseOver => true;
 
     public void NavigateToClass()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToClassAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        if (_threadingContext.DisposalToken.IsCancellationRequested)
+        {
+            // If the view model is being disposed, we don't want to navigate.
+            return;
+        }
+
+        _navigationCancellationSource?.Cancel();
+        _navigationCancellationSource?.Dispose();
+        _navigationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
+
+        _ = NavigateToClassAsync(_navigationCancellationSource.Token).ReportNonFatalErrorUnlessCancelledAsync(_navigationCancellationSource.Token);
     }
 
     public async Task NavigateToClassAsync(CancellationToken cancellationToken)
