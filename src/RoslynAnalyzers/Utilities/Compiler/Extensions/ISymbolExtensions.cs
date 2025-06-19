@@ -598,21 +598,21 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
-        {
-            return symbol switch
-            {
-                IEventSymbol eventSymbol => eventSymbol.Type,
+        //public static ITypeSymbol? GetMemberType(this ISymbol? symbol)
+        //{
+        //    return symbol switch
+        //    {
+        //        IEventSymbol eventSymbol => eventSymbol.Type,
 
-                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+        //        IFieldSymbol fieldSymbol => fieldSymbol.Type,
 
-                IMethodSymbol methodSymbol => methodSymbol.ReturnType,
+        //        IMethodSymbol methodSymbol => methodSymbol.ReturnType,
 
-                IPropertySymbol propertySymbol => propertySymbol.Type,
+        //        IPropertySymbol propertySymbol => propertySymbol.Type,
 
-                _ => null,
-            };
-        }
+        //        _ => null,
+        //    };
+        //}
 
         public static bool IsReadOnlyFieldOrProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {

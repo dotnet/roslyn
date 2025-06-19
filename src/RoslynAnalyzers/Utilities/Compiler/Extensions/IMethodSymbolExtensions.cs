@@ -146,17 +146,17 @@ namespace Analyzer.Utilities.Extensions
         //            return overridden.ContainingType.SpecialType == SpecialType.System_Object; // it is object.Finalize
         //        }
 
-        //        /// <summary>
-        //        /// Checks if the given method is an implementation of the given interface method
-        //        /// Substituted with the given typeargument.
-        //        /// </summary>
-        //        public static bool IsImplementationOfInterfaceMethod(this IMethodSymbol method, ITypeSymbol? typeArgument, [NotNullWhen(returnValue: true)] INamedTypeSymbol? interfaceType, string interfaceMethodName)
-        //        {
-        //            INamedTypeSymbol? constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
+        /// <summary>
+        /// Checks if the given method is an implementation of the given interface method
+        /// Substituted with the given typeargument.
+        /// </summary>
+        public static bool IsImplementationOfInterfaceMethod(this IMethodSymbol method, ITypeSymbol? typeArgument, [NotNullWhen(returnValue: true)] INamedTypeSymbol? interfaceType, string interfaceMethodName)
+        {
+            INamedTypeSymbol? constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
 
-        //            return constructedInterface?.GetMembers(interfaceMethodName).FirstOrDefault() is IMethodSymbol interfaceMethod &&
-        //                SymbolEqualityComparer.Default.Equals(method, method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
-        //        }
+            return constructedInterface?.GetMembers(interfaceMethodName).FirstOrDefault() is IMethodSymbol interfaceMethod &&
+                SymbolEqualityComparer.Default.Equals(method, method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
+        }
 
         /// <summary>
         /// Checks if the given method implements IDisposable.Dispose()
@@ -273,21 +273,21 @@ namespace Analyzer.Utilities.Extensions
             => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" &&
                 SymbolEqualityComparer.Default.Equals(method.ReturnType, taskType);
 
-        //        /// <summary>
-        //        /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()" or "ConfiguredValueTaskAwaitable DisposeAsync()".
-        //        /// </summary>
-        //        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method,
-        //            INamedTypeSymbol? task,
-        //            INamedTypeSymbol? valueTask,
-        //            INamedTypeSymbol? configuredValueTaskAwaitable)
-        //        {
-        //            return method.Name == "DisposeAsync" &&
-        //                method.MethodKind == MethodKind.Ordinary &&
-        //                method.Parameters.IsEmpty &&
-        //                (SymbolEqualityComparer.Default.Equals(method.ReturnType, task) ||
-        //                 SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask) ||
-        //                 SymbolEqualityComparer.Default.Equals(method.ReturnType, configuredValueTaskAwaitable));
-        //        }
+        /// <summary>
+        /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()" or "ConfiguredValueTaskAwaitable DisposeAsync()".
+        /// </summary>
+        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method,
+            INamedTypeSymbol? task,
+            INamedTypeSymbol? valueTask,
+            INamedTypeSymbol? configuredValueTaskAwaitable)
+        {
+            return method.Name == "DisposeAsync" &&
+                method.MethodKind == MethodKind.Ordinary &&
+                method.Parameters.IsEmpty &&
+                (SymbolEqualityComparer.Default.Equals(method.ReturnType, task) ||
+                 SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask) ||
+                 SymbolEqualityComparer.Default.Equals(method.ReturnType, configuredValueTaskAwaitable));
+        }
 
         /// <summary>
         /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)" or "override Task DisposeAsyncCore(bool)".
