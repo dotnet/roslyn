@@ -69,7 +69,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         var oldText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<TextSpan>.GetInstance(normalizedChanges.Length, out var newSpans);
-        var newText = CopilotChangeAnalysisUtilities.GetNewText(oldText, normalizedChanges, newSpans);
+        var newText = CopilotUtilities.GetNewText(oldText, normalizedChanges, newSpans);
 
         // Get the semantic model and keep it alive so none of the work we do causes it to be dropped.
         var forkedDocument = originalDocument.WithText(newText);
