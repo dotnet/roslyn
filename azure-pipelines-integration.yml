@@ -3,7 +3,6 @@ trigger:
   branches:
     include:
     - main
-    - main-vs-deps
     - release/*
     - features/*
     - demos/*
@@ -13,13 +12,13 @@ trigger:
     - release/dev17.8
     - release/dev17.10
     - release/dev17.12
+    - main-vs-deps
 
 # Branches that trigger builds on PR
 pr:
   branches:
     include:
     - main
-    - main-vs-deps
     - release/*
     - features/*
     - demos/*
@@ -29,6 +28,7 @@ pr:
     - release/dev17.8
     - release/dev17.10
     - release/dev17.12
+    - main-vs-deps
   paths:
     exclude:
       - docs/*
