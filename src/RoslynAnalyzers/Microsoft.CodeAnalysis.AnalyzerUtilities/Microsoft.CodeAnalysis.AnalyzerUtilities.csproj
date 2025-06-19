@@ -12,6 +12,7 @@
     <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
 
     <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
     <NoWarn>$(NoWarn);RS0026</NoWarn>
@@ -19,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
     <PackageReference Include="System.Threading.Channels" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Analyzer.Utilities.UnitTests" />
