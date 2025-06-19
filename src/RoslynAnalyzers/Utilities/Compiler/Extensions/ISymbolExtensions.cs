@@ -112,25 +112,25 @@ namespace Analyzer.Utilities.Extensions
             return symbol is IPropertySymbol { IsIndexer: true };
         }
 
-        //        public static bool IsPropertyWithBackingField([NotNullWhen(returnValue: true)] this ISymbol? symbol, [NotNullWhen(true)] out IFieldSymbol? backingField)
-        //        {
-        //            if (symbol is IPropertySymbol propertySymbol)
-        //            {
-        //                foreach (ISymbol member in propertySymbol.ContainingType.GetMembers())
-        //                {
-        //                    if (member is IFieldSymbol associated &&
-        //                        associated.IsImplicitlyDeclared &&
-        //                        Equals(associated.AssociatedSymbol, propertySymbol))
-        //                    {
-        //                        backingField = associated;
-        //                        return true;
-        //                    }
-        //                }
-        //            }
+        public static bool IsPropertyWithBackingField([NotNullWhen(returnValue: true)] this ISymbol? symbol, [NotNullWhen(true)] out IFieldSymbol? backingField)
+        {
+            if (symbol is IPropertySymbol propertySymbol)
+            {
+                foreach (ISymbol member in propertySymbol.ContainingType.GetMembers())
+                {
+                    if (member is IFieldSymbol associated &&
+                        associated.IsImplicitlyDeclared &&
+                        Equals(associated.AssociatedSymbol, propertySymbol))
+                    {
+                        backingField = associated;
+                        return true;
+                    }
+                }
+            }
 
-        //            backingField = null;
-        //            return false;
-        //        }
+            backingField = null;
+            return false;
+        }
 
         //        /// <summary>
         //        /// Determines if the given symbol is a backing field for a property.

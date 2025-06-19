@@ -257,14 +257,14 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        //        /// <summary>
-        //        /// Checks if the given method has the signature "void Close()".
-        //        /// </summary>
-        //        private static bool HasDisposeCloseMethodSignature(this IMethodSymbol method)
-        //        {
-        //            return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
-        //                method.ReturnsVoid && method.Parameters.IsEmpty;
-        //        }
+        /// <summary>
+        /// Checks if the given method has the signature "void Close()".
+        /// </summary>
+        private static bool HasDisposeCloseMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
 
         /// <summary>
         /// Checks if the given method has the signature "Task CloseAsync()".

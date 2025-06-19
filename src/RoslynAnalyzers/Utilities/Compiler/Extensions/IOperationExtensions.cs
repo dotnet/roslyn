@@ -310,10 +310,10 @@ namespace Analyzer.Utilities.Extensions
         //            }
         //        }
 
-        //        public static IConditionalAccessOperation? GetConditionalAccess(this IConditionalAccessInstanceOperation operation)
-        //        {
-        //            return operation.GetAncestor(OperationKind.ConditionalAccess, (IConditionalAccessOperation c) => c.Operation.Syntax == operation.Syntax);
-        //        }
+        public static IConditionalAccessOperation? GetConditionalAccess(this IConditionalAccessInstanceOperation operation)
+        {
+            return operation.GetAncestor(OperationKind.ConditionalAccess, (IConditionalAccessOperation c) => c.Operation.Syntax == operation.Syntax);
+        }
 
         //        /// <summary>
         //        /// Gets the operation for the object being created that is being referenced by <paramref name="operation"/>.
