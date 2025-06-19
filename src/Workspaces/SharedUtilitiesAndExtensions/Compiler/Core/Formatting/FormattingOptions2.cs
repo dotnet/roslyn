@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.CodeStyle;
 
 #if !WORKSPACE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 #else
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;

@@ -170,77 +170,77 @@ namespace Analyzer.Utilities.Extensions
         //                   (SymbolEqualityComparer.Default.Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
         //        }
 
-        //        /// <summary>
-        //        /// Gets all attributes directly applied to the type or inherited from a base type.
-        //        /// </summary>
-        //        /// <param name="type">The type symbol.</param>
-        //        /// <param name="attributeUsageAttribute">The compilation symbol for <see cref="AttributeUsageAttribute"/>.</param>
-        //        public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type, INamedTypeSymbol? attributeUsageAttribute)
-        //        {
-        //            var attributes = new List<AttributeData>();
-        //            var onlyIncludeInherited = false;
+        /// <summary>
+        /// Gets all attributes directly applied to the type or inherited from a base type.
+        /// </summary>
+        /// <param name="type">The type symbol.</param>
+        /// <param name="attributeUsageAttribute">The compilation symbol for <see cref="AttributeUsageAttribute"/>.</param>
+        public static IEnumerable<AttributeData> GetApplicableAttributes(this INamedTypeSymbol type, INamedTypeSymbol? attributeUsageAttribute)
+        {
+            var attributes = new List<AttributeData>();
+            var onlyIncludeInherited = false;
 
-        //            while (type != null)
-        //            {
-        //                var current = type.GetAttributes();
-        //                if (!onlyIncludeInherited || attributeUsageAttribute is null)
-        //                {
-        //                    attributes.AddRange(current);
-        //                }
-        //                else
-        //                {
-        //                    foreach (var attribute in current)
-        //                    {
-        //                        if (!IsInheritedAttribute(attribute, attributeUsageAttribute))
-        //                        {
-        //                            continue;
-        //                        }
+            while (type != null)
+            {
+                var current = type.GetAttributes();
+                if (!onlyIncludeInherited || attributeUsageAttribute is null)
+                {
+                    attributes.AddRange(current);
+                }
+                else
+                {
+                    foreach (var attribute in current)
+                    {
+                        if (!IsInheritedAttribute(attribute, attributeUsageAttribute))
+                        {
+                            continue;
+                        }
 
-        //                        attributes.Add(attribute);
-        //                    }
-        //                }
+                        attributes.Add(attribute);
+                    }
+                }
 
-        //                type = type.BaseType;
-        //                onlyIncludeInherited = true;
-        //            }
+                type = type.BaseType;
+                onlyIncludeInherited = true;
+            }
 
-        //            return attributes;
+            return attributes;
 
-        //            // Local functions
-        //            static bool IsInheritedAttribute(AttributeData attributeData, INamedTypeSymbol attributeUsageAttribute)
-        //            {
-        //                for (var currentAttributeClass = attributeData.AttributeClass;
-        //                    currentAttributeClass is object;
-        //                    currentAttributeClass = currentAttributeClass.BaseType)
-        //                {
-        //                    foreach (var attributeClassData in currentAttributeClass.GetAttributes())
-        //                    {
-        //                        if (!SymbolEqualityComparer.Default.Equals(attributeClassData.AttributeClass, attributeUsageAttribute))
-        //                        {
-        //                            continue;
-        //                        }
+            // Local functions
+            static bool IsInheritedAttribute(AttributeData attributeData, INamedTypeSymbol attributeUsageAttribute)
+            {
+                for (var currentAttributeClass = attributeData.AttributeClass;
+                    currentAttributeClass is object;
+                    currentAttributeClass = currentAttributeClass.BaseType)
+                {
+                    foreach (var attributeClassData in currentAttributeClass.GetAttributes())
+                    {
+                        if (!SymbolEqualityComparer.Default.Equals(attributeClassData.AttributeClass, attributeUsageAttribute))
+                        {
+                            continue;
+                        }
 
-        //                        foreach (var (name, typedConstant) in attributeClassData.NamedArguments)
-        //                        {
-        //                            if (name != nameof(AttributeUsageAttribute.Inherited))
-        //                            {
-        //                                continue;
-        //                            }
+                        foreach (var (name, typedConstant) in attributeClassData.NamedArguments)
+                        {
+                            if (name != nameof(AttributeUsageAttribute.Inherited))
+                            {
+                                continue;
+                            }
 
-        //                            // The default is true, so use that when explicitly specified and for cases where the value
-        //                            // is not a boolean (i.e. compilation error scenarios).
-        //                            return !Equals(false, typedConstant.Value);
-        //                        }
+                            // The default is true, so use that when explicitly specified and for cases where the value
+                            // is not a boolean (i.e. compilation error scenarios).
+                            return !Equals(false, typedConstant.Value);
+                        }
 
-        //                        // [AttributeUsage] was found, but did not specify Inherited explicitly. The default is true.
-        //                        return true;
-        //                    }
-        //                }
+                        // [AttributeUsage] was found, but did not specify Inherited explicitly. The default is true.
+                        return true;
+                    }
+                }
 
-        //                // [AttributeUsage] was not found. The default is true.
-        //                return true;
-        //            }
-        //        }
+                // [AttributeUsage] was not found. The default is true.
+                return true;
+            }
+        }
 
         //        public static IEnumerable<AttributeData> GetApplicableExportAttributes(this INamedTypeSymbol? type, INamedTypeSymbol? exportAttributeV1, INamedTypeSymbol? exportAttributeV2, INamedTypeSymbol? inheritedExportAttribute)
         //        {

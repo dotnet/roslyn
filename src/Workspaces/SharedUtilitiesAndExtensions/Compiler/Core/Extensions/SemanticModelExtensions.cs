@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Humanizer;
 #endif
 

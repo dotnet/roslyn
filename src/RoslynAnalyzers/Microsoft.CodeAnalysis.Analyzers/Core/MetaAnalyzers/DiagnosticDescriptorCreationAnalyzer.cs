@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {

@@ -372,40 +372,40 @@ namespace Analyzer.Utilities.Extensions
         //            return true;
         //        }
 
-        //        /// <summary>
-        //        /// Check whether parameter types of the given methods are same for given parameter indices.
-        //        /// </summary>
-        //        public static bool ParameterTypesAreSame(this IMethodSymbol method1, IMethodSymbol method2, IEnumerable<int> parameterIndices, CancellationToken cancellationToken)
-        //        {
-        //            foreach (int index in parameterIndices)
-        //            {
-        //                cancellationToken.ThrowIfCancellationRequested();
+        /// <summary>
+        /// Check whether parameter types of the given methods are same for given parameter indices.
+        /// </summary>
+        public static bool ParameterTypesAreSame(this IMethodSymbol method1, IMethodSymbol method2, IEnumerable<int> parameterIndices, CancellationToken cancellationToken)
+        {
+            foreach (int index in parameterIndices)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-        //                if (!ParameterTypesAreSame(method1.Parameters[index], method2.Parameters[index]))
-        //                {
-        //                    return false;
-        //                }
-        //            }
+                if (!ParameterTypesAreSame(method1.Parameters[index], method2.Parameters[index]))
+                {
+                    return false;
+                }
+            }
 
-        //            return true;
-        //        }
+            return true;
+        }
 
-        //        public static bool ParameterTypesAreSame(this IParameterSymbol parameter1, IParameterSymbol parameter2)
-        //        {
-        //            var type1 = parameter1.Type.OriginalDefinition;
-        //            var type2 = parameter2.Type.OriginalDefinition;
+        public static bool ParameterTypesAreSame(this IParameterSymbol parameter1, IParameterSymbol parameter2)
+        {
+            var type1 = parameter1.Type.OriginalDefinition;
+            var type2 = parameter2.Type.OriginalDefinition;
 
-        //            if (type1.TypeKind == TypeKind.TypeParameter &&
-        //                type2.TypeKind == TypeKind.TypeParameter &&
-        //                ((ITypeParameterSymbol)type1).Ordinal == ((ITypeParameterSymbol)type2).Ordinal)
-        //            {
-        //                return true;
-        //            }
+            if (type1.TypeKind == TypeKind.TypeParameter &&
+                type2.TypeKind == TypeKind.TypeParameter &&
+                ((ITypeParameterSymbol)type1).Ordinal == ((ITypeParameterSymbol)type2).Ordinal)
+            {
+                return true;
+            }
 
-        //            // this doesn't account for type conversion but FxCop implementation seems doesn't either
-        //            // so this should match FxCop implementation.
-        //            return SymbolEqualityComparer.Default.Equals(type2, type1);
-        //        }
+            // this doesn't account for type conversion but FxCop implementation seems doesn't either
+            // so this should match FxCop implementation.
+            return SymbolEqualityComparer.Default.Equals(type2, type1);
+        }
 
         //        /// <summary>
         //        /// Check whether return type, parameters count and parameter types are same for the given methods.
