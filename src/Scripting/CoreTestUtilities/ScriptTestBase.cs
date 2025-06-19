@@ -11,11 +11,11 @@ using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.VisualBasic.Scripting;
-using Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic.Scripting;
+using Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.TestUtilities;

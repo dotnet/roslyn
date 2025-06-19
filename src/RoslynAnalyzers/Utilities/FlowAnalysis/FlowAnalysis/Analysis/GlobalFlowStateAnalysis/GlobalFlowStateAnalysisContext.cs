@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 {
     using CopyAnalysisResult = DataFlowAnalysisResult<CopyBlockAnalysisResult, CopyAbstractValue>;
-    using InterproceduralGlobalFlowStateAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisValueSet>;
     using GlobalFlowStateAnalysisData = DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>;
     using GlobalFlowStateAnalysisResult = DataFlowAnalysisResult<GlobalFlowStateBlockAnalysisResult, GlobalFlowStateAnalysisValueSet>;
+    using InterproceduralGlobalFlowStateAnalysisData = InterproceduralAnalysisData<DictionaryAnalysisData<AnalysisEntity, GlobalFlowStateAnalysisValueSet>, GlobalFlowStateAnalysisContext, GlobalFlowStateAnalysisValueSet>;
     using ValueContentAnalysisResult = DataFlowAnalysisResult<ValueContentBlockAnalysisResult, ValueContentAbstractValue>;
 
     /// <summary>

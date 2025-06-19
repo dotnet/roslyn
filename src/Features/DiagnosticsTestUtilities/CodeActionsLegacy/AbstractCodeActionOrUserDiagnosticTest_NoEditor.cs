@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 #if CODE_STYLE
 using OptionsCollectionAlias = CODESTYLE_UTILITIES::Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.OptionsCollection;
 #else
-using OptionsCollectionAlias = OptionsCollection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
+using OptionsCollectionAlias = OptionsCollection;
 #endif
 
 [UseExportProvider]
