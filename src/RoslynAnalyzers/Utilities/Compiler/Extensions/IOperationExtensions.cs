@@ -637,8 +637,8 @@ namespace Analyzer.Utilities.Extensions
             return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
         }
 
-        //        public static IOperation? GetInstance(this IInvocationOperation invocationOperation)
-        //            => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;
+        public static IOperation? GetInstance(this IInvocationOperation invocationOperation)
+            => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;
 
         //        public static SyntaxNode? GetInstanceSyntax(this IInvocationOperation invocationOperation)
         //            => invocationOperation.GetInstance()?.Syntax;
@@ -857,38 +857,38 @@ namespace Analyzer.Utilities.Extensions
         //            };
         //        }
 
-        //        public static bool TryGetArgumentForParameterAtIndex(
-        //            this ImmutableArray<IArgumentOperation> arguments,
-        //            int parameterIndex,
-        //            [NotNullWhen(true)] out IArgumentOperation? result)
-        //        {
-        //            Debug.Assert(parameterIndex >= 0);
-        //            Debug.Assert(parameterIndex < arguments.Length);
+        public static bool TryGetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex,
+            [NotNullWhen(true)] out IArgumentOperation? result)
+        {
+            Debug.Assert(parameterIndex >= 0);
+            Debug.Assert(parameterIndex < arguments.Length);
 
-        //            foreach (var argument in arguments)
-        //            {
-        //                if (argument.Parameter?.Ordinal == parameterIndex)
-        //                {
-        //                    result = argument;
-        //                    return true;
-        //                }
-        //            }
+            foreach (var argument in arguments)
+            {
+                if (argument.Parameter?.Ordinal == parameterIndex)
+                {
+                    result = argument;
+                    return true;
+                }
+            }
 
-        //            result = null;
-        //            return false;
-        //        }
+            result = null;
+            return false;
+        }
 
-        //        public static IArgumentOperation GetArgumentForParameterAtIndex(
-        //            this ImmutableArray<IArgumentOperation> arguments,
-        //            int parameterIndex)
-        //        {
-        //            if (TryGetArgumentForParameterAtIndex(arguments, parameterIndex, out var result))
-        //            {
-        //                return result;
-        //            }
+        public static IArgumentOperation GetArgumentForParameterAtIndex(
+            this ImmutableArray<IArgumentOperation> arguments,
+            int parameterIndex)
+        {
+            if (TryGetArgumentForParameterAtIndex(arguments, parameterIndex, out var result))
+            {
+                return result;
+            }
 
-        //            throw new InvalidOperationException();
-        //        }
+            throw new InvalidOperationException();
+        }
 
         //        /// <summary>
         //        /// Useful when named arguments used for a method call and you need them in the original parameter order.

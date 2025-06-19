@@ -204,7 +204,7 @@ internal static partial class SemanticModelExtensions
 
     public static string Pluralize(string word)
     {
-#if CODE_STYLE
+#if !WORKSPACE
         return word;
 #else
         return word.Pluralize();
