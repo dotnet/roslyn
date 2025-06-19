@@ -66,17 +66,17 @@ namespace Analyzer.Utilities.Extensions
             return operation.ConstantValue.HasValue && operation.ConstantValue.Value == null;
         }
 
-        //        public static bool TryGetBoolConstantValue(this IOperation operation, out bool constantValue)
-        //        {
-        //            if (operation.ConstantValue.HasValue && operation.ConstantValue.Value is bool value)
-        //            {
-        //                constantValue = value;
-        //                return true;
-        //            }
+        public static bool TryGetBoolConstantValue(this IOperation operation, out bool constantValue)
+        {
+            if (operation.ConstantValue.HasValue && operation.ConstantValue.Value is bool value)
+            {
+                constantValue = value;
+                return true;
+            }
 
-        //            constantValue = false;
-        //            return false;
-        //        }
+            constantValue = false;
+            return false;
+        }
 
         //        public static bool HasConstantValue(this IOperation operation, long comparand)
         //        {

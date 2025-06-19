@@ -760,44 +760,44 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        //        /// <summary>
-        //        /// Returns a value indicating whether the specified or inherited method symbol has the specified
-        //        /// attribute.
-        //        /// </summary>
-        //        /// <param name="symbol">
-        //        /// The symbol being examined.
-        //        /// </param>
-        //        /// <param name="attribute">
-        //        /// The attribute in question.
-        //        /// </param>
-        //        /// <returns>
-        //        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
-        //        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
-        //        /// </returns>
-        //        public static bool HasDerivedMethodAttribute(this IMethodSymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
-        //        {
-        //            if (attribute == null)
-        //            {
-        //                return false;
-        //            }
+        /// <summary>
+        /// Returns a value indicating whether the specified or inherited method symbol has the specified
+        /// attribute.
+        /// </summary>
+        /// <param name="symbol">
+        /// The symbol being examined.
+        /// </param>
+        /// <param name="attribute">
+        /// The attribute in question.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
+        /// </returns>
+        public static bool HasDerivedMethodAttribute(this IMethodSymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
+        {
+            if (attribute == null)
+            {
+                return false;
+            }
 
-        //            while (symbol != null)
-        //            {
-        //                if (symbol.HasAnyAttribute(attribute))
-        //                {
-        //                    return true;
-        //                }
+            while (symbol != null)
+            {
+                if (symbol.HasAnyAttribute(attribute))
+                {
+                    return true;
+                }
 
-        //                if (symbol.OverriddenMethod == null)
-        //                {
-        //                    return false;
-        //                }
+                if (symbol.OverriddenMethod == null)
+                {
+                    return false;
+                }
 
-        //                symbol = symbol.OverriddenMethod;
-        //            }
+                symbol = symbol.OverriddenMethod;
+            }
 
-        //            return false;
-        //        }
+            return false;
+        }
 
         //        /// <summary>
         //        /// Determines if the given symbol has the specified attributes.
@@ -831,8 +831,8 @@ namespace Analyzer.Utilities.Extensions
         //            return symbol.Locations.Any(l => l.IsInSource);
         //        }
 
-        //        public static bool IsLambdaOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        //            => (symbol as IMethodSymbol)?.IsLambdaOrLocalFunction() == true;
+        public static bool IsLambdaOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+            => (symbol as IMethodSymbol)?.IsLambdaOrLocalFunction() == true;
 
         //        /// <summary>
         //        /// Returns true for symbols whose name starts with an underscore and

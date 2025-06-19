@@ -158,14 +158,14 @@ namespace Analyzer.Utilities.Extensions
         //                SymbolEqualityComparer.Default.Equals(method, method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
         //        }
 
-        //        /// <summary>
-        //        /// Checks if the given method implements IDisposable.Dispose()
-        //        /// </summary>
-        //        public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
-        //        {
-        //            INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
-        //            return method.IsDisposeImplementation(iDisposable);
-        //        }
+        /// <summary>
+        /// Checks if the given method implements IDisposable.Dispose()
+        /// </summary>
+        public static bool IsDisposeImplementation(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            return method.IsDisposeImplementation(iDisposable);
+        }
 
         //        /// <summary>
         //        /// Checks if the given method implements IAsyncDisposable.Dispose()
@@ -240,22 +240,22 @@ namespace Analyzer.Utilities.Extensions
                 && !method.IsPrivate();
         }
 
-        //        /// <summary>
-        //        /// Checks if the given method has the signature "void Dispose(bool)".
-        //        /// </summary>
-        //        public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
-        //        {
-        //            if (method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
-        //                method.ReturnsVoid && method.Parameters.Length == 1)
-        //            {
-        //                IParameterSymbol parameter = method.Parameters[0];
-        //                return parameter.Type != null &&
-        //                    parameter.Type.SpecialType == SpecialType.System_Boolean &&
-        //                    parameter.RefKind == RefKind.None;
-        //            }
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose(bool)".
+        /// </summary>
+        public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
+        {
+            if (method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.Length == 1)
+            {
+                IParameterSymbol parameter = method.Parameters[0];
+                return parameter.Type != null &&
+                    parameter.Type.SpecialType == SpecialType.System_Boolean &&
+                    parameter.RefKind == RefKind.None;
+            }
 
-        //            return false;
-        //        }
+            return false;
+        }
 
         //        /// <summary>
         //        /// Checks if the given method has the signature "void Close()".
@@ -314,73 +314,73 @@ namespace Analyzer.Utilities.Extensions
         //                method.Parameters.Length == 0;
         //        }
 
-        //        /// <summary>
-        //        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
-        //        /// </summary>
-        //        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
-        //        {
-        //            INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
-        //            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
-        //            INamedTypeSymbol? configuredAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredAsyncDisposable);
-        //            INamedTypeSymbol? task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
-        //            INamedTypeSymbol? valueTask = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
-        //            INamedTypeSymbol? configuredValueTaskAwaitable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable);
-        //            return method.GetDisposeMethodKind(iDisposable, iAsyncDisposable, configuredAsyncDisposable, task, valueTask, configuredValueTaskAwaitable);
-        //        }
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol? iDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            INamedTypeSymbol? configuredAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredAsyncDisposable);
+            INamedTypeSymbol? task = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            INamedTypeSymbol? valueTask = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            INamedTypeSymbol? configuredValueTaskAwaitable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable);
+            return method.GetDisposeMethodKind(iDisposable, iAsyncDisposable, configuredAsyncDisposable, task, valueTask, configuredValueTaskAwaitable);
+        }
 
-        //        /// <summary>
-        //        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
-        //        /// </summary>
-        //        public static DisposeMethodKind GetDisposeMethodKind(
-        //            this IMethodSymbol method,
-        //            INamedTypeSymbol? iDisposable,
-        //            INamedTypeSymbol? iAsyncDisposable,
-        //            INamedTypeSymbol? configuredAsyncDisposable,
-        //            INamedTypeSymbol? task,
-        //            INamedTypeSymbol? valueTask,
-        //            INamedTypeSymbol? configuredValueTaskAwaitable)
-        //        {
-        //            if (method.ContainingType.IsDisposable(iDisposable, iAsyncDisposable, configuredAsyncDisposable))
-        //            {
-        //                if (IsDisposeImplementation(method, iDisposable) ||
-        //                    (SymbolEqualityComparer.Default.Equals(method.ContainingType, iDisposable) &&
-        //                     method.HasDisposeMethodSignature())
-        //#if CODEANALYSIS_V3_OR_BETTER
-        //                    || (method.ContainingType.IsRefLikeType &&
-        //                     method.HasDisposeSignatureByConvention())
-        //#endif
-        //                )
-        //                {
-        //                    return DisposeMethodKind.Dispose;
-        //                }
-        //                else if (method.HasDisposeBoolMethodSignature())
-        //                {
-        //                    return DisposeMethodKind.DisposeBool;
-        //                }
-        //                else if (method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTask) || method.HasDisposeAsyncMethodSignature(task, valueTask, configuredValueTaskAwaitable))
-        //                {
-        //                    return DisposeMethodKind.DisposeAsync;
-        //                }
-        //                else if (method.HasOverriddenDisposeCoreAsyncMethodSignature(task))
-        //                {
-        //                    return DisposeMethodKind.DisposeCoreAsync;
-        //                }
-        //                else if (method.HasVirtualOrOverrideDisposeCoreAsyncMethodSignature(valueTask))
-        //                {
-        //                    return DisposeMethodKind.DisposeCoreAsync;
-        //                }
-        //                else if (method.HasDisposeCloseMethodSignature())
-        //                {
-        //                    return DisposeMethodKind.Close;
-        //                }
-        //                else if (method.HasDisposeCloseAsyncMethodSignature(task))
-        //                {
-        //                    return DisposeMethodKind.CloseAsync;
-        //                }
-        //            }
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(
+            this IMethodSymbol method,
+            INamedTypeSymbol? iDisposable,
+            INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? configuredAsyncDisposable,
+            INamedTypeSymbol? task,
+            INamedTypeSymbol? valueTask,
+            INamedTypeSymbol? configuredValueTaskAwaitable)
+        {
+            if (method.ContainingType.IsDisposable(iDisposable, iAsyncDisposable, configuredAsyncDisposable))
+            {
+                if (IsDisposeImplementation(method, iDisposable) ||
+                    (SymbolEqualityComparer.Default.Equals(method.ContainingType, iDisposable) &&
+                     method.HasDisposeMethodSignature())
+#if CODEANALYSIS_V3_OR_BETTER
+                    || (method.ContainingType.IsRefLikeType &&
+                     method.HasDisposeSignatureByConvention())
+#endif
+                )
+                {
+                    return DisposeMethodKind.Dispose;
+                }
+                else if (method.HasDisposeBoolMethodSignature())
+                {
+                    return DisposeMethodKind.DisposeBool;
+                }
+                else if (method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTask) || method.HasDisposeAsyncMethodSignature(task, valueTask, configuredValueTaskAwaitable))
+                {
+                    return DisposeMethodKind.DisposeAsync;
+                }
+                else if (method.HasOverriddenDisposeCoreAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.DisposeCoreAsync;
+                }
+                else if (method.HasVirtualOrOverrideDisposeCoreAsyncMethodSignature(valueTask))
+                {
+                    return DisposeMethodKind.DisposeCoreAsync;
+                }
+                else if (method.HasDisposeCloseMethodSignature())
+                {
+                    return DisposeMethodKind.Close;
+                }
+                else if (method.HasDisposeCloseAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.CloseAsync;
+                }
+            }
 
-        //            return DisposeMethodKind.None;
-        //        }
+            return DisposeMethodKind.None;
+        }
 
         //        /// <summary>
         //        /// Checks if the given method implements 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization' or overrides an implementation of 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization'/>.
@@ -612,14 +612,14 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        //        public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
-        //        {
-        //            return method.MethodKind switch
-        //            {
-        //                MethodKind.LambdaMethod or MethodKindEx.LocalFunction => true,
-        //                _ => false,
-        //            };
-        //        }
+        public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
+        {
+            return method.MethodKind switch
+            {
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction => true,
+                _ => false,
+            };
+        }
 
         //        public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
         //        {
