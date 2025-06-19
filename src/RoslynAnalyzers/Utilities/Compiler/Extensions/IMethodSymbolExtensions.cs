@@ -714,19 +714,19 @@ namespace Analyzer.Utilities.Extensions
         //            }
         //        }
 
-        //        /// <summary>
-        //        /// Returns true if this is a bool returning static method whose name starts with "IsNull"
-        //        /// with a single parameter whose type is not a value type.
-        //        /// For example, "static bool string.IsNullOrEmpty()"
-        //        /// </summary>
-        //        public static bool IsArgumentNullCheckMethod(this IMethodSymbol method)
-        //        {
-        //            return method.IsStatic &&
-        //                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-        //                method.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
-        //                method.Parameters.Length == 1 &&
-        //                !method.Parameters[0].Type.IsValueType;
-        //        }
+        /// <summary>
+        /// Returns true if this is a bool returning static method whose name starts with "IsNull"
+        /// with a single parameter whose type is not a value type.
+        /// For example, "static bool string.IsNullOrEmpty()"
+        /// </summary>
+        public static bool IsArgumentNullCheckMethod(this IMethodSymbol method)
+        {
+            return method.IsStatic &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Name.StartsWith("IsNull", StringComparison.Ordinal) &&
+                method.Parameters.Length == 1 &&
+                !method.Parameters[0].Type.IsValueType;
+        }
 
         public static bool IsBenchmarkOrXUnitTestMethod(this IMethodSymbol method, ConcurrentDictionary<INamedTypeSymbol, bool> knownTestAttributes, INamedTypeSymbol? benchmarkAttribute, INamedTypeSymbol? xunitFactAttribute)
         {

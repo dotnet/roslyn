@@ -393,24 +393,24 @@ namespace Analyzer.Utilities.Extensions
         //            return operationBlocks.HasAnyOperationDescendant(predicate: operation => operation.Kind == kind);
         //        }
 
-        //        /// <summary>
-        //        /// Indicates if the given <paramref name="binaryOperation"/> is a predicate operation used in a condition.
-        //        /// </summary>
-        //        /// <param name="binaryOperation"></param>
-        //        /// <returns></returns>
-        //        public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
-        //            => binaryOperation.OperatorKind switch
-        //            {
-        //                BinaryOperatorKind.Equals
-        //                or BinaryOperatorKind.NotEquals
-        //                or BinaryOperatorKind.ObjectValueEquals
-        //                or BinaryOperatorKind.ObjectValueNotEquals
-        //                or BinaryOperatorKind.LessThan
-        //                or BinaryOperatorKind.LessThanOrEqual
-        //                or BinaryOperatorKind.GreaterThan
-        //                or BinaryOperatorKind.GreaterThanOrEqual => true,
-        //                _ => false,
-        //            };
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is a predicate operation used in a condition.
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns></returns>
+        public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
+            => binaryOperation.OperatorKind switch
+            {
+                BinaryOperatorKind.Equals
+                or BinaryOperatorKind.NotEquals
+                or BinaryOperatorKind.ObjectValueEquals
+                or BinaryOperatorKind.ObjectValueNotEquals
+                or BinaryOperatorKind.LessThan
+                or BinaryOperatorKind.LessThanOrEqual
+                or BinaryOperatorKind.GreaterThan
+                or BinaryOperatorKind.GreaterThanOrEqual => true,
+                _ => false,
+            };
 
         //        /// <summary>
         //        /// Indicates if the given <paramref name="binaryOperation"/> is an addition or substaction operation.
