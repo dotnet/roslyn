@@ -40,9 +40,6 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
     /// </summary>
     public void StartListening(Workspace workspace)
     {
-        // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
-        Load();
-
         _ = workspace.RegisterWorkspaceChangedHandler(Workspace_WorkspaceChanged);
     }
 
@@ -50,9 +47,9 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
     {
         if (e.Kind == WorkspaceChangeKind.SolutionAdded)
         {
-            // We loaded the language client when the workspace started, above, but VS shuts it down when a solution closes,
-            // so when a new solution is loaded we have to load it again. The language server broker is smart enough not to
-            // load the same client multiple times, so reliability of this event is not a big concern.
+            // Normally VS will load the language client when an editor window is created for one of our content types,
+            // but we want to load it as soon as a solution is loaded so workspace diagnostics work, and so 3rd parties
+            // like Razor can use dynamic registration.
             Load();
         }
     }
