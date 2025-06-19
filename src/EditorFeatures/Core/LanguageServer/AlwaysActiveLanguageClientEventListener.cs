@@ -42,6 +42,19 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
     {
         // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
         _ = LoadAsync();
+
+        _ = workspace.RegisterWorkspaceChangedHandler(Workspace_WorkspaceChanged);
+    }
+
+    private void Workspace_WorkspaceChanged(WorkspaceChangeEventArgs e)
+    {
+        if (e.Kind == WorkspaceChangeKind.SolutionAdded)
+        {
+            // We loaded the language client when the workspace started, above, but VS shuts it down when a solution closes,
+            // so when a new solution is loaded we have to load it again. The language server broker is smart enough not to
+            // load the same client multiple times, so reliability of this event is not a big concern.
+            _ = LoadAsync();
+        }
     }
 
     public void StopListening(Workspace workspace)
