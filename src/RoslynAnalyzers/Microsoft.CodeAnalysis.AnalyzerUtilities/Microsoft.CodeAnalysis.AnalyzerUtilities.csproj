@@ -18,6 +18,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Analyzer.Utilities.UnitTests" />

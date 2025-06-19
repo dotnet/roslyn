@@ -10,32 +10,10 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    internal static class ControlFlowGraphExtensions
+    internal static partial class ControlFlowGraphExtensions
     {
         public static BasicBlock GetEntry(this ControlFlowGraph cfg) => cfg.Blocks.Single(b => b.Kind == BasicBlockKind.Entry);
         public static BasicBlock GetExit(this ControlFlowGraph cfg) => cfg.Blocks.Single(b => b.Kind == BasicBlockKind.Exit);
-        public static IEnumerable<IOperation> DescendantOperations(this ControlFlowGraph cfg)
-        {
-            foreach (BasicBlock block in cfg.Blocks)
-            {
-                foreach (IOperation operation in block.DescendantOperations())
-                {
-                    yield return operation;
-                }
-            }
-        }
-
-        public static IEnumerable<T> DescendantOperations<T>(this ControlFlowGraph cfg, OperationKind operationKind)
-            where T : IOperation
-        {
-            foreach (var descendant in cfg.DescendantOperations())
-            {
-                if (descendant?.Kind == operationKind)
-                {
-                    yield return (T)descendant;
-                }
-            }
-        }
 
         internal static bool SupportsFlowAnalysis(this ControlFlowGraph cfg)
         {
