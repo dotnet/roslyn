@@ -137,7 +137,7 @@ internal static partial class ConvertProgramTransform
 
             editor.ReplaceNode(namespaceDeclaration, (_, _) => globalStatements);
 
-            // We're removing the namespace itself.  So we want to plae the trailing directive on the element that follows that.
+            // We're removing the namespace itself.  So we want to place the trailing directive on the element that follows that.
             AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(namespaceDeclaration) + 1);
         }
         else
