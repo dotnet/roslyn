@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using ImmutableArrayExtensions = Microsoft.CodeAnalysis.ImmutableArrayExtensions;
 
 namespace Roslyn.Utilities
 {
@@ -475,11 +476,7 @@ namespace Roslyn.Utilities
                 index++;
             }
 
-#if ROSLYN_ANALYZERS
-            return ImmutableArray.Create(builder);
-#else
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-#endif
+            return ImmutableArrayExtensions.Create(builder);
         }
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
@@ -495,11 +492,7 @@ namespace Roslyn.Utilities
                 index++;
             }
 
-#if ROSLYN_ANALYZERS
-            return ImmutableArray.Create(builder);
-#else
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-#endif
+            return ImmutableArrayExtensions.Create(builder);
         }
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
