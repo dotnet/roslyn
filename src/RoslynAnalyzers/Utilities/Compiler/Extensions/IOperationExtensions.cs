@@ -458,13 +458,13 @@ namespace Analyzer.Utilities.Extensions
             return cfg != null;
         }
 
-        //public static ControlFlowGraph? GetEnclosingControlFlowGraph(this IBlockOperation blockOperation)
-        //{
-        //    var success = blockOperation.TryGetEnclosingControlFlowGraph(out var cfg);
-        //    Debug.Assert(success);
-        //    Debug.Assert(cfg != null);
-        //    return cfg;
-        //}
+        public static ControlFlowGraph? GetEnclosingControlFlowGraph(this IBlockOperation blockOperation)
+        {
+            var success = blockOperation.TryGetEnclosingControlFlowGraph(out var cfg);
+            Debug.Assert(success);
+            Debug.Assert(cfg != null);
+            return cfg;
+        }
 
         private static ControlFlowGraph? CreateControlFlowGraph(IOperation operation)
         {
@@ -568,29 +568,29 @@ namespace Analyzer.Utilities.Extensions
         //                && operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition is { } lambdaType
         //                && linqExpressionTreeType.Equals(lambdaType);
 
-        //        public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
-        //        {
-        //            return pattern switch
-        //            {
-        //#if CODEANALYSIS_V3_OR_BETTER
-        //                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
-        //                IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
-        //                IDiscardPatternOperation discardPattern => discardPattern.InputType,
-        //#else
-        //                IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
-        //                {
-        //                    ILocalSymbol local => local.Type,
+        public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
+        {
+            return pattern switch
+            {
+#if CODEANALYSIS_V3_OR_BETTER
+                IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                IRecursivePatternOperation recursivePattern => recursivePattern.MatchedType,
+                IDiscardPatternOperation discardPattern => discardPattern.InputType,
+#else
+                        IDeclarationPatternOperation declarationPattern => declarationPattern.DeclaredSymbol switch
+                        {
+                            ILocalSymbol local => local.Type,
 
-        //                    IDiscardSymbol discard => discard.Type,
+                            IDiscardSymbol discard => discard.Type,
 
-        //                    _ => null,
-        //                },
-        //#endif
-        //                IConstantPatternOperation constantPattern => constantPattern.Value.Type,
+                            _ => null,
+                        },
+#endif
+                IConstantPatternOperation constantPattern => constantPattern.Value.Type,
 
-        //                _ => null,
-        //            };
-        //        }
+                _ => null,
+            };
+        }
 
         //        /// <summary>
         //        /// If the given <paramref name="tupleOperation"/> is a nested tuple,

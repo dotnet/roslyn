@@ -293,8 +293,8 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        //        public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
-        //            => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
+        public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
+            => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
 
         //#if !MICROSOFT_CODEANALYSIS_PUBLIC_API_ANALYZERS
         //        public static bool CanHoldNullValue([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)

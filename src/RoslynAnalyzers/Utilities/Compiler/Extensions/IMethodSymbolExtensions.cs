@@ -536,20 +536,20 @@ namespace Analyzer.Utilities.Extensions
         //               method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
         //               SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, genericTaskType);
 
-        //        /// <summary>
-        //        /// Determine if the specific method is a TaskAsyncEnumerableExtensions.ConfigureAwait(this IAsyncDisposable, bool) extension method.
-        //        /// </summary>
-        //        /// <param name="method">The method to test.</param>
-        //        /// <param name="asyncDisposableType">IAsyncDisposable named type.</param>
-        //        /// <param name="taskAsyncEnumerableExtensions">System.Threading.Tasks.TaskAsyncEnumerableExtensions named type.</param>
-        //        public static bool IsAsyncDisposableConfigureAwaitMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? asyncDisposableType, [NotNullWhen(returnValue: true)] INamedTypeSymbol? taskAsyncEnumerableExtensions)
-        //            => method.IsExtensionMethod &&
-        //               method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
-        //               method.Parameters.Length == 2 &&
-        //               SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, asyncDisposableType) &&
-        //               method.Parameters[1].Type.SpecialType == SpecialType.System_Boolean &&
-        //               SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, taskAsyncEnumerableExtensions) &&
-        //               taskAsyncEnumerableExtensions.IsStatic;
+        /// <summary>
+        /// Determine if the specific method is a TaskAsyncEnumerableExtensions.ConfigureAwait(this IAsyncDisposable, bool) extension method.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="asyncDisposableType">IAsyncDisposable named type.</param>
+        /// <param name="taskAsyncEnumerableExtensions">System.Threading.Tasks.TaskAsyncEnumerableExtensions named type.</param>
+        public static bool IsAsyncDisposableConfigureAwaitMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? asyncDisposableType, [NotNullWhen(returnValue: true)] INamedTypeSymbol? taskAsyncEnumerableExtensions)
+            => method.IsExtensionMethod &&
+               method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
+               method.Parameters.Length == 2 &&
+               SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, asyncDisposableType) &&
+               method.Parameters[1].Type.SpecialType == SpecialType.System_Boolean &&
+               SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, taskAsyncEnumerableExtensions) &&
+               taskAsyncEnumerableExtensions.IsStatic;
 
         //#if HAS_IOPERATION
         //        /// <summary>
