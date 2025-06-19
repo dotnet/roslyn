@@ -37040,8 +37040,14 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
+        var verifier = CompileAndVerify(source, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
+        verifier.VerifyDiagnostics(
             // (5,21): warning CS0626: Method, operator, or accessor 'E.extension(int).M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //         extern void M();
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("E.extension(int).M()").WithLocation(5, 21),
@@ -37051,13 +37057,6 @@ static class E
             // (6,29): warning CS0626: Method, operator, or accessor 'E.extension(int).P.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //         extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 29));
-
-        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
-            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-            Type load failed.
-            """ });
 
         VerifyTypeIL(verifier, "E", """
 .class private auto ansi abstract sealed beforefieldinit E
@@ -37152,16 +37151,15 @@ class C
     extern void M();
 }
 """;
-        comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
-            // (3,17): warning CS0626: Method, operator, or accessor 'C.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-            //     extern void M();
-            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("C.M()").WithLocation(3, 17));
-
-        verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+        verifier = CompileAndVerify(source, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
             Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
             Type load failed.
             """ });
+
+        verifier.VerifyDiagnostics(
+            // (3,17): warning CS0626: Method, operator, or accessor 'C.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //     extern void M();
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("C.M()").WithLocation(3, 17));
 
         VerifyTypeIL(verifier, "C", """
 .class private auto ansi beforefieldinit C
@@ -37199,8 +37197,14 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
+        var verifier = CompileAndVerify(source, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
+        verifier.VerifyDiagnostics(
             // (5,28): warning CS0626: Method, operator, or accessor 'E.extension(int).M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //         static extern void M();
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("E.extension(int).M()").WithLocation(5, 28),
@@ -37210,13 +37214,6 @@ static class E
             // (6,36): warning CS0626: Method, operator, or accessor 'E.extension(int).P.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //         static extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 36));
-
-        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
-            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-            Type load failed.
-            """ });
 
         VerifyTypeIL(verifier, "E", """
 .class private auto ansi abstract sealed beforefieldinit E
