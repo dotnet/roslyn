@@ -100,11 +100,11 @@ namespace Analyzer.Utilities.Extensions
         //                   symbol.ImplementsOperator(WellKnownMemberNames.InequalityOperatorName);
         //        }
 
-        //        public static bool OverridesEquals(this INamedTypeSymbol symbol)
-        //        {
-        //            // Does the symbol override Object.Equals?
-        //            return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Any(m => m.IsObjectEqualsOverride());
-        //        }
+        public static bool OverridesEquals(this INamedTypeSymbol symbol)
+        {
+            // Does the symbol override Object.Equals?
+            return symbol.GetMembers(WellKnownMemberNames.ObjectEquals).OfType<IMethodSymbol>().Any(m => m.IsObjectEqualsOverride());
+        }
 
         //        public static bool OverridesGetHashCode(this INamedTypeSymbol symbol)
         //        {

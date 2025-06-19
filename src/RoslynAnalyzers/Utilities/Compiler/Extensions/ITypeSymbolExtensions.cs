@@ -297,20 +297,20 @@ namespace Analyzer.Utilities.Extensions
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
 
         //#if !MICROSOFT_CODEANALYSIS_PUBLIC_API_ANALYZERS
-        //        public static bool CanHoldNullValue([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
-        //            => typeSymbol.IsReferenceTypeOrNullableValueType() ||
-        //               typeSymbol?.IsRefLikeType == true ||
-        //               typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
+        public static bool CanHoldNullValue([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
+            => typeSymbol.IsReferenceTypeOrNullableValueType() ||
+               typeSymbol?.IsRefLikeType == true ||
+               typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
         //#endif
 
         //        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
         //            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
 
-        //        public static bool IsNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
-        //            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        public static bool IsNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
+            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
-        //        public static bool IsReferenceTypeOrNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
-        //            => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
+        public static bool IsReferenceTypeOrNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
+            => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
 
         //        public static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
         //            => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
