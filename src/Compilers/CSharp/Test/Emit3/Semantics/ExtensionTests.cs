@@ -36964,7 +36964,7 @@ static class E
             //         extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 29));
 
-        var verifier = CompileAndVerify(comp);
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         VerifyTypeIL(verifier, "E", """
 .class private auto ansi abstract sealed beforefieldinit E
     extends [netstandard]System.Object
@@ -37051,6 +37051,42 @@ static class E
     } // end of method E::set_P
 } // end of class E
 """);
+
+        source = """
+class C
+{
+    extern void M();
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (3,17): warning CS0626: Method, operator, or accessor 'C.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //     extern void M();
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("C.M()").WithLocation(3, 17));
+
+        // Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+        verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+        VerifyTypeIL(verifier, "C", """
+.class private auto ansi beforefieldinit C
+    extends [netstandard]System.Object
+{
+    // Methods
+    .method private hidebysig 
+        instance void M () cil managed 
+    {
+    } // end of method C::M
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+} // end of class C
+""");
     }
 
     [Fact]
@@ -37078,7 +37114,7 @@ static class E
             //         static extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 36));
 
-        var verifier = CompileAndVerify(comp);
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         VerifyTypeIL(verifier, "E", """
 .class private auto ansi abstract sealed beforefieldinit E
     extends [netstandard]System.Object
