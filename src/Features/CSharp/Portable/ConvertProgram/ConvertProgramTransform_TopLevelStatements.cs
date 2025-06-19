@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -19,7 +18,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram;
@@ -186,15 +184,62 @@ internal static partial class ConvertProgramTransform
                 // top-level statements.
                 Contract.ThrowIfNull(methodDeclaration.Body); // checked by analyzer
 
-                // Extract statements from the method body while preserving all trivia,
-                // including preprocessor directives and disabled code sections.
-                var bodyStatements = ExtractStatementsFromMethodBody(methodDeclaration);
+                var bodyStatements = methodDeclaration.Body.Statements;
 
                 // move comments on the method to be on it's first statement.
                 if (bodyStatements.Count > 0)
-                    statements.Add(bodyStatements[0].WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia()));
+                {
+                    var firstStatement = bodyStatements[0];
+                    
+                    // Check if the method body contains preprocessor directives that need to be preserved
+                    if (ContainsPreprocessorDirectives(methodDeclaration.Body))
+                    {
+                        // For preprocessor directives, we need to preserve trivia that contains
+                        // the complete #if/#else/#endif structure including disabled code sections.
+                        // This trivia is typically found on the brace tokens.
+                        var openBrace = methodDeclaration.Body.OpenBraceToken;
+                        var closeBrace = methodDeclaration.Body.CloseBraceToken;
+                        
+                        // Combine trivia from open brace (trailing) + method leading trivia + first statement leading trivia
+                        var combinedLeadingTrivia = methodDeclaration.GetLeadingTrivia()
+                            .Concat(openBrace.TrailingTrivia)
+                            .Concat(firstStatement.GetLeadingTrivia());
+                            
+                        firstStatement = firstStatement.WithLeadingTrivia(combinedLeadingTrivia);
+                        statements.Add(firstStatement);
+                        
+                        // Add remaining statements except the last one
+                        statements.AddRange(bodyStatements.Skip(1).Take(bodyStatements.Count - 2));
+                        
+                        // Handle the last statement - add close brace trivia to it
+                        if (bodyStatements.Count > 1)
+                        {
+                            var lastStatement = bodyStatements[bodyStatements.Count - 1];
+                            var combinedTrailingTrivia = lastStatement.GetTrailingTrivia()
+                                .Concat(closeBrace.LeadingTrivia);
+                            statements.Add(lastStatement.WithTrailingTrivia(combinedTrailingTrivia));
+                        }
+                        else 
+                        {
+                            // Single statement case - add close brace trivia to trailing trivia of the first statement
+                            var combinedTrailingTrivia = firstStatement.GetTrailingTrivia()
+                                .Concat(closeBrace.LeadingTrivia);
+                            // Replace the first statement we already added
+                            statements[statements.Count - 1] = firstStatement.WithTrailingTrivia(combinedTrailingTrivia);
+                        }
+                    }
+                    else
+                    {
+                        firstStatement = firstStatement.WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia());
+                        statements.Add(firstStatement);
+                    }
+                }
 
-                statements.AddRange(bodyStatements.Skip(1));
+                // Only add remaining statements if we didn't handle them already in the preprocessor case
+                if (!ContainsPreprocessorDirectives(methodDeclaration.Body))
+                {
+                    statements.AddRange(bodyStatements.Skip(1));
+                }
             }
             else if (member is MethodDeclarationSyntax otherMethod)
             {
@@ -266,150 +311,8 @@ internal static partial class ConvertProgramTransform
             (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(field.Type)));
     }
 
-    /// <summary>
-    /// Extracts statements from a method body while preserving all trivia, including
-    /// preprocessor directives and disabled code sections in #if/#else/#endif blocks.
-    /// </summary>
-    private static ImmutableArray<StatementSyntax> ExtractStatementsFromMethodBody(MethodDeclarationSyntax methodDeclaration)
-    {
-        Contract.ThrowIfNull(methodDeclaration.Body);
-
-        var methodBody = methodDeclaration.Body;
-        var methodBodyStatements = methodBody.Statements;
-        
-        if (methodBodyStatements.Count == 0)
-            return ImmutableArray<StatementSyntax>.Empty;
-
-        // If we don't have preprocessor directives, use the simple approach
-        if (!ContainsPreprocessorDirectives(methodBody))
-            return methodBodyStatements.ToImmutableArray();
-
-        // Extract the entire content between the braces, preserving all trivia
-        return ExtractStatementsPreservingAllTrivia(methodBody);
-    }
-
     private static bool ContainsPreprocessorDirectives(BlockSyntax block)
     {
         return block.DescendantTrivia().Any(trivia => SyntaxFacts.IsPreprocessorDirective(trivia.Kind()));
-    }
-
-    private static ImmutableArray<StatementSyntax> ExtractStatementsPreservingAllTrivia(BlockSyntax methodBody)
-    {
-        var originalStatements = methodBody.Statements;
-        if (originalStatements.Count == 0)
-            return ImmutableArray<StatementSyntax>.Empty;
-
-        // Collect all preprocessor directive trivia from the entire method body
-        var allPreprocessorTrivia = new List<SyntaxTrivia>();
-        
-        foreach (var token in methodBody.DescendantTokens())
-        {
-            // Collect preprocessor directives from leading trivia
-            foreach (var trivia in token.LeadingTrivia)
-            {
-                if (SyntaxFacts.IsPreprocessorDirective(trivia.Kind()))
-                {
-                    allPreprocessorTrivia.Add(trivia);
-                }
-            }
-            
-            // Collect preprocessor directives from trailing trivia  
-            foreach (var trivia in token.TrailingTrivia)
-            {
-                if (SyntaxFacts.IsPreprocessorDirective(trivia.Kind()))
-                {
-                    allPreprocessorTrivia.Add(trivia);
-                }
-            }
-        }
-
-        // If no preprocessor directives, return original statements
-        if (allPreprocessorTrivia.Count == 0)
-        {
-            return originalStatements.ToImmutableArray();
-        }
-
-        // Reconstruct the statements with all preprocessor trivia preserved
-        return ReconstructStatementsWithPreprocessorTrivia(originalStatements, allPreprocessorTrivia, methodBody);
-    }
-
-    private static ImmutableArray<StatementSyntax> ReconstructStatementsWithPreprocessorTrivia(
-        SyntaxList<StatementSyntax> originalStatements, 
-        List<SyntaxTrivia> preprocessorTrivia,
-        BlockSyntax methodBody)
-    {
-        if (originalStatements.Count == 0)
-            return ImmutableArray<StatementSyntax>.Empty;
-
-        // For the first statement, we need to reconstruct it to include all the preprocessor trivia
-        // that represents the original method body structure
-        var firstStatement = originalStatements[0];
-        
-        // Get the complete text of the method body content
-        var methodBodyText = GetMethodBodyInnerText(methodBody);
-        
-        // Create structured trivia that preserves the original formatting
-        var preservedTrivia = CreatePreprocessorPreservingTrivia(methodBodyText, firstStatement);
-        
-        // Create the new first statement with preserved trivia
-        var newFirstStatement = firstStatement.WithLeadingTrivia(preservedTrivia);
-        
-        // Build the result
-        var result = ImmutableArray.CreateBuilder<StatementSyntax>();
-        result.Add(newFirstStatement);
-        result.AddRange(originalStatements.Skip(1));
-        
-        return result.ToImmutable();
-    }
-
-    private static string GetMethodBodyInnerText(BlockSyntax methodBody)
-    {
-        var openBrace = methodBody.OpenBraceToken;
-        var closeBrace = methodBody.CloseBraceToken;
-        
-        var startPos = openBrace.Span.End;
-        var endPos = closeBrace.SpanStart;
-        
-        if (startPos >= endPos)
-            return string.Empty;
-            
-        var syntaxTree = methodBody.SyntaxTree;
-        var sourceText = syntaxTree.GetText();
-        return sourceText.GetSubText(TextSpan.FromBounds(startPos, endPos)).ToString();
-    }
-
-    private static SyntaxTriviaList CreatePreprocessorPreservingTrivia(string methodBodyText, StatementSyntax originalStatement)
-    {
-        // Parse the method body text to get the trivia structure with all content preserved
-        var wrappedText = "{" + methodBodyText + "}";
-        var tempBlock = SyntaxFactory.ParseStatement(wrappedText) as BlockSyntax;
-        
-        if (tempBlock?.Statements.Count > 0)
-        {
-            var triviaList = new List<SyntaxTrivia>();
-            
-            // Collect all trivia from the parsed block, including disabled code sections
-            var allTokens = tempBlock.DescendantTokens().ToList();
-            
-            foreach (var token in allTokens)
-            {
-                if (token.IsKind(SyntaxKind.OpenBraceToken))
-                    continue; // Skip the wrapper open brace
-                if (token.IsKind(SyntaxKind.CloseBraceToken))
-                {
-                    // For the closing brace, only take its leading trivia (which contains #else/#endif)
-                    triviaList.AddRange(token.LeadingTrivia);
-                    continue;
-                }
-                    
-                // Add all leading trivia from this token
-                triviaList.AddRange(token.LeadingTrivia);
-            }
-            
-            return SyntaxFactory.TriviaList(triviaList);
-        }
-        
-        // Fallback: return original trivia
-        return originalStatement.GetLeadingTrivia();
     }
 }
