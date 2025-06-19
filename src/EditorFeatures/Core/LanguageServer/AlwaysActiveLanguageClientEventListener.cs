@@ -41,7 +41,7 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
     public void StartListening(Workspace workspace)
     {
         // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
-        _ = LoadAsync();
+        Load();
 
         _ = workspace.RegisterWorkspaceChangedHandler(Workspace_WorkspaceChanged);
     }
@@ -53,7 +53,7 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
             // We loaded the language client when the workspace started, above, but VS shuts it down when a solution closes,
             // so when a new solution is loaded we have to load it again. The language server broker is smart enough not to
             // load the same client multiple times, so reliability of this event is not a big concern.
-            _ = LoadAsync();
+            Load();
         }
     }
 
@@ -62,11 +62,13 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
         // Nothing to do here.  There's no concept of unloading an ILanguageClient.
     }
 
-    private async Task LoadAsync()
+    private void Load()
     {
-        try
+        using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(Load));
+        LoadAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+
+        async Task LoadAsync()
         {
-            using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadAsync));
 
             // Explicitly switch to the bg so that if this causes any expensive work (like mef loads) it 
             // doesn't block the UI thread. Note, we always yield because sometimes our caller starts
@@ -79,9 +81,6 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
                 ContentTypeNames.VisualBasicContentType,
                 ContentTypeNames.FSharpContentType
             ]), _languageClient).ConfigureAwait(false);
-        }
-        catch (Exception e) when (FatalError.ReportAndCatch(e))
-        {
         }
     }
 

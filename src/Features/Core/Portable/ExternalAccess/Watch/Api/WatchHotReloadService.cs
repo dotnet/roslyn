@@ -209,14 +209,14 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             static e => new EditAndContinue.RunningProjectInfo()
             {
                 RestartWhenChangesHaveNoEffect = e.Value.RestartWhenChangesHaveNoEffect,
-                AllowPartialUpdate = true
+                AllowPartialUpdate = RequireCommit
             });
 
         var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjectsImpl, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         // If the changes fail to apply dotnet-watch fails.
         // We don't support discarding the changes and letting the user retry.
-        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready)
+        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready && results.ProjectsToRebuild.IsEmpty)
         {
             _encService.CommitSolutionUpdate(sessionId);
         }

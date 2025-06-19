@@ -1153,13 +1153,13 @@ internal sealed partial class CSharpExtractMethodService
                 }
 
                 // For local functions, pascal case and camel case should be the most common and therefore we only consider those cases.
-                var localFunctionPreferences = Options.NamingStyle.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
+                var localFunctionPreferences = Options.NamingStyle.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers().Modifiers, null));
 
                 var namingRules = Options.NamingStyle.Rules.NamingRules;
                 var localFunctionKind = new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction);
                 if (LocalFunction)
                 {
-                    if (namingRules.Any(static (rule, arg) => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(arg.localFunctionKind, arg.self.CreateMethodModifiers(), null), (self: this, localFunctionKind)))
+                    if (namingRules.Any(static (rule, arg) => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(arg.localFunctionKind, arg.self.CreateMethodModifiers().Modifiers, null), (self: this, localFunctionKind)))
                     {
                         methodName = NewMethodCamelCaseStr;
                     }

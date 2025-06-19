@@ -1117,19 +1117,19 @@ class C
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (10,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (10,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //         [DllImport("a")] extern void local1(); // 1, 2
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(10, 10),
                 // (10,38): error CS8112: Local function 'local1()' must either have a body or be marked 'static extern'.
                 //         [DllImport("a")] extern void local1(); // 1, 2
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local1").WithArguments("local1()").WithLocation(10, 38),
-                // (11,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (11,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //         [DllImport("a")] extern void local2() { } // 3, 4
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(11, 10),
                 // (11,38): error CS0179: 'local2()' cannot be extern and declare a body
                 //         [DllImport("a")] extern void local2() { } // 3, 4
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "local2").WithArguments("local2()").WithLocation(11, 38),
-                // (12,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (12,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //         [DllImport("a")] extern int local3() => 0; // 5, 6
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(12, 10),
                 // (12,37): error CS0179: 'local3()' cannot be extern and declare a body
