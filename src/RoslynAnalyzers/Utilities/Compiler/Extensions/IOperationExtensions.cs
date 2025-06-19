@@ -630,12 +630,12 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        //        public static bool IsExtensionMethodAndHasNoInstance(this IInvocationOperation invocationOperation)
-        //        {
-        //            // This method exists to abstract away the language specific differences between IInvocationOperation implementations
-        //            // See https://github.com/dotnet/roslyn/issues/23625 for more details
-        //            return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
-        //        }
+        public static bool IsExtensionMethodAndHasNoInstance(this IInvocationOperation invocationOperation)
+        {
+            // This method exists to abstract away the language specific differences between IInvocationOperation implementations
+            // See https://github.com/dotnet/roslyn/issues/23625 for more details
+            return invocationOperation.TargetMethod.IsExtensionMethod && (invocationOperation.Language != LanguageNames.VisualBasic || invocationOperation.Instance == null);
+        }
 
         //        public static IOperation? GetInstance(this IInvocationOperation invocationOperation)
         //            => invocationOperation.IsExtensionMethodAndHasNoInstance() ? invocationOperation.Arguments[0].Value : invocationOperation.Instance;

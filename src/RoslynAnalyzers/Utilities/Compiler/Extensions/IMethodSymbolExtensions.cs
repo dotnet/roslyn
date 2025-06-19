@@ -465,20 +465,20 @@ namespace Analyzer.Utilities.Extensions
         //            return methodSymbol.Parameters.Any(p => p.IsOptional);
         //        }
 
-        //        public static IEnumerable<IMethodSymbol> GetOverloads(this IMethodSymbol? method)
-        //        {
-        //            var methods = method?.ContainingType?.GetMembers(method.Name).OfType<IMethodSymbol>();
-        //            if (methods != null)
-        //            {
-        //                foreach (var member in methods)
-        //                {
-        //                    if (!SymbolEqualityComparer.Default.Equals(member, method))
-        //                    {
-        //                        yield return member;
-        //                    }
-        //                }
-        //            }
-        //        }
+        public static IEnumerable<IMethodSymbol> GetOverloads(this IMethodSymbol? method)
+        {
+            var methods = method?.ContainingType?.GetMembers(method.Name).OfType<IMethodSymbol>();
+            if (methods != null)
+            {
+                foreach (var member in methods)
+                {
+                    if (!SymbolEqualityComparer.Default.Equals(member, method))
+                    {
+                        yield return member;
+                    }
+                }
+            }
+        }
 
         //        /// <summary>
         //        /// Set of well-known collection add method names.
