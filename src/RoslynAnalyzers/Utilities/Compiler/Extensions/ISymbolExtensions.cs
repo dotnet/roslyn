@@ -719,44 +719,44 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        //        /// <summary>
-        //        /// Returns a value indicating whether the specified or inherited symbol has the specified
-        //        /// attribute.
-        //        /// </summary>
-        //        /// <param name="symbol">
-        //        /// The symbol being examined.
-        //        /// </param>
-        //        /// <param name="attribute">
-        //        /// The attribute in question.
-        //        /// </param>
-        //        /// <returns>
-        //        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
-        //        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
-        //        /// </returns>
-        //        public static bool HasDerivedTypeAttribute(this ITypeSymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
-        //        {
-        //            if (attribute == null)
-        //            {
-        //                return false;
-        //            }
+        /// <summary>
+        /// Returns a value indicating whether the specified or inherited symbol has the specified
+        /// attribute.
+        /// </summary>
+        /// <param name="symbol">
+        /// The symbol being examined.
+        /// </param>
+        /// <param name="attribute">
+        /// The attribute in question.
+        /// </param>
+        /// <returns>
+        /// <see langword="true"/> if <paramref name="symbol"/> has an attribute of type
+        /// <paramref name="attribute"/>; otherwise <see langword="false"/>.
+        /// </returns>
+        public static bool HasDerivedTypeAttribute(this ITypeSymbol symbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? attribute)
+        {
+            if (attribute == null)
+            {
+                return false;
+            }
 
-        //            while (symbol != null)
-        //            {
-        //                if (symbol.HasAnyAttribute(attribute))
-        //                {
-        //                    return true;
-        //                }
+            while (symbol != null)
+            {
+                if (symbol.HasAnyAttribute(attribute))
+                {
+                    return true;
+                }
 
-        //                if (symbol.BaseType == null)
-        //                {
-        //                    return false;
-        //                }
+                if (symbol.BaseType == null)
+                {
+                    return false;
+                }
 
-        //                symbol = symbol.BaseType;
-        //            }
+                symbol = symbol.BaseType;
+            }
 
-        //            return false;
-        //        }
+            return false;
+        }
 
         //        /// <summary>
         //        /// Returns a value indicating whether the specified or inherited method symbol has the specified
