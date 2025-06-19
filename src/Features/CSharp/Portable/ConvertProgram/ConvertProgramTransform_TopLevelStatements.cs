@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -33,7 +34,7 @@ internal static partial class ConvertProgramTransform
         Contract.ThrowIfNull(typeDeclaration); // checked by analyzer
 
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var rootWithGlobalStatements = GetRootWithGlobalStatements(
@@ -97,7 +98,7 @@ internal static partial class ConvertProgramTransform
     private static SyntaxNode GetRootWithGlobalStatements(
         SemanticModel semanticModel,
         SyntaxGenerator generator,
-        SyntaxNode root,
+        CompilationUnitSyntax root,
         TypeDeclarationSyntax typeDeclaration,
         MethodDeclarationSyntax methodDeclaration,
         CancellationToken cancellationToken)
@@ -107,19 +108,32 @@ internal static partial class ConvertProgramTransform
             semanticModel, typeDeclaration, methodDeclaration, cancellationToken);
 
         var namespaceDeclaration = typeDeclaration.Parent as BaseNamespaceDeclarationSyntax;
+
+        int memberIndexToPlaceTrailingDirectivesOn;
         if (namespaceDeclaration != null &&
             namespaceDeclaration.Members.Count >= 2)
         {
             // Our parent namespace has another symbol in it.  Keep the namespace declaration around, removing only
             // the existing Program type from it.
             editor.RemoveNode(typeDeclaration);
-            editor.ReplaceNode(
-                root,
-                (current, _) =>
-                {
-                    var currentRoot = (CompilationUnitSyntax)current;
-                    return currentRoot.WithMembers(currentRoot.Members.InsertRange(0, globalStatements));
-                });
+            editor.InsertBefore(namespaceDeclaration, globalStatements);
+
+            // We want to place the trailing directive on the namespace declaration we're preceding.
+            memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(namespaceDeclaration);
+            //.ReplaceNode(
+            //    root,
+            //    (current, _) =>
+            //    {
+            //        var currentRoot = (CompilationUnitSyntax)current;
+
+            //        using var _1 = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var finalMembers);
+
+            //        finalMembers.AddRange(globalStatements);
+            //        finalMembers.Add(currentRoot.Members[0].WithPrependedLeadingTrivia(trailingDirectives));
+            //        finalMembers.AddRange(currentRoot.Members.Skip(1));
+
+            //        return currentRoot.WithMembers([.. finalMembers]);
+            //    });
         }
         else if (namespaceDeclaration != null)
         {
@@ -136,15 +150,42 @@ internal static partial class ConvertProgramTransform
                     globalStatements[0].WithPrependedLeadingTrivia(fileBanner));
             }
 
-            editor.ReplaceNode(
-                root,
-                root.ReplaceNode(namespaceDeclaration, globalStatements));
+            editor.ReplaceNode(namespaceDeclaration, (_, _) => globalStatements);
+
+            // We're removing the namespace itself.  So we want to plae the trailing directive on the element that follows that.
+            memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(namespaceDeclaration) + 1;
         }
         else
         {
             // type wasn't in a namespace.  just remove the type and replace it with the new global statements.
-            editor.ReplaceNode(
-                root, root.ReplaceNode(typeDeclaration, globalStatements));
+            editor.ReplaceNode(root, root.ReplaceNode(typeDeclaration, globalStatements));
+
+            // We're removing the namespace itself.  So we want to plae the trailing directive on the element that follows that.
+            memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(typeDeclaration) + 1;
+        }
+
+        // If the method has trailing directive on the close brace, move them to whatever will come after the 
+        // final global statement in the new file.  That could be the next namespace/type member declaration. Or
+        // it could be the end of file token if there are no more members in the file.
+        if (methodDeclaration.Body is BlockSyntax block && block.CloseBraceToken.LeadingTrivia.Any(t => t.IsDirective))
+        {
+            var leadingCloseBraceTrivia = block.CloseBraceToken.LeadingTrivia;
+            if (memberIndexToPlaceTrailingDirectivesOn < root.Members.Count)
+            {
+                editor.ReplaceNode(
+                    root.Members[memberIndexToPlaceTrailingDirectivesOn],
+                    root.Members[memberIndexToPlaceTrailingDirectivesOn].WithPrependedLeadingTrivia(leadingCloseBraceTrivia));
+            }
+            else
+            {
+                editor.ReplaceNode(
+                    root,
+                    (current, _) =>
+                    {
+                        var currentRoot = (CompilationUnitSyntax)current;
+                        return currentRoot.WithEndOfFileToken(currentRoot.EndOfFileToken.WithPrependedLeadingTrivia(leadingCloseBraceTrivia));
+                    });
+            }
         }
 
         return editor.GetChangedRoot();
