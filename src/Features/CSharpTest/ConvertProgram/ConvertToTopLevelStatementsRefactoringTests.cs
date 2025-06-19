@@ -22,9 +22,9 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
     [Fact]
     public async Task TestNotOnEmptyFile()
     {
-        var code = @"
-$$
-";
+        var code = """
+            $$
+            """;
 
         // default preference is to prefer top level namespaces.  As such, we should not have the refactoring here
         // since the analyzer will take over.
@@ -44,14 +44,15 @@ $$
     [Fact]
     public async Task TestConvertToTopLevelStatementsWithDefaultTopLevelStatementPreference()
     {
-        var code = @"
-class Program
-{
-    static void $$Main(string[] args)
-    {
-        System.Console.WriteLine(args[0]);
-    }
-}";
+        var code = """
+            class Program
+            {
+                static void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(args[0]);
+                }
+            }
+            """;
 
         // default preference is to prefer top level namespaces.  As such, we should not have the refactoring here
         // since the analyzer will take over.
@@ -69,18 +70,18 @@ class Program
         // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
         await new VerifyCS.Test
         {
-            TestCode = @"
-class Program
-{
-    static void $$Main(string[] args)
-    {
-        System.Console.WriteLine(args[0]);
-    }
-}
-",
-            FixedCode = @"
-System.Console.WriteLine(args[0]);
-",
+            TestCode = """
+            class Program
+            {
+                static void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(args[0]);
+                }
+            }
+            """,
+            FixedCode = """
+            System.Console.WriteLine(args[0]);
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -93,15 +94,15 @@ System.Console.WriteLine(args[0]);
     [Fact]
     public async Task TestNotOfferedInLibrary()
     {
-        var code = @"
-class Program
-{
-    static void $$Main(string[] args)
-    {
-        System.Console.WriteLine(args[0]);
-    }
-}
-";
+        var code = """
+            class Program
+            {
+                static void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(args[0]);
+                }
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -117,15 +118,15 @@ class Program
     [Fact]
     public async Task TestNotWithNonViableType()
     {
-        var code = @"
-class Program
-{
-    void $$Main(string[] args)
-    {
-        System.Console.WriteLine(args[0]);
-    }
-}
-";
+        var code = """
+            class Program
+            {
+                void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(args[0]);
+                }
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -147,15 +148,15 @@ class Program
     [Fact]
     public async Task TestNoConvertToTopLevelStatementsWithProgramMainPreferenceSuggestionBeforeCSharp9()
     {
-        var code = @"
-class Program
-{
-    static void $$Main(string[] args)
-    {
-        System.Console.WriteLine(args[0]);
-    }
-}
-";
+        var code = """
+            class Program
+            {
+                static void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(args[0]);
+                }
+            }
+            """;
 
         // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
         await new VerifyCS.Test
@@ -173,15 +174,15 @@ class Program
     [Fact]
     public async Task TestNoConvertToTopLevelStatementsWithTopLevelStatementsPreferenceSuggestion()
     {
-        var code = @"
-class Program
-{
-    static void $$Main(string[] args)
-    {
-        System.Console.WriteLine(args[0]);
-    }
-}
-";
+        var code = """
+            class Program
+            {
+                static void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(args[0]);
+                }
+            }
+            """;
         await new VerifyCS.Test
         {
             TestCode = code,
@@ -197,15 +198,15 @@ class Program
     [Fact]
     public async Task TestNoConvertToTopLevelStatementsWithTopLevelStatementsPreferenceSilent()
     {
-        var code = @"
-class Program
-{
-    static void $$Main(string[] args)
-    {
-        System.Console.WriteLine(args[0]);
-    }
-}
-";
+        var code = """
+            class Program
+            {
+                static void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(args[0]);
+                }
+            }
+            """;
         await new VerifyCS.Test
         {
             TestCode = code,
@@ -224,18 +225,18 @@ class Program
         // if the user has the analyzer suppressed, then we want to supply teh refactoring.
         await new VerifyCS.Test
         {
-            TestCode = @"
-internal class Program
-{
-    private static void $$Main(string[] args)
-    {
-        System.Console.WriteLine(0);
-    }
-}
-",
-            FixedCode = @"
-System.Console.WriteLine(0);
-",
+            TestCode = """
+            internal class Program
+            {
+                private static void $$Main(string[] args)
+                {
+                    System.Console.WriteLine(0);
+                }
+            }
+            """,
+            FixedCode = """
+            System.Console.WriteLine(0);
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
