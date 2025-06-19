@@ -7923,8 +7923,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
-        <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
-        <target state="translated">Dla metody oznaczonej przy użyciu słów kluczowych „static” i „extern” musi zostać określony atrybut DllImport</target>
+        <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
+        <target state="needs-review-translation">Dla metody oznaczonej przy użyciu słów kluczowych „static” i „extern” musi zostać określony atrybut DllImport</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">

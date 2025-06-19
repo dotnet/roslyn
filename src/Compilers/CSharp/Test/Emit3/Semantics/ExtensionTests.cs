@@ -36824,16 +36824,104 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics(
-            // (13,14): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
-            //             [DllImport("something.dll")]
-            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(13, 14),
-            // (6,10): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
-            //         [DllImport("something.dll")]
-            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(6, 10),
-            // (11,14): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
-            //             [DllImport("something.dll")]
-            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(11, 14));
+        var verifier = CompileAndVerify(source).VerifyDiagnostics();
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 i
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig 
+            instance void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname 
+            instance int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname 
+            instance void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+            .set instance void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        void M (
+            int32 i
+        ) cil managed preservesig 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+    } // end of method E::M
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        int32 get_P (
+            int32 i
+        ) cil managed preservesig 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        void set_P (
+            int32 i,
+            int32 'value'
+        ) cil managed preservesig 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+
+        source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    [DllImport("something.dll")]
+    static extern void M(this int i);
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -36953,7 +37041,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics(
+        comp.VerifyDiagnostics(
             // (5,21): warning CS0626: Method, operator, or accessor 'E.extension(int).M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //         extern void M();
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("E.extension(int).M()").WithLocation(5, 21),
@@ -36964,7 +37052,13 @@ static class E
             //         extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 29));
 
-        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
         VerifyTypeIL(verifier, "E", """
 .class private auto ansi abstract sealed beforefieldinit E
     extends [netstandard]System.Object
@@ -37059,13 +37153,16 @@ class C
 }
 """;
         comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics(
+        comp.VerifyDiagnostics(
             // (3,17): warning CS0626: Method, operator, or accessor 'C.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //     extern void M();
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("C.M()").WithLocation(3, 17));
 
-        // Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
-        verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+        verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
         VerifyTypeIL(verifier, "C", """
 .class private auto ansi beforefieldinit C
     extends [netstandard]System.Object
@@ -37103,7 +37200,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics(
+        comp.VerifyDiagnostics(
             // (5,28): warning CS0626: Method, operator, or accessor 'E.extension(int).M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
             //         static extern void M();
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("E.extension(int).M()").WithLocation(5, 28),
@@ -37114,7 +37211,13 @@ static class E
             //         static extern int P { get; set; }
             Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 36));
 
-        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
         VerifyTypeIL(verifier, "E", """
 .class private auto ansi abstract sealed beforefieldinit E
     extends [netstandard]System.Object
@@ -37239,10 +37342,9 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
 
         // Note: skeleton methods have "throw" bodies and lack internalcall. Implementation methods have internalcall and no body.
-        var verifier = CompileAndVerify(comp);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         VerifyTypeIL(verifier, "E", """
 .class private auto ansi abstract sealed beforefieldinit E
     extends [netstandard]System.Object
@@ -37321,6 +37423,140 @@ static class E
     } // end of method E::set_P
 } // end of class E
 """);
+    }
+
+    [Fact]
+    public void Extern_09()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int i)
+    {
+        [DllImport("something.dll")]
+        void M() { }
+
+        int P
+        {
+            [DllImport("something.dll")]
+            get => 0;
+            [DllImport("something.dll")]
+            set { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //         [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(6, 10),
+            // (11,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(11, 14),
+            // (13,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(13, 14));
+    }
+
+    [Fact]
+    public void Extern_10()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int i)
+    {
+        [DllImport("something.dll")]
+        extern void M() { }
+
+        extern int P
+        {
+            [DllImport("something.dll")]
+            get => 0;
+            [DllImport("something.dll")]
+            set { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,21): error CS0179: 'E.extension(int).M()' cannot be extern and declare a body
+            //         extern void M() { }
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "M").WithArguments("E.extension(int).M()").WithLocation(7, 21),
+            // (12,13): error CS0179: 'E.extension(int).P.get' cannot be extern and declare a body
+            //             get => 0;
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("E.extension(int).P.get").WithLocation(12, 13),
+            // (14,13): error CS0179: 'E.extension(int).P.set' cannot be extern and declare a body
+            //             set { }
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("E.extension(int).P.set").WithLocation(14, 13));
+    }
+
+    [Fact]
+    public void Extern_11()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int)
+    {
+        int P
+        {
+            [DllImport("something.dll")]
+            extern get; // 1
+            [DllImport("something.dll")]
+            extern set; // 2
+        }
+    }
+}
+
+static class C
+{
+    static int P
+    {
+        [DllImport("something.dll")]
+        extern get; // 3
+        [DllImport("something.dll")]
+        extern set; // 4
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,13): error CS9282: This member is not allowed in an extension block
+            //         int P
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P").WithLocation(6, 13),
+            // (6,13): error CS9303: 'P': cannot declare instance members in an extension block with an unnamed receiver parameter
+            //         int P
+            Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P").WithArguments("P").WithLocation(6, 13),
+            // (8,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(8, 14),
+            // (9,20): error CS0106: The modifier 'extern' is not valid for this item
+            //             extern get; // 1
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("extern").WithLocation(9, 20),
+            // (10,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(10, 14),
+            // (11,20): error CS0106: The modifier 'extern' is not valid for this item
+            //             extern set; // 2
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(11, 20),
+            // (20,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //         [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(20, 10),
+            // (21,16): error CS0106: The modifier 'extern' is not valid for this item
+            //         extern get; // 3
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("extern").WithLocation(21, 16),
+            // (22,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //         [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(22, 10),
+            // (23,16): error CS0106: The modifier 'extern' is not valid for this item
+            //         extern set; // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(23, 16));
     }
 
     [Fact]
