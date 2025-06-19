@@ -266,12 +266,12 @@ namespace Analyzer.Utilities.Extensions
         //                method.ReturnsVoid && method.Parameters.IsEmpty;
         //        }
 
-        //        /// <summary>
-        //        /// Checks if the given method has the signature "Task CloseAsync()".
-        //        /// </summary>
-        //        private static bool HasDisposeCloseAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol? taskType)
-        //            => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" &&
-        //                SymbolEqualityComparer.Default.Equals(method.ReturnType, taskType);
+        /// <summary>
+        /// Checks if the given method has the signature "Task CloseAsync()".
+        /// </summary>
+        private static bool HasDisposeCloseAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol? taskType)
+            => taskType != null && method.Parameters.IsEmpty && method.Name == "CloseAsync" &&
+                SymbolEqualityComparer.Default.Equals(method.ReturnType, taskType);
 
         //        /// <summary>
         //        /// Checks if the given method has the signature "Task DisposeAsync()" or "ValueTask DisposeAsync()" or "ConfiguredValueTaskAwaitable DisposeAsync()".
@@ -480,41 +480,41 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        //        /// <summary>
-        //        /// Set of well-known collection add method names.
-        //        /// Used in <see cref="IsCollectionAddMethod"/> heuristic.
-        //        /// </summary>
-        //        private static readonly ImmutableHashSet<string> s_collectionAddMethodNameVariants =
-        //            ImmutableHashSet.Create(StringComparer.Ordinal, "Add", "AddOrUpdate", "GetOrAdd", "TryAdd", "TryUpdate");
+        /// <summary>
+        /// Set of well-known collection add method names.
+        /// Used in <see cref="IsCollectionAddMethod"/> heuristic.
+        /// </summary>
+        private static readonly ImmutableHashSet<string> s_collectionAddMethodNameVariants =
+            ImmutableHashSet.Create(StringComparer.Ordinal, "Add", "AddOrUpdate", "GetOrAdd", "TryAdd", "TryUpdate");
 
-        //        /// <summary>
-        //        /// Determine if the specific method is an Add method that adds to a collection.
-        //        /// </summary>
-        //        /// <param name="method">The method to test.</param>
-        //        /// <param name="iCollectionTypes">Collection types.</param>
-        //        /// <returns>'true' if <paramref name="method"/> is believed to be the add method of a collection.</returns>
-        //        /// <remarks>
-        //        /// We use the following heuristic to determine if a method is a collection add method:
-        //        /// 1. Method's enclosing type implements any of the given <paramref name="iCollectionTypes"/>.
-        //        /// 2. Any of the following name heuristics are met:
-        //        ///     a. Method's name is from one of the well-known add method names from <see cref="s_collectionAddMethodNameVariants"/> ("Add", "AddOrUpdate", "GetOrAdd", "TryAdd", or "TryUpdate")
-        //        ///     b. Method's name begins with "Add" (FxCop compat)
-        //        /// </remarks>
-        //        public static bool IsCollectionAddMethod(this IMethodSymbol method, ImmutableHashSet<INamedTypeSymbol> iCollectionTypes)
-        //        {
-        //            if (iCollectionTypes.IsEmpty)
-        //            {
-        //                return false;
-        //            }
+        /// <summary>
+        /// Determine if the specific method is an Add method that adds to a collection.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="iCollectionTypes">Collection types.</param>
+        /// <returns>'true' if <paramref name="method"/> is believed to be the add method of a collection.</returns>
+        /// <remarks>
+        /// We use the following heuristic to determine if a method is a collection add method:
+        /// 1. Method's enclosing type implements any of the given <paramref name="iCollectionTypes"/>.
+        /// 2. Any of the following name heuristics are met:
+        ///     a. Method's name is from one of the well-known add method names from <see cref="s_collectionAddMethodNameVariants"/> ("Add", "AddOrUpdate", "GetOrAdd", "TryAdd", or "TryUpdate")
+        ///     b. Method's name begins with "Add" (FxCop compat)
+        /// </remarks>
+        public static bool IsCollectionAddMethod(this IMethodSymbol method, ImmutableHashSet<INamedTypeSymbol> iCollectionTypes)
+        {
+            if (iCollectionTypes.IsEmpty)
+            {
+                return false;
+            }
 
-        //            if (!s_collectionAddMethodNameVariants.Contains(method.Name) &&
-        //                !method.Name.StartsWith("Add", StringComparison.Ordinal))
-        //            {
-        //                return false;
-        //            }
+            if (!s_collectionAddMethodNameVariants.Contains(method.Name) &&
+                !method.Name.StartsWith("Add", StringComparison.Ordinal))
+            {
+                return false;
+            }
 
-        //            return method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
-        //        }
+            return method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
+        }
 
         /// <summary>
         /// Determine if the specific method is a Task.FromResult method that wraps a result in a task.
