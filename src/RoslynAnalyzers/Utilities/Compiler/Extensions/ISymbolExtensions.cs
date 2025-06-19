@@ -612,17 +612,17 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        //        public static bool IsReadOnlyFieldOrProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        //        {
-        //            return symbol switch
-        //            {
-        //                IFieldSymbol field => field.IsReadOnly,
+        public static bool IsReadOnlyFieldOrProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        {
+            return symbol switch
+            {
+                IFieldSymbol field => field.IsReadOnly,
 
-        //                IPropertySymbol property => property.IsReadOnly,
+                IPropertySymbol property => property.IsReadOnly,
 
-        //                _ => false,
-        //            };
-        //        }
+                _ => false,
+            };
+        }
 
         public static AttributeData? GetAttribute(this ISymbol symbol, [NotNullWhen(true)] INamedTypeSymbol? attributeType)
         {

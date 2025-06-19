@@ -516,25 +516,25 @@ namespace Analyzer.Utilities.Extensions
         //            return method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
         //        }
 
-        //        /// <summary>
-        //        /// Determine if the specific method is a Task.FromResult method that wraps a result in a task.
-        //        /// </summary>
-        //        /// <param name="method">The method to test.</param>
-        //        /// <param name="taskType">Task type.</param>
-        //        public static bool IsTaskFromResultMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? taskType)
-        //            => method.Name.Equals("FromResult", StringComparison.Ordinal) &&
-        //               SymbolEqualityComparer.Default.Equals(method.ContainingType, taskType);
+        /// <summary>
+        /// Determine if the specific method is a Task.FromResult method that wraps a result in a task.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="taskType">Task type.</param>
+        public static bool IsTaskFromResultMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? taskType)
+            => method.Name.Equals("FromResult", StringComparison.Ordinal) &&
+               SymbolEqualityComparer.Default.Equals(method.ContainingType, taskType);
 
-        //        /// <summary>
-        //        /// Determine if the specific method is a Task.ConfigureAwait(bool) method.
-        //        /// </summary>
-        //        /// <param name="method">The method to test.</param>
-        //        /// <param name="genericTaskType">Generic task type.</param>
-        //        public static bool IsTaskConfigureAwaitMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? genericTaskType)
-        //            => method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
-        //               method.Parameters.Length == 1 &&
-        //               method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
-        //               SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, genericTaskType);
+        /// <summary>
+        /// Determine if the specific method is a Task.ConfigureAwait(bool) method.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="genericTaskType">Generic task type.</param>
+        public static bool IsTaskConfigureAwaitMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? genericTaskType)
+            => method.Name.Equals("ConfigureAwait", StringComparison.Ordinal) &&
+               method.Parameters.Length == 1 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean &&
+               SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, genericTaskType);
 
         /// <summary>
         /// Determine if the specific method is a TaskAsyncEnumerableExtensions.ConfigureAwait(this IAsyncDisposable, bool) extension method.
@@ -552,55 +552,55 @@ namespace Analyzer.Utilities.Extensions
                taskAsyncEnumerableExtensions.IsStatic;
 
         //#if HAS_IOPERATION
-        //        /// <summary>
-        //        /// PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
-        //        /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
-        //        /// </summary>
-        //        /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
-        //        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>> s_methodToTopmostOperationBlockCache
-        //            = new();
+        /// <summary>
+        /// PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
+        /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
+        /// </summary>
+        /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
+        private static readonly BoundedCache<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation?>> s_methodToTopmostOperationBlockCache
+            = new();
 
-        //        /// <summary>
-        //        /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
-        //        /// </summary>
-        //        public static IBlockOperation? GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default)
-        //        {
-        //            var methodToBlockMap = s_methodToTopmostOperationBlockCache.GetOrCreateValue(compilation);
-        //            return methodToBlockMap.GetOrAdd(method, ComputeTopmostOperationBlock);
+        /// <summary>
+        /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
+        /// </summary>
+        public static IBlockOperation? GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default)
+        {
+            var methodToBlockMap = s_methodToTopmostOperationBlockCache.GetOrCreateValue(compilation);
+            return methodToBlockMap.GetOrAdd(method, ComputeTopmostOperationBlock);
 
-        //            // Local functions.
-        //            IBlockOperation? ComputeTopmostOperationBlock(IMethodSymbol unused)
-        //            {
-        //                if (!SymbolEqualityComparer.Default.Equals(method.ContainingAssembly, compilation.Assembly))
-        //                {
-        //                    return null;
-        //                }
+            // Local functions.
+            IBlockOperation? ComputeTopmostOperationBlock(IMethodSymbol unused)
+            {
+                if (!SymbolEqualityComparer.Default.Equals(method.ContainingAssembly, compilation.Assembly))
+                {
+                    return null;
+                }
 
-        //                foreach (var decl in method.DeclaringSyntaxReferences)
-        //                {
-        //                    var syntax = decl.GetSyntax(cancellationToken);
+                foreach (var decl in method.DeclaringSyntaxReferences)
+                {
+                    var syntax = decl.GetSyntax(cancellationToken);
 
-        //                    // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
-        //                    //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
-        //                    if (compilation.Language == LanguageNames.VisualBasic)
-        //                    {
-        //                        syntax = syntax.Parent;
-        //                    }
+                    // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
+                    //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
+                    if (compilation.Language == LanguageNames.VisualBasic)
+                    {
+                        syntax = syntax.Parent;
+                    }
 
-        //                    var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-        //                    foreach (var descendant in syntax.DescendantNodesAndSelf())
-        //                    {
-        //                        var operation = semanticModel.GetOperation(descendant, cancellationToken);
-        //                        if (operation is IBlockOperation blockOperation)
-        //                        {
-        //                            return blockOperation;
-        //                        }
-        //                    }
-        //                }
+                    var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                    foreach (var descendant in syntax.DescendantNodesAndSelf())
+                    {
+                        var operation = semanticModel.GetOperation(descendant, cancellationToken);
+                        if (operation is IBlockOperation blockOperation)
+                        {
+                            return blockOperation;
+                        }
+                    }
+                }
 
-        //                return null;
-        //            }
-        //        }
+                return null;
+            }
+        }
         //#endif
 
         //        public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
@@ -650,27 +650,27 @@ namespace Analyzer.Utilities.Extensions
         //               // See https://github.com/dotnet/roslyn-analyzers/issues/3106
         //               (method.Parameters[1].Type.DerivesFrom(eventArgsType, baseTypesOnly: true) || method.Parameters[1].Type.Name.EndsWith("EventArgs", StringComparison.Ordinal));
 
-        //        public static bool IsLockMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? systemThreadingMonitor)
-        //        {
-        //            // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
-        //            return method.Name == "Enter" &&
-        //                   SymbolEqualityComparer.Default.Equals(method.ContainingType, systemThreadingMonitor) &&
-        //                   method.ReturnsVoid &&
-        //                   !method.Parameters.IsEmpty &&
-        //                   method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
-        //        }
+        public static bool IsLockMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? systemThreadingMonitor)
+        {
+            // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
+            return method.Name == "Enter" &&
+                   SymbolEqualityComparer.Default.Equals(method.ContainingType, systemThreadingMonitor) &&
+                   method.ReturnsVoid &&
+                   !method.Parameters.IsEmpty &&
+                   method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
 
-        //        public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
-        //        {
-        //            Debug.Assert(SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, systemThreadingInterlocked));
+        public static bool IsInterlockedExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
+        {
+            Debug.Assert(SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, systemThreadingInterlocked));
 
-        //            // "System.Threading.Interlocked.Exchange(ref T, T)"
-        //            return method.Name == "Exchange" &&
-        //                   method.Parameters.Length == 2 &&
-        //                   method.Parameters[0].RefKind == RefKind.Ref &&
-        //                   method.Parameters[1].RefKind != RefKind.Ref &&
-        //                   SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, method.Parameters[1].Type);
-        //        }
+            // "System.Threading.Interlocked.Exchange(ref T, T)"
+            return method.Name == "Exchange" &&
+                   method.Parameters.Length == 2 &&
+                   method.Parameters[0].RefKind == RefKind.Ref &&
+                   method.Parameters[1].RefKind != RefKind.Ref &&
+                   SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, method.Parameters[1].Type);
+        }
 
         //        public static bool IsInterlockedCompareExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
         //        {
