@@ -50,6 +50,7 @@ internal static class CopilotEditorUtilities
         return solution;
     }
 
+    /// <inheritdoc cref="CopilotUtilities.TryNormalizeCopilotTextChanges"/>
     public static ImmutableArray<TextChange> TryGetNormalizedTextChanges(IEnumerable<ProposedEdit> edits)
     {
         using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
