@@ -646,7 +646,6 @@ internal enum FunctionId
     Copilot_Implement_NotImplementedException_Completed = 832,
 
     Copilot_AnalyzeChange = 840,
-    Copilot_AdjustProposal = 841,
 
     Copilot_Rename = 851,
 
