@@ -369,15 +369,9 @@ internal partial class VisualStudioWorkspaceImpl
                             // and if it was actually open, we'll schedule an update asynchronously.
                             if (TryOpeningDocumentsForFilePathCore(w, newFileName, textBuffer, hierarchy: null))
                             {
-                                // We've opened the document, but unless we have more than one project with this document, there's no reason to actually
-                                // go to the UI thread to fix up the context -- the one we arbitrarily picked in TryOpeningDocumentsForFilePathCore
-                                // is the right one, because there is only one.
-                                if (w.CurrentSolution.GetDocumentIdsWithFilePath(newFileName).Length >= 2)
-                                {
-                                    // Update the context on the UI thread as necessary.
-                                    var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(UpdateContextAfterOpenAsync));
-                                    UpdateContextAfterOpenAsync(newFileName).CompletesAsyncOperation(token);
-                                }
+                                // The files are now tied to the buffer, but let's schedule work to correctly update the context.
+                                var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(CheckForAddedFileBeingOpenMaybeAsync));
+                                UpdateContextAfterOpenAsync(newFileName).CompletesAsyncOperation(token);
                             }
                         }
                     }
