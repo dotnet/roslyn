@@ -109,7 +109,6 @@ internal static partial class ConvertProgramTransform
 
         var namespaceDeclaration = typeDeclaration.Parent as BaseNamespaceDeclarationSyntax;
 
-        int memberIndexToPlaceTrailingDirectivesOn;
         if (namespaceDeclaration != null &&
             namespaceDeclaration.Members.Count >= 2)
         {
@@ -119,7 +118,7 @@ internal static partial class ConvertProgramTransform
             editor.InsertBefore(namespaceDeclaration, globalStatements);
 
             // We want to place the trailing directive on the namespace declaration we're preceding.
-            memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(namespaceDeclaration);
+            AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(namespaceDeclaration));
         }
         else if (namespaceDeclaration != null)
         {
@@ -139,33 +138,43 @@ internal static partial class ConvertProgramTransform
             editor.ReplaceNode(namespaceDeclaration, (_, _) => globalStatements);
 
             // We're removing the namespace itself.  So we want to plae the trailing directive on the element that follows that.
-            memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(namespaceDeclaration) + 1;
+            AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(namespaceDeclaration) + 1);
         }
         else
         {
             // type wasn't in a namespace.  just remove the type and replace it with the new global statements.
-            editor.ReplaceNode(root, (_, _) => root.ReplaceNode(typeDeclaration, globalStatements));
+            editor.ReplaceNode(typeDeclaration, (_, _) => globalStatements);
 
             // We're removing the namespace itself.  So we want to plae the trailing directive on the element that follows that.
-            memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(typeDeclaration) + 1;
+            AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(typeDeclaration) + 1);
         }
 
-        // If the method has trailing directive on the close brace, move them to whatever will come after the 
-        // final global statement in the new file.  That could be the next namespace/type member declaration. Or
-        // it could be the end of file token if there are no more members in the file.
-        if (methodDeclaration.Body is BlockSyntax block && block.CloseBraceToken.LeadingTrivia.Any(t => t.IsDirective))
+        return editor.GetChangedRoot();
+
+        void AddDirectivesToNextMemberOrEndOfFile(int memberIndexToPlaceTrailingDirectivesOn)
         {
+            // If the method has trailing directive on the close brace, move them to whatever will come after the 
+            // final global statement in the new file.  That could be the next namespace/type member declaration. Or
+            // it could be the end of file token if there are no more members in the file.
+            if (methodDeclaration.Body is not BlockSyntax block)
+                return;
+
             var leadingCloseBraceTrivia = block.CloseBraceToken.LeadingTrivia;
+            if (!leadingCloseBraceTrivia.Any(t => t.IsDirective))
+                return;
+
             if (memberIndexToPlaceTrailingDirectivesOn < root.Members.Count)
             {
-                var newMember = root.Members[memberIndexToPlaceTrailingDirectivesOn].WithPrependedLeadingTrivia(leadingCloseBraceTrivia);
-                newMember = newMember.ReplaceToken(
-                    newMember.GetFirstToken(),
-                    newMember.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
-
                 editor.ReplaceNode(
                     root.Members[memberIndexToPlaceTrailingDirectivesOn],
-                    (_, _) => newMember);
+                    (current, _) =>
+                    {
+                        var updated = current.WithPrependedLeadingTrivia(leadingCloseBraceTrivia);
+                        updated = updated.ReplaceToken(
+                            updated.GetFirstToken(),
+                            updated.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
+                        return updated;
+                    });
             }
             else
             {
@@ -180,8 +189,6 @@ internal static partial class ConvertProgramTransform
                     });
             }
         }
-
-        return editor.GetChangedRoot();
     }
 
     private static ImmutableArray<GlobalStatementSyntax> GetGlobalStatements(
