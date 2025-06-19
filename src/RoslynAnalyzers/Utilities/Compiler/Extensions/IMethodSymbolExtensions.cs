@@ -167,37 +167,37 @@ namespace Analyzer.Utilities.Extensions
             return method.IsDisposeImplementation(iDisposable);
         }
 
-        //        /// <summary>
-        //        /// Checks if the given method implements IAsyncDisposable.Dispose()
-        //        /// </summary>
-        //        public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
-        //        {
-        //            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
-        //            INamedTypeSymbol? valueTaskType = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
-        //            return method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
-        //        }
+        /// <summary>
+        /// Checks if the given method implements IAsyncDisposable.Dispose()
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation(this IMethodSymbol method, Compilation compilation)
+        {
+            INamedTypeSymbol? iAsyncDisposable = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
+            INamedTypeSymbol? valueTaskType = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            return method.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
+        }
 
-        //        /// <summary>
-        //        /// Checks if the given method implements <see cref="IDisposable.Dispose"/> or overrides an implementation of <see cref="IDisposable.Dispose"/>.
-        //        /// </summary>
-        //        public static bool IsDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
-        //        {
-        //            if (method == null)
-        //            {
-        //                return false;
-        //            }
+        /// <summary>
+        /// Checks if the given method implements <see cref="IDisposable.Dispose"/> or overrides an implementation of <see cref="IDisposable.Dispose"/>.
+        /// </summary>
+        public static bool IsDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDisposable)
+        {
+            if (method == null)
+            {
+                return false;
+            }
 
-        //            if (method.IsOverride)
-        //            {
-        //                return method.OverriddenMethod.IsDisposeImplementation(iDisposable);
-        //            }
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsDisposeImplementation(iDisposable);
+            }
 
-        //            // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
-        //            // if it is the given method.
-        //            return method.ReturnsVoid &&
-        //                method.Parameters.IsEmpty &&
-        //                method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
-        //        }
+            // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnsVoid &&
+                method.Parameters.IsEmpty &&
+                method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
+        }
 
         //        /// <summary>
         //        /// Checks if the given method implements "IAsyncDisposable.Dispose" or overrides an implementation of "IAsyncDisposable.Dispose".
@@ -289,30 +289,30 @@ namespace Analyzer.Utilities.Extensions
         //                 SymbolEqualityComparer.Default.Equals(method.ReturnType, configuredValueTaskAwaitable));
         //        }
 
-        //        /// <summary>
-        //        /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)" or "override Task DisposeAsyncCore(bool)".
-        //        /// </summary>
-        //        private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? task)
-        //        {
-        //            return (method.Name == "DisposeAsyncCore" || method.Name == "DisposeCoreAsync") &&
-        //                method.MethodKind == MethodKind.Ordinary &&
-        //                method.IsOverride &&
-        //                SymbolEqualityComparer.Default.Equals(method.ReturnType, task) &&
-        //                method.Parameters.Length == 1 &&
-        //                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean;
-        //        }
+        /// <summary>
+        /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)" or "override Task DisposeAsyncCore(bool)".
+        /// </summary>
+        private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? task)
+        {
+            return (method.Name == "DisposeAsyncCore" || method.Name == "DisposeCoreAsync") &&
+                method.MethodKind == MethodKind.Ordinary &&
+                method.IsOverride &&
+                SymbolEqualityComparer.Default.Equals(method.ReturnType, task) &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean;
+        }
 
-        //        /// <summary>
-        //        /// Checks if the given method has the signature "{virtual|override} ValueTask DisposeCoreAsync()" or "{virtual|override} ValueTask DisposeAsyncCore()".
-        //        /// </summary>
-        //        private static bool HasVirtualOrOverrideDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTask)
-        //        {
-        //            return (method.Name == "DisposeAsyncCore" || method.Name == "DisposeCoreAsync") &&
-        //                method.MethodKind == MethodKind.Ordinary &&
-        //                (method.IsVirtual || method.IsOverride) &&
-        //                SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask) &&
-        //                method.Parameters.Length == 0;
-        //        }
+        /// <summary>
+        /// Checks if the given method has the signature "{virtual|override} ValueTask DisposeCoreAsync()" or "{virtual|override} ValueTask DisposeAsyncCore()".
+        /// </summary>
+        private static bool HasVirtualOrOverrideDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTask)
+        {
+            return (method.Name == "DisposeAsyncCore" || method.Name == "DisposeCoreAsync") &&
+                method.MethodKind == MethodKind.Ordinary &&
+                (method.IsVirtual || method.IsOverride) &&
+                SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask) &&
+                method.Parameters.Length == 0;
+        }
 
         /// <summary>
         /// Gets the <see cref="DisposeMethodKind"/> for the given method.
