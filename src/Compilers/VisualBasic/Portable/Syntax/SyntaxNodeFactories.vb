@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         disallowGenericArgumentsOnLastQualifiedName:=False,
                         allowEmptyGenericArguments:=True,
                         allowedEmptyGenericArguments:=True)
-                Return CreateRed(Of NameSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
+                Return CreateRed(Of NameSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If consumeFullText Then
                     node = p.ConsumeUnexpectedTokens(node)
                 End If
-                Return CreateRed(Of TypeSyntax)(node, p._scanner.Options)
+                Return CreateRed(Of TypeSyntax)(node, p.Options)
             End Using
         End Function
 
@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseExpression()
-                Return CreateRed(Of ExpressionSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
+                Return CreateRed(Of ExpressionSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ParseExecutableStatement(text As String, Optional offset As Integer = 0, Optional consumeFullText As Boolean = True) As StatementSyntax
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 Dim node = p.ParseExecutableStatement()
-                Return CreateRed(Of StatementSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
+                Return CreateRed(Of StatementSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ParseCompilationUnit(text As String, Optional offset As Integer = 0, Optional options As VisualBasicParseOptions = Nothing) As CompilationUnitSyntax
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), If(options, VisualBasicParseOptions.Default))
                 Dim node = p.ParseCompilationUnit()
-                Return CreateRed(Of CompilationUnitSyntax)(node, p._scanner.Options)
+                Return CreateRed(Of CompilationUnitSyntax)(node, p.Options)
             End Using
         End Function
 
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParameterList()
-                Return CreateRed(Of ParameterListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
+                Return CreateRed(Of ParameterListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Using p = New InternalSyntax.Parser(MakeSourceText(text, offset), VisualBasicParseOptions.Default)
                 p.GetNextToken()
                 Dim node = p.ParseParenthesizedArguments()
-                Return CreateRed(Of ArgumentListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p._scanner.Options)
+                Return CreateRed(Of ArgumentListSyntax)(If(consumeFullText, p.ConsumeUnexpectedTokens(node), node), p.Options)
             End Using
         End Function
 

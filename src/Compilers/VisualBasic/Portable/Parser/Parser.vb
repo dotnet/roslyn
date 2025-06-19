@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibleFirstStatementKind.Yes
         Private _recursionDepth As Integer
         Private _evaluatingConditionCompilationExpression As Boolean
-        Friend ReadOnly _scanner As Scanner
+        Private ReadOnly _scanner As Scanner
         Private ReadOnly _cancellationToken As CancellationToken
         Friend ReadOnly _pool As New SyntaxListPool
         Private ReadOnly _syntaxFactory As ContextAwareSyntaxFactory
@@ -69,6 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._scanner.Dispose()
             End If
         End Sub
+
+        Friend ReadOnly Property Options As VisualBasicParseOptions
+            Get
+                Return _scanner.Options
+            End Get
+        End Property
 
         Friend ReadOnly Property IsScript As Boolean
             Get
