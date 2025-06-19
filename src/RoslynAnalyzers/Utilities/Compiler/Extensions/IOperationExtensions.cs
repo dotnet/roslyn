@@ -23,48 +23,48 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static partial class IOperationExtensions
     {
-        //        /// <summary>
-        //        /// Gets the receiver type for an invocation expression (i.e. type of 'A' in invocation 'A.B()')
-        //        /// If the invocation actually involves a conversion from A to some other type, say 'C', on which B is invoked,
-        //        /// then this method returns type A if <paramref name="beforeConversion"/> is true, and C if false.
-        //        /// </summary>
-        //        public static ITypeSymbol? GetReceiverType(this IInvocationOperation invocation, Compilation compilation, bool beforeConversion, CancellationToken cancellationToken)
-        //        {
-        //            if (invocation.Instance != null)
-        //            {
-        //                return beforeConversion ?
-        //                    GetReceiverType(invocation.Instance.Syntax, compilation, cancellationToken) :
-        //                    invocation.Instance.Type;
-        //            }
-        //            else if (invocation.TargetMethod.IsExtensionMethod && !invocation.TargetMethod.Parameters.IsEmpty)
-        //            {
-        //                var firstArg = invocation.Arguments.FirstOrDefault();
-        //                if (firstArg != null)
-        //                {
-        //                    return beforeConversion ?
-        //                        GetReceiverType(firstArg.Value.Syntax, compilation, cancellationToken) :
-        //                        firstArg.Value.Type;
-        //                }
-        //                else if (invocation.TargetMethod.Parameters[0].IsParams)
-        //                {
-        //                    return invocation.TargetMethod.Parameters[0].Type;
-        //                }
-        //            }
+        /// <summary>
+        /// Gets the receiver type for an invocation expression (i.e. type of 'A' in invocation 'A.B()')
+        /// If the invocation actually involves a conversion from A to some other type, say 'C', on which B is invoked,
+        /// then this method returns type A if <paramref name="beforeConversion"/> is true, and C if false.
+        /// </summary>
+        public static ITypeSymbol? GetReceiverType(this IInvocationOperation invocation, Compilation compilation, bool beforeConversion, CancellationToken cancellationToken)
+        {
+            if (invocation.Instance != null)
+            {
+                return beforeConversion ?
+                    GetReceiverType(invocation.Instance.Syntax, compilation, cancellationToken) :
+                    invocation.Instance.Type;
+            }
+            else if (invocation.TargetMethod.IsExtensionMethod && !invocation.TargetMethod.Parameters.IsEmpty)
+            {
+                var firstArg = invocation.Arguments.FirstOrDefault();
+                if (firstArg != null)
+                {
+                    return beforeConversion ?
+                        GetReceiverType(firstArg.Value.Syntax, compilation, cancellationToken) :
+                        firstArg.Value.Type;
+                }
+                else if (invocation.TargetMethod.Parameters[0].IsParams)
+                {
+                    return invocation.TargetMethod.Parameters[0].Type;
+                }
+            }
 
-        //            return null;
-        //        }
+            return null;
+        }
 
-        //        private static ITypeSymbol? GetReceiverType(SyntaxNode receiverSyntax, Compilation compilation, CancellationToken cancellationToken)
-        //        {
-        //            var model = compilation.GetSemanticModel(receiverSyntax.SyntaxTree);
-        //            var typeInfo = model.GetTypeInfo(receiverSyntax, cancellationToken);
-        //            return typeInfo.Type;
-        //        }
+        private static ITypeSymbol? GetReceiverType(SyntaxNode receiverSyntax, Compilation compilation, CancellationToken cancellationToken)
+        {
+            var model = compilation.GetSemanticModel(receiverSyntax.SyntaxTree);
+            var typeInfo = model.GetTypeInfo(receiverSyntax, cancellationToken);
+            return typeInfo.Type;
+        }
 
-        //        public static bool HasNullConstantValue(this IOperation operation)
-        //        {
-        //            return operation.ConstantValue.HasValue && operation.ConstantValue.Value == null;
-        //        }
+        public static bool HasNullConstantValue(this IOperation operation)
+        {
+            return operation.ConstantValue.HasValue && operation.ConstantValue.Value == null;
+        }
 
         //        public static bool TryGetBoolConstantValue(this IOperation operation, out bool constantValue)
         //        {

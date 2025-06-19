@@ -43,30 +43,30 @@ namespace Analyzer.Utilities.Extensions
         //            };
         //        }
 
-        //        public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? possibleBase)
-        //        {
-        //            if (type == null || possibleBase == null)
-        //            {
-        //                return false;
-        //            }
+        public static bool Inherits([NotNullWhen(returnValue: true)] this ITypeSymbol? type, [NotNullWhen(returnValue: true)] ITypeSymbol? possibleBase)
+        {
+            if (type == null || possibleBase == null)
+            {
+                return false;
+            }
 
-        //            switch (possibleBase.TypeKind)
-        //            {
-        //                case TypeKind.Class:
-        //                    if (type.TypeKind == TypeKind.Interface)
-        //                    {
-        //                        return false;
-        //                    }
+            switch (possibleBase.TypeKind)
+            {
+                case TypeKind.Class:
+                    if (type.TypeKind == TypeKind.Interface)
+                    {
+                        return false;
+                    }
 
-        //                    return DerivesFrom(type, possibleBase, baseTypesOnly: true);
+                    return DerivesFrom(type, possibleBase, baseTypesOnly: true);
 
-        //                case TypeKind.Interface:
-        //                    return DerivesFrom(type, possibleBase);
+                case TypeKind.Interface:
+                    return DerivesFrom(type, possibleBase);
 
-        //                default:
-        //                    return false;
-        //            }
-        //        }
+                default:
+                    return false;
+            }
+        }
 
         //        public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol type, Func<INamedTypeSymbol, bool>? takeWhilePredicate = null)
         //        {
