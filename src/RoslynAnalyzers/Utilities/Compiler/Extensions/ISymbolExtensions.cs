@@ -12,6 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 // using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Analyzer.Utilities.Extensions
@@ -516,30 +517,30 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        //        public static bool IsImplementationOfInterfaceMember(this ISymbol symbol, [NotNullWhen(returnValue: true)] ISymbol? interfaceMember)
-        //        {
-        //            return interfaceMember != null &&
-        //                SymbolEqualityComparer.Default.Equals(symbol, symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
-        //        }
+        public static bool IsImplementationOfInterfaceMember(this ISymbol symbol, [NotNullWhen(returnValue: true)] ISymbol? interfaceMember)
+        {
+            return interfaceMember != null &&
+                SymbolEqualityComparer.Default.Equals(symbol, symbol.ContainingType.FindImplementationForInterfaceMember(interfaceMember));
+        }
 
-        //        /// <summary>
-        //        /// Checks if a given symbol implements an interface member or overrides an implementation of an interface member.
-        //        /// </summary>
-        //        public static bool IsOverrideOrImplementationOfInterfaceMember(this ISymbol symbol, [NotNullWhen(returnValue: true)] ISymbol? interfaceMember)
-        //        {
-        //            if (interfaceMember == null)
-        //            {
-        //                return false;
-        //            }
+        /// <summary>
+        /// Checks if a given symbol implements an interface member or overrides an implementation of an interface member.
+        /// </summary>
+        public static bool IsOverrideOrImplementationOfInterfaceMember(this ISymbol symbol, [NotNullWhen(returnValue: true)] ISymbol? interfaceMember)
+        {
+            if (interfaceMember == null)
+            {
+                return false;
+            }
 
-        //            if (symbol.IsImplementationOfInterfaceMember(interfaceMember))
-        //            {
-        //                return true;
-        //            }
+            if (symbol.IsImplementationOfInterfaceMember(interfaceMember))
+            {
+                return true;
+            }
 
-        //            return symbol.IsOverride &&
-        //                symbol.GetOverriddenMember()?.IsOverrideOrImplementationOfInterfaceMember(interfaceMember) == true;
-        //        }
+            return symbol.IsOverride &&
+                symbol.GetOverriddenMember()?.IsOverrideOrImplementationOfInterfaceMember(interfaceMember) == true;
+        }
 
         //        /// <summary>
         //        /// Gets the symbol overridden by the given <paramref name="symbol"/>.
