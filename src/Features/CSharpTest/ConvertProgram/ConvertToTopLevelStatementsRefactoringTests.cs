@@ -244,4 +244,70 @@ System.Console.WriteLine(0);
             }
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestConvertToTopLevelStatementsWithPreprocessorDirectiveIfTrue()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = @"
+class Program
+{
+    static void $$Main()
+    {
+#if true
+        System.Console.WriteLine(""true"");
+#else
+        System.Console.WriteLine(""false"");
+#endif
+    }
+}",
+            FixedCode = @"
+#if true
+System.Console.WriteLine(""true"");
+#else
+System.Console.WriteLine(""false"");
+#endif
+",
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestConvertToTopLevelStatementsWithPreprocessorDirectiveIfFalse()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = @"
+class Program
+{
+    static void $$Main()
+    {
+#if false
+        System.Console.WriteLine(""false"");
+#else
+        System.Console.WriteLine(""true"");
+#endif
+    }
+}",
+            FixedCode = @"
+#if false
+System.Console.WriteLine(""false"");
+#else
+System.Console.WriteLine(""true"");
+#endif
+",
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+            }
+        }.RunAsync();
+    }
 }
