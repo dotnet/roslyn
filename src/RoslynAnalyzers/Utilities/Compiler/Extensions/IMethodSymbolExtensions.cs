@@ -36,34 +36,34 @@ namespace Analyzer.Utilities.Extensions
         //                IsObjectMethodOverride(method);
         //        }
 
-        //        /// <summary>
-        //        /// Checks if the given method is <see cref="object.Equals(object)"/>.
-        //        /// </summary>
-        //        public static bool IsObjectEquals(this IMethodSymbol method)
-        //        {
-        //            return method != null &&
-        //                method.ContainingType.SpecialType == SpecialType.System_Object &&
-        //                method.IsVirtual &&
-        //                method.Name == WellKnownMemberNames.ObjectEquals &&
-        //                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-        //                method.Parameters.Length == 1 &&
-        //                method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
-        //        }
+        /// <summary>
+        /// Checks if the given method is <see cref="object.Equals(object)"/>.
+        /// </summary>
+        public static bool IsObjectEquals(this IMethodSymbol method)
+        {
+            return method != null &&
+                method.ContainingType.SpecialType == SpecialType.System_Object &&
+                method.IsVirtual &&
+                method.Name == WellKnownMemberNames.ObjectEquals &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
 
-        //        /// <summary>
-        //        /// Checks if the given <paramref name="method"/> is <see cref="object.Equals(object, object)"/> or <see cref="object.ReferenceEquals(object, object)"/>.
-        //        /// </summary>
-        //        public static bool IsStaticObjectEqualsOrReferenceEquals(this IMethodSymbol method)
-        //        {
-        //            return method != null &&
-        //                method.IsStatic &&
-        //                method.ContainingType.SpecialType == SpecialType.System_Object &&
-        //                method.Parameters.Length == 2 &&
-        //                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-        //                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-        //                method.Parameters[1].Type.SpecialType == SpecialType.System_Object &&
-        //                (method.Name == WellKnownMemberNames.ObjectEquals || method.Name == "ReferenceEquals");
-        //        }
+        /// <summary>
+        /// Checks if the given <paramref name="method"/> is <see cref="object.Equals(object, object)"/> or <see cref="object.ReferenceEquals(object, object)"/>.
+        /// </summary>
+        public static bool IsStaticObjectEqualsOrReferenceEquals(this IMethodSymbol method)
+        {
+            return method != null &&
+                method.IsStatic &&
+                method.ContainingType.SpecialType == SpecialType.System_Object &&
+                method.Parameters.Length == 2 &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                method.Parameters[1].Type.SpecialType == SpecialType.System_Object &&
+                (method.Name == WellKnownMemberNames.ObjectEquals || method.Name == "ReferenceEquals");
+        }
 
         //        /// <summary>
         //        /// Checks if the given method overrides Object.GetHashCode.
@@ -603,14 +603,14 @@ namespace Analyzer.Utilities.Extensions
         }
         //#endif
 
-        //        public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
-        //        {
-        //            return method.MethodKind switch
-        //            {
-        //                MethodKind.LambdaMethod or MethodKindEx.LocalFunction or MethodKind.DelegateInvoke => true,
-        //                _ => false,
-        //            };
-        //        }
+        public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
+        {
+            return method.MethodKind switch
+            {
+                MethodKind.LambdaMethod or MethodKindEx.LocalFunction or MethodKind.DelegateInvoke => true,
+                _ => false,
+            };
+        }
 
         //        public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
         //        {
@@ -672,22 +672,22 @@ namespace Analyzer.Utilities.Extensions
                    SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, method.Parameters[1].Type);
         }
 
-        //        public static bool IsInterlockedCompareExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
-        //        {
-        //            Debug.Assert(SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, systemThreadingInterlocked));
+        public static bool IsInterlockedCompareExchangeMethod(this IMethodSymbol method, INamedTypeSymbol? systemThreadingInterlocked)
+        {
+            Debug.Assert(SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, systemThreadingInterlocked));
 
-        //            // "System.Threading.Interlocked.CompareExchange(ref T, T, T)"
-        //            return method.Name == "CompareExchange" &&
-        //                   method.Parameters.Length == 3 &&
-        //                   method.Parameters[0].RefKind == RefKind.Ref &&
-        //                   method.Parameters[1].RefKind != RefKind.Ref &&
-        //                   method.Parameters[2].RefKind != RefKind.Ref &&
-        //                   SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, method.Parameters[1].Type) &&
-        //                   SymbolEqualityComparer.Default.Equals(method.Parameters[1].Type, method.Parameters[2].Type);
-        //        }
+            // "System.Threading.Interlocked.CompareExchange(ref T, T, T)"
+            return method.Name == "CompareExchange" &&
+                   method.Parameters.Length == 3 &&
+                   method.Parameters[0].RefKind == RefKind.Ref &&
+                   method.Parameters[1].RefKind != RefKind.Ref &&
+                   method.Parameters[2].RefKind != RefKind.Ref &&
+                   SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, method.Parameters[1].Type) &&
+                   SymbolEqualityComparer.Default.Equals(method.Parameters[1].Type, method.Parameters[2].Type);
+        }
 
-        //        public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
-        //            => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
+        public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
+            => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
 
         //        /// <summary>
         //        /// Find out if the method overrides from target virtual method of a certain type
