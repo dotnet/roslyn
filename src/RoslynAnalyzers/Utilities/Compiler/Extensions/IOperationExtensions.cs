@@ -498,61 +498,61 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        //        /// <summary>
-        //        /// Gets the symbols captured from the enclosing function(s) by the given lambda or local function.
-        //        /// </summary>
-        //        /// <param name="operation">Operation representing the lambda or local function.</param>
-        //        /// <param name="lambdaOrLocalFunction">Method symbol for the lambda or local function.</param>
-        //        public static PooledDisposer<PooledHashSet<ISymbol>> GetCaptures(
-        //            this IOperation operation, IMethodSymbol lambdaOrLocalFunction, out PooledHashSet<ISymbol> builder)
-        //        {
-        //            Debug.Assert(operation is IAnonymousFunctionOperation anonymousFunction && anonymousFunction.Symbol.OriginalDefinition.ReturnTypeAndParametersAreSame(lambdaOrLocalFunction.OriginalDefinition) ||
-        //                         operation is ILocalFunctionOperation localFunction && localFunction.Symbol.OriginalDefinition.Equals(lambdaOrLocalFunction.OriginalDefinition));
+        /// <summary>
+        /// Gets the symbols captured from the enclosing function(s) by the given lambda or local function.
+        /// </summary>
+        /// <param name="operation">Operation representing the lambda or local function.</param>
+        /// <param name="lambdaOrLocalFunction">Method symbol for the lambda or local function.</param>
+        public static PooledDisposer<PooledHashSet<ISymbol>> GetCaptures(
+            this IOperation operation, IMethodSymbol lambdaOrLocalFunction, out PooledHashSet<ISymbol> builder)
+        {
+            Debug.Assert(operation is IAnonymousFunctionOperation anonymousFunction && anonymousFunction.Symbol.OriginalDefinition.ReturnTypeAndParametersAreSame(lambdaOrLocalFunction.OriginalDefinition) ||
+                         operation is ILocalFunctionOperation localFunction && localFunction.Symbol.OriginalDefinition.Equals(lambdaOrLocalFunction.OriginalDefinition));
 
-        //            lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
+            lambdaOrLocalFunction = lambdaOrLocalFunction.OriginalDefinition;
 
-        //            var builderDisposer = PooledHashSet<ISymbol>.GetInstance(out builder);
-        //            using var _ = PooledHashSet<IMethodSymbol>.GetInstance(out var nestedLambdasAndLocalFunctions);
-        //            nestedLambdasAndLocalFunctions.Add(lambdaOrLocalFunction);
+            var builderDisposer = PooledHashSet<ISymbol>.GetInstance(out builder);
+            using var _ = PooledHashSet<IMethodSymbol>.GetInstance(out var nestedLambdasAndLocalFunctions);
+            nestedLambdasAndLocalFunctions.Add(lambdaOrLocalFunction);
 
-        //            foreach (var child in operation.Descendants())
-        //            {
-        //                switch (child.Kind)
-        //                {
-        //                    case OperationKind.LocalReference:
-        //                        ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local, builder);
-        //                        break;
+            foreach (var child in operation.Descendants())
+            {
+                switch (child.Kind)
+                {
+                    case OperationKind.LocalReference:
+                        ProcessLocalOrParameter(((ILocalReferenceOperation)child).Local, builder);
+                        break;
 
-        //                    case OperationKind.ParameterReference:
-        //                        ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter, builder);
-        //                        break;
+                    case OperationKind.ParameterReference:
+                        ProcessLocalOrParameter(((IParameterReferenceOperation)child).Parameter, builder);
+                        break;
 
-        //                    case OperationKind.InstanceReference:
-        //                        builder.Add(lambdaOrLocalFunction.ContainingType);
-        //                        break;
+                    case OperationKind.InstanceReference:
+                        builder.Add(lambdaOrLocalFunction.ContainingType);
+                        break;
 
-        //                    case OperationKind.AnonymousFunction:
-        //                        nestedLambdasAndLocalFunctions.Add(((IAnonymousFunctionOperation)child).Symbol);
-        //                        break;
+                    case OperationKind.AnonymousFunction:
+                        nestedLambdasAndLocalFunctions.Add(((IAnonymousFunctionOperation)child).Symbol);
+                        break;
 
-        //                    case OperationKind.LocalFunction:
-        //                        nestedLambdasAndLocalFunctions.Add(((ILocalFunctionOperation)child).Symbol);
-        //                        break;
-        //                }
-        //            }
+                    case OperationKind.LocalFunction:
+                        nestedLambdasAndLocalFunctions.Add(((ILocalFunctionOperation)child).Symbol);
+                        break;
+                }
+            }
 
-        //            return builderDisposer;
+            return builderDisposer;
 
-        //            // Local functions.
-        //            void ProcessLocalOrParameter(ISymbol symbol, PooledHashSet<ISymbol> builder)
-        //            {
-        //                if (symbol.ContainingSymbol?.Kind == SymbolKind.Method &&
-        //                    !nestedLambdasAndLocalFunctions.Contains(symbol.ContainingSymbol.OriginalDefinition))
-        //                {
-        //                    builder.Add(symbol);
-        //                }
-        //            }
-        //        }
+            // Local functions.
+            void ProcessLocalOrParameter(ISymbol symbol, PooledHashSet<ISymbol> builder)
+            {
+                if (symbol.ContainingSymbol?.Kind == SymbolKind.Method &&
+                    !nestedLambdasAndLocalFunctions.Contains(symbol.ContainingSymbol.OriginalDefinition))
+                {
+                    builder.Add(symbol);
+                }
+            }
+        }
 
         //        private static readonly ImmutableArray<OperationKind> s_LambdaAndLocalFunctionKinds =
         //            ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #pragma warning disable CA1707 // Identifiers should not contain underscores
 

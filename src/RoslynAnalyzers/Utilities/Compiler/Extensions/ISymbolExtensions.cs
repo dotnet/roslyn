@@ -353,26 +353,26 @@ namespace Analyzer.Utilities.Extensions
         //            }
         //        }
 
-        //        /// <summary>
-        //        /// Check whether parameter count and parameter types of the given methods are same.
-        //        /// </summary>
-        //        public static bool ParametersAreSame(this IMethodSymbol method1, IMethodSymbol method2)
-        //        {
-        //            if (method1.Parameters.Length != method2.Parameters.Length)
-        //            {
-        //                return false;
-        //            }
+        /// <summary>
+        /// Check whether parameter count and parameter types of the given methods are same.
+        /// </summary>
+        public static bool ParametersAreSame(this IMethodSymbol method1, IMethodSymbol method2)
+        {
+            if (method1.Parameters.Length != method2.Parameters.Length)
+            {
+                return false;
+            }
 
-        //            for (int index = 0; index < method1.Parameters.Length; index++)
-        //            {
-        //                if (!ParameterTypesAreSame(method1.Parameters[index], method2.Parameters[index]))
-        //                {
-        //                    return false;
-        //                }
-        //            }
+            for (int index = 0; index < method1.Parameters.Length; index++)
+            {
+                if (!ParameterTypesAreSame(method1.Parameters[index], method2.Parameters[index]))
+                {
+                    return false;
+                }
+            }
 
-        //            return true;
-        //        }
+            return true;
+        }
 
         /// <summary>
         /// Check whether parameter types of the given methods are same for given parameter indices.
@@ -409,12 +409,12 @@ namespace Analyzer.Utilities.Extensions
             return SymbolEqualityComparer.Default.Equals(type2, type1);
         }
 
-        //        /// <summary>
-        //        /// Check whether return type, parameters count and parameter types are same for the given methods.
-        //        /// </summary>
-        //        public static bool ReturnTypeAndParametersAreSame(this IMethodSymbol method, IMethodSymbol otherMethod)
-        //            => SymbolEqualityComparer.Default.Equals(method.ReturnType, otherMethod.ReturnType) &&
-        //               method.ParametersAreSame(otherMethod);
+        /// <summary>
+        /// Check whether return type, parameters count and parameter types are same for the given methods.
+        /// </summary>
+        public static bool ReturnTypeAndParametersAreSame(this IMethodSymbol method, IMethodSymbol otherMethod)
+            => SymbolEqualityComparer.Default.Equals(method.ReturnType, otherMethod.ReturnType) &&
+               method.ParametersAreSame(otherMethod);
 
         //        /// <summary>
         //        /// Check whether given symbol is from mscorlib
