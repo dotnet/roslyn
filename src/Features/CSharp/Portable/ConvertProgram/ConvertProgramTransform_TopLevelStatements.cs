@@ -191,48 +191,19 @@ internal static partial class ConvertProgramTransform
                 {
                     var firstStatement = bodyStatements[0];
                     
-                    // Check if the method body contains preprocessor directives that need to be preserved
                     if (ContainsPreprocessorDirectives(methodDeclaration.Body))
                     {
-                        // For preprocessor directives, we need to preserve trivia that contains
-                        // the complete #if/#else/#endif structure including disabled code sections.
-                        // This trivia is typically found on the brace tokens.
-                        var openBrace = methodDeclaration.Body.OpenBraceToken;
-                        var closeBrace = methodDeclaration.Body.CloseBraceToken;
-                        
-                        // Combine trivia from open brace (trailing) + method leading trivia + first statement leading trivia
-                        var combinedLeadingTrivia = methodDeclaration.GetLeadingTrivia()
-                            .Concat(openBrace.TrailingTrivia)
-                            .Concat(firstStatement.GetLeadingTrivia());
-                            
-                        firstStatement = firstStatement.WithLeadingTrivia(combinedLeadingTrivia);
-                        statements.Add(firstStatement);
-                        
-                        // Add remaining statements except the last one
-                        statements.AddRange(bodyStatements.Skip(1).Take(bodyStatements.Count - 2));
-                        
-                        // Handle the last statement - add close brace trivia to it
-                        if (bodyStatements.Count > 1)
-                        {
-                            var lastStatement = bodyStatements[bodyStatements.Count - 1];
-                            var combinedTrailingTrivia = lastStatement.GetTrailingTrivia()
-                                .Concat(closeBrace.LeadingTrivia);
-                            statements.Add(lastStatement.WithTrailingTrivia(combinedTrailingTrivia));
-                        }
-                        else 
-                        {
-                            // Single statement case - add close brace trivia to trailing trivia of the first statement
-                            var combinedTrailingTrivia = firstStatement.GetTrailingTrivia()
-                                .Concat(closeBrace.LeadingTrivia);
-                            // Replace the first statement we already added
-                            statements[statements.Count - 1] = firstStatement.WithTrailingTrivia(combinedTrailingTrivia);
-                        }
+                        // When preprocessor directives are present, copy all trivia from the method body
+                        // to preserve the complete structure including disabled code sections
+                        firstStatement = firstStatement.WithTriviaFrom(methodDeclaration.Body)
+                                                      .WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia());
                     }
                     else
                     {
                         firstStatement = firstStatement.WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia());
-                        statements.Add(firstStatement);
                     }
+                    
+                    statements.Add(firstStatement);
                 }
 
                 // Only add remaining statements if we didn't handle them already in the preprocessor case
