@@ -145,7 +145,7 @@ internal static partial class ConvertProgramTransform
             // type wasn't in a namespace.  just remove the type and replace it with the new global statements.
             editor.ReplaceNode(typeDeclaration, (_, _) => globalStatements);
 
-            // We're removing the namespace itself.  So we want to plae the trailing directive on the element that follows that.
+            // We're removing the namespace itself.  So we want to place the trailing directive on the element that follows that.
             AddDirectivesToNextMemberOrEndOfFile(root.Members.IndexOf(typeDeclaration) + 1);
         }
 
