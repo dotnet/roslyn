@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return loweredStatement;
         }
 
-        private BoundStatement FinalizeMethodBody<T>(T loweredStatement) where T : BoundStatement
+        private BoundStatement FinalizeMethodBody(BoundStatement loweredStatement)
         {
             if (loweredStatement == null)
             {
