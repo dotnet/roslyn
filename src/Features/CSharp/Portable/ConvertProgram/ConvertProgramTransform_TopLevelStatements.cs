@@ -120,20 +120,6 @@ internal static partial class ConvertProgramTransform
 
             // We want to place the trailing directive on the namespace declaration we're preceding.
             memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(namespaceDeclaration);
-            //.ReplaceNode(
-            //    root,
-            //    (current, _) =>
-            //    {
-            //        var currentRoot = (CompilationUnitSyntax)current;
-
-            //        using var _1 = ArrayBuilder<MemberDeclarationSyntax>.GetInstance(out var finalMembers);
-
-            //        finalMembers.AddRange(globalStatements);
-            //        finalMembers.Add(currentRoot.Members[0].WithPrependedLeadingTrivia(trailingDirectives));
-            //        finalMembers.AddRange(currentRoot.Members.Skip(1));
-
-            //        return currentRoot.WithMembers([.. finalMembers]);
-            //    });
         }
         else if (namespaceDeclaration != null)
         {
@@ -158,7 +144,7 @@ internal static partial class ConvertProgramTransform
         else
         {
             // type wasn't in a namespace.  just remove the type and replace it with the new global statements.
-            editor.ReplaceNode(root, root.ReplaceNode(typeDeclaration, globalStatements));
+            editor.ReplaceNode(root, (_, _) => root.ReplaceNode(typeDeclaration, globalStatements));
 
             // We're removing the namespace itself.  So we want to plae the trailing directive on the element that follows that.
             memberIndexToPlaceTrailingDirectivesOn = root.Members.IndexOf(typeDeclaration) + 1;
@@ -172,9 +158,14 @@ internal static partial class ConvertProgramTransform
             var leadingCloseBraceTrivia = block.CloseBraceToken.LeadingTrivia;
             if (memberIndexToPlaceTrailingDirectivesOn < root.Members.Count)
             {
+                var newMember = root.Members[memberIndexToPlaceTrailingDirectivesOn].WithPrependedLeadingTrivia(leadingCloseBraceTrivia);
+                newMember = newMember.ReplaceToken(
+                    newMember.GetFirstToken(),
+                    newMember.GetFirstToken().WithAdditionalAnnotations(Formatter.Annotation));
+
                 editor.ReplaceNode(
                     root.Members[memberIndexToPlaceTrailingDirectivesOn],
-                    root.Members[memberIndexToPlaceTrailingDirectivesOn].WithPrependedLeadingTrivia(leadingCloseBraceTrivia));
+                    (_, _) => newMember);
             }
             else
             {
@@ -183,7 +174,9 @@ internal static partial class ConvertProgramTransform
                     (current, _) =>
                     {
                         var currentRoot = (CompilationUnitSyntax)current;
-                        return currentRoot.WithEndOfFileToken(currentRoot.EndOfFileToken.WithPrependedLeadingTrivia(leadingCloseBraceTrivia));
+                        return currentRoot.WithEndOfFileToken(currentRoot.EndOfFileToken
+                            .WithPrependedLeadingTrivia(leadingCloseBraceTrivia)
+                            .WithAdditionalAnnotations(Formatter.Annotation));
                     });
             }
         }

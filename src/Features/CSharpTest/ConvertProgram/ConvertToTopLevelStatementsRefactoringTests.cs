@@ -252,10 +252,11 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
     public async Task TestPreserveStatementDirectives1()
     {
-        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
         await new VerifyCS.Test
         {
             TestCode = """
+                using System;
+
                 class Program
                 {
                     static void $$Main(string[] args)
@@ -269,12 +270,14 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 }
                 """,
             FixedCode = """
+                using System;
+
                 #if true
                         Console.WriteLine("true");
                 #else
                         Console.WriteLine("false");
                 #endif
-            """,
+                """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -287,10 +290,11 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
     public async Task TestPreserveStatementDirectives2()
     {
-        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
         await new VerifyCS.Test
         {
             TestCode = """
+                using System;
+
                 class Program
                 {
                     static void $$Main(string[] args)
@@ -308,6 +312,8 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 }
                 """,
             FixedCode = """
+                using System;
+
                 #if true
                         Console.WriteLine("true");
                 #else
@@ -330,10 +336,11 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
     public async Task TestPreserveStatementDirectives3()
     {
-        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
         await new VerifyCS.Test
         {
             TestCode = """
+                using System;
+
                 namespace N
                 {
                     class Program
@@ -350,11 +357,14 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 }
                 """,
             FixedCode = """
+                using System;
+
                 #if true
-                        Console.WriteLine("true");
+                Console.WriteLine("true");
                 #else
-                        Console.WriteLine("false");
+                            Console.WriteLine("false");
                 #endif
+
                 """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -368,10 +378,11 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
     public async Task TestPreserveStatementDirectives4()
     {
-        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
         await new VerifyCS.Test
         {
             TestCode = """
+                using System;
+
                 namespace N
                 {
                     class Program
@@ -392,14 +403,19 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 }
                 """,
             FixedCode = """
-                #if true
-                        Console.WriteLine("true");
-                #else
-                        Console.WriteLine("false");
-                #endif
+                using System;
 
-                class Next
+                #if true
+                Console.WriteLine("true");
+                #else
+                            Console.WriteLine("false");
+                #endif
+                
+                namespace N
                 {
+                    class Next
+                    {
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp10,
