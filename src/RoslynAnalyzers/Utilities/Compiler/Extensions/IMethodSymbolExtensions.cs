@@ -22,19 +22,19 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class IMethodSymbolExtensions
     {
-        //        /// <summary>
-        //        /// Checks if the given method overrides <see cref="object.Equals(object)"/>.
-        //        /// </summary>
-        //        public static bool IsObjectEqualsOverride(this IMethodSymbol method)
-        //        {
-        //            return method != null &&
-        //                method.IsOverride &&
-        //                method.Name == WellKnownMemberNames.ObjectEquals &&
-        //                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
-        //                method.Parameters.Length == 1 &&
-        //                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-        //                IsObjectMethodOverride(method);
-        //        }
+        /// <summary>
+        /// Checks if the given method overrides <see cref="object.Equals(object)"/>.
+        /// </summary>
+        public static bool IsObjectEqualsOverride(this IMethodSymbol method)
+        {
+            return method != null &&
+                method.IsOverride &&
+                method.Name == WellKnownMemberNames.ObjectEquals &&
+                method.ReturnType.SpecialType == SpecialType.System_Boolean &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
+                IsObjectMethodOverride(method);
+        }
 
         /// <summary>
         /// Checks if the given method is <see cref="object.Equals(object)"/>.
@@ -91,24 +91,24 @@ namespace Analyzer.Utilities.Extensions
         //                   IsObjectMethodOverride(method);
         //        }
 
-        //        /// <summary>
-        //        /// Checks if the given method overrides a method from System.Object
-        //        /// </summary>
-        //        private static bool IsObjectMethodOverride(IMethodSymbol method)
-        //        {
-        //            IMethodSymbol overriddenMethod = method.OverriddenMethod;
-        //            while (overriddenMethod != null)
-        //            {
-        //                if (overriddenMethod.ContainingType.SpecialType == SpecialType.System_Object)
-        //                {
-        //                    return true;
-        //                }
+        /// <summary>
+        /// Checks if the given method overrides a method from System.Object
+        /// </summary>
+        private static bool IsObjectMethodOverride(IMethodSymbol method)
+        {
+            IMethodSymbol overriddenMethod = method.OverriddenMethod;
+            while (overriddenMethod != null)
+            {
+                if (overriddenMethod.ContainingType.SpecialType == SpecialType.System_Object)
+                {
+                    return true;
+                }
 
-        //                overriddenMethod = overriddenMethod.OverriddenMethod;
-        //            }
+                overriddenMethod = overriddenMethod.OverriddenMethod;
+            }
 
-        //            return false;
-        //        }
+            return false;
+        }
 
         //        /// <summary>
         //        /// Checks if the given method is a Finalizer implementation.

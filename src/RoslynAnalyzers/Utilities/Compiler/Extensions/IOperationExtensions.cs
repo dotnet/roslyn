@@ -592,43 +592,43 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        //        /// <summary>
-        //        /// If the given <paramref name="tupleOperation"/> is a nested tuple,
-        //        /// gets the parenting tuple operation and the tuple element of that parenting tuple
-        //        /// which contains the given tupleOperation as a descendant operation.
-        //        /// </summary>
-        //        public static bool TryGetParentTupleOperation(this ITupleOperation tupleOperation,
-        //            [NotNullWhen(returnValue: true)] out ITupleOperation? parentTupleOperation,
-        //            [NotNullWhen(returnValue: true)] out IOperation? elementOfParentTupleContainingTuple)
-        //        {
-        //            parentTupleOperation = null;
-        //            elementOfParentTupleContainingTuple = null;
+        /// <summary>
+        /// If the given <paramref name="tupleOperation"/> is a nested tuple,
+        /// gets the parenting tuple operation and the tuple element of that parenting tuple
+        /// which contains the given tupleOperation as a descendant operation.
+        /// </summary>
+        public static bool TryGetParentTupleOperation(this ITupleOperation tupleOperation,
+            [NotNullWhen(returnValue: true)] out ITupleOperation? parentTupleOperation,
+            [NotNullWhen(returnValue: true)] out IOperation? elementOfParentTupleContainingTuple)
+        {
+            parentTupleOperation = null;
+            elementOfParentTupleContainingTuple = null;
 
-        //            IOperation previousOperation = tupleOperation;
-        //            var currentOperation = tupleOperation.Parent;
-        //            while (currentOperation != null)
-        //            {
-        //                switch (currentOperation.Kind)
-        //                {
-        //                    case OperationKind.Parenthesized:
-        //                    case OperationKind.Conversion:
-        //                    case OperationKind.DeclarationExpression:
-        //                        previousOperation = currentOperation;
-        //                        currentOperation = currentOperation.Parent;
-        //                        continue;
+            IOperation previousOperation = tupleOperation;
+            var currentOperation = tupleOperation.Parent;
+            while (currentOperation != null)
+            {
+                switch (currentOperation.Kind)
+                {
+                    case OperationKind.Parenthesized:
+                    case OperationKind.Conversion:
+                    case OperationKind.DeclarationExpression:
+                        previousOperation = currentOperation;
+                        currentOperation = currentOperation.Parent;
+                        continue;
 
-        //                    case OperationKind.Tuple:
-        //                        parentTupleOperation = (ITupleOperation)currentOperation;
-        //                        elementOfParentTupleContainingTuple = previousOperation;
-        //                        return true;
+                    case OperationKind.Tuple:
+                        parentTupleOperation = (ITupleOperation)currentOperation;
+                        elementOfParentTupleContainingTuple = previousOperation;
+                        return true;
 
-        //                    default:
-        //                        return false;
-        //                }
-        //            }
+                    default:
+                        return false;
+                }
+            }
 
-        //            return false;
-        //        }
+            return false;
+        }
 
         public static bool IsExtensionMethodAndHasNoInstance(this IInvocationOperation invocationOperation)
         {

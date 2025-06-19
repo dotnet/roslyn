@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 // using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Analyzer.Utilities.Extensions
@@ -175,11 +176,11 @@ namespace Analyzer.Utilities.Extensions
         //            };
         //        }
 
-        //        /// <summary>
-        //        /// True if the symbol is externally visible outside this assembly.
-        //        /// </summary>
-        //        public static bool IsExternallyVisible(this ISymbol symbol) =>
-        //            symbol.GetResultantVisibility() == SymbolVisibility.Public;
+        /// <summary>
+        /// True if the symbol is externally visible outside this assembly.
+        /// </summary>
+        public static bool IsExternallyVisible(this ISymbol symbol) =>
+            symbol.GetResultantVisibility() == SymbolVisibility.Public;
 
         //public static SymbolVisibility GetResultantVisibility(this ISymbol symbol)
         //{

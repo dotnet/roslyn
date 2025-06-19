@@ -319,8 +319,8 @@ namespace Analyzer.Utilities.Extensions
         //            => typeSymbol.IsNullableValueType() ? ((INamedTypeSymbol)typeSymbol).TypeArguments[0] : null;
 
         //#if HAS_IOPERATION
-        //        public static ITypeSymbol? GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol? typeSymbol)
-        //            => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
+        public static ITypeSymbol? GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol? typeSymbol)
+            => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
         //#endif
 
         //        /// <summary>
