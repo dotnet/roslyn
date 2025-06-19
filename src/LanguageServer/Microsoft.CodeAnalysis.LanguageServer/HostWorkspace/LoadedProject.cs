@@ -26,8 +26,8 @@ internal sealed class LoadedProject : IDisposable
 
     private readonly ProjectSystemProject _projectSystemProject;
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
-    private readonly IFileChangeContext _fileChangeContext;
-    private readonly IFileChangeContext _projectAssetsFileChangeContext;
+    private readonly IFileChangeContext _sourceFileChangeContext;
+    private readonly IFileChangeContext _projectFileChangeContext;
     private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
 
     /// <summary>
@@ -55,25 +55,16 @@ internal sealed class LoadedProject : IDisposable
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
         _projectDirectory = Path.GetDirectoryName(_projectFilePath)!;
 
-        _fileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
-        _fileChangeContext.FileChanged += FileChangeContext_FileChanged;
+        _sourceFileChangeContext = fileWatcher.CreateContext([new(_projectDirectory, [".cs", ".cshtml", ".razor"])]);
+        _sourceFileChangeContext.FileChanged += SourceFileChangeContext_FileChanged;
 
-        _projectAssetsFileChangeContext = fileWatcher.CreateContext([]);
-        _projectAssetsFileChangeContext.FileChanged += ProjectAssetsFileChangeContext_FileChanged;
-
-        // Start watching for file changes for the project file as well
-        _fileChangeContext.EnqueueWatchingFile(_projectFilePath);
+        _projectFileChangeContext = fileWatcher.CreateContext([]);
+        _projectFileChangeContext.FileChanged += ProjectFileChangeContext_FileChanged;
+        _projectFileChangeContext.EnqueueWatchingFile(_projectFilePath);
     }
 
-    private void FileChangeContext_FileChanged(object? sender, string filePath)
+    private void SourceFileChangeContext_FileChanged(object? sender, string filePath)
     {
-        // If the project file itself changed, we almost certainly need to reload the project.
-        if (string.Equals(filePath, _projectFilePath, StringComparison.OrdinalIgnoreCase))
-        {
-            NeedsReload?.Invoke(this, EventArgs.Empty);
-            return;
-        }
-
         var matchers = _mostRecentFileMatchers?.Value;
         if (matchers is null)
         {
@@ -97,7 +88,7 @@ internal sealed class LoadedProject : IDisposable
         }
     }
 
-    private void ProjectAssetsFileChangeContext_FileChanged(object? sender, string filePath)
+    private void ProjectFileChangeContext_FileChanged(object? sender, string filePath)
     {
         NeedsReload?.Invoke(this, EventArgs.Empty);
     }
@@ -115,7 +106,8 @@ internal sealed class LoadedProject : IDisposable
     /// </summary>
     public void Dispose()
     {
-        _fileChangeContext.Dispose();
+        _sourceFileChangeContext.Dispose();
+        _projectFileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }
@@ -293,7 +285,7 @@ internal sealed class LoadedProject : IDisposable
             // Dispose of the last once since we're changing the file we're watching.
             _mostRecentProjectAssetsFileWatcher?.Dispose();
             _mostRecentProjectAssetsFileWatcher = currentProjectInfo.ProjectAssetsFilePath is { } assetsFilePath
-                    ? _projectAssetsFileChangeContext.EnqueueWatchingFile(assetsFilePath)
+                    ? _projectFileChangeContext.EnqueueWatchingFile(assetsFilePath)
                     : null;
         }
     }
