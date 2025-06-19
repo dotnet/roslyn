@@ -90,7 +90,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<TextSpan>.GetInstance(normalizedChanges.Length, out var newSpans);
-        var newText = CopilotChangeAnalysisUtilities.GetNewText(oldText, normalizedChanges, newSpans);
+        var newText = CopilotUtilities.GetNewText(oldText, normalizedChanges, newSpans);
 
         var forkingTime = forkingTimeStopWatch.Elapsed;
 

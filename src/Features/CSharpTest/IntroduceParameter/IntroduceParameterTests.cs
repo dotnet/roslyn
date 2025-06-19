@@ -2220,4 +2220,21 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
 
         await TestMissingInRegularAndScriptAsync(code);
     }
+
+    [Fact]
+    public async Task TestNotOnNamedType1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]Console.WriteLine();
+                }
+            }
+            """);
+    }
 }
