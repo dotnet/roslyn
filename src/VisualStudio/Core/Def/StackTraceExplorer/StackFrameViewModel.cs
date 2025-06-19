@@ -230,7 +230,6 @@ internal sealed class StackFrameViewModel(
 
         if (_threadingContext.DisposalToken.IsCancellationRequested)
         {
-            // If the view model is being disposed, we don't want to navigate.
             return _threadingContext.DisposalToken;
         }
 
