@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram;
@@ -81,6 +82,7 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
             """,
             FixedCode = """
             System.Console.WriteLine(args[0]);
+
             """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -236,12 +238,175 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
             """,
             FixedCode = """
             System.Console.WriteLine(0);
+
             """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
             {
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.None },
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
+    public async Task TestPreserveStatementDirectives1()
+    {
+        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Program
+                {
+                    static void $$Main(string[] args)
+                    {
+                #if true
+                        Console.WriteLine("true");
+                #else
+                        Console.WriteLine("false");
+                #endif
+                    }
+                }
+                """,
+            FixedCode = """
+                #if true
+                        Console.WriteLine("true");
+                #else
+                        Console.WriteLine("false");
+                #endif
+            """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
+    public async Task TestPreserveStatementDirectives2()
+    {
+        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class Program
+                {
+                    static void $$Main(string[] args)
+                    {
+                #if true
+                        Console.WriteLine("true");
+                #else
+                        Console.WriteLine("false");
+                #endif
+                    }
+                }
+
+                class Next
+                {
+                }
+                """,
+            FixedCode = """
+                #if true
+                        Console.WriteLine("true");
+                #else
+                        Console.WriteLine("false");
+                #endif
+            
+                class Next
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
+    public async Task TestPreserveStatementDirectives3()
+    {
+        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class Program
+                    {
+                        static void $$Main(string[] args)
+                        {
+                    #if true
+                            Console.WriteLine("true");
+                    #else
+                            Console.WriteLine("false");
+                    #endif
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                #if true
+                        Console.WriteLine("true");
+                #else
+                        Console.WriteLine("false");
+                #endif
+                """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78002")]
+    public async Task TestPreserveStatementDirectives4()
+    {
+        // user actually prefers Program.Main.  As such, we only offer to convert to the alternative as a refactoring.
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    class Program
+                    {
+                        static void $$Main(string[] args)
+                        {
+                    #if true
+                            Console.WriteLine("true");
+                    #else
+                            Console.WriteLine("false");
+                    #endif
+                        }
+                    }
+
+                    class Next
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                #if true
+                        Console.WriteLine("true");
+                #else
+                        Console.WriteLine("false");
+                #endif
+
+                class Next
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
     }
