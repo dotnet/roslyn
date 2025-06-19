@@ -31,7 +31,7 @@ internal static class CopilotEditorUtilities
 
             var currentSolution = document.Project.Solution;
 
-            // Edit touches multiple solutions.  Don't bother with this for now for simplicities sake.
+            // Edit touches multiple solutions.  Don't bother with this for now for simplicity's sake.
             if (solution != null && solution != currentSolution)
                 return null;
 
