@@ -273,10 +273,11 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 using System;
 
                 #if true
-                        Console.WriteLine("true");
+                Console.WriteLine("true");
                 #else
                         Console.WriteLine("false");
                 #endif
+
                 """,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -315,7 +316,7 @@ public sealed class ConvertToTopLevelStatementsRefactoringTests
                 using System;
 
                 #if true
-                        Console.WriteLine("true");
+                Console.WriteLine("true");
                 #else
                         Console.WriteLine("false");
                 #endif
