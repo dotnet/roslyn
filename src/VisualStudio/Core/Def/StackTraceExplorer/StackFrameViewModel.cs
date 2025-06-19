@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
@@ -50,17 +49,8 @@ internal sealed class StackFrameViewModel(
 
     public void NavigateToClass()
     {
-        if (_threadingContext.DisposalToken.IsCancellationRequested)
-        {
-            // If the view model is being disposed, we don't want to navigate.
-            return;
-        }
-
-        _navigationCancellationSource?.Cancel();
-        _navigationCancellationSource?.Dispose();
-        _navigationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
-
-        _ = NavigateToClassAsync(_navigationCancellationSource.Token).ReportNonFatalErrorUnlessCancelledAsync(_navigationCancellationSource.Token);
+        var cancellationToken = GetNavigationCancellationToken();
+        _ = NavigateToClassAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToClassAsync(CancellationToken cancellationToken)
@@ -88,8 +78,8 @@ internal sealed class StackFrameViewModel(
 
     public void NavigateToSymbol()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToMethodAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = GetNavigationCancellationToken();
+        _ = NavigateToMethodAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToMethodAsync(CancellationToken cancellationToken)
@@ -106,8 +96,8 @@ internal sealed class StackFrameViewModel(
 
     public void NavigateToFile()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToFileAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = GetNavigationCancellationToken();
+        _ = NavigateToFileAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToFileAsync(CancellationToken cancellationToken)
@@ -231,6 +221,21 @@ internal sealed class StackFrameViewModel(
 
         _definitionCache[symbolPart] = await _stackExplorerService.TryFindDefinitionAsync(_workspace.CurrentSolution, _frame, symbolPart, cancellationToken).ConfigureAwait(false);
         return _definitionCache[symbolPart];
+    }
+
+    private CancellationToken GetNavigationCancellationToken()
+    {
+        _navigationCancellationSource?.Cancel();
+        _navigationCancellationSource?.Dispose();
+
+        if (_threadingContext.DisposalToken.IsCancellationRequested)
+        {
+            // If the view model is being disposed, we don't want to navigate.
+            return _threadingContext.DisposalToken;
+        }
+
+        _navigationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
+        return _navigationCancellationSource.Token;
     }
 
     private static ImmutableArray<StackFrameTrivia> GetLeadingTrivia(StackFrameNode node)
