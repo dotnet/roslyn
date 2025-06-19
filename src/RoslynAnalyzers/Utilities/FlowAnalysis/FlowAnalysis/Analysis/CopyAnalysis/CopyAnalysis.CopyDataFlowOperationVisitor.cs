@@ -8,11 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
-using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {
@@ -387,8 +386,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             protected override void UpdateValuesForAnalysisData(CopyAnalysisData targetAnalysisData)
             {
                 // We need to trim the copy values to only include the entities that are existing keys in targetAnalysisData.
-                using var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-                using var builder = ArrayBuilder<AnalysisEntity>.GetInstance(targetAnalysisData.CoreAnalysisData.Count);
+                using var _1 = PooledHashSet<AnalysisEntity>.GetInstance(out var processedEntities);
+                using var _2 = ArrayBuilder<AnalysisEntity>.GetInstance(targetAnalysisData.CoreAnalysisData.Count, out var builder);
                 builder.AddRange(targetAnalysisData.CoreAnalysisData.Keys);
 
                 for (int i = 0; i < builder.Count; i++)
@@ -477,7 +476,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                     returnValueAndPredicateKind.Value.Value.Kind.IsKnown() &&
                     DataFlowAnalysisContext.InterproceduralAnalysisData != null)
                 {
-                    using var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+                    using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var entitiesToFilterBuilder);
                     var copyValue = returnValueAndPredicateKind.Value.Value;
                     var copyValueEntities = copyValue.AnalysisEntities;
 
@@ -522,7 +521,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             private void ApplyMissingCurrentAnalysisDataCore(CopyAnalysisData mergedData, Func<AnalysisEntity, bool>? predicate)
             {
-                using var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var processedEntities);
                 foreach (var kvp in CurrentAnalysisData.CoreAnalysisData)
                 {
                     var key = kvp.Key;
@@ -554,7 +553,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAnalysisData GetTrimmedCurrentAnalysisData(IEnumerable<AnalysisEntity> withEntities)
             {
-                using var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var processedEntities);
                 var analysisData = new CopyAnalysisData();
                 foreach (var entity in withEntities)
                 {

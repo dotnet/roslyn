@@ -155,7 +155,7 @@ internal sealed partial class EventHookupSessionManager
 
                 var namingRule = await document.GetApplicableNamingRuleAsync(
                     new SymbolKindOrTypeKind(MethodKind.Ordinary),
-                    new DeclarationModifiers(isStatic: plusEqualsToken.Value.GetRequiredParent().IsInStaticContext()),
+                    new DeclarationModifiers(isStatic: plusEqualsToken.Value.GetRequiredParent().IsInStaticContext()).Modifiers,
                     Accessibility.Private,
                     cancellationToken).ConfigureAwait(false);
 

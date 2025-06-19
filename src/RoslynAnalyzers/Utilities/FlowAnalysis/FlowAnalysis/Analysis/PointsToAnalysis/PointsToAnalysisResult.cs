@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         public PointsToAnalysisKind PointsToAnalysisKind { get; }
 
         public ImmutableHashSet<AbstractLocation> GetEscapedAbstractLocations(IOperation operation)
-            => GetEscapedAbstractLocations(operation, _escapedLocationsThroughOperationsMap)
-                .AddRange(GetEscapedAbstractLocations(operation, _escapedLocationsThroughReturnValuesMap));
+            => ImmutableHashSetExtensions.AddRange(
+                GetEscapedAbstractLocations(operation, _escapedLocationsThroughOperationsMap),
+                GetEscapedAbstractLocations(operation, _escapedLocationsThroughReturnValuesMap));
 
         public ImmutableHashSet<AbstractLocation> GetEscapedAbstractLocations(AnalysisEntity analysisEntity)
             => GetEscapedAbstractLocations(analysisEntity, _escapedLocationsThroughEntitiesMap);

@@ -267,6 +267,9 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<ProjectDiagnostics> actual)
         => actual.SelectMany(pd => pd.Diagnostics.Select(d => $"{pd.ProjectId.DebugName}: {InspectDiagnostic(d)}"));
 
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> diagnostics)
+        => diagnostics.SelectMany(pd => pd.diagnostics.Select(d => $"{pd.project.DebugName}: {InspectDiagnostic(d)}"));
+
     internal static string InspectDiagnostic(Diagnostic actual)
         => $"{Inspect(actual.Location)}: {actual.Severity} {actual.Id}: {actual.GetMessage()}";
 

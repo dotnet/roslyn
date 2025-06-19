@@ -3055,7 +3055,7 @@ class J : I
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //     [DllImport("goo")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
                 // (20,19): error CS1503: Argument 1: cannot convert from 'short' to 'sbyte'

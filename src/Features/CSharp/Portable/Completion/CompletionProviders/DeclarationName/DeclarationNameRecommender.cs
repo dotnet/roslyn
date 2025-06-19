@@ -237,7 +237,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
             var modifiers = declarationInfo.Modifiers;
             foreach (var rule in rules)
             {
-                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers, declarationInfo.DeclaredAccessibility))
+                if (rule.SymbolSpecification.AppliesTo(kind, declarationInfo.Modifiers.Modifiers, declarationInfo.DeclaredAccessibility))
                 {
                     foreach (var baseName in baseNames)
                     {

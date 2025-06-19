@@ -84,7 +84,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         // The naming rule we need to follow if we synthesize new private fields.
         var fieldNameRule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-            DeclarationModifiers.None,
+            Modifiers.None,
             Accessibility.Private,
             cancellationToken).ConfigureAwait(false);
 

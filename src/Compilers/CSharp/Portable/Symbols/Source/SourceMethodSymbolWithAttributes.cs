@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors = false;
 
             var implementationPart = this.PartialImplementationPart ?? this;
-            if (!implementationPart.IsExtern || !implementationPart.IsStatic)
+            if (!implementationPart.IsExtern || (!implementationPart.IsStatic && !implementationPart.GetIsNewExtensionMember()))
             {
                 diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;

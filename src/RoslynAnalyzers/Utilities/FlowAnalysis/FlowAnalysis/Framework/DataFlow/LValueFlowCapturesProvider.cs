@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #if DEBUG
 using System.Collections.Generic;

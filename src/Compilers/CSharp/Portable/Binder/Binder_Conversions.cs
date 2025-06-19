@@ -1069,6 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
+            Debug.Assert(!collectionBuilderMethod.GetIsNewExtensionMember());
 
             return collectionBuilderMethod;
         }
@@ -1430,11 +1431,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
+                                    Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }
                             }
                         }
                         else
                         {
+                            Debug.Assert(!resolution.OverloadResolutionResult.Succeeded);
+
                             result = bindInvocationExpressionContinued(
                                 addMethodBinder, syntax, expression, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
                                 resolution.MethodGroup, diagnostics: diagnostics, out var addMethod);
@@ -1467,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!typeParameters.IsEmpty)
                     {
-                        if (resolution.IsExtensionMethodGroup) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we need to handle new extension methods
+                        if (resolution.IsExtensionMethodGroup) // Tracked by https://github.com/dotnet/roslyn/issues/78960 : we need to handle new extension methods
                         {
                             // We need to validate an ability to infer type arguments as well as check conversion to 'this' parameter.
                             // Overload resolution doesn't check the conversion when 'this' type refers to a type parameter
@@ -1518,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     parameterTypes,
                                     parameterRefKinds,
                                     ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
-                                    ref useSiteInfo); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we may need to override ordinals here
+                                    ref useSiteInfo); // Tracked by https://github.com/dotnet/roslyn/issues/78960 : we may need to override ordinals here
 
                                 if (!inferenceResult.Success)
                                 {
@@ -1601,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodResult = result.ValidResult;
                 var method = methodResult.Member;
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130: It looks like we added a bunch of code in BindInvocationExpressionContinued at this position
+                // Tracked by https://github.com/dotnet/roslyn/issues/78960: It looks like we added a bunch of code in BindInvocationExpressionContinued at this position
                 //            that specifically deals with new extension methods. It adjusts analyzedArguments, etc.
                 //            It is very likely we need to do the same here. 
 
@@ -1622,6 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
+                ReportDiagnosticsIfDisallowedExtension(diagnostics, method, node);
 
                 // No use site errors, but there could be use site warnings.
                 // If there are any use site warnings, they have already been reported by overload resolution.
@@ -1663,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Add methods. This case can be hit for spreads and non-spread elements.
                         Debug.Assert(call.HasErrors);
                         Debug.Assert(call.Method.Name == "Add");
-                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0]; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions
+                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0]; // Tracked by https://github.com/dotnet/roslyn/issues/78960: Add test coverage for new extensions
                     case BoundBadExpression badExpression:
                         Debug.Assert(false); // Add test if we hit this assert.
                         return badExpression;
@@ -1712,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out iterationType,
                 builder: out var builder);
             // Collection expression target types require instance method GetEnumerator.
-            if (result && builder.ViaExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions
+            if (result && builder.ViaExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/78960: Add test coverage for new extensions
             {
                 iterationType = default;
                 return false;
@@ -3051,6 +3056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, syntax, isDelegateConversion: true);
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfDisallowedExtension(diagnostics, selectedMethod, syntax);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process

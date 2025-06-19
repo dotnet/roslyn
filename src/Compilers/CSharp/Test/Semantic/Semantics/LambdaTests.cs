@@ -4147,7 +4147,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,22): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (8,22): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //         Action a1 = [DllImport("MyModule.dll")] static () => { };
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(8, 22));
 

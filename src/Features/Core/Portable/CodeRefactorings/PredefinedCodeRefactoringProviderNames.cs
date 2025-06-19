@@ -69,6 +69,7 @@ internal static class PredefinedCodeRefactoringProviderNames
     public const string MoveToNamespace = "Move To Namespace Code Action Provider";
     public const string MoveTypeToFile = "Move Type To File Code Action Provider";
     public const string NameTupleElement = nameof(NameTupleElement);
+    public const string OrganizeImports = nameof(OrganizeImports);
     public const string PullMemberUp = "Pull Member Up Code Action Provider";
     public const string RenameTracking = nameof(RenameTracking);
     public const string ReplaceConditionalWithStatements = nameof(ReplaceConditionalWithStatements);

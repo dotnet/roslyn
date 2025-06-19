@@ -74,7 +74,7 @@ internal static partial class Extensions
 
     public static string GetLogDisplay(this Project project)
         => project.FilePath != null
-            ? $"'{project.FilePath}' ('{project.State.NameAndFlavor.flavor}')"
+            ? $"'{project.FilePath}'" + (project.State.NameAndFlavor.flavor is { } flavor ? $" ('{flavor}')" : "")
             : $"'{project.Name}' ('{project.Id.DebugName}'";
 
     public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)

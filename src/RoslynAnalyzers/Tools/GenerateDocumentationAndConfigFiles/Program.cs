@@ -18,10 +18,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
 using static GenerateDocumentationAndConfigFiles.CommonPropertyNames;
@@ -863,8 +863,8 @@ namespace GenerateDocumentationAndConfigFiles
 
             async Task<bool> createGlobalConfigFilesAsync()
             {
-                using var releaseTrackingFilesDataBuilder = ArrayBuilder<ReleaseTrackingData>.GetInstance();
-                using var versionsBuilder = PooledHashSet<Version>.GetInstance();
+                using var _1 = ArrayBuilder<ReleaseTrackingData>.GetInstance(out var releaseTrackingFilesDataBuilder);
+                using var _2 = PooledHashSet<Version>.GetInstance(out var versionsBuilder);
 
                 // Validate all assemblies exist on disk and can be loaded.
                 foreach (string assembly in args.AssemblyList)

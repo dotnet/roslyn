@@ -121,10 +121,15 @@ namespace Analyzer.Utilities.UnitTests.Lightup
             ISymbol ISymbol.OriginalDefinition => throw new NotImplementedException();
             bool ISymbol.HasUnsupportedMetadata => throw new NotImplementedException();
 
+            int ISymbol.MetadataToken => throw new NotImplementedException();
+
             void ISymbol.Accept(SymbolVisitor visitor)
                 => throw new NotImplementedException();
 
             TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor)
+                => throw new NotImplementedException();
+
+            TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
                 => throw new NotImplementedException();
 
             public bool Equals(ISymbol? other)

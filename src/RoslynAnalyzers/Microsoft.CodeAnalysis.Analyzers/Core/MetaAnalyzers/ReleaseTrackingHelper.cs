@@ -10,7 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 #if MICROSOFT_CODEANALYSIS_ANALYZERS
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
             var currentVersion = UnshippedVersion;
             ReleaseTrackingHeaderKind? expectedHeaderKind = isShippedFile ? ReleaseTrackingHeaderKind.ReleaseHeader : ReleaseTrackingHeaderKind.TableHeaderTitle;
             ReleaseTrackingRuleEntryKind? currentRuleEntryKind = null;
-            using var versionsBuilder = PooledHashSet<Version>.GetInstance();
+            using var _ = PooledHashSet<Version>.GetInstance(out var versionsBuilder);
 
             foreach (TextLine line in sourceText.Lines)
             {

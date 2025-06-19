@@ -11,12 +11,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 
-#if CODE_STYLE
-using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-#else
-using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-#endif
-
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SyntaxGeneratorExtensions
@@ -299,7 +293,7 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,
                     accessibility: Accessibility.Private,
-                    modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                     type: parameter.Type,
                     name: fieldName));
             }
@@ -321,7 +315,7 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
                     type: parameter.Type,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: [],

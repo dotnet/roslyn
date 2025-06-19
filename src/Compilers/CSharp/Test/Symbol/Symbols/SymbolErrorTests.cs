@@ -11298,9 +11298,9 @@ public class C
 }
 ";
             CreateCompilation(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
-                // (9,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (9,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"));
         }
 
@@ -14052,7 +14052,7 @@ public partial class C : Base
                 // (27,34): error CS0507: 'C.PartI()': cannot change access modifiers when overriding 'protected' inherited member 'Base.PartI()'
                 //     sealed override partial void PartI();
                 Diagnostic(ErrorCode.ERR_CantChangeAccessOnOverride, "PartI").WithArguments("C.PartI()", "protected", "Base.PartI()").WithLocation(27, 34),
-                // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
+                // (28,6): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
                 //     [System.Runtime.InteropServices.DllImport("none")]
                 Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "System.Runtime.InteropServices.DllImport").WithLocation(28, 6));
         }

@@ -99,7 +99,7 @@ internal sealed class NamingStyleOptionPageViewModel : AbstractNotifyPropertyCha
             n.ItemName,
             [.. n.SymbolKindList.Where(s => s.IsChecked).Select(k => k.CreateSymbolOrTypeOrMethodKind())],
             [.. n.AccessibilityList.Where(s => s.IsChecked).Select(a => a._accessibility)],
-            [.. n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier))]));
+            [.. n.ModifierList.Where(s => s.IsChecked).Select(m => new SymbolSpecification.ModifierKind(m._modifier.Modifiers))]));
 
         Specifications.Clear();
         foreach (var specification in symbolSpecifications)

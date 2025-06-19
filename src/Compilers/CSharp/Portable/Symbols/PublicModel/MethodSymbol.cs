@@ -328,6 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IMethodSymbol.IsConditional => _underlying.IsConditional;
 
+        bool IMethodSymbol.IsIterator => _underlying.IsIterator;
+
         DllImportData IMethodSymbol.GetDllImportData() => _underlying.GetDllImportData();
 
         #region ISymbol Members

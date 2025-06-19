@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
@@ -38,7 +39,7 @@ namespace Analyzer.Utilities.PooledObjects
             }
 
             this.Clear();
-            _pool?.Free(this, cancellationToken);
+            _pool?.Free(this);
         }
 
         // global pool

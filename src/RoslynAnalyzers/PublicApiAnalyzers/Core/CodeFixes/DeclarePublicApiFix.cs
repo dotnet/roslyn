@@ -11,10 +11,10 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Diagnostics.Analyzers;
 using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
@@ -40,9 +40,15 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
                 bool isPublic = diagnostic.Id == DiagnosticIds.DeclarePublicApiRuleId;
-                string minimalSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.MinimalNamePropertyBagKey];
-                string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
-                ImmutableHashSet<string> siblingSymbolNamesToRemove = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamesOfSiblingsToRemovePropertyBagKey]
+                string? minimalSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.MinimalNamePropertyBagKey];
+                string? publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
+                string? siblingsToRemoveSymbolNames = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamesOfSiblingsToRemovePropertyBagKey];
+                if (minimalSymbolName == null || publicSurfaceAreaSymbolName == null || siblingsToRemoveSymbolNames == null)
+                {
+                    continue;
+                }
+
+                ImmutableHashSet<string> siblingSymbolNamesToRemove = siblingsToRemoveSymbolNames
                     .Split(DeclarePublicApiAnalyzer.ApiNamesOfSiblingsToRemovePropertyBagValueSeparator.ToCharArray())
                     .ToImmutableHashSet();
 
@@ -67,6 +73,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             foreach (var additional in project.AdditionalDocuments)
             {
+                if (additional.FilePath == null)
+                {
+                    // Skip documents without a file path, as they cannot be public API files.
+                    continue;
+                }
+
                 var file = new PublicApiFile(additional.FilePath, isPublic);
 
                 if (file.IsApiFile && !file.IsShipping)
@@ -82,7 +94,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
         }
 
-        private static async Task<Solution> GetFixAsync(TextDocument? surfaceAreaDocument, bool isPublic, Project project, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
+        private static async Task<Solution?> GetFixAsync(TextDocument? surfaceAreaDocument, bool isPublic, Project project, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
         {
             if (surfaceAreaDocument == null)
             {
@@ -187,9 +199,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         internal class AdditionalDocumentChangeAction : CodeAction
         {
-            private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;
+            private readonly Func<CancellationToken, Task<Solution?>> _createChangedAdditionalDocument;
 
-            public AdditionalDocumentChangeAction(string title, DocumentId? apiDocId, bool isPublic, Func<CancellationToken, Task<Solution>> createChangedAdditionalDocument)
+            public AdditionalDocumentChangeAction(string title, DocumentId? apiDocId, bool isPublic, Func<CancellationToken, Task<Solution?>> createChangedAdditionalDocument)
             {
                 this.Title = title;
                 EquivalenceKey = apiDocId.CreateEquivalenceKey(isPublic);
@@ -200,7 +212,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             public override string EquivalenceKey { get; }
 
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
                 return _createChangedAdditionalDocument(cancellationToken);
             }
@@ -239,7 +251,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         await publicSurfaceAreaAdditionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false) :
                         null;
 
-                    IEnumerable<IGrouping<SyntaxTree, Diagnostic>> groupedDiagnostics =
+                    IEnumerable<IGrouping<SyntaxTree?, Diagnostic>> groupedDiagnostics =
                         diagnostics
                             .Where(d => d.Location.IsInSource)
                             .GroupBy(d => d.Location.SourceTree);
@@ -247,17 +259,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     var newSymbolNames = new SortedSet<string>(IgnoreCaseWhenPossibleComparer.Instance);
                     var symbolNamesToRemoveBuilder = PooledHashSet<string>.GetInstance();
 
-                    foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
+                    foreach (IGrouping<SyntaxTree?, Diagnostic> grouping in groupedDiagnostics)
                     {
-                        Document document = project.GetDocument(grouping.Key);
+                        Document? document = project.GetDocument(grouping.Key);
 
                         if (document == null)
                         {
                             continue;
                         }
 
-                        SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        SyntaxNode? root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        SemanticModel? semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
@@ -269,12 +281,16 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 continue;
                             }
 
-                            string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
+                            string? publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
+                            if (publicSurfaceAreaSymbolName == null)
+                            {
+                                continue;
+                            }
 
                             newSymbolNames.Add(publicSurfaceAreaSymbolName);
 
-                            string siblingNamesToRemove = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamesOfSiblingsToRemovePropertyBagKey];
-                            if (siblingNamesToRemove.Length > 0)
+                            string? siblingNamesToRemove = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamesOfSiblingsToRemovePropertyBagKey];
+                            if (siblingNamesToRemove is { Length: > 0 })
                             {
                                 var namesToRemove = siblingNamesToRemove.Split(DeclarePublicApiAnalyzer.ApiNamesOfSiblingsToRemovePropertyBagValueSeparator.ToCharArray());
                                 foreach (var nameToRemove in namesToRemove)
@@ -285,7 +301,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                     }
 
-                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutableAndFree();
+                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutableHashSet();
+                    symbolNamesToRemoveBuilder.Free();
 
                     // We shouldn't be attempting to remove any symbol name, while also adding it.
                     Debug.Assert(newSymbolNames.All(newSymbolName => !symbolNamesToRemove.Contains(newSymbolName)));
@@ -311,10 +328,15 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
 
                 // NOTE: We need to avoid creating duplicate files for multi-tfm projects. See https://github.com/dotnet/roslyn-analyzers/issues/3952.
-                using var uniqueProjectPaths = PooledHashSet<string>.GetInstance();
+                using var _ = PooledHashSet<string>.GetInstance(out var uniqueProjectPaths);
                 foreach (KeyValuePair<ProjectId, SourceText> pair in addedPublicSurfaceAreaText)
                 {
                     var project = newSolution.GetProject(pair.Key);
+                    if (project == null)
+                    {
+                        continue;
+                    }
+
                     if (uniqueProjectPaths.Add(project.FilePath ?? project.Name))
                     {
                         newSolution = AddPublicApiFiles(project, pair.Value, _isPublic);
@@ -335,9 +357,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     case FixAllScope.Document:
                         {
-                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                            Document document = fixAllContext.Document!;
+                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToTheApiTitle, fixAllContext.Document.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToTheApiTitle, document.Name);
                             break;
                         }
 

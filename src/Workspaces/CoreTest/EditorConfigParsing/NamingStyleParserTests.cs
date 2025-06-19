@@ -76,7 +76,7 @@ public sealed class NamingStyleParserTests
                     accessibility => Assert.Equal(Accessibility.ProtectedAndFriend, accessibility));
                 Assert.Equal(TextSpan.FromBounds(2338, 2481), rule0.ApplicableSymbolInfo.Accessibilities.Span);
                 Assert.Collection(rule0.ApplicableSymbolInfo.Modifiers.Value,
-                    modifier => Assert.Equal(new ModifierKind(DeclarationModifiers.Static), modifier));
+                    modifier => Assert.Equal(new ModifierKind(Modifiers.Static), modifier));
                 Assert.Equal(TextSpan.FromBounds(2483, 2558), rule0.ApplicableSymbolInfo.Modifiers.Span);
                 Assert.Collection(rule0.ApplicableSymbolInfo.SymbolKinds.Value,
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(SymbolKind.Field), symbolKind));
@@ -198,7 +198,7 @@ public sealed class NamingStyleParserTests
                     accessibility => Assert.Equal(Accessibility.ProtectedAndFriend, accessibility));
                 Assert.Equal(TextSpan.FromBounds(3080, 3225), rule3.ApplicableSymbolInfo.Accessibilities.Span);
                 Assert.Collection(rule3.ApplicableSymbolInfo.Modifiers.Value,
-                    modifier => Assert.Equal(new ModifierKind(DeclarationModifiers.ReadOnly), modifier));
+                    modifier => Assert.Equal(new ModifierKind(Modifiers.ReadOnly), modifier));
                 Assert.Equal(TextSpan.FromBounds(3227, 3306), rule3.ApplicableSymbolInfo.Modifiers.Span);
                 Assert.Collection(rule3.ApplicableSymbolInfo.SymbolKinds.Value,
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(SymbolKind.Field), symbolKind));
@@ -271,7 +271,7 @@ public sealed class NamingStyleParserTests
                     accessibility => Assert.Equal(Accessibility.ProtectedOrFriend, accessibility));
                 Assert.Null(rule5.ApplicableSymbolInfo.Accessibilities.Span);
                 Assert.Collection(rule5.ApplicableSymbolInfo.Modifiers.Value,
-                    modifier => Assert.Equal(new ModifierKind(DeclarationModifiers.Const), modifier));
+                    modifier => Assert.Equal(new ModifierKind(Modifiers.Const), modifier));
                 Assert.Equal(TextSpan.FromBounds(3711, 3769), rule5.ApplicableSymbolInfo.Modifiers.Span);
                 Assert.Collection(rule5.ApplicableSymbolInfo.SymbolKinds.Value,
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(SymbolKind.Field), symbolKind),
@@ -345,7 +345,7 @@ public sealed class NamingStyleParserTests
                     accessibility => Assert.Equal(Accessibility.ProtectedOrFriend, accessibility));
                 Assert.Null(rule7.ApplicableSymbolInfo.Accessibilities.Span);
                 Assert.Collection(rule7.ApplicableSymbolInfo.Modifiers.Value,
-                    modifier => Assert.Equal(new ModifierKind(DeclarationModifiers.Static), modifier));
+                    modifier => Assert.Equal(new ModifierKind(Modifiers.Static), modifier));
                 Assert.Equal(TextSpan.FromBounds(4191, 4254), rule7.ApplicableSymbolInfo.Modifiers.Span);
                 Assert.Collection(rule7.ApplicableSymbolInfo.SymbolKinds.Value,
                     symbolKind => Assert.Equal(new SymbolKindOrTypeKind(SymbolKind.Field), symbolKind));

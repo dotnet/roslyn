@@ -9568,4 +9568,32 @@ namespace ConsoleApp1
             parseOptions: null,
             index: 1);
     }
+
+    [Fact]
+    public async Task TestNotOnNamedType1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [||]Console.WriteLine();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotOnNamedType2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            
+            [||]Console.WriteLine();
+            """);
+    }
 }

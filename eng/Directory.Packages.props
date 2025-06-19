@@ -66,9 +66,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="17.12.2037-preview3" />
     <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.13.1100801-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.Common" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.Interfaces" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="15.8.27812-alpha" />
@@ -99,14 +96,12 @@
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.13.33" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.13.7" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.13.226" />

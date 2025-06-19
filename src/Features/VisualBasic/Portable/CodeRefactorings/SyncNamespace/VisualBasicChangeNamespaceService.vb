@@ -8,18 +8,28 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.ChangeNamespace
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
     <ExportLanguageService(GetType(IChangeNamespaceService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicChangeNamespaceService
-        Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
+    Friend NotInheritable Class VisualBasicChangeNamespaceService
+        Inherits AbstractChangeNamespaceService(Of
+            CompilationUnitSyntax,
+            StatementSyntax,
+            NamespaceStatementSyntax,
+            NameSyntax,
+            SimpleNameSyntax,
+            CrefReferenceSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Public Overrides ReadOnly Property NameReducer As AbstractReducer = New VisualBasicNameReducer()
 
         Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
@@ -41,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
                 [new] = [new].WithTriviaFrom(old)
 
-            ElseIf syntaxFacts.IsNameOfsimpleMemberAccessExpression(nameRef) Then
+            ElseIf syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.SimpleMemberAccessExpression(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())

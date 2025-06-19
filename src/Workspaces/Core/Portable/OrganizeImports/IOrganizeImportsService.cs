@@ -13,6 +13,7 @@ internal interface IOrganizeImportsService : ILanguageService
     Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken);
 
     string SortImportsDisplayStringWithAccelerator { get; }
+    string SortImportsDisplayStringWithoutAccelerator { get; }
 
     string SortAndRemoveUnusedImportsDisplayStringWithAccelerator { get; }
 }

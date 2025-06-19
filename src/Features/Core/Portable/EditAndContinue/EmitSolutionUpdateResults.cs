@@ -432,7 +432,7 @@ internal readonly struct EmitSolutionUpdateResults
             {
                 if (!diagnostic.IsEncDiagnostic())
                 {
-                    result.AddRange(diagnostics);
+                    result.Add(diagnostic);
                 }
             }
         }
