@@ -24190,7 +24190,10 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,29): error CS9316: Extension members are not allowed as an argument to 'nameof'.
+            // System.Console.Write(nameof(C.Property));
+            Diagnostic(ErrorCode.ERR_NameofExtensionMember, "C.Property").WithLocation(1, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -24228,7 +24231,7 @@ static class E
     }
 
     [Fact]
-    public void Nameof_Instance_Property()
+    public void Nameof_Instance_Property_01()
     {
         var src = """
 C c = null;
@@ -24245,12 +24248,40 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (2,29): error CS9316: Extension members are not allowed as an argument to 'nameof'.
+            // System.Console.Write(nameof(c.Property));
+            Diagnostic(ErrorCode.ERR_NameofExtensionMember, "c.Property").WithLocation(2, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.Property");
         Assert.Equal("System.String E.<>E__0.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Nameof_Instance_Property_02()
+    {
+        var src = """
+C c = null;
+System.Console.Write(nameof(c.Property.Property)); // 1
+System.Console.Write(nameof(c.Property.ToString));
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public C Property => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,29): error CS9316: Extension members are not allowed as an argument to 'nameof'.
+            // System.Console.Write(nameof(c.Property.Property)); // 1
+            Diagnostic(ErrorCode.ERR_NameofExtensionMember, "c.Property.Property").WithLocation(2, 29));
     }
 
     [Fact(Skip = "Assertion in NullableWalker.AsMemberOfType")] // Tracked by https://github.com/dotnet/roslyn/issues/78828 : Nullability analysis of properties
@@ -24297,7 +24328,10 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,29): error CS9316: Extension members are not allowed as an argument to 'nameof'.
+            // System.Console.Write(nameof(C.Property));
+            Diagnostic(ErrorCode.ERR_NameofExtensionMember, "C.Property").WithLocation(1, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -24351,7 +24385,10 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,29): error CS9316: Extension members are not allowed as an argument to 'nameof'.
+            // System.Console.Write(nameof(I<string>.Property));
+            Diagnostic(ErrorCode.ERR_NameofExtensionMember, "I<string>.Property").WithLocation(1, 29));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -36635,7 +36672,7 @@ static class E
     }
 
     [Fact]
-    public void Validation_Modifiers_Extern()
+    public void Extern_01()
     {
         string source = """
 static class E
@@ -36644,24 +36681,992 @@ static class E
     {
         extern void M() { }
         extern int P { get => 0; set { } }
-        extern int this[int j] { get => 0; }
     }
 }
 """;
         var comp = CreateCompilation(source);
         comp.VerifyEmitDiagnostics(
-            // (5,21): error CS0106: The modifier 'extern' is not valid for this item
+            // (5,21): error CS0179: 'E.extension(int).M()' cannot be extern and declare a body
             //         extern void M() { }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("extern").WithLocation(5, 21),
-            // (6,20): error CS0106: The modifier 'extern' is not valid for this item
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "M").WithArguments("E.extension(int).M()").WithLocation(5, 21),
+            // (6,24): error CS0179: 'E.extension(int).P.get' cannot be extern and declare a body
             //         extern int P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("extern").WithLocation(6, 20),
-            // (7,20): error CS0106: The modifier 'extern' is not valid for this item
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("E.extension(int).P.get").WithLocation(6, 24),
+            // (6,34): error CS0179: 'E.extension(int).P.set' cannot be extern and declare a body
+            //         extern int P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 34));
+    }
+
+    [Fact]
+    public void Extern_02()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int)
+    {
+        [DllImport("something.dll")]
+        static extern void M();
+
+        static extern int P
+        {
+            [DllImport("something.dll")]
+            get;
+            [DllImport("something.dll")]
+            set;
+        }
+    }
+}
+""";
+        var verifier = CompileAndVerify(source).VerifyDiagnostics();
+        // Note: skeleton methods have "throw" bodies and lack pinvokeimpl/preservesig. Implementation methods have pinvokeimpl/preservesig and no body.
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 ''
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig static 
+            void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname static 
+            int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname static 
+            void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property int32 P()
+        {
+            .get int32 E/'<>E__0'::get_P()
+            .set void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        void M () cil managed preservesig 
+    {
+    } // end of method E::M
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        int32 get_P () cil managed preservesig 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        void set_P (
+            int32 'value'
+        ) cil managed preservesig 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+    }
+
+    [Fact]
+    public void Extern_03()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int i)
+    {
+        [DllImport("something.dll")]
+        extern void M();
+
+        extern int P
+        {
+            [DllImport("something.dll")]
+            get;
+            [DllImport("something.dll")]
+            set;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(source).VerifyDiagnostics();
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 i
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig 
+            instance void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname 
+            instance int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname 
+            instance void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+            .set instance void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        void M (
+            int32 i
+        ) cil managed preservesig 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+    } // end of method E::M
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        int32 get_P (
+            int32 i
+        ) cil managed preservesig 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static pinvokeimpl("something.dll" winapi) 
+        void set_P (
+            int32 i,
+            int32 'value'
+        ) cil managed preservesig 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+
+        source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    [DllImport("something.dll")]
+    static extern void M(this int i);
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Extern_04()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int)
+    {
+        [DllImport("something.dll", EntryPoint = "Method1")]
+        static extern void M();
+
+        static extern int P
+        {
+            [DllImport("something.dll", EntryPoint = "Method2")]
+            get;
+            [DllImport("something.dll", EntryPoint = "Method3")]
+            set;
+        }
+    }
+}
+""";
+        var verifier = CompileAndVerify(source).VerifyDiagnostics();
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 ''
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig static 
+            void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname static 
+            int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname static 
+            void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property int32 P()
+        {
+            .get int32 E/'<>E__0'::get_P()
+            .set void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static pinvokeimpl("something.dll" as "Method1" winapi) 
+        void M () cil managed preservesig 
+    {
+    } // end of method E::M
+    .method private hidebysig static pinvokeimpl("something.dll" as "Method2" winapi) 
+        int32 get_P () cil managed preservesig 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static pinvokeimpl("something.dll" as "Method3" winapi) 
+        void set_P (
+            int32 'value'
+        ) cil managed preservesig 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+    }
+
+    [Fact]
+    public void Extern_05()
+    {
+        var source = """
+static class E
+{
+    extension(int i)
+    {
+        extern void M();
+        extern int P { get; set; }
+    }
+}
+""";
+        var verifier = CompileAndVerify(source, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
+        verifier.VerifyDiagnostics(
+            // (5,21): warning CS0626: Method, operator, or accessor 'E.extension(int).M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //         extern void M();
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("E.extension(int).M()").WithLocation(5, 21),
+            // (6,24): warning CS0626: Method, operator, or accessor 'E.extension(int).P.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //         extern int P { get; set; }
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("E.extension(int).P.get").WithLocation(6, 24),
+            // (6,29): warning CS0626: Method, operator, or accessor 'E.extension(int).P.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //         extern int P { get; set; }
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 29));
+
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 i
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig 
+            instance void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname 
+            instance int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname 
+            instance void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+            .set instance void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static 
+        void M (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+    } // end of method E::M
+    .method private hidebysig static 
+        int32 get_P (
+            int32 i
+        ) cil managed 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static 
+        void set_P (
+            int32 i,
+            int32 'value'
+        ) cil managed 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+
+        source = """
+class C
+{
+    extern void M();
+}
+""";
+        verifier = CompileAndVerify(source, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
+        verifier.VerifyDiagnostics(
+            // (3,17): warning CS0626: Method, operator, or accessor 'C.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //     extern void M();
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("C.M()").WithLocation(3, 17));
+
+        VerifyTypeIL(verifier, "C", """
+.class private auto ansi beforefieldinit C
+    extends [netstandard]System.Object
+{
+    // Methods
+    .method private hidebysig 
+        instance void M () cil managed 
+    {
+    } // end of method C::M
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [netstandard]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+} // end of class C
+""");
+    }
+
+    [Fact]
+    public void Extern_06()
+    {
+        var source = """
+static class E
+{
+    extension(int i)
+    {
+        static extern void M();
+        static extern int P { get; set; }
+    }
+}
+""";
+        var verifier = CompileAndVerify(source, verify: Verification.FailsPEVerify with { PEVerifyMessage = """
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Error: Method marked Abstract, Runtime, InternalCall or Imported must have zero RVA, and vice versa.
+            Type load failed.
+            """ });
+
+        verifier.VerifyDiagnostics(
+            // (5,28): warning CS0626: Method, operator, or accessor 'E.extension(int).M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //         static extern void M();
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("E.extension(int).M()").WithLocation(5, 28),
+            // (6,31): warning CS0626: Method, operator, or accessor 'E.extension(int).P.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //         static extern int P { get; set; }
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("E.extension(int).P.get").WithLocation(6, 31),
+            // (6,36): warning CS0626: Method, operator, or accessor 'E.extension(int).P.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+            //         static extern int P { get; set; }
+            Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("E.extension(int).P.set").WithLocation(6, 36));
+
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 i
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig static 
+            void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname static 
+            int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname static 
+            void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property int32 P()
+        {
+            .get int32 E/'<>E__0'::get_P()
+            .set void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static 
+        void M () cil managed 
+    {
+    } // end of method E::M
+    .method private hidebysig static 
+        int32 get_P () cil managed 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static 
+        void set_P (
+            int32 'value'
+        ) cil managed 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+    }
+
+    [Fact]
+    public void Extern_07()
+    {
+        var source = """
+static class E
+{
+    extension(int i)
+    {
+        extern int this[int j] { get => 0; }
+    }
+}
+""";
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (5,20): error CS9282: This member is not allowed in an extension block
             //         extern int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("extern").WithLocation(7, 20),
-            // (7,20): error CS9282: This member is not allowed in an extension block
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20),
+            // (5,34): error CS0179: 'E.extension(int).this[int].get' cannot be extern and declare a body
             //         extern int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("E.extension(int).this[int].get").WithLocation(5, 34));
+    }
+
+    [Fact]
+    public void Extern_08()
+    {
+        var source = """
+static class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+        static extern void M();
+
+        static extern int P
+        {
+            [method: System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+            get;
+
+            [method: System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+            set;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+
+        // Note: skeleton methods have "throw" bodies and lack internalcall. Implementation methods have internalcall and no body.
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 i
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig static 
+            void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname static 
+            int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname static 
+            void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property int32 P()
+        {
+            .get int32 E/'<>E__0'::get_P()
+            .set void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static 
+        void M () cil managed internalcall 
+    {
+    } // end of method E::M
+    .method private hidebysig static 
+        int32 get_P () cil managed internalcall 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static 
+        void set_P (
+            int32 'value'
+        ) cil managed internalcall 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+    }
+
+    [Fact]
+    public void Extern_09()
+    {
+        var source = """
+static class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+        extern void M();
+
+        extern int P
+        {
+            [method: System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+            get;
+
+            [method: System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+            set;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        VerifyTypeIL(verifier, "E", """
+.class private auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                int32 i
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x2067
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method private hidebysig 
+            instance void M () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+        .method private hidebysig specialname 
+            instance int32 get_P () cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::get_P
+        .method private hidebysig specialname 
+            instance void set_P (
+                int32 'value'
+            ) cil managed 
+        {
+            // Method begins at RVA 0x2069
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::set_P
+        // Properties
+        .property instance int32 P()
+        {
+            .get instance int32 E/'<>E__0'::get_P()
+            .set instance void E/'<>E__0'::set_P(int32)
+        }
+    } // end of class <>E__0
+    // Methods
+    .method private hidebysig static 
+        void M (
+            int32 i
+        ) cil managed internalcall 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+    } // end of method E::M
+    .method private hidebysig static 
+        int32 get_P (
+            int32 i
+        ) cil managed internalcall 
+    {
+    } // end of method E::get_P
+    .method private hidebysig static 
+        void set_P (
+            int32 i,
+            int32 'value'
+        ) cil managed internalcall 
+    {
+    } // end of method E::set_P
+} // end of class E
+""");
+    }
+
+    [Fact]
+    public void Extern_10()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int i)
+    {
+        [DllImport("something.dll")]
+        void M() { }
+
+        int P
+        {
+            [DllImport("something.dll")]
+            get => 0;
+            [DllImport("something.dll")]
+            set { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //         [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(6, 10),
+            // (11,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(11, 14),
+            // (13,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(13, 14));
+    }
+
+    [Fact]
+    public void Extern_11()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int i)
+    {
+        [DllImport("something.dll")]
+        extern void M() { }
+
+        extern int P
+        {
+            [DllImport("something.dll")]
+            get => 0;
+            [DllImport("something.dll")]
+            set { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,21): error CS0179: 'E.extension(int).M()' cannot be extern and declare a body
+            //         extern void M() { }
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "M").WithArguments("E.extension(int).M()").WithLocation(7, 21),
+            // (12,13): error CS0179: 'E.extension(int).P.get' cannot be extern and declare a body
+            //             get => 0;
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("E.extension(int).P.get").WithLocation(12, 13),
+            // (14,13): error CS0179: 'E.extension(int).P.set' cannot be extern and declare a body
+            //             set { }
+            Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("E.extension(int).P.set").WithLocation(14, 13));
+    }
+
+    [Fact]
+    public void Extern_12()
+    {
+        var source = """
+using System.Runtime.InteropServices;
+static class E
+{
+    extension(int)
+    {
+        int P
+        {
+            [DllImport("something.dll")]
+            extern get; // 1
+            [DllImport("something.dll")]
+            extern set; // 2
+        }
+    }
+}
+
+static class C
+{
+    static int P
+    {
+        [DllImport("something.dll")]
+        extern get; // 3
+        [DllImport("something.dll")]
+        extern set; // 4
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,13): error CS9282: This member is not allowed in an extension block
+            //         int P
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P").WithLocation(6, 13),
+            // (6,13): error CS9303: 'P': cannot declare instance members in an extension block with an unnamed receiver parameter
+            //         int P
+            Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P").WithArguments("P").WithLocation(6, 13),
+            // (8,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(8, 14),
+            // (9,20): error CS0106: The modifier 'extern' is not valid for this item
+            //             extern get; // 1
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("extern").WithLocation(9, 20),
+            // (10,14): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //             [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(10, 14),
+            // (11,20): error CS0106: The modifier 'extern' is not valid for this item
+            //             extern set; // 2
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(11, 20),
+            // (20,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //         [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(20, 10),
+            // (21,16): error CS0106: The modifier 'extern' is not valid for this item
+            //         extern get; // 3
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("extern").WithLocation(21, 16),
+            // (22,10): error CS0601: The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member
+            //         [DllImport("something.dll")]
+            Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(22, 10),
+            // (23,16): error CS0106: The modifier 'extern' is not valid for this item
+            //         extern set; // 4
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(23, 16));
     }
 
     [Fact]
@@ -39834,7 +40839,6 @@ class C
     public object? P => null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : should disallow usage of extension members in nameof
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (5,5): warning CS8602: Dereference of a possibly null reference.
@@ -39877,7 +40881,10 @@ static class E
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
             // (13,73): error CS8082: Sub-expression cannot be used in an argument to nameof.
             //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(new object().P))]
-            Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new object()").WithLocation(13, 73));
+            Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new object()").WithLocation(13, 73),
+            // (13,73): error CS9316: Extension members are not allowed as an argument to 'nameof'.
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(new object().P))]
+            Diagnostic(ErrorCode.ERR_NameofExtensionMember, "new object().P").WithLocation(13, 73));
 
         src = """
 class E
@@ -39935,7 +40942,10 @@ static class E
 }
 """;
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (7,73): error CS9316: Extension members are not allowed as an argument to 'nameof'.
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
+            Diagnostic(ErrorCode.ERR_NameofExtensionMember, "object.P").WithLocation(7, 73));
     }
 
     [Fact]
