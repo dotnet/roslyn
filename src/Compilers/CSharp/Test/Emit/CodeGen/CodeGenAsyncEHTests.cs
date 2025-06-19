@@ -3640,7 +3640,240 @@ class Driver
             var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
-            verifier.VerifyIL("Run()", "");
+            verifier.VerifyIL("Program.<<Main>$>g__Run|0_0()", getIL(statement));
+
+            static string getIL(string statement)
+            {
+                if (statement.Contains("using"))
+                {
+                    return """
+                        {
+                          // Code size       84 (0x54)
+                          .maxstack  2
+                          .locals init (int V_0,
+                                        C V_1, //c
+                                        object V_2)
+                          IL_0000:  ldc.i4.0
+                          IL_0001:  stloc.0
+                          .try
+                          {
+                            IL_0002:  newobj     "Exception1..ctor()"
+                            IL_0007:  throw
+                          }
+                          catch Exception1
+                          {
+                            IL_0008:  pop
+                            IL_0009:  ldc.i4.1
+                            IL_000a:  stloc.0
+                            IL_000b:  leave.s    IL_000d
+                          }
+                          IL_000d:  ldloc.0
+                          IL_000e:  ldc.i4.1
+                          IL_000f:  bne.un.s   IL_0052
+                          IL_0011:  newobj     "C..ctor()"
+                          IL_0016:  stloc.1
+                          IL_0017:  ldnull
+                          IL_0018:  stloc.2
+                          .try
+                          {
+                            .try
+                            {
+                              IL_0019:  newobj     "Exception2..ctor()"
+                              IL_001e:  throw
+                            }
+                            catch Exception2
+                            {
+                              IL_001f:  pop
+                              .try
+                              {
+                                IL_0020:  newobj     "Exception3..ctor()"
+                                IL_0025:  throw
+                              }
+                              catch Exception3
+                              {
+                                IL_0026:  pop
+                                IL_0027:  rethrow
+                              }
+                            }
+                          }
+                          catch object
+                          {
+                            IL_0029:  stloc.2
+                            IL_002a:  leave.s    IL_002c
+                          }
+                          IL_002c:  ldloc.1
+                          IL_002d:  brfalse.s  IL_003a
+                          IL_002f:  ldloc.1
+                          IL_0030:  callvirt   "System.Threading.Tasks.ValueTask C.DisposeAsync()"
+                          IL_0035:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                          IL_003a:  ldloc.2
+                          IL_003b:  brfalse.s  IL_0052
+                          IL_003d:  ldloc.2
+                          IL_003e:  isinst     "System.Exception"
+                          IL_0043:  dup
+                          IL_0044:  brtrue.s   IL_0048
+                          IL_0046:  ldloc.2
+                          IL_0047:  throw
+                          IL_0048:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                          IL_004d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                          IL_0052:  ldnull
+                          IL_0053:  throw
+                        }
+                        """;
+                }
+                else if (statement.Contains("foreach"))
+                {
+                    return """
+                        {
+                          // Code size      123 (0x7b)
+                          .maxstack  2
+                          .locals init (int V_0,
+                                        System.Collections.Generic.IAsyncEnumerator<int> V_1,
+                                        System.Threading.CancellationToken V_2,
+                                        object V_3)
+                          IL_0000:  ldc.i4.0
+                          IL_0001:  stloc.0
+                          .try
+                          {
+                            IL_0002:  newobj     "Exception1..ctor()"
+                            IL_0007:  throw
+                          }
+                          catch Exception1
+                          {
+                            IL_0008:  pop
+                            IL_0009:  ldc.i4.1
+                            IL_000a:  stloc.0
+                            IL_000b:  leave.s    IL_000d
+                          }
+                          IL_000d:  ldloc.0
+                          IL_000e:  ldc.i4.1
+                          IL_000f:  bne.un.s   IL_0079
+                          IL_0011:  newobj     "C..ctor()"
+                          IL_0016:  ldloca.s   V_2
+                          IL_0018:  initobj    "System.Threading.CancellationToken"
+                          IL_001e:  ldloc.2
+                          IL_001f:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                          IL_0024:  stloc.1
+                          IL_0025:  ldnull
+                          IL_0026:  stloc.3
+                          .try
+                          {
+                            IL_0027:  br.s       IL_0030
+                            IL_0029:  ldloc.1
+                            IL_002a:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                            IL_002f:  pop
+                            IL_0030:  ldloc.1
+                            IL_0031:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                            IL_0036:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                            IL_003b:  brtrue.s   IL_0029
+                            IL_003d:  leave.s    IL_0042
+                          }
+                          catch object
+                          {
+                            IL_003f:  stloc.3
+                            IL_0040:  leave.s    IL_0042
+                          }
+                          IL_0042:  ldloc.1
+                          IL_0043:  brfalse.s  IL_0050
+                          IL_0045:  ldloc.1
+                          IL_0046:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                          IL_004b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                          IL_0050:  ldloc.3
+                          IL_0051:  brfalse.s  IL_0068
+                          IL_0053:  ldloc.3
+                          IL_0054:  isinst     "System.Exception"
+                          IL_0059:  dup
+                          IL_005a:  brtrue.s   IL_005e
+                          IL_005c:  ldloc.3
+                          IL_005d:  throw
+                          IL_005e:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                          IL_0063:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                          IL_0068:  nop
+                          .try
+                          {
+                            IL_0069:  newobj     "Exception2..ctor()"
+                            IL_006e:  throw
+                          }
+                          catch Exception2
+                          {
+                            IL_006f:  pop
+                            .try
+                            {
+                              IL_0070:  newobj     "Exception3..ctor()"
+                              IL_0075:  throw
+                            }
+                            catch Exception3
+                            {
+                              IL_0076:  pop
+                              IL_0077:  rethrow
+                            }
+                          }
+                          IL_0079:  ldnull
+                          IL_007a:  throw
+                        }
+                        """;
+                }
+                else
+                {
+                    return """
+                        {
+                          // Code size       69 (0x45)
+                          .maxstack  2
+                          .locals init (int V_0,
+                                        System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                                        System.Runtime.CompilerServices.YieldAwaitable V_2)
+                          IL_0000:  ldc.i4.0
+                          IL_0001:  stloc.0
+                          .try
+                          {
+                            IL_0002:  newobj     "Exception1..ctor()"
+                            IL_0007:  throw
+                          }
+                          catch Exception1
+                          {
+                            IL_0008:  pop
+                            IL_0009:  ldc.i4.1
+                            IL_000a:  stloc.0
+                            IL_000b:  leave.s    IL_000d
+                          }
+                          IL_000d:  ldloc.0
+                          IL_000e:  ldc.i4.1
+                          IL_000f:  bne.un.s   IL_0045
+                          IL_0011:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                          IL_0016:  stloc.2
+                          IL_0017:  ldloca.s   V_2
+                          IL_0019:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                          IL_001e:  stloc.1
+                          IL_001f:  ldloca.s   V_1
+                          IL_0021:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                          IL_0026:  brtrue.s   IL_002e
+                          IL_0028:  ldloc.1
+                          IL_0029:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                          IL_002e:  ldloca.s   V_1
+                          IL_0030:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                          .try
+                          {
+                            IL_0035:  newobj     "Exception2..ctor()"
+                            IL_003a:  throw
+                          }
+                          catch Exception2
+                          {
+                            IL_003b:  pop
+                            .try
+                            {
+                              IL_003c:  newobj     "Exception3..ctor()"
+                              IL_0041:  throw
+                            }
+                            catch Exception3
+                            {
+                              IL_0042:  pop
+                              IL_0043:  rethrow
+                            }
+                          }
+                        }
+                        """;
+                }
+            }
         }
     }
 }

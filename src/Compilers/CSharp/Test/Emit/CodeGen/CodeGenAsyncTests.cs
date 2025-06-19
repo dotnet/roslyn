@@ -52,15 +52,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 public delegate void Action();
                 public delegate void Action<T>(T obj);
                 public delegate void Action<T1, T2>(T1 arg1, T2 arg2);
+                public static class Activator
+                {
+                    public static T CreateInstance<T>() => throw null!;
+                }
                 public class AggregateException : Exception
                 {
                     public AggregateException() {}
                     public AggregateException(string message) : base(message) {}
                 }
+                public class ArgumentException : Exception
+                {
+                    public ArgumentException() : base("") {}
+                    public ArgumentException(string message) : base(message) {}
+                    public ArgumentException(string message, string paramName) : base(message) {}
+                }
                 public class ArgumentNullException : Exception
                 {
                     public ArgumentNullException() : base("") {}
                     public ArgumentNullException(string message) : base(message) {}
+                }
+                public class ArgumentOutOfRangeException : Exception
+                {
+                    public ArgumentOutOfRangeException() : base("") {}
+                    public ArgumentOutOfRangeException(string message) : base(message) {}
+                    public ArgumentOutOfRangeException(string message, string paramName) : base(message) {}
                 }
                 public class Array
                 {
@@ -94,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 }
                 public struct Boolean {}
                 public struct Byte {}
-                public class FlagsAttribute : Attribute {}
                 public static class Console
                 {
                     public static void Write(object i) {}
@@ -102,6 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public static void WriteLine(bool b) {}
                     public static void WriteLine(int i) {}
                     public static void WriteLine(string s) {}
+                }
+                public struct Decimal 
+                {
+                    public Decimal(int value) {}
+                    public Decimal(int lo, int mid, int hi, bool isNegative, byte scale) {}
+                    public string ToString(IFormatProvider provider) => null!;
+                    public static implicit operator decimal(int value) => default;
+                    public static decimal operator +(decimal left, decimal right) => default;
                 }
                 public class Delegate {}
                 public class DivideByZeroException : Exception
@@ -117,25 +140,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public virtual string Message { get; }
                     public virtual Type GetType() => null!;
                 }
+                public class FlagsAttribute : Attribute {}
+                public class FormattableString : IFormattable {}
                 public delegate TResult Func<TResult>();
                 public delegate TResult Func<T, TResult>(T arg);
+                public delegate TResult Func<T1, T2, TResult>(T1 arg1, T2 arg2);
+                public interface IConvertible
+                {
+                }
                 public interface IDisposable
                 {
                     void Dispose();
                 }
+                public interface IFormattable
+                {
+                }
+                public interface IFormatProvider
+                {
+                    object GetFormat(Type formatType);
+                }
                 public struct Int16 {}
-                public struct Int32 {}
+                public struct Int32 : IConvertible {}
                 public struct IntPtr {}
                 public class InvalidOperationException : Exception
                 {
                     public InvalidOperationException() {}
                     public InvalidOperationException(string message) : base(message) {}
                 }
+                public interface IEquatable<T>
+                {
+                    bool Equals(T other);
+                }
                 public class MulticastDelegate {}
                 public class NotImplementedException : Exception
                 {
                     public NotImplementedException() {}
                     public NotImplementedException(string message) : base(message) {}
+                }
+                public class NotSupportedException : Exception
+                {
+                    public NotSupportedException() : base("") {}
                 }
                 public struct Nullable<T> where T : struct
                 {
@@ -152,12 +196,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 public class Object
                 {
                     public virtual string ToString() => null!;
+                    public virtual int GetHashCode() => 0;
+                    public virtual bool Equals(object obj) => false;
                     public static bool ReferenceEquals(object objA, object objB) => false;
+                }
+                public class ObsoleteAttribute : Attribute
+                {
+                    public ObsoleteAttribute() {}
+                    public ObsoleteAttribute(string message) {}
+                    public bool IsError { get; set; }
                 }
                 public class OperationCanceledException : Exception
                 {
                     public OperationCanceledException() {}
                     public OperationCanceledException(string message) : base(message) {}
+                }
+                public class OverflowException : Exception
+                {
+                    public OverflowException() {}
+                    public OverflowException(string message) : base(message) {}
                 }
                 public class ParamArrayAttribute {}
                 public struct RuntimeTypeHandle {}
@@ -185,6 +242,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public T1 Item1 { get; }
                     public T2 Item2 { get; }
                 }
+                public struct UInt32 {}
+                public struct ValueTuple<T1, T2>
+                {
+                    public ValueTuple(T1 item1, T2 item2) {}
+                    public T1 Item1;
+                    public T2 Item2;
+                }
+                public struct ValueTuple<T1, T2, T3>
+                {
+                    public ValueTuple(T1 item1, T2 item2, T3 item3) {}
+                    public T1 Item1;
+                    public T2 Item2;
+                    public T3 Item3;
+                }
                 public class ValueType {}
                 public class Void {}
                 public static class Environment
@@ -195,9 +266,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     namespace Generic
                     {
-                        public interface IEnumerable<T> {}
-                        public interface IEnumerator<T> {}
-                        public class List<T> {}
+                        public interface IEnumerable<T>
+                        {
+                           System.Collections.Generic.IEnumerator<T> GetEnumerator();
+                        }
+                        public interface IEnumerator<T>
+                        {
+                            T Current { get; }
+                            bool MoveNext();
+                            void Reset();
+                        }
+                        public class List<T> : IEnumerable<T>, Collections.IEnumerable
+                        {
+                            public List() {}
+                            public void Add(T item) {}
+                            public IEnumerator<T> GetEnumerator() => default!;
+                            Collections.IEnumerator Collections.IEnumerable.GetEnumerator() => default!;
+                        }
                     }
 
                     public interface IEnumerable
@@ -222,9 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 }
                 namespace Globalization
                 {
-                    public class CultureInfo
+                    public class CultureInfo : IFormatProvider
                     {
                         public static CultureInfo InvariantCulture => null!;
+                        public object GetFormat(Type formatType) => null!;
                     }
                 }
                 namespace Linq
@@ -232,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public static class Enumerable
                     {
                         public static T First<T>(Collections.Generic.IEnumerable<T> source) => default!;
+                        public static Collections.Generic.IEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this Collections.Generic.IEnumerable<TFirst> first, Collections.Generic.IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector) => default!;
                     }
                 }
                 namespace Text
@@ -251,6 +338,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public struct CancellationToken
                     {
                         public static CancellationToken None => default;
+                        public bool Equals(CancellationToken other) => false;
+                    }
+                    public class CancellationTokenSource
+                    {
+                        public CancellationToken Token => default;
+                        public void Cancel() {}
+                        public void Dispose() {}
+                        public static CancellationTokenSource CreateLinkedTokenSource(CancellationToken token1, CancellationToken token2) => null!;
                     }
                     public class EventWaitHandle
                     {
@@ -281,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public static void Sleep(int millisecondsTimeout) {}
                         public static Thread CurrentThread => new Thread();
                         public System.Globalization.CultureInfo CurrentUICulture { get; set; } = null!;
+                        public int ManagedThreadId => 0;
                     }
                     namespace Tasks
                     {
@@ -317,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public ValueTask(Sources.IValueTaskSource source, short token) {}
                             public ValueTaskAwaiter GetAwaiter() => default;
                             public static ValueTask<TResult> FromResult<TResult>(TResult result) => default;
+                            public static ValueTask CompletedTask => default;
                         }
                         [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder<>))]
                         public struct ValueTask<TResult>
@@ -363,20 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public void SetCanceled() {}
                             public void SetException(Exception exception) {}
                         }
-                        public enum ValueTaskSourceStatus
-                        {
-                            Pending = 0,
-                            Succeeded = 1,
-                            Faulted = 2,
-                            Canceled = 3
-                        }
-                        [Flags]
-                        public enum ValueTaskSourceOnCompletedFlags
-                        {
-                            None = 0,
-                            UseSchedulingContext = 1,
-                            FlowExecutionContext = 2
-                        }
                         namespace Sources
                         {
                             public interface IValueTaskSource
@@ -390,6 +473,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                                 ValueTaskSourceStatus GetStatus(short token);
                                 void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags);
                                 TResult GetResult(short token);
+                            }
+                            public enum ValueTaskSourceStatus
+                            {
+                                Pending = 0,
+                                Succeeded = 1,
+                                Faulted = 2,
+                                Canceled = 3
+                            }
+                            [Flags]
+                            public enum ValueTaskSourceOnCompletedFlags
+                            {
+                                None = 0,
+                                UseSchedulingContext = 1,
+                                FlowExecutionContext = 2
                             }
                         }
                     }
@@ -549,6 +646,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public bool IsCompleted => false;
                             public TResult GetResult() => default;
                         }
+                        public class TupleElementNamesAttribute : Attribute
+                        {
+                            public TupleElementNamesAttribute(string[] transformNames) {}
+                            public string[] TransformNames { get; }
+                        }
                         public struct ValueTaskAwaiter : ICriticalNotifyCompletion
                         {
                             public void OnCompleted(Action continuation) {}
@@ -582,7 +684,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, string runtimeAsyncAwaitHelpers = RuntimeAsyncAwaitHelpers)
         {
             // PROTOTYPE: Remove this helper and just use .NET 10 when we can
-            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, runtimeAsyncAwaitHelpers, AsyncStreamsTypes]);
+            var corlib = CreateEmptyCompilation([
+                RuntimeAsyncCoreLib,
+                runtimeAsyncAwaitHelpers,
+                AsyncStreamsTypes,
+                TestSources.Index,
+                TestSources.Range
+            ]);
 
             var compilation = CreateEmptyCompilation(source, references: [.. references ?? [], corlib.EmitToImageReference()], options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview));
             return compilation;
