@@ -123,7 +123,7 @@
         <!-- Versions for tests and general utility execution. -->
         <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
             area versions. -->
-        <MicrosoftCodeAnalysisVersionForAnalyzerTests>4.9.0-3.final</MicrosoftCodeAnalysisVersionForAnalyzerTests>
+        <MicrosoftCodeAnalysisVersionForAnalyzerTests>4.14.0</MicrosoftCodeAnalysisVersionForAnalyzerTests>
         <MicrosoftCodeAnalysisVersionForAnalyzerExecution>4.6.0-1.final</MicrosoftCodeAnalysisVersionForAnalyzerExecution>
       </PropertyGroup>
     </When>
