@@ -16,6 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisVisualBasicCodeFixTestingXUnitVersion)" />
+    <!-- Directly depend on NuGet.Packaging to upgrade the version brought in transitively by the M.CA.Testing libraries. -->
+    <PackageReference Include="NuGet.Packaging" Version="$(NuGetPackagingVersion)" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- Directly reference the Workspaces project so we always test against the latest Roslyn bits -->
