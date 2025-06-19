@@ -136,39 +136,39 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        //        /// <summary>
-        //        /// Indicates if the given <paramref name="type"/> is disposable,
-        //        /// and thus can be used in a <code>using</code> or <code>await using</code> statement.
-        //        /// </summary>
-        //        public static bool IsDisposable(this ITypeSymbol type,
-        //            INamedTypeSymbol? iDisposable,
-        //            INamedTypeSymbol? iAsyncDisposable,
-        //            INamedTypeSymbol? configuredAsyncDisposable)
-        //        {
-        //            if (type.IsReferenceType)
-        //            {
-        //                return IsInterfaceOrImplementsInterface(type, iDisposable)
-        //                    || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
-        //            }
-        //            else if (SymbolEqualityComparer.Default.Equals(type, configuredAsyncDisposable))
-        //            {
-        //                return true;
-        //            }
+        /// <summary>
+        /// Indicates if the given <paramref name="type"/> is disposable,
+        /// and thus can be used in a <code>using</code> or <code>await using</code> statement.
+        /// </summary>
+        public static bool IsDisposable(this ITypeSymbol type,
+            INamedTypeSymbol? iDisposable,
+            INamedTypeSymbol? iAsyncDisposable,
+            INamedTypeSymbol? configuredAsyncDisposable)
+        {
+            if (type.IsReferenceType)
+            {
+                return IsInterfaceOrImplementsInterface(type, iDisposable)
+                    || IsInterfaceOrImplementsInterface(type, iAsyncDisposable);
+            }
+            else if (SymbolEqualityComparer.Default.Equals(type, configuredAsyncDisposable))
+            {
+                return true;
+            }
 
-        //#if CODEANALYSIS_V3_OR_BETTER
-        //            if (type.IsRefLikeType)
-        //            {
-        //                return type.GetMembers("Dispose").OfType<IMethodSymbol>()
-        //                    .Any(method => method.HasDisposeSignatureByConvention());
-        //            }
-        //#endif
+#if CODEANALYSIS_V3_OR_BETTER
+            if (type.IsRefLikeType)
+            {
+                return type.GetMembers("Dispose").OfType<IMethodSymbol>()
+                    .Any(method => method.HasDisposeSignatureByConvention());
+            }
+#endif
 
-        //            return false;
+            return false;
 
-        //            static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
-        //                => interfaceType != null &&
-        //                   (SymbolEqualityComparer.Default.Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
-        //        }
+            static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+                => interfaceType != null &&
+                   (SymbolEqualityComparer.Default.Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
+        }
 
         /// <summary>
         /// Gets all attributes directly applied to the type or inherited from a base type.

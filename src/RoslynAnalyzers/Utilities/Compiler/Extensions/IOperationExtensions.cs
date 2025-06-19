@@ -315,45 +315,45 @@ namespace Analyzer.Utilities.Extensions
             return operation.GetAncestor(OperationKind.ConditionalAccess, (IConditionalAccessOperation c) => c.Operation.Syntax == operation.Syntax);
         }
 
-        //        /// <summary>
-        //        /// Gets the operation for the object being created that is being referenced by <paramref name="operation"/>.
-        //        /// If the operation is referencing an implicit or an explicit this/base/Me/MyBase/MyClass instance, then we return "null".
-        //        /// </summary>
-        //        /// <param name="operation"></param>
-        //        /// <param name="isInsideAnonymousObjectInitializer">Flag to indicate if the operation is a descendant of an <see cref="IAnonymousObjectCreationOperation"/>.</param>
-        //        /// <remarks>
-        //        /// PERF: Note that the parameter <paramref name="isInsideAnonymousObjectInitializer"/> is to improve performance by avoiding walking the entire IOperation parent for non-initializer cases.
-        //        /// </remarks>
-        //        public static IOperation? GetInstance(this IInstanceReferenceOperation operation, bool isInsideAnonymousObjectInitializer)
-        //        {
-        //            Debug.Assert(isInsideAnonymousObjectInitializer ==
-        //                (operation.GetAncestor<IAnonymousObjectCreationOperation>(OperationKind.AnonymousObjectCreation) != null));
+        /// <summary>
+        /// Gets the operation for the object being created that is being referenced by <paramref name="operation"/>.
+        /// If the operation is referencing an implicit or an explicit this/base/Me/MyBase/MyClass instance, then we return "null".
+        /// </summary>
+        /// <param name="operation"></param>
+        /// <param name="isInsideAnonymousObjectInitializer">Flag to indicate if the operation is a descendant of an <see cref="IAnonymousObjectCreationOperation"/>.</param>
+        /// <remarks>
+        /// PERF: Note that the parameter <paramref name="isInsideAnonymousObjectInitializer"/> is to improve performance by avoiding walking the entire IOperation parent for non-initializer cases.
+        /// </remarks>
+        public static IOperation? GetInstance(this IInstanceReferenceOperation operation, bool isInsideAnonymousObjectInitializer)
+        {
+            Debug.Assert(isInsideAnonymousObjectInitializer ==
+                (operation.GetAncestor<IAnonymousObjectCreationOperation>(OperationKind.AnonymousObjectCreation) != null));
 
-        //            if (isInsideAnonymousObjectInitializer)
-        //            {
-        //                for (IOperation? current = operation; current != null && current.Kind != OperationKind.Block; current = current.Parent)
-        //                {
-        //                    switch (current.Kind)
-        //                    {
-        //                        // VB object initializer allows accessing the members of the object being created with "." operator.
-        //                        // The syntax of such an IInstanceReferenceOperation points to the object being created.
-        //                        // Check for such an IAnonymousObjectCreationOperation with matching syntax.
-        //                        // For example, instance reference for members ".Field1" and ".Field2" in "New C() With { .Field1 = 0, .Field2 = .Field1 }".
-        //                        case OperationKind.AnonymousObjectCreation:
-        //                            if (current.Syntax == operation.Syntax)
-        //                            {
-        //                                return current;
-        //                            }
+            if (isInsideAnonymousObjectInitializer)
+            {
+                for (IOperation? current = operation; current != null && current.Kind != OperationKind.Block; current = current.Parent)
+                {
+                    switch (current.Kind)
+                    {
+                        // VB object initializer allows accessing the members of the object being created with "." operator.
+                        // The syntax of such an IInstanceReferenceOperation points to the object being created.
+                        // Check for such an IAnonymousObjectCreationOperation with matching syntax.
+                        // For example, instance reference for members ".Field1" and ".Field2" in "New C() With { .Field1 = 0, .Field2 = .Field1 }".
+                        case OperationKind.AnonymousObjectCreation:
+                            if (current.Syntax == operation.Syntax)
+                            {
+                                return current;
+                            }
 
-        //                            break;
-        //                    }
-        //                }
-        //            }
+                            break;
+                    }
+                }
+            }
 
-        //            // For all other cases, IInstanceReferenceOperation refers to the implicit or explicit this/base/Me/MyBase/MyClass reference.
-        //            // We return null for such cases.
-        //            return null;
-        //        }
+            // For all other cases, IInstanceReferenceOperation refers to the implicit or explicit this/base/Me/MyBase/MyClass reference.
+            // We return null for such cases.
+            return null;
+        }
 
         //        public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
         //        {

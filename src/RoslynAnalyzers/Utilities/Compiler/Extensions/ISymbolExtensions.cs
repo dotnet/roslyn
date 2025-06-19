@@ -594,7 +594,7 @@ namespace Analyzer.Utilities.Extensions
 
                 SymbolKind.Parameter => ((IParameterSymbol)symbol).Type,
 
-                _ => GetMemberType(symbol),
+                _ => symbol.GetMemberType(),
             };
         }
 

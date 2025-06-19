@@ -12,6 +12,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
 
 #if HAS_IOPERATION
 using System.Threading;
@@ -199,27 +201,27 @@ namespace Analyzer.Utilities.Extensions
                 method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
         }
 
-        //        /// <summary>
-        //        /// Checks if the given method implements "IAsyncDisposable.Dispose" or overrides an implementation of "IAsyncDisposable.Dispose".
-        //        /// </summary>
-        //        public static bool IsAsyncDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iAsyncDisposable, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTaskType)
-        //        {
-        //            if (method == null)
-        //            {
-        //                return false;
-        //            }
+        /// <summary>
+        /// Checks if the given method implements "IAsyncDisposable.Dispose" or overrides an implementation of "IAsyncDisposable.Dispose".
+        /// </summary>
+        public static bool IsAsyncDisposeImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iAsyncDisposable, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTaskType)
+        {
+            if (method == null)
+            {
+                return false;
+            }
 
-        //            if (method.IsOverride)
-        //            {
-        //                return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
-        //            }
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsAsyncDisposeImplementation(iAsyncDisposable, valueTaskType);
+            }
 
-        //            // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
-        //            // if it is the given method.
-        //            return SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTaskType) &&
-        //                method.Parameters.IsEmpty &&
-        //                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
-        //        }
+            // Identify the implementor of IAsyncDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTaskType) &&
+                method.Parameters.IsEmpty &&
+                method.IsImplementationOfInterfaceMethod(null, iAsyncDisposable, "DisposeAsync");
+        }
 
         /// <summary>
         /// Checks if the given method has the signature "void Dispose()".
