@@ -73,10 +73,10 @@ namespace Analyzer.Utilities.Extensions
         //            return symbol.IsConstructor() && symbol.GetParameters().IsEmpty;
         //        }
 
-        //        public static bool IsPublic(this ISymbol symbol)
-        //        {
-        //            return symbol.DeclaredAccessibility == Accessibility.Public;
-        //        }
+        public static bool IsPublic(this ISymbol symbol)
+        {
+            return symbol.DeclaredAccessibility == Accessibility.Public;
+        }
 
         //        public static bool IsProtected(this ISymbol symbol)
         //        {

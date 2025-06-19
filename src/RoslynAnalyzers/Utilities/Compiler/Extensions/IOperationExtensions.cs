@@ -241,40 +241,40 @@ namespace Analyzer.Utilities.Extensions
         //            return null;
         //        }
 
-        //        /// <summary>
-        //        /// Gets the first ancestor of this operation with:
-        //        ///  1. Specified OperationKind
-        //        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
-        //        /// Returns null if there is no such ancestor.
-        //        /// </summary>
-        //        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicate = null)
-        //            where TOperation : class, IOperation
-        //        {
-        //            if (root == null)
-        //            {
-        //                throw new ArgumentNullException(nameof(root));
-        //            }
+        /// <summary>
+        /// Gets the first ancestor of this operation with:
+        ///  1. Specified OperationKind
+        ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
+        /// Returns null if there is no such ancestor.
+        /// </summary>
+        public static TOperation? GetAncestor<TOperation>(this IOperation root, OperationKind ancestorKind, Func<TOperation, bool>? predicate = null)
+            where TOperation : class, IOperation
+        {
+            if (root == null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
 
-        //            var ancestor = root;
-        //            do
-        //            {
-        //                ancestor = ancestor.Parent;
-        //            } while (ancestor != null && ancestor.Kind != ancestorKind);
+            var ancestor = root;
+            do
+            {
+                ancestor = ancestor.Parent;
+            } while (ancestor != null && ancestor.Kind != ancestorKind);
 
-        //            if (ancestor != null)
-        //            {
-        //                if (predicate != null && !predicate((TOperation)ancestor))
-        //                {
-        //                    return GetAncestor(ancestor, ancestorKind, predicate);
-        //                }
+            if (ancestor != null)
+            {
+                if (predicate != null && !predicate((TOperation)ancestor))
+                {
+                    return GetAncestor(ancestor, ancestorKind, predicate);
+                }
 
-        //                return (TOperation)ancestor;
-        //            }
-        //            else
-        //            {
-        //                return null;
-        //            }
-        //        }
+                return (TOperation)ancestor;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         //        /// <summary>
         //        /// Gets the first ancestor of this operation with:
