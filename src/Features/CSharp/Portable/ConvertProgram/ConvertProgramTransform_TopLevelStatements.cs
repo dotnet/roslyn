@@ -193,10 +193,21 @@ internal static partial class ConvertProgramTransform
                     
                     if (ContainsPreprocessorDirectives(methodDeclaration.Body))
                     {
-                        // When preprocessor directives are present, copy all trivia from the method body
-                        // to preserve the complete structure including disabled code sections
-                        firstStatement = firstStatement.WithTriviaFrom(methodDeclaration.Body)
-                                                      .WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia());
+                        // When preprocessor directives are present, we need to preserve trivia from the braces
+                        // as well as the method trivia. This handles the case where #if/#else/#endif directives
+                        // and disabled code sections are stored in brace trivia.
+                        var openBrace = methodDeclaration.Body.OpenBraceToken;
+                        var closeBrace = methodDeclaration.Body.CloseBraceToken;
+                        
+                        var leadingTrivia = methodDeclaration.GetLeadingTrivia()
+                            .Concat(openBrace.TrailingTrivia)
+                            .Concat(firstStatement.GetLeadingTrivia());
+                            
+                        var trailingTrivia = firstStatement.GetTrailingTrivia()
+                            .Concat(closeBrace.LeadingTrivia);
+                            
+                        firstStatement = firstStatement.WithLeadingTrivia(leadingTrivia)
+                                                      .WithTrailingTrivia(trailingTrivia);
                     }
                     else
                     {
@@ -207,10 +218,7 @@ internal static partial class ConvertProgramTransform
                 }
 
                 // Only add remaining statements if we didn't handle them already in the preprocessor case
-                if (!ContainsPreprocessorDirectives(methodDeclaration.Body))
-                {
-                    statements.AddRange(bodyStatements.Skip(1));
-                }
+                statements.AddRange(bodyStatements.Skip(1));
             }
             else if (member is MethodDeclarationSyntax otherMethod)
             {
