@@ -8,11 +8,21 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Proposals;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
 internal static class CopilotEditorUtilities
 {
+    /// <summary>
+    /// Returns the single roslyn solution snapshot that is affected by the edits in the proposal.
+    /// </summary>
+    /// <remarks>
+    /// Will fail in the event that the edits touch multiple workspaces, or if the edits touch
+    /// multiple versions of a solution in a workspace (for example, edits to different versions of
+    /// the same <see cref="ITextSnapshot"/>. Will also fail if this edits non-roslyn files, or files
+    /// we cannot process semantics for (like non C#/VB files).
+    /// </remarks>
     public static Solution? TryGetAffectedSolution(ProposalBase proposal)
     {
         Solution? solution = null;
