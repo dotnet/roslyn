@@ -1498,7 +1498,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                // TODO2
                 if (IsExtern
                     && !IsAbstract
                     && !this.IsPartialMember()
