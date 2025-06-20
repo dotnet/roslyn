@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options;
 /// <inheritdoc cref="Option2{T}"/>
 public class Option<T> : IPublicOption
 {
-    private readonly OptionDefinition _optionDefinition;
+    private readonly OptionDefinition<T> _optionDefinition;
 
     public string Feature { get; }
 
@@ -71,7 +71,7 @@ public class Option<T> : IPublicOption
     {
     }
 
-    internal Option(OptionDefinition optionDefinition, string feature, string name, ImmutableArray<OptionStorageLocation> storageLocations)
+    internal Option(OptionDefinition<T> optionDefinition, string feature, string name, ImmutableArray<OptionStorageLocation> storageLocations)
     {
         Feature = feature;
         Name = name;
