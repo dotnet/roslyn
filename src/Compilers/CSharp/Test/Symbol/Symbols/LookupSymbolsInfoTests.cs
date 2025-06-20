@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             sb.AppendLine(" {}");
         }
 
-        private static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
+        private void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
         {
             var compilation = CreateCompilation(source);
 

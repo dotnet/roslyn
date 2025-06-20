@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class DynamicTests : CompilingTestBase
+    public partial class DynamicTests() : CompilingTestBase(TargetFramework.Standard)
     {
         private static void TestTypes(string source)
         {

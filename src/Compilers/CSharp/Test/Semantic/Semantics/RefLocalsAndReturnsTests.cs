@@ -778,7 +778,7 @@ class C
         x = ref y;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithNetStandard(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (8,9): error CS8356: Cannot ref-assign 'y' to 'x' because 'y' has a narrower escape scope than 'x'.
                 //         x = ref y;
@@ -787,7 +787,7 @@ class C
                 //         x = ref y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(8, 17));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilationWithNetStandard(source);
             comp.VerifyDiagnostics(
                 // (8,17): error CS0165: Use of unassigned local variable 'y'
                 //         x = ref y;
@@ -2839,8 +2839,7 @@ class C
 }
 ";
             CompileAndVerify(text,
-                expectedOutput: "frog",
-                references: new[] { CSharpRef }).VerifyDiagnostics();
+                expectedOutput: "frog").VerifyDiagnostics();
         }
 
         [Fact]

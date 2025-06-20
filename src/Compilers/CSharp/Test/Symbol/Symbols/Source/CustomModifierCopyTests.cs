@@ -877,9 +877,8 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il,
+            var comp = CreateCompilationWithILAndStandard(source, il,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                targetFramework: TargetFramework.Standard,
                 references: new[] { CSharpRef });
 
             CompileAndVerify(comp, expectedOutput: "Bug813305.M",
@@ -911,7 +910,7 @@ class C : I
     void I.M(dynamic x) { }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.Standard);
+            var comp = CreateCompilationWithILAndStandard(source, il);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

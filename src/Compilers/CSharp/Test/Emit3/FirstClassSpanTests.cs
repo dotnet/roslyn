@@ -18,6 +18,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class FirstClassSpanTests : CSharpTestBase
 {
+    private static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
+    {
+        if (RuntimeUtilities.IsCoreClrRuntime)
+        {
+            return CreateCompilation(text, options: options, parseOptions: parseOptions, targetFramework: targetFramework);
+        }
+
+        var reference = CreateCompilationWithNetFramework(
+            [TestSources.Span, TestSources.MemoryExtensions],
+            options: TestOptions.UnsafeReleaseDll);
+
+        reference.VerifyDiagnostics();
+
+        return CreateCompilationWithNetFramework(
+            text,
+            references: [reference.EmitToImageReference()],
+            options: options,
+            parseOptions: parseOptions);
+    }
+
     public static TheoryData<LanguageVersion> LangVersions()
     {
         return new TheoryData<LanguageVersion>()

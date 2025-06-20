@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// this place is dedicated to binding related error tests
     /// </summary>
-    public class SemanticErrorTests : CompilingTestBase
+    public class SemanticErrorTests() : CompilingTestBase(TargetFramework.Standard)
     {
         #region "Targeted Error Tests - please arrange tests in the order of error code"
 
@@ -16851,7 +16851,7 @@ public class C
     {
     }
 }";
-            var compilation = CSharpTestBase.CreateCompilation(text);
+            var compilation = base.CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (6,33): error CS1740: Named argument 'Name' cannot be specified multiple times
                 //         Test(age: 5, Name: "5", Name: "");

@@ -606,7 +606,7 @@ partial class Test
             VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol(), isSymbolNull: true);
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/78759")]
         public void LockAnonymousTypes()
         {
             var compilation = CreateCompilation(
