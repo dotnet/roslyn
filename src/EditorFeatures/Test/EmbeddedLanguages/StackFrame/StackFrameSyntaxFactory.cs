@@ -217,4 +217,11 @@ internal static class StackFrameSyntaxFactory
             IdentifierToken(identifier),
             PipeToken,
             CreateToken(StackFrameKind.GeneratedNameSuffixToken, suffix));
+
+    public static StackFrameStateMachineMethodNameNode StateMachineMethod(StackFrameGeneratedMethodNameNode encapsulatingMethod, string suffix, string stateMachineMethod)
+        => new(
+            encapsulatingMethod,
+            CreateToken(StackFrameKind.GeneratedNameSeparatorToken, "d__" + suffix),
+            DotToken,
+            IdentifierToken(stateMachineMethod));
 }
