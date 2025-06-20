@@ -2239,6 +2239,8 @@ Global
 		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{7005dd7b-d3b6-1360-313b-975974aa6254}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{7005dd7b-d3b6-1360-313b-975974aa6254}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{7005dd7b-d3b6-1360-313b-975974aa6254}*SharedItemsImports = 5
+		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems*{7005dd7b-d3b6-1360-313b-975974aa6254}*SharedItemsImports = 5
+		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems*{7005dd7b-d3b6-1360-313b-975974aa6254}*SharedItemsImports = 5
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1843}*SharedItemsImports = 5
 		src\Analyzers\Core\Analyzers\Analyzers.projitems*{76e96966-4780-4040-8197-bde2879516f4}*SharedItemsImports = 13
 		src\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems*{7b7f4153-ae93-4908-b8f0-430871589f83}*SharedItemsImports = 13

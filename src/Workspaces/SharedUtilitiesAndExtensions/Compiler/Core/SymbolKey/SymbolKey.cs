@@ -337,7 +337,7 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
     {
         var position = GetDataStartPosition(_symbolKeyData);
 
-#if NETSTANDARD
+#if !NET
         var hashCode = 0;
         foreach (var ch in _symbolKeyData[position..])
             hashCode = Hash.Combine(ch, hashCode);
