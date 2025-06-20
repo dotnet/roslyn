@@ -26,7 +26,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> GetVirtualProjectContentAsync(string documentFilePath, ILogger logger, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
-        var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true);
+        var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true, keepStandardInputOpen: true);
 
         cancellationToken.Register(() =>
         {
