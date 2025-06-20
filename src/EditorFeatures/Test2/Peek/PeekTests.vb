@@ -4,7 +4,6 @@
 
 Imports System.IO
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Peek
 Imports Microsoft.CodeAnalysis.Editor.Peek
@@ -235,13 +234,13 @@ public partial class D
         $$PartialMethod();
     }
 
-    partial void PartialMethod();
+    partial void {|Identifier:PartialMethod|}();
 }
                                                           ]]></Document>
                                                           <Document><![CDATA[
 public partial class D
 {
-    partial void {|Identifier:PartialMethod|}() { }
+    partial void PartialMethod() { }
 }
                                                           ]]></Document>
                                                       </Project>

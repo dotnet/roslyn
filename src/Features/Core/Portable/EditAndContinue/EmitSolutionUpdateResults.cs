@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -433,7 +432,7 @@ internal readonly struct EmitSolutionUpdateResults
             {
                 if (!diagnostic.IsEncDiagnostic())
                 {
-                    result.AddRange(diagnostics);
+                    result.Add(diagnostic);
                 }
             }
         }

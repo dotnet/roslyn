@@ -114,9 +114,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.Search" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.Common" />
-    <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces" />
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" />
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" />

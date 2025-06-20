@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -502,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static bool isPossibleIndexerNameAttributeInExtension(AttributeSyntax node, Binder? rootBinderOpt)
                 {
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Temporarily limit binding to a string literal argument in order to avoid a binding cycle.
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Temporarily limit binding to a string literal argument in order to avoid a binding cycle.
                     if (node.ArgumentList?.Arguments is not [{ NameColon: null, NameEquals: null, Expression: LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } }])
                     {
                         return false;

@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -85,7 +84,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         // The naming rule we need to follow if we synthesize new private fields.
         var fieldNameRule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-            DeclarationModifiers.None,
+            Modifiers.None,
             Accessibility.Private,
             cancellationToken).ConfigureAwait(false);
 

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,8 +25,8 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpCollectionExpressionRewriter;
-using static CSharpSyntaxTokens;
 using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]

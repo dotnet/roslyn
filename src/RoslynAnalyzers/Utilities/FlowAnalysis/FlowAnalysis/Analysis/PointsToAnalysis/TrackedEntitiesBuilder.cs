@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
         public void Dispose()
         {
-            AllEntities.Dispose();
-            PointsToValues.Dispose();
+            AllEntities.Free();
+            PointsToValues.Free();
         }
 
         public void AddEntityAndPointsToValue(AnalysisEntity analysisEntity, PointsToAbstractValue value)

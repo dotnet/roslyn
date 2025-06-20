@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Collections
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <Trait(Traits.Feature, Traits.Features.InlineHints)>
     Public NotInheritable Class CSharpInlineTypeHintsTests
@@ -928,6 +927,35 @@ class C
     }
 
     List&lt;TestFile&gt; GetTestFiles() => default;
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48941")>
+        Public Async Function TestNoDoubleClickWithCollectionExpression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    private static readonly ImmutableHashSet&lt;string?&gt; Hashes = {| ImmutableHashSet&lt;string?&gt;:|}[];
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    private static readonly ImmutableHashSet&lt;string?&gt; Hashes = [];
 }
                     </Document>
                 </Project>

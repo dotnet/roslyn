@@ -17,15 +17,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.SyncNamespace), Shared]
-internal sealed class CSharpSyncNamespaceCodeRefactoringProvider
-    : AbstractSyncNamespaceCodeRefactoringProvider<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpSyncNamespaceCodeRefactoringProvider()
+        : AbstractSyncNamespaceCodeRefactoringProvider<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpSyncNamespaceCodeRefactoringProvider()
-    {
-    }
-
     protected override async Task<SyntaxNode?> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken)
     {
         if (!span.IsEmpty)
@@ -58,7 +54,4 @@ internal sealed class CSharpSyncNamespaceCodeRefactoringProvider
 
         return null;
     }
-
-    protected override string EscapeIdentifier(string identifier)
-        => identifier.EscapeIdentifier();
 }

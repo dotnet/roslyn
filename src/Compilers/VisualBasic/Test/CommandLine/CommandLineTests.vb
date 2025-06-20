@@ -15,9 +15,7 @@ Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
-Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
@@ -31,6 +29,7 @@ Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Test.Utilities.TestGenerators
 Imports Roslyn.Utilities
 Imports TestResources.Analyzers
+Imports Basic.Reference.Assemblies
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
@@ -1159,180 +1158,165 @@ End Module").Path
         End Sub
 
         <Fact>
-        Public Sub ParseResourceDescription()
+        Public Sub TryParseResourceDescription()
             Dim diags = New List(Of Diagnostic)()
-            Dim desc As ResourceDescription
+            Dim resource As CommandLineResource
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someName", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someName", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,public", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,public", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someName", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someName", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
             ' use file name in place of missing resource name
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' quoted accessibility is fine
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,""private""", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,""private""", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' leading commas are ignored...
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ",,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", ",,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' ...as long as there's no whitespace between them
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", ", ,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", ", ,\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
             ' trailing commas are ignored...
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
             ' ...even if there's whitespace between them
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private, ,", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,,private, ,", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("someFile.goo.bar", desc.FileName)
-            Assert.Equal("someFile.goo.bar", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName)
+            Assert.Equal("someFile.goo.bar", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,publi", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "\somepath\someFile.goo.bar,someName,publi", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", "publi"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "D:rive\relative\path,someName,public", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "D:rive\relative\path,someName,public", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("D:rive\relative\path"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "inva\l*d?path,someName,public", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "inva\l*d?path,someName,public", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("inva\l*d?path"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", Nothing, _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", Nothing, _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("resource", ":<resinfo>"))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " , ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, ", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path, ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("path", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("path", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ,name", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , , ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " , , ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, , ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path, , ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name, ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ,name, ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " , ,private", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " , ,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name,", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path,name,", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("name", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("name", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name,,", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path,name,,", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("name", desc.ResourceName)
-            Assert.True(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("name", resource.ResourceName)
+            Assert.True(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path,name, ", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path,name, ", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", "path, ,private", _baseDirectory, diags, embedded:=False)
+            Assert.True(VisualBasicCommandLineParser.TryParseResourceDescription("resource", "path, ,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify()
             diags.Clear()
-            Assert.Equal("path", desc.FileName)
-            Assert.Equal("path", desc.ResourceName)
-            Assert.False(desc.IsPublic)
+            Assert.Equal("path", resource.LinkedResourceFileName)
+            Assert.Equal("path", resource.ResourceName)
+            Assert.False(resource.IsPublic)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("resource", " ,name,private", _baseDirectory, diags, embedded:=False)
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("resource", " ,name,private", _baseDirectory, diags, isEmbedded:=False, resource))
             diags.Verify(Diagnostic(ERRID.ERR_InvalidSwitchValue).WithArguments("resource", " "))
             diags.Clear()
-            Assert.Null(desc)
 
             Dim longI = New String("i"c, 260)
 
-            desc = VisualBasicCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, embedded:=False)
-            ' // error BC2032: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1))
+            Assert.False(VisualBasicCommandLineParser.TryParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, isEmbedded:=False, resource))
+            ' // error BC2032: File name '...' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+            diags.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments(longI).WithLocation(1, 1))
         End Sub
 
         <Fact>

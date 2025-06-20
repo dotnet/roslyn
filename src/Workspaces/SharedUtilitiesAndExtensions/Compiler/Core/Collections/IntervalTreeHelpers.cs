@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 

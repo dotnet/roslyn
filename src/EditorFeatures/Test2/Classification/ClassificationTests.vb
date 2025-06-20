@@ -18,6 +18,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Classification
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     <UseExportProvider>

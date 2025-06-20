@@ -727,7 +727,7 @@ public static class Extensions
             // (14,20): error CS0117: 'string' does not contain a definition for 'M'
             //             string.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("string", "M").WithLocation(14, 20),
-            // (17,9): error CS9282: Extension declarations can include only methods or properties
+            // (17,9): error CS9282: This member is not allowed in an extension block
             //         extension(string) { public static void M() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(17, 9));
 
@@ -1904,7 +1904,10 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (10,16): error CS0541: 'Extensions.extension(object).M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //         void I.M() { }
-            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("Extensions.extension(object).M()").WithLocation(10, 16));
+            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("Extensions.extension(object).M()").WithLocation(10, 16),
+            // (10,16): error CS9282: This member is not allowed in an extension block
+            //         void I.M() { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "M").WithLocation(10, 16));
     }
 
     [Fact]
@@ -2056,7 +2059,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9282: Extension declarations can include only methods or properties
+            // (5,13): error CS9282: This member is not allowed in an extension block
             //         int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 13));
 
@@ -2215,7 +2218,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9282: Extension declarations can include only methods or properties
+            // (5,20): error CS9282: This member is not allowed in an extension block
             //         static int Property { get; set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Property").WithLocation(5, 20));
 
@@ -2250,7 +2253,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS9282: Extension declarations can include only methods or properties
+            // (5,13): error CS9282: This member is not allowed in an extension block
             //         int this[int i] { get => 42; set { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 13));
 
@@ -2275,7 +2278,7 @@ public static class Extensions
             // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
             //     extension(object o)
             Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
-            // (5,13): error CS9282: Extension declarations can include only methods or properties
+            // (5,13): error CS9282: This member is not allowed in an extension block
             //         int this[int i] { get => 42; set { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 13)
             );
@@ -2302,14 +2305,14 @@ public static class Extensions
             // (5,20): error CS0106: The modifier 'static' is not valid for this item
             //         static int this[int i] { get => 42; set { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20),
-            // (5,20): error CS9282: Extension declarations can include only methods or properties
+            // (5,20): error CS9282: This member is not allowed in an extension block
             //         static int this[int i] { get => 42; set { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20)
             );
     }
 
     [Fact]
-    public void Member_Type()
+    public void Member_Type_01()
     {
         var src = """
 public static class Extensions
@@ -2322,7 +2325,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,15): error CS9282: Extension declarations can include only methods or properties
+            // (5,15): error CS9282: This member is not allowed in an extension block
             //         class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(5, 15));
 
@@ -2335,6 +2338,66 @@ public static class Extensions
         Assert.Equal(["void Extensions.<>E__0.<Extension>$(System.Object)", "Extensions.<>E__0.Nested"], symbol.GetMembers().ToTestDisplayStrings());
         Assert.Equal(["Extensions.<>E__0.Nested"], symbol.GetTypeMembers().ToTestDisplayStrings());
         Assert.Equal("Extensions.<>E__0.Nested", symbol.GetTypeMember("Nested").ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Member_Type_02()
+    {
+        var src = """
+C.Nested x = null;
+
+public static class Extensions
+{
+    extension(C)
+    {
+        class Nested { }
+    }
+}
+class C { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,3): error CS0426: The type name 'Nested' does not exist in the type 'C'
+            // C.Nested x = null;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C").WithLocation(1, 3),
+            // (7,15): error CS9282: This member is not allowed in an extension block
+            //         class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var syntax = GetSyntax<QualifiedNameSyntax>(tree, "C.Nested");
+        Assert.Null(model.GetSymbolInfo(syntax).Symbol);
+    }
+
+    [Fact]
+    public void Member_Type_03()
+    {
+        var src = """
+object.Nested x = null;
+
+public static class Extensions
+{
+    extension(object)
+    {
+        class Nested { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'Nested'
+            // object.Nested x = null;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Nested").WithArguments("object", "Nested").WithLocation(1, 8),
+            // (1,15): error CS1002: ; expected
+            // object.Nested x = null;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(1, 15),
+            // (1,15): error CS0103: The name 'x' does not exist in the current context
+            // object.Nested x = null;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(1, 15),
+            // (7,15): error CS9282: This member is not allowed in an extension block
+            //         class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
     }
 
     [Fact]
@@ -2351,7 +2414,7 @@ public static class Extensions
             // (3,25): error CS1520: Method must have a return type
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_MemberNeedsType, "Extensions").WithLocation(3, 25),
-            // (3,25): error CS9282: Extension declarations can include only methods or properties
+            // (3,25): error CS9282: This member is not allowed in an extension block
             //     extension(object) { Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 25));
 
@@ -2379,7 +2442,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,26): error CS9282: Extension declarations can include only methods or properties
+            // (3,26): error CS9282: This member is not allowed in an extension block
             //     extension(object) { ~Extensions() { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Extensions").WithLocation(3, 26));
 
@@ -2410,7 +2473,7 @@ public static class Extensions
             // (1,18): error CS1061: 'object' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // _ = new object().field;
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("object", "field").WithLocation(1, 18),
-            // (5,31): error CS9282: Extension declarations can include only methods or properties
+            // (5,31): error CS9282: This member is not allowed in an extension block
             //     extension(object o) { int field = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 31),
             // (5,31): warning CS0169: The field 'Extensions.extension(object).field' is never used
@@ -2439,7 +2502,7 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (3,35): error CS9282: Extension declarations can include only methods or properties
+            // (3,35): error CS9282: This member is not allowed in an extension block
             //     extension(object) { const int i = 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "i").WithLocation(3, 35));
 
@@ -2475,13 +2538,13 @@ public static class Extensions
             // (9,31): error CS0541: 'Extensions.extension(object).E': explicit interface declaration can only be declared in a class, record, struct or interface
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "E").WithArguments("Extensions.extension(object).E").WithLocation(9, 31),
-            // (9,31): error CS9282: Extension declarations can include only methods or properties
+            // (9,31): error CS9282: This member is not allowed in an extension block
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "E").WithLocation(9, 31),
-            // (9,35): error CS9282: Extension declarations can include only methods or properties
+            // (9,35): error CS9282: This member is not allowed in an extension block
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "add").WithLocation(9, 35),
-            // (9,43): error CS9282: Extension declarations can include only methods or properties
+            // (9,43): error CS9282: This member is not allowed in an extension block
             //         event System.Action I.E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "remove").WithLocation(9, 43));
     }
@@ -4196,16 +4259,16 @@ class C {}
             // (6,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(C).P", "C").WithLocation(6, 20),
-            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            // (7,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20),
             // (7,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).this[int]'
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(C).this[int]", "C").WithLocation(7, 20),
-            // (11,21): error CS9282: Extension declarations can include only methods or properties
+            // (11,21): error CS9282: This member is not allowed in an extension block
             //         private int this[long i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(11, 21),
-            // (15,22): error CS9282: Extension declarations can include only methods or properties
+            // (15,22): error CS9282: This member is not allowed in an extension block
             //         internal int this[byte i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(15, 22)
             );
@@ -4262,13 +4325,13 @@ public static class Extensions
             // (6,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 20),
-            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            // (7,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20),
             // (7,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[int]'
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[int]", "Extensions.C").WithLocation(7, 20),
-            // (11,21): error CS9282: Extension declarations can include only methods or properties
+            // (11,21): error CS9282: This member is not allowed in an extension block
             //         private int this[long i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(11, 21),
             // (13,23): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M2()'
@@ -4277,7 +4340,7 @@ public static class Extensions
             // (14,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P2'
             //         internal int P2 { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P2").WithArguments("Extensions.extension(Extensions.C).P2", "Extensions.C").WithLocation(14, 22),
-            // (15,22): error CS9282: Extension declarations can include only methods or properties
+            // (15,22): error CS9282: This member is not allowed in an extension block
             //         internal int this[byte i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(15, 22),
             // (15,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[byte]'
@@ -4478,7 +4541,7 @@ file static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (9,20): error CS9282: Extension declarations can include only methods or properties
+            // (9,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int i] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 20));
     }
@@ -4505,10 +4568,10 @@ file static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (9,18): error CS9282: Extension declarations can include only methods or properties
+            // (9,18): error CS9282: This member is not allowed in an extension block
             //         public C this[int y]  => null;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 18),
-            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            // (10,20): error CS9282: This member is not allowed in an extension block
             //         public int this[C y]  => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20));
     }
@@ -11479,11 +11542,11 @@ public static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
         Assert.Equal("System.Int32 E.<>E__0<T>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
 
         memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "int.P");
         Assert.Equal("System.Int32 E.<>E__0<System.Int32>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -13732,7 +13795,7 @@ static class E
             // (1,14): error CS1061: 'C<int>' does not contain a definition for 'StaticType' and no accessible extension method 'StaticType' accepting a first argument of type 'C<int>' could be found (are you missing a using directive or an assembly reference?)
             // new C<int>().StaticType<string>();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "StaticType<string>").WithArguments("C<int>", "StaticType").WithLocation(1, 14),
-            // (9,29): error CS9282: Extension declarations can include only methods or properties
+            // (9,29): error CS9282: This member is not allowed in an extension block
             //         public static class StaticType<U> { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "StaticType").WithLocation(9, 29));
 
@@ -13806,7 +13869,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -13849,7 +13912,7 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -15264,7 +15327,7 @@ public static class Extensions
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().P");
         Assert.Equal("System.Action Extensions.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -15969,7 +16032,7 @@ static class E
 {
     extension(MyCollection c)
     {
-        public void Add(ref int i) { System.Console.Write("ran"); }
+        public void Add(ref int i) { }
     }
 }
 
@@ -16579,7 +16642,7 @@ public class C
             Diagnostic(ErrorCode.ERR_BadDynamicQuery, "where i is not null").WithLocation(2, 9));
     }
 
-    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/76130 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
+    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/78968 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
     public void ResolveAll_Query_Cast()
     {
         var source = """
@@ -17303,7 +17366,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider handling BoundBadExpression better
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : consider handling BoundBadExpression better
     }
 
     [Fact]
@@ -17341,7 +17404,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Action E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -17379,7 +17442,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Action E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -17627,7 +17690,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
         Assert.Equal("System.Int32 E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -18803,7 +18866,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(property)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Empty(model.GetMemberGroup(property)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -18835,7 +18898,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var property = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(property).Symbol.ToTestDisplayString());
-        Assert.Empty(model.GetMemberGroup(property)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Empty(model.GetMemberGroup(property)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -19102,7 +19165,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -19148,7 +19211,7 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics();
 
@@ -19191,7 +19254,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -19350,7 +19413,7 @@ static class E
         Assert.Equal(["void E.<>E__0.Method()"], model.GetMemberGroup(memberAccess1).ToTestDisplayStrings());
 
         var memberAccess2 = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.Property");
-        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess2).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -19560,7 +19623,7 @@ static class E
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal(["System.Int32 E.<>E__0.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -19977,7 +20040,7 @@ static class E2
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal(["System.String E1.<>E__0.M()", "System.String E2.<>E__0.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider handling BoundBadExpression better
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundBadExpression better
     }
 
     [Fact]
@@ -20013,7 +20076,7 @@ static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider handling BoundBadExpression better
+        // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundBadExpression better
         Assert.Equal(["System.String E1.<>E__0<T>.M()", "System.String E2.<>E__0<T>.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
         Assert.Empty(model.GetMemberGroup(memberAccess));
@@ -20885,14 +20948,8 @@ static class E
     [Fact]
     public void ExtensionMemberLookup_PatternBased_PositionalPattern()
     {
-        var src = """
-var c = new C();
-if (c is var (x, y))
-    System.Console.Write((x, y));
-
-class C { }
-
-static class E
+        var libSrc = """
+public static class E
 {
     extension<T>(T t)
     {
@@ -20900,7 +20957,23 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var libRef = CreateCompilation(libSrc).EmitToImageReference();
+
+        var src = """
+var c = new C();
+if (c is var (x, y))
+    System.Console.Write((x, y));
+
+class C { }
+
+""";
+        var comp = CreateCompilation(src, references: [libRef]);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
     }
 
@@ -22066,7 +22139,7 @@ static class E
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
-            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            // (13,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int i] => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
     }
@@ -22097,7 +22170,7 @@ static class E
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
-            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            // (13,20): error CS9282: This member is not allowed in an extension block
             //         public int this[System.Index i] => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
 
@@ -22239,7 +22312,7 @@ static class E
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5),
-            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            // (13,20): error CS9282: This member is not allowed in an extension block
             //         public int this[System.Range r] => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
 
@@ -22324,7 +22397,7 @@ static class E
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C() is [1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
-            // (12,20): error CS9282: Extension declarations can include only methods or properties
+            // (12,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int i] => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 20));
     }
@@ -22355,7 +22428,7 @@ static class E
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C() is [1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
-            // (12,20): error CS9282: Extension declarations can include only methods or properties
+            // (12,20): error CS9282: This member is not allowed in an extension block
             //         public int this[System.Index i] => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 20));
 
@@ -22471,7 +22544,7 @@ static class E
             // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20),
-            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            // (13,20): error CS9282: This member is not allowed in an extension block
             //         public int this[System.Range r] => throw null;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
 
@@ -22492,13 +22565,10 @@ class C
     [Fact]
     public void ExtensionMemberLookup_Patterns()
     {
-        var src = """
-var c = new C();
-_ = c is { Property: 42 };
+        var libSrc = """
+public class C { }
 
-class C { }
-
-static class E
+public static class E
 {
     extension(C c)
     {
@@ -22509,13 +22579,28 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var libRef = CreateCompilation(libSrc).EmitToImageReference();
+
+        var src = """
+var c = new C();
+_ = c is { Property: 42 };
+""";
+        var comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var nameColon = GetSyntax<NameColonSyntax>(tree, "Property:");
         Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = c is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(2, 12));
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -23040,7 +23125,6 @@ static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want extension Length/Count to contribute to list-patterns
         comp.VerifyEmitDiagnostics(
             // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // System.Console.Write(new C() is ["hi"]);
@@ -23051,12 +23135,10 @@ static class E
     [Fact]
     public void ExtensionMemberLookup_ObjectInitializer()
     {
-        var src = """
-_ = new C() { Property = 42 };
+        var libSrc = """
+public class C { }
 
-class C { }
-
-static class E
+public static class E
 {
     extension(C c)
     {
@@ -23064,14 +23146,28 @@ static class E
     }
 }
 """;
+        var libRef = CreateCompilation(libSrc).EmitToImageReference();
 
-        var comp = CreateCompilation(src);
+        var src = """
+_ = new C() { Property = 42 };
+""";
+
+        var comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (1,15): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new C() { Property = 42 };
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 15));
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -23193,12 +23289,10 @@ static class E
     [Fact]
     public void ExtensionMemberLookup_With()
     {
-        var src = """
-_ = new S() with { Property = 42 };
+        var libSrc = """
+public struct S { }
 
-struct S { }
-
-static class E
+public static class E
 {
     extension(S s)
     {
@@ -23206,14 +23300,28 @@ static class E
     }
 }
 """;
+        var libRef = CreateCompilation(libSrc).EmitToImageReference();
 
-        var comp = CreateCompilation(src);
+        var src = """
+_ = new S() with { Property = 42 };
+""";
+
+        var comp = CreateCompilation(src, references: [libRef]);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new S() with { Property = 42 };
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("extensions").WithLocation(1, 20));
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -24004,7 +24112,7 @@ static class E2
         Assert.Equal(["System.String E1.<>E__0.M()", "System.Func<System.String> E2.<>E__0.M { get; }"],
             model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
 
-        Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider handling BoundBadExpression better
+        Assert.Empty(model.GetMemberGroup(memberAccess)); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, consider handling BoundBadExpression better
     }
 
     [Fact]
@@ -24494,7 +24602,7 @@ public static partial class C
 (string, string).M();
 (int a, int b).M();
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider parsing this
+        // Tracked by https://github.com/dotnet/roslyn/issues/78961 : consider parsing this
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,2): error CS1525: Invalid expression term 'string'
@@ -24527,7 +24635,7 @@ public static partial class C
 ((string, string)).M();
 ((int a, int b)).M();
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider parsing this
+        // Tracked by https://github.com/dotnet/roslyn/issues/78961 : consider parsing this
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (1,3): error CS1525: Invalid expression term 'string'
@@ -24566,7 +24674,7 @@ unsafe class C
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider parsing this
+        // Tracked by https://github.com/dotnet/roslyn/issues/78961 : consider parsing this
         var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
             // (5,13): error CS1001: Identifier expected
@@ -24730,7 +24838,7 @@ static class Extensions
             // (15,28): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         static void M3(int T){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(15, 28),
-            // (16,13): error CS9282: Extension declarations can include only methods or properties
+            // (16,13): error CS9282: This member is not allowed in an extension block
             //         int this[int T] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(16, 13),
             // (16,22): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
@@ -24787,13 +24895,13 @@ static class Extensions
             // (4,15): warning CS8981: The type name 'value' only contains lower-cased ascii characters. Such names may become reserved for the language.
             //     extension<value>(value[] p)
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "value").WithArguments("value").WithLocation(4, 15),
-            // (6,13): error CS9282: Extension declarations can include only methods or properties
+            // (6,13): error CS9282: This member is not allowed in an extension block
             //         int this[int i] {set{}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(6, 13),
             // (6,26): error CS9294: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
             //         int this[int i] {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(6, 26),
-            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            // (7,13): error CS9282: This member is not allowed in an extension block
             //         int this[long i] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13)
             );
@@ -25264,7 +25372,7 @@ class C8<T> {}
             // (13,18): error CS0119: 'T' is a type, which is not valid in the given context
             //         int T => T;
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(13, 18),
-            // (19,13): error CS9282: Extension declarations can include only methods or properties
+            // (19,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] => T;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(19, 13),
             // (19,28): error CS0119: 'T' is a type, which is not valid in the given context
@@ -25276,10 +25384,10 @@ class C8<T> {}
             // (32,25): error CS0119: 'T' is a type, which is not valid in the given context
             //         static int T => T;
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(32, 25),
-            // (43,13): error CS9282: Extension declarations can include only methods or properties
+            // (43,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(43, 13),
-            // (48,13): error CS9282: Extension declarations can include only methods or properties
+            // (48,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(48, 13)
             );
@@ -25366,7 +25474,7 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (27,13): error CS9282: Extension declarations can include only methods or properties
+            // (27,13): error CS9282: This member is not allowed in an extension block
             //         int this[int y]
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(27, 13),
             // (42,23): error CS9293: Cannot use extension parameter 'short M1' in this context.
@@ -25375,10 +25483,10 @@ static class Extensions
             // (53,17): error CS9293: Cannot use extension parameter 'string P1' in this context.
             //                 P1 = "val";
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17),
-            // (67,13): error CS9282: Extension declarations can include only methods or properties
+            // (67,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(67, 13),
-            // (72,13): error CS9282: Extension declarations can include only methods or properties
+            // (72,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(72, 13)
             );
@@ -25500,7 +25608,7 @@ static class Extensions
             // (6,28): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         static void M3(int p){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(6, 28),
-            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            // (7,13): error CS9282: This member is not allowed in an extension block
             //         int this[int p] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13),
             // (7,22): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
@@ -25536,16 +25644,16 @@ static class Extensions
             // (6,17): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int P2 {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(6, 17),
-            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            // (7,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] {get=>0;}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13),
-            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            // (8,13): error CS9282: This member is not allowed in an extension block
             //         int this[long x] {set{}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (8,27): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int this[long x] {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(8, 27),
-            // (9,13): error CS9282: Extension declarations can include only methods or properties
+            // (9,13): error CS9282: This member is not allowed in an extension block
             //         int this[long x, int value] {set{}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 13),
             // (9,30): error CS9290: 'value': a parameter, local variable, or local function cannot have the same name as an extension parameter
@@ -26195,7 +26303,7 @@ class MyAttr : System.Attribute
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            // (7,13): error CS9282: This member is not allowed in an extension block
             //         int this[int y]
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13));
     }
@@ -26228,7 +26336,7 @@ static class Extensions
             // (6,54): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
             //         [System.Runtime.CompilerServices.IndexerName(p)]
             Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 54),
-            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            // (7,13): error CS9282: This member is not allowed in an extension block
             //         int this[int y]
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13)
             );
@@ -26320,7 +26428,7 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyEmitDiagnostics(
-            // (6,15): error CS9282: Extension declarations can include only methods or properties
+            // (6,15): error CS9282: This member is not allowed in an extension block
             //         class Nested
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 15),
             // (11,24): error CS9293: Cannot use extension parameter 'int p' in this context.
@@ -26351,12 +26459,12 @@ static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : We do not allow complex forms of IndexerName attribute due to a possible binding cycle
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : indexers, We do not allow complex forms of IndexerName attribute due to a possible binding cycle
         comp.VerifyEmitDiagnostics(
             // (7,54): error CS8078: An expression is too long or complex to compile
             //         [System.Runtime.CompilerServices.IndexerName(Str)]
             Diagnostic(ErrorCode.ERR_InsufficientStack, "Str").WithLocation(7, 54),
-            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            // (8,13): error CS9282: This member is not allowed in an extension block
             //         int this[int y]
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13)
             );
@@ -26886,19 +26994,19 @@ static class Extensions6
             // (49,20): error CS0082: Type 'Extensions4' already reserves a member called 'set_P4' with the same parameter types
             //         public int P4 => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "P4").WithArguments("set_P4", "Extensions4").WithLocation(49, 20),
-            // (57,20): error CS9282: Extension declarations can include only methods or properties
+            // (57,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(57, 20),
             // (57,35): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_Item", "Extensions5").WithLocation(57, 35),
-            // (64,20): error CS9282: Extension declarations can include only methods or properties
+            // (64,20): error CS9282: This member is not allowed in an extension block
             //         public int this[long b] => 4;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(64, 20),
             // (64,36): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
             //         public int this[long b] => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_Item", "Extensions5").WithLocation(64, 36),
-            // (73,20): error CS9282: Extension declarations can include only methods or properties
+            // (73,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(73, 20),
             // (73,35): error CS0082: Type 'Extensions6' already reserves a member called 'get_Indexer' with the same parameter types
@@ -26943,13 +27051,13 @@ static class Extensions2
             // (10,20): error CS0102: The type 'Extensions1' already contains a definition for 'P1'
             //         public int P1 {set{}}
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("Extensions1", "P1").WithLocation(10, 20),
-            // (18,20): error CS9282: Extension declarations can include only methods or properties
+            // (18,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(18, 20),
             // (23,20): error CS0111: Type 'Extensions2' already defines a member called 'this' with the same parameter types
             //         public int this[int y] {set{}}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions2").WithLocation(23, 20),
-            // (23,20): error CS9282: Extension declarations can include only methods or properties
+            // (23,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int y] {set{}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(23, 20)
             );
@@ -28024,7 +28132,7 @@ public static class Extensions
             // (8,13): error CS0102: The type 'Extensions' already contains a definition for 'Item'
             //         int this[T x] => default;
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Extensions", "Item").WithLocation(8, 13),
-            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            // (8,13): error CS9282: This member is not allowed in an extension block
             //         int this[T x] => default;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13)
             );
@@ -28064,13 +28172,13 @@ public static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            // (8,13): error CS9282: This member is not allowed in an extension block
             //         int this[T x] => default;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (18,13): error CS0111: Type 'Extensions' already defines a member called 'this' with the same parameter types
             //         int this[U x] { set{}}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions").WithLocation(18, 13),
-            // (18,13): error CS9282: Extension declarations can include only methods or properties
+            // (18,13): error CS9282: This member is not allowed in an extension block
             //         int this[U x] { set{}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(18, 13)
             );
@@ -28112,13 +28220,13 @@ public static class Extensions
 
         // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the "within a type" part of the message might be somewhat misleading
         comp.VerifyDiagnostics(
-            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            // (8,13): error CS9282: This member is not allowed in an extension block
             //         int this[T x] => default;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (19,13): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
             //         int this[int x] { set{}}
             Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 13),
-            // (19,13): error CS9282: Extension declarations can include only methods or properties
+            // (19,13): error CS9282: This member is not allowed in an extension block
             //         int this[int x] { set{}}
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(19, 13)
             );
@@ -31428,7 +31536,7 @@ static class E
             // (1,9): error CS0117: 'int' does not contain a definition for 'Const'
             // _ = int.Const;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "Const").WithArguments("int", "Const").WithLocation(1, 9),
-            // (7,26): error CS9282: Extension declarations can include only methods or properties
+            // (7,26): error CS9282: This member is not allowed in an extension block
             //         public const int Const = 42;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Const").WithLocation(7, 26));
     }
@@ -31929,7 +32037,7 @@ public static class E
         Assert.Equal([
             "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
             "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)"],
-            model.LookupStaticMembers(position: 0, o, name: null).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should we include extension static members?
+            model.LookupStaticMembers(position: 0, o, name: null).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, should we include extension static members?
 
         Assert.Empty(model.LookupNamespacesAndTypes(position: 0, o, name: null));
     }
@@ -32163,7 +32271,7 @@ public static class E
 
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (6,22): error CS9282: Extension declarations can include only methods or properties
+            // (6,22): error CS9282: This member is not allowed in an extension block
             //         static class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 22));
 
@@ -32395,7 +32503,7 @@ static class E
         var model = comp.GetSemanticModel(tree);
 
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -32664,7 +32772,7 @@ static class E2
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.P");
         Assert.Equal("System.Int32 E2.<>E__0<System.Object>.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle GetMemberGroup on a property access
+        Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
     [Fact]
@@ -32942,7 +33050,8 @@ public static class E
     {
         public void M() { }
         public static void M2() { }
-        public static int P => 0;
+        public int P => 0;
+        public static int P2 => 0;
     }
 }
 
@@ -32957,8 +33066,10 @@ System.Action a = new object().M;
 var x = new object().M;
 
 E.M(new object());
-E.get_P();
 E.M2();
+
+E.get_P(new object());
+E.get_P2();
 """;
         var comp = CreateCompilation(srcCompat, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics();
@@ -32974,51 +33085,182 @@ object.M2();
 System.Action a = object.M2;
 var x = object.M2;
 
-_ = object.P;
+_ = object.P2;
 """;
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
         comp.VerifyEmitDiagnostics(
-            // (1,8): error CS0117: 'object' does not contain a definition for 'M2'
+            // (1,1): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // object.M2();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(1, 8),
-            // (2,26): error CS0117: 'object' does not contain a definition for 'M2'
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2()").WithArguments("extensions").WithLocation(1, 1),
+            // (2,19): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // System.Action a = object.M2;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(2, 26),
-            // (3,16): error CS0117: 'object' does not contain a definition for 'M2'
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(2, 19),
+            // (3,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // var x = object.M2;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "M2").WithArguments("object", "M2").WithLocation(3, 16),
-            // (5,12): error CS0117: 'object' does not contain a definition for 'P'
-            // _ = object.P;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("object", "P").WithLocation(5, 12));
-        verifySymbolInfo(comp, newLangVer: false);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.M2").WithArguments("extensions").WithLocation(3, 9),
+            // (5,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = object.P2;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "object.P2").WithArguments("extensions").WithLocation(5, 5));
+        verifySymbolInfo(comp);
 
         comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
         comp.VerifyEmitDiagnostics();
-        verifySymbolInfo(comp, newLangVer: true);
+        verifySymbolInfo(comp);
 
         comp = CreateCompilation(src, references: [libRef]);
         comp.VerifyEmitDiagnostics();
-        verifySymbolInfo(comp, newLangVer: true);
+        verifySymbolInfo(comp);
 
-        static void verifySymbolInfo(CSharpCompilation comp, bool newLangVer)
+        src = """
+_ = new object().P;
+""";
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new object().P;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "new object().P").WithArguments("extensions").WithLocation(1, 5));
+        verifySymbolInfo(comp);
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics();
+        verifySymbolInfo(comp);
+
+        comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyEmitDiagnostics();
+        verifySymbolInfo(comp);
+
+        static void verifySymbolInfo(CSharpCompilation comp)
         {
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var o = ((Compilation)comp).GetSpecialType(SpecialType.System_Object);
 
-            if (newLangVer)
-            {
-                AssertEqualAndNoDuplicates(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-                AssertEqualAndNoDuplicates(["void E.<>E__0.M2()"], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-                AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            }
-            else
-            {
-                AssertEqualAndNoDuplicates(["void System.Object.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-                AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-                AssertEqualAndNoDuplicates([], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
-            }
+            AssertEqualAndNoDuplicates(["void E.<>E__0.M()"], model.LookupSymbols(position: 0, o, name: "M", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            AssertEqualAndNoDuplicates(["void E.<>E__0.M2()"], model.LookupSymbols(position: 0, o, name: "M2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P { get; }"], model.LookupSymbols(position: 0, o, name: "P", includeReducedExtensionMethods: true).ToTestDisplayStrings());
+            AssertEqualAndNoDuplicates(["System.Int32 E.<>E__0.P2 { get; }"], model.LookupSymbols(position: 0, o, name: "P2", includeReducedExtensionMethods: true).ToTestDisplayStrings());
         }
+    }
+
+    [Fact]
+    public void LangVer_02()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(object o)
+    {
+        public System.Collections.IEnumerator GetEnumerator() => throw null;
+    }
+}
+
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        libComp.VerifyEmitDiagnostics();
+        var libRef = libComp.EmitToImageReference();
+
+        var src = """
+foreach (var x in new object())
+{
+}
+""";
+        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void LangVer_03()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(object o)
+    {
+        public void Add(object o2) { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        libComp.VerifyEmitDiagnostics();
+        var libRef = libComp.EmitToImageReference();
+
+        var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [new object()];
+
+public class MyCollection : IEnumerable<object>
+{
+    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef]);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void LangVer_04()
+    {
+        var libSrc = """
+namespace N;
+
+public static class E
+{
+    extension(int i)
+    {
+        public System.Action Member => () => System.Console.Write("property");
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, parseOptions: TestOptions.RegularNext);
+        libComp.VerifyEmitDiagnostics();
+        var libRef = libComp.EmitToImageReference();
+
+        var src = """
+namespace N
+{
+    class D
+    {
+        public static void Main()
+        {
+            42.Member();
+        }
+    }
+}
+
+static class Classic
+{
+    public static void Member(this int i) { System.Console.Write("classic"); }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "classic").VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //             42.Member();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "42.Member").WithArguments("extensions").WithLocation(7, 13));
     }
 
     [Fact]
@@ -33313,7 +33555,7 @@ static class E
 
     public partial class RegionAnalysisTests : FlowTestBase
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider removing `this` from the region analysis tests
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : consider removing `this` from the region analysis tests
         [Fact]
         public void RegionAnalysis_01()
         {
@@ -34923,6 +35165,116 @@ public static class Extensions
     }
 
     [Fact]
+    public void TestGetEnumeratorPatternViaRefExtensionOnNonAssignableVariable_In()
+    {
+        var src = """
+using System;
+public struct C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public struct Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    extension(in C self)
+    {
+        public C.Enumerator GetEnumerator() => new C.Enumerator();
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+
+        src = """
+using System;
+public struct C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public struct Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetEnumerator(this in C self) => new C.Enumerator();
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void TestGetEnumeratorPatternViaRefExtensionOnNonAssignableVariable_RefReadonly()
+    {
+        var src = """
+using System;
+public struct C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public struct Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    extension(ref readonly C self)
+    {
+        public C.Enumerator GetEnumerator() => new C.Enumerator();
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+
+        src = """
+using System;
+public struct C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public struct Enumerator
+    {
+        public int Current { get; private set; }
+        public bool MoveNext() => Current++ != 3;
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetEnumerator(this ref readonly C self) => new C.Enumerator();
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void ExpressionTrees_01_InstanceMethod()
     {
         var src = """
@@ -35025,7 +35377,7 @@ class Program
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
-            // (8,23): error CS9282: Extension declarations can include only methods or properties
+            // (8,23): error CS9282: This member is not allowed in an extension block
             //         public string this[string s] => o + s;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 23),
             // (24,26): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
@@ -35832,7 +36184,7 @@ static class E
             // (14,20): error CS9303: 'P3': cannot declare instance members in an extension block with an unnamed receiver parameter
             //         public int P3 => 0; // 2
             Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P3").WithArguments("P3").WithLocation(14, 20),
-            // (16,20): error CS9282: Extension declarations can include only methods or properties
+            // (16,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int j] => 0; // 3
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(16, 20),
             // (16,20): error CS9303: 'this[]': cannot declare instance members in an extension block with an unnamed receiver parameter
@@ -35891,7 +36243,7 @@ static class E
     [Fact]
     public void ReceiverParameterValidation_UnnamedReceiverParameter_Scoped()
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : This should probably parse (but still error)
+        // Tracked by https://github.com/dotnet/roslyn/issues/78961 : This should probably parse (but still error)
         string source = """
 static class E
 {
@@ -36066,13 +36418,13 @@ static class E
             // (6,29): error CS0106: The modifier 'abstract' is not valid for this item
             //         public abstract int P { get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("abstract").WithLocation(6, 29),
-            // (6,29): error CS9282: Extension declarations can include only methods or properties
+            // (6,29): error CS9282: This member is not allowed in an extension block
             //         public abstract int P { get; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P").WithLocation(6, 29),
             // (7,29): error CS0106: The modifier 'abstract' is not valid for this item
             //         public abstract int P2 { set; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P2").WithArguments("abstract").WithLocation(7, 29),
-            // (7,29): error CS9282: Extension declarations can include only methods or properties
+            // (7,29): error CS9282: This member is not allowed in an extension block
             //         public abstract int P2 { set; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "P2").WithLocation(7, 29),
             // (7,34): error CS8051: Auto-implemented properties must have get accessors.
@@ -36081,7 +36433,7 @@ static class E
             // (8,29): error CS0106: The modifier 'abstract' is not valid for this item
             //         public abstract int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(8, 29),
-            // (8,29): error CS9282: Extension declarations can include only methods or properties
+            // (8,29): error CS9282: This member is not allowed in an extension block
             //         public abstract int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 29),
             // (8,43): error CS0501: 'E.extension(int).this[int].get' must declare a body because it is not marked abstract, extern, or partial
@@ -36114,7 +36466,7 @@ static class E
             // (7,24): error CS0106: The modifier 'new' is not valid for this item
             //         public new int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("new").WithLocation(7, 24),
-            // (7,24): error CS9282: Extension declarations can include only methods or properties
+            // (7,24): error CS9282: This member is not allowed in an extension block
             //         public new int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 24));
     }
@@ -36144,7 +36496,7 @@ static class E
             // (7,29): error CS0106: The modifier 'override' is not valid for this item
             //         public override int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(7, 29),
-            // (7,29): error CS9282: Extension declarations can include only methods or properties
+            // (7,29): error CS9282: This member is not allowed in an extension block
             //         public override int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 29));
     }
@@ -36177,7 +36529,7 @@ static class E
             // (7,21): error CS0751: A partial member must be declared within a partial type
             //         partial int P { get; set; }
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P").WithLocation(7, 21),
-            // (9,21): error CS9282: Extension declarations can include only methods or properties
+            // (9,21): error CS9282: This member is not allowed in an extension block
             //         partial int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 21),
             // (9,21): error CS0751: A partial member must be declared within a partial type
@@ -36210,7 +36562,7 @@ static class E
             // (7,20): error CS0106: The modifier 'sealed' is not valid for this item
             //         sealed int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(7, 20),
-            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            // (7,20): error CS9282: This member is not allowed in an extension block
             //         sealed int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20));
     }
@@ -36247,7 +36599,7 @@ static class E
             // (8,22): error CS0106: The modifier 'readonly' is not valid for this item
             //         readonly int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 22),
-            // (8,22): error CS9282: Extension declarations can include only methods or properties
+            // (8,22): error CS9282: This member is not allowed in an extension block
             //         readonly int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 22));
     }
@@ -36277,7 +36629,7 @@ static class E
             // (7,22): error CS0106: The modifier 'required' is not valid for this item
             //         required int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("required").WithLocation(7, 22),
-            // (7,22): error CS9282: Extension declarations can include only methods or properties
+            // (7,22): error CS9282: This member is not allowed in an extension block
             //         required int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 22));
     }
@@ -36307,7 +36659,7 @@ static class E
             // (7,20): error CS0106: The modifier 'extern' is not valid for this item
             //         extern int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("extern").WithLocation(7, 20),
-            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            // (7,20): error CS9282: This member is not allowed in an extension block
             //         extern int this[int j] { get => 0; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20));
     }
@@ -36328,7 +36680,7 @@ static class E
 """;
         var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
         comp.VerifyEmitDiagnostics(
-            // (7,21): error CS9282: Extension declarations can include only methods or properties
+            // (7,21): error CS9282: This member is not allowed in an extension block
             //         unsafe int* this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 21));
     }
@@ -36364,13 +36716,13 @@ static class E
             // (8,45): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 45),
-            // (9,23): error CS9282: Extension declarations can include only methods or properties
+            // (9,23): error CS9282: This member is not allowed in an extension block
             //         protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 23),
             // (9,23): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 23),
-            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            // (10,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int j, int k] { protected get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,51): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
@@ -36409,13 +36761,13 @@ static class E
             // (8,54): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected internal set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 54),
-            // (9,32): error CS9282: Extension declarations can include only methods or properties
+            // (9,32): error CS9282: This member is not allowed in an extension block
             //         protected internal int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 32),
             // (9,32): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         protected internal int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 32),
-            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            // (10,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int j, int k] { protected internal get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,60): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
@@ -36454,13 +36806,13 @@ static class E
             // (8,53): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; private protected set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 53),
-            // (9,31): error CS9282: Extension declarations can include only methods or properties
+            // (9,31): error CS9282: This member is not allowed in an extension block
             //         private protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 31),
             // (9,31): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         private protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 31),
-            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            // (10,20): error CS9282: This member is not allowed in an extension block
             //         public int this[int j, int k] { private protected get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,59): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
@@ -36530,7 +36882,7 @@ static class E
 
         Assert.Equal("<>E__0", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionName);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should find the unspeakable nested type
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
         Assert.Null(comp.GetTypeByMetadataName("E+<>E__0"));
     }
 
@@ -39482,7 +39834,7 @@ class C
     public object? P => null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we shouldn't care about static/instance mismatch in nameof
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : should disallow usage of extension members in nameof
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (5,5): warning CS8602: Dereference of a possibly null reference.
@@ -40059,11 +40411,17 @@ public class MyCollection : IEnumerable<object>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : missing nullability diagnostic
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
+            // MyCollection c = [oNull, oNotNull];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 19));
+    }
 
-        src = """
+    [Fact]
+    public void Nullability_CollectionExpression_Add_01_Classic()
+    {
+        var src = """
 #nullable enable
 using System.Collections;
 using System.Collections.Generic;
@@ -40083,15 +40441,75 @@ public class MyCollection : IEnumerable<object>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78452 : assertion hit during nullability analysis
-        try
-        {
-            comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.Add(MyCollection c, object o)'.
+            // MyCollection c = [oNull, oNotNull];
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void E.Add(MyCollection c, object o)").WithLocation(7, 19));
+    }
+
+    [Fact]
+    public void Nullability_CollectionExpression_Add_02()
+    {
+        var src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection<object> c = [oNull, oNotNull];
+
+static class E
+{
+    extension<T>(MyCollection<T> c)
+    {
+        public void Add(T o) { }
+    }
+}
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        // https://github.com/dotnet/roslyn/issues/78960
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+                // (7,26): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                // MyCollection<object> c = [oNull, oNotNull];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[oNull, oNotNull]").WithArguments("MyCollection<object>").WithLocation(7, 26),
+                // (7,26): error CS1929: 'MyCollection<object>' does not contain a definition for 'Add' and the best extension method overload 'E.extension<T>(MyCollection<T>).Add(T)' requires a receiver of type 'MyCollection<T>'
+                // MyCollection<object> c = [oNull, oNotNull];
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "[oNull, oNotNull]").WithArguments("MyCollection<object>", "Add", "E.extension<T>(MyCollection<T>).Add(T)", "MyCollection<T>").WithLocation(7, 26));
+    }
+
+    [Fact]
+    public void Nullability_CollectionExpression_Add_02_Classic()
+    {
+        var src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection<object> c = [oNull, oNotNull];
+
+static class E
+{
+    public static void Add<T>(this MyCollection<T> c, T o) { }
+}
+
+public class MyCollection<T> : IEnumerable<T>
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -40852,7 +41270,7 @@ static class E
         var extension = e.GetTypeMembers().Single();
         Assert.Equal("T:E.<>E__0`1", extension.GetDocumentationCommentId());
         AssertEx.Equal("""
-<member name="T:E.<>E__0`1">
+<member name="T:E.&lt;&gt;E__0`1">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -40862,7 +41280,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.<>E__0`1.M``1(``0)">
+<member name="M:E.&lt;&gt;E__0`1.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -40873,14 +41291,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``0,``1)">
-    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.<>E__0`1.P">
+<member name="P:E.&lt;&gt;E__0`1.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -40889,7 +41307,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1(``0)">
-    <inheritdoc cref="P:E.<>E__0`1.P"/>
+    <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -40904,24 +41322,24 @@ static class E
         <member name="T:E">
             <summary>Summary for E</summary>
         </member>
-        <member name="T:E.<>E__0`1">
+        <member name="T:E.&lt;&gt;E__0`1">
             <summary>Summary for extension block</summary>
             <typeparam name="T">Description for T</typeparam>
             <param name="t">Description for t</param>
         </member>
-        <member name="M:E.<>E__0`1.M``1(``0)">
+        <member name="M:E.&lt;&gt;E__0`1.M``1(``0)">
             <summary>Summary for M</summary>
             <typeparam name="U">Description for U</typeparam>
             <param name="u">Description for u</param>
         </member>
-        <member name="P:E.<>E__0`1.P">
+        <member name="P:E.&lt;&gt;E__0`1.P">
             <summary>Summary for P</summary>
         </member>
         <member name="M:E.M``2(``0,``1)">
-            <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+            <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
         </member>
         <member name="M:E.get_P``1(``0)">
-            <inheritdoc cref="P:E.<>E__0`1.P"/>
+            <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
         </member>
     </members>
 </doc>
@@ -40946,6 +41364,22 @@ static class E
             var symbol = model.GetSymbolInfo(identifier).Symbol;
             var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
             return (identifier, symbolDisplay).ToString();
+        }
+    }
+
+    private static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
+    {
+        var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+        var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>());
+        var result = crefs.Select(name => print(name));
+        return result;
+
+        string print(XmlCrefAttributeSyntax cref)
+        {
+            CrefSyntax crefSyntax = cref.Cref;
+            var symbol = model.GetSymbolInfo(crefSyntax).Symbol;
+            var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+            return (crefSyntax, symbolDisplay).ToString();
         }
     }
 
@@ -40985,7 +41419,7 @@ static class E
 
         var extension = e.GetTypeMembers().Single();
         AssertEx.Equal("""
-<member name="T:E.<>E__0`1">
+<member name="T:E.&lt;&gt;E__0`1">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -40995,7 +41429,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.<>E__0`1.M``1(``0)">
+<member name="M:E.&lt;&gt;E__0`1.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -41006,14 +41440,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.<>E__0`1.P">
+<member name="P:E.&lt;&gt;E__0`1.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -41022,7 +41456,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.<>E__0`1.P"/>
+    <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -41098,28 +41532,28 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "M:E.<>E__0`1.M``1(``0)" -->
+<!-- Badly formed XML comment ignored for member "M:E.&lt;&gt;E__0`1.M``1(``0)" -->
 
 """, mSkeleton.GetDocumentationCommentXml());
 
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "P:E.<>E__0`1.P" -->
+<!-- Badly formed XML comment ignored for member "P:E.&lt;&gt;E__0`1.P" -->
 
 """, p.GetDocumentationCommentXml());
 
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.<>E__0`1.P"/>
+    <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
@@ -25,14 +25,15 @@ internal static class CodeRefactoringContextExtensions
         {
             foreach (var action in actions)
             {
+#if WORKSPACE
                 if (applicableToSpan != null)
                 {
                     context.RegisterRefactoring(action, applicableToSpan.Value);
+                    continue;
                 }
-                else
-                {
-                    context.RegisterRefactoring(action);
-                }
+#endif
+
+                context.RegisterRefactoring(action);
             }
         }
     }
