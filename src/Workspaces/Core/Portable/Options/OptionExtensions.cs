@@ -9,14 +9,14 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Options;
 
-internal static class OptionUtilities
+internal static class OptionExtensions
 {
     /// <summary>
     /// Allows an option of one enum type to be converted to another enum type, provided that both enums share the same underlying type.
     /// Useful for some cases in Roslyn where we have an existing shipped public option in the Workspace layer, and an internal option
     /// in the CodeStyle layer, and we want to map between them.
     /// </summary>
-    public static Option<TToEnum> ConvertEnumOption<TFromEnum, TToEnum, TUnderlyingEnumType>(Option<TFromEnum> option)
+    public static Option<TToEnum> ConvertEnumOption<TFromEnum, TToEnum, TUnderlyingEnumType>(this Option<TFromEnum> option)
         where TFromEnum : struct, Enum
         where TToEnum : struct, Enum
         where TUnderlyingEnumType : struct
