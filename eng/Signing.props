@@ -64,5 +64,7 @@
 
   <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == 'test'">
     <FileExtensionSignInfo Remove=".nupkg" />
+
+    <ItemsToSign Remove="@(ItemsToSign)" Condition="'%(Extension)' == '.nupkg'" />
   </ItemGroup>
 </Project>
