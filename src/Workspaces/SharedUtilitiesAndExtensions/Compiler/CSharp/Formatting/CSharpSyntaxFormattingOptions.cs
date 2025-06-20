@@ -9,7 +9,11 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
+#if CSHARP_WORKSPACE
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+#else
+namespace Microsoft.CodeAnalysis.CSharp.Formatting.Internal;
+#endif
 
 [DataContract]
 internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOptions, IEquatable<CSharpSyntaxFormattingOptions>
@@ -53,7 +57,11 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     public static readonly CSharpSyntaxFormattingOptions Default = new();
 
     [DataMember] public SpacePlacement Spacing { get; init; } = SpacingDefault;
+#if CSHARP_WORKSPACE
     [DataMember] public BinaryOperatorSpacingOptions SpacingAroundBinaryOperator { get; init; } = BinaryOperatorSpacingOptions.Single;
+#else
+    [DataMember] public Microsoft.CodeAnalysis.CSharp.Formatting.Internal.BinaryOperatorSpacingOptions SpacingAroundBinaryOperator { get; init; } = Microsoft.CodeAnalysis.CSharp.Formatting.Internal.BinaryOperatorSpacingOptions.Single;
+#endif
     [DataMember] public NewLinePlacement NewLines { get; init; } = NewLinesDefault;
     [DataMember] public LabelPositionOptions LabelPositioning { get; init; } = LabelPositionOptions.OneLess;
     [DataMember] public IndentationPlacement Indentation { get; init; } = IndentationDefault;

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Formatting;
 //using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
 //#endif
 
-#if !WORKSPACE
+#if CSHARP_WORKSPACE
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 #else
 namespace Microsoft.CodeAnalysis.CSharp.Formatting.Internal;
@@ -294,10 +294,10 @@ internal static partial class CSharpFormattingOptions2
     internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
 }
 
-#if !WORKSPACE
-internal enum LabelPositionOptions
-#else
+#if CSHARP_WORKSPACE
 public enum LabelPositionOptions
+#else
+internal enum LabelPositionOptions
 #endif
 {
     /// Placed in the Zeroth column of the text editor
@@ -310,10 +310,10 @@ public enum LabelPositionOptions
     NoIndent = 2
 }
 
-#if !WORKSPACE
-internal enum BinaryOperatorSpacingOptions
-#else
+#if CSHARP_WORKSPACE
 public enum BinaryOperatorSpacingOptions
+#else
+internal enum BinaryOperatorSpacingOptions
 #endif
 {
     /// Single Spacing
