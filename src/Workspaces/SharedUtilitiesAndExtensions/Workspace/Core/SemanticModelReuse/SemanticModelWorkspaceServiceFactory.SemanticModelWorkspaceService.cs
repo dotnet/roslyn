@@ -61,6 +61,8 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
         public SemanticModelReuseWorkspaceService(Workspace workspace)
         {
             _workspace = workspace;
+
+#pragma warning disable RS0030 // Do not use banned APIs
 #if WORKSPACE
             _workspace.RegisterWorkspaceChangedHandler((e) =>
 #else
@@ -84,9 +86,11 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
                 }
             }
 #if WORKSPACE
-            )
-#endif
+            );
+#else
             ;
+#endif
+#pragma warning restore RS0030 // Do not use banned APIs
         }
 
         public async ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
