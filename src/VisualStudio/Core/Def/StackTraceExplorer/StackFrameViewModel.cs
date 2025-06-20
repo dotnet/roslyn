@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
@@ -43,13 +44,13 @@ internal sealed class StackFrameViewModel(
     private TextDocument? _cachedDocument;
     private int _cachedLineNumber;
 
-    private CancellationTokenSource? _navigationCancellationSource;
+    private readonly CancellationSeries _navigationCancellation = new(threadingContext.DisposalToken);
 
     public override bool ShowMouseOver => true;
 
     public void NavigateToClass()
     {
-        var cancellationToken = GetNavigationCancellationToken();
+        var cancellationToken = _navigationCancellation.CreateNext();
         _ = NavigateToClassAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
@@ -78,7 +79,7 @@ internal sealed class StackFrameViewModel(
 
     public void NavigateToSymbol()
     {
-        var cancellationToken = GetNavigationCancellationToken();
+        var cancellationToken = _navigationCancellation.CreateNext();
         _ = NavigateToMethodAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
@@ -96,7 +97,7 @@ internal sealed class StackFrameViewModel(
 
     public void NavigateToFile()
     {
-        var cancellationToken = GetNavigationCancellationToken();
+        var cancellationToken = _navigationCancellation.CreateNext();
         _ = NavigateToFileAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
@@ -221,20 +222,6 @@ internal sealed class StackFrameViewModel(
 
         _definitionCache[symbolPart] = await _stackExplorerService.TryFindDefinitionAsync(_workspace.CurrentSolution, _frame, symbolPart, cancellationToken).ConfigureAwait(false);
         return _definitionCache[symbolPart];
-    }
-
-    private CancellationToken GetNavigationCancellationToken()
-    {
-        _navigationCancellationSource?.Cancel();
-        _navigationCancellationSource?.Dispose();
-
-        if (_threadingContext.DisposalToken.IsCancellationRequested)
-        {
-            return _threadingContext.DisposalToken;
-        }
-
-        _navigationCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(_threadingContext.DisposalToken);
-        return _navigationCancellationSource.Token;
     }
 
     private static ImmutableArray<StackFrameTrivia> GetLeadingTrivia(StackFrameNode node)
