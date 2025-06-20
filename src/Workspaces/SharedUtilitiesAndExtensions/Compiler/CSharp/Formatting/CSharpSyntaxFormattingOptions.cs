@@ -9,11 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
-#if CSHARP_WORKSPACE
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
-#else
-namespace Microsoft.CodeAnalysis.CSharp.Formatting.Internal;
-#endif
 
 [DataContract]
 internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOptions, IEquatable<CSharpSyntaxFormattingOptions>

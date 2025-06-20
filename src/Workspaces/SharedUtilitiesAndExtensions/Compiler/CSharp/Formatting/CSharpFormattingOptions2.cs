@@ -11,11 +11,7 @@ using Microsoft.CodeAnalysis.Formatting;
 //using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
 //#endif
 
-#if CSHARP_WORKSPACE
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
-#else
-namespace Microsoft.CodeAnalysis.CSharp.Formatting.Internal;
-#endif
 
 internal static partial class CSharpFormattingOptions2
 {
