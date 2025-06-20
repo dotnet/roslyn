@@ -457,13 +457,13 @@ namespace Analyzer.Utilities.Extensions
         //            return null;
         //        }
 
-        //        /// <summary>
-        //        /// Checks if a given symbol implements an interface member implicitly or explicitly
-        //        /// </summary>
-        //        public static bool IsImplementationOfAnyInterfaceMember(this ISymbol symbol)
-        //        {
-        //            return symbol.IsImplementationOfAnyExplicitInterfaceMember() || symbol.IsImplementationOfAnyImplicitInterfaceMember();
-        //        }
+        /// <summary>
+        /// Checks if a given symbol implements an interface member implicitly or explicitly
+        /// </summary>
+        public static bool IsImplementationOfAnyInterfaceMember(this ISymbol symbol)
+        {
+            return symbol.IsImplementationOfAnyExplicitInterfaceMember() || symbol.IsImplementationOfAnyImplicitInterfaceMember();
+        }
 
         public static bool IsImplementationOfAnyImplicitInterfaceMember(this ISymbol symbol)
         {
