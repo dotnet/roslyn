@@ -433,7 +433,7 @@ internal sealed class CommittedSolution
 
         var documentIdArrays = await Task.WhenAll(projectTasks).ConfigureAwait(false);
 
-        return documentIdArrays.SelectMany(ids => ids.WhereNotNull()).Select(id => KeyValuePairUtil.Create(id, DocumentState.MatchesBuildOutput));
+        return documentIdArrays.SelectMany(ids => ids.WhereNotNull()).Select(id => KeyValuePair.Create(id, DocumentState.MatchesBuildOutput));
     }
 
     private static DebugInformationReaderProvider? GetMethodDebugInfoReader(TraceLog log, CompilationOutputs compilationOutputs, string projectName)

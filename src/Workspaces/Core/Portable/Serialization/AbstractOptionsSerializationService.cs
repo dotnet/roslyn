@@ -142,7 +142,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
                 var key = reader.ReadString();
                 var value = (ReportDiagnostic)reader.ReadInt32();
 
-                specificDiagnosticOptionsList.Add(KeyValuePairUtil.Create(key, value));
+                specificDiagnosticOptionsList.Add(KeyValuePair.Create(key, value));
             }
         }
 
@@ -228,7 +228,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
                 var key = reader.ReadString();
                 var value = reader.ReadString();
 
-                featuresList.Add(KeyValuePairUtil.Create(key, value));
+                featuresList.Add(KeyValuePair.Create(key, value));
             }
         }
 
