@@ -123,5 +123,16 @@ Integer
             Dim type2 = SyntaxFactory.ParseTypeName(code, options:=options)
             Assert.Equal("Integer", type2.ToString())
         End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78510")>
+        Public Shared Sub TestParseMethodsKeepParseOptionsInTheTree()
+            Dim parseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
+
+            Dim compUnit = SyntaxFactory.ParseCompilationUnit("", options:=parseOptions)
+            Assert.Same(parseOptions, compUnit.SyntaxTree.Options)
+
+            Dim typeName = SyntaxFactory.ParseTypeName("", options:=parseOptions)
+            Assert.Same(parseOptions, typeName.SyntaxTree.Options)
+        End Sub
     End Class
 End Namespace

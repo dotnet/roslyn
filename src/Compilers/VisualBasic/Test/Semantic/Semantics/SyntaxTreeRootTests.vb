@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <Fact>
         Public Sub SyntaxTreeCreateWithoutCloneAcceptsAnySyntaxNode()
             Dim node As VisualBasicSyntaxNode = SyntaxFactory.CatchStatement(SyntaxFactory.IdentifierName("Goo"), SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(GetType(InvalidOperationException).Name)), Nothing)
-            Dim tree = VisualBasicSyntaxTree.CreateWithoutClone(node)
+            Dim tree = VisualBasicSyntaxTree.CreateWithoutClone(node, VisualBasicParseOptions.Default)
             CheckTree(tree)
         End Sub
 
