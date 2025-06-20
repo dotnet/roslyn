@@ -194,6 +194,7 @@ public static class CSharpFormattingOptions
         where TFromEnum : struct, Enum
         where TToEnum : struct, Enum
     {
+        // Ensure that this is only called for enums that are actually compatible with each other.
         Contract.ThrowIfTrue(typeof(TFromEnum).GetEnumUnderlyingType() != typeof(int));
         Contract.ThrowIfTrue(typeof(TToEnum).GetEnumUnderlyingType() != typeof(int));
 
