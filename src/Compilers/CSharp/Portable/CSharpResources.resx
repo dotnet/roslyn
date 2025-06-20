@@ -1806,7 +1806,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Invalid value for named attribute argument '{0}'</value>
   </data>
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
-    <value>The DllImport attribute must be specified on a method marked 'static' and 'extern'</value>
+    <value>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot emit update; {0} '{1}' is missing.</value>
@@ -8187,5 +8187,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_MisplacedExtension" xml:space="preserve">
     <value>An extension member syntax is disallowed in nested position within an extension member syntax</value>
+  </data>
+  <data name="ERR_NameofExtensionMember" xml:space="preserve">
+    <value>Extension members are not allowed as an argument to 'nameof'.</value>
   </data>
 </root>
