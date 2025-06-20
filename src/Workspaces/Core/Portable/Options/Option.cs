@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.Options;
 /// <inheritdoc cref="Option2{T}"/>
 public class Option<T> : IPublicOption
 {
-    private readonly OptionDefinition<T> _optionDefinition;
+    internal readonly OptionDefinition<T> OptionalDefinition;
 
     public string Feature { get; }
 
-    internal OptionGroup Group => _optionDefinition.Group;
+    internal OptionGroup Group => OptionalDefinition.Group;
 
     public string Name { get; }
 
-    public T DefaultValue => (T)_optionDefinition.DefaultValue!;
+    public T DefaultValue => (T)OptionalDefinition.DefaultValue!;
 
-    public Type Type => _optionDefinition.Type;
+    public Type Type => OptionalDefinition.Type;
 
     public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
@@ -75,7 +75,7 @@ public class Option<T> : IPublicOption
     {
         Feature = feature;
         Name = name;
-        _optionDefinition = optionDefinition;
+        OptionalDefinition = optionDefinition;
         StorageLocations = storageLocations;
     }
 
@@ -85,13 +85,13 @@ public class Option<T> : IPublicOption
 
     IPublicOption? IOption2.PublicOption => null;
 
-    OptionDefinition IOption2.Definition => _optionDefinition;
+    OptionDefinition IOption2.Definition => OptionalDefinition;
 
     bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
     public override string ToString() => this.PublicOptionDefinitionToString();
 
-    public override int GetHashCode() => _optionDefinition.GetHashCode();
+    public override int GetHashCode() => OptionalDefinition.GetHashCode();
 
     public override bool Equals(object? obj) => Equals(obj as IOption2);
 
