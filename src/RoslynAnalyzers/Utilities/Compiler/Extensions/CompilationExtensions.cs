@@ -31,13 +31,13 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         internal static bool IsWebProject(this Compilation compilation, AnalyzerOptions options)
         {
-            var propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation);
+            var propertyValue = AnalyzerOptionsExtensions.GetMSBuildPropertyValue(options, MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation);
             if (string.Equals(propertyValue?.Trim(), "true", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
 
-            propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.ProjectTypeGuids, compilation);
+            propertyValue = AnalyzerOptionsExtensions.GetMSBuildPropertyValue(options, MSBuildPropertyOptionNames.ProjectTypeGuids, compilation);
             if (!RoslynString.IsNullOrEmpty(propertyValue) &&
                 (propertyValue.Contains(WebAppProjectGuidString, StringComparison.OrdinalIgnoreCase) ||
                  propertyValue.Contains(WebSiteProjectGuidString, StringComparison.OrdinalIgnoreCase)))
