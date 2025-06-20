@@ -135,7 +135,7 @@ public static class CSharpFormattingOptions
     public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAroundBinaryOperator"/>
-    public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions>(CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption());
+    public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = ConvertInt32EnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions>(CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption());
 
     /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
     public static Option<bool> IndentBraces { get; } = CSharpFormattingOptions2.IndentBraces.ToPublicOption();
@@ -153,7 +153,7 @@ public static class CSharpFormattingOptions
     public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.LabelPositioning"/>
-    public static Option<LabelPositionOptions> LabelPositioning { get; } = ConvertEnumOption<LabelPositionOptionsInternal, LabelPositionOptions>(CSharpFormattingOptions2.LabelPositioning.ToPublicOption());
+    public static Option<LabelPositionOptions> LabelPositioning { get; } = ConvertInt32EnumOption<LabelPositionOptionsInternal, LabelPositionOptions>(CSharpFormattingOptions2.LabelPositioning.ToPublicOption());
 
     /// <inheritdoc cref="CSharpFormattingOptions2.WrappingPreserveSingleLine"/>
     public static Option<bool> WrappingPreserveSingleLine { get; } = CSharpFormattingOptions2.WrappingPreserveSingleLine.ToPublicOption();
@@ -189,7 +189,7 @@ public static class CSharpFormattingOptions
     /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForClausesInQuery"/>
     public static Option<bool> NewLineForClausesInQuery { get; } = CSharpFormattingOptions2.NewLineForClausesInQuery.ToPublicOption();
 
-    private static Option<TToEnum> ConvertEnumOption<TFromEnum, TToEnum>(Option<TFromEnum> option)
+    private static Option<TToEnum> ConvertInt32EnumOption<TFromEnum, TToEnum>(Option<TFromEnum> option)
         where TFromEnum : struct, Enum
         where TToEnum : struct, Enum
     {
@@ -198,8 +198,8 @@ public static class CSharpFormattingOptions
         Contract.ThrowIfTrue(typeof(TToEnum).GetEnumUnderlyingType() != typeof(int));
 
         var definition = (OptionDefinition<TFromEnum>)((IOption2)option).Definition;
-        var newDefaultValue = Convert<TFromEnum, TToEnum>(Unsafe.Unbox<TFromEnum>(definition.DefaultValue));
-        var newSerializer = ConvertSerializer<TFromEnum, TToEnum>(definition.Serializer);
+        var newDefaultValue = ConvertInt32Enum<TFromEnum, TToEnum>(Unsafe.Unbox<TFromEnum>(definition.DefaultValue));
+        var newSerializer = ConvertInt32EnumSerializer<TFromEnum, TToEnum>(definition.Serializer);
 
         var newDefinition = new OptionDefinition<TToEnum>(
             defaultValue: newDefaultValue, newSerializer, definition.Group, definition.ConfigName, definition.StorageMapping, definition.IsEditorConfigOption);
@@ -207,26 +207,26 @@ public static class CSharpFormattingOptions
         return new(newDefinition, option.Feature, option.Name, option.StorageLocations);
     }
 
-    private static EditorConfigValueSerializer<TToEnum>? ConvertSerializer<TFromEnum, TToEnum>(EditorConfigValueSerializer<TFromEnum> serializer)
+    private static EditorConfigValueSerializer<TToEnum>? ConvertInt32EnumSerializer<TFromEnum, TToEnum>(EditorConfigValueSerializer<TFromEnum> serializer)
         where TFromEnum : struct
         where TToEnum : struct
     {
         return new(
-            value => Convert<TFromEnum, TToEnum>(serializer.ParseValue(value)),
-            value => serializer.SerializeValue(Convert<TToEnum, TFromEnum>(value)));
+            value => ConvertInt32Enum<TFromEnum, TToEnum>(serializer.ParseValue(value)),
+            value => serializer.SerializeValue(ConvertInt32Enum<TToEnum, TFromEnum>(value)));
     }
 
-    private static Optional<TToEnum> Convert<TFromEnum, TToEnum>(Optional<TFromEnum> optional)
+    private static Optional<TToEnum> ConvertInt32Enum<TFromEnum, TToEnum>(Optional<TFromEnum> optional)
         where TFromEnum : struct
         where TToEnum : struct
     {
         if (!optional.HasValue)
             return default;
 
-        return Convert<TFromEnum, TToEnum>(optional.Value);
+        return ConvertInt32Enum<TFromEnum, TToEnum>(optional.Value);
     }
 
-    private static TToEnum Convert<TFromEnum, TToEnum>(TFromEnum value)
+    private static TToEnum ConvertInt32Enum<TFromEnum, TToEnum>(TFromEnum value)
         where TFromEnum : struct
         where TToEnum : struct
     {
