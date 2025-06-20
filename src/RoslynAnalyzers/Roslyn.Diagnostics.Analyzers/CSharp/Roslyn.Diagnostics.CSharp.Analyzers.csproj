@@ -20,7 +20,4 @@
   
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\CSharp\CSharpCompilerExtensions.projitems" Label="Shared" /> 
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems" Label="Shared" /> 
-<!--
-  <Import Project="..\..\Utilities\Refactoring.CSharp\Refactoring.CSharp.Utilities.projitems" Label="Shared" />
--->
 </Project>
