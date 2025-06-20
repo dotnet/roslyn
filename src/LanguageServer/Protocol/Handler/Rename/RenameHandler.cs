@@ -72,6 +72,9 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
         // Then we can just take the text changes from the first document to avoid returning duplicate edits.
         renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
         solutionChanges = renamedSolution.GetChanges(oldSolution);
+
+        Contract.ThrowIfTrue(!allowRenameInGeneratedDocument && !renamedSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty, "Renaming in generated documents is not allowed, but there are changes in source generated documents.");
+
         var changedDocuments = solutionChanges
             .GetProjectChanges()
             .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
