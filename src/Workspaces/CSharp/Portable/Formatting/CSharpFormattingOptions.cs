@@ -4,8 +4,6 @@
 
 #pragma warning disable RS0030 // Do not used banned APIs
 
-using System;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
