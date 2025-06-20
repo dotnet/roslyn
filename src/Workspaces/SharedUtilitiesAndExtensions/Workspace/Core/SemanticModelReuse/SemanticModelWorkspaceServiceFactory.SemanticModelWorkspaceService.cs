@@ -61,21 +61,12 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
         public SemanticModelReuseWorkspaceService(Workspace workspace)
         {
             _workspace = workspace;
-<<<<<<< HEAD:src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/WorkspaceServices/SemanticModelReuse/SemanticModelWorkspaceServiceFactory.SemanticModelWorkspaceService.cs
-#pragma warning disable RS0030 // Do not use banned APIs
-
-#if WORKSPACE
-            _workspace.RegisterWorkspaceChangedHandler((e) =>
-#else
-            _workspace.WorkspaceChanged += (s, e) =>
-=======
 
 #pragma warning disable RS0030 // Do not use banned APIs
 #if WORKSPACE
             _workspace.RegisterWorkspaceChangedHandler((e) =>
 #else
             _workspace.WorkspaceChanged += (sender, e) =>
->>>>>>> semanticModelReuse:src/Workspaces/SharedUtilitiesAndExtensions/Workspace/Core/SemanticModelReuse/SemanticModelWorkspaceServiceFactory.SemanticModelWorkspaceService.cs
 #endif
             {
                 // if our map points at documents not in the current solution, then we want to clear things out.
