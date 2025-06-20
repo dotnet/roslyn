@@ -8,7 +8,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <DefineConstants>TEST_UTILITIES</DefineConstants>
+    <DefineConstants>TEST_UTILITIES,ROSLYN_4_12_OR_LOWER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" />
