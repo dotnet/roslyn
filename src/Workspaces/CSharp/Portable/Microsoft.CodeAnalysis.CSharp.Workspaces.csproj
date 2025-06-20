@@ -6,6 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
+    <DefineConstants>$(DefineConstants);CSHARP_WORKSPACE</DefineConstants>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
     <!-- NuGet -->

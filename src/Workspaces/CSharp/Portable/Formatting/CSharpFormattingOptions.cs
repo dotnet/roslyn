@@ -133,7 +133,11 @@ public static class CSharpFormattingOptions
     public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAroundBinaryOperator"/>
+#if !WORKSPACE
+    internal static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption();
+#else
     public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption();
+#endif
 
     /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
     public static Option<bool> IndentBraces { get; } = CSharpFormattingOptions2.IndentBraces.ToPublicOption();
@@ -151,7 +155,11 @@ public static class CSharpFormattingOptions
     public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.LabelPositioning"/>
+#if !WORKSPACE
+    internal static Option<LabelPositionOptions> LabelPositioning { get; } = CSharpFormattingOptions2.LabelPositioning.ToPublicOption();
+#else
     public static Option<LabelPositionOptions> LabelPositioning { get; } = CSharpFormattingOptions2.LabelPositioning.ToPublicOption();
+#endif
 
     /// <inheritdoc cref="CSharpFormattingOptions2.WrappingPreserveSingleLine"/>
     public static Option<bool> WrappingPreserveSingleLine { get; } = CSharpFormattingOptions2.WrappingPreserveSingleLine.ToPublicOption();

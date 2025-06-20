@@ -421,7 +421,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
 
-#if WORKSPACE
+#if CSHARP_WORKSPACE
 
     public async Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
     {
