@@ -836,26 +836,26 @@ namespace Analyzer.Utilities.Extensions
         //            return false;
         //        }
 
-        //        public static bool IsSetMethodInvocation(this IPropertyReferenceOperation operation)
-        //        {
-        //            if (operation.Property.SetMethod is null)
-        //            {
-        //                // This is either invalid code, or an assignment through a ref-returning getter
-        //                return false;
-        //            }
+        public static bool IsSetMethodInvocation(this IPropertyReferenceOperation operation)
+        {
+            if (operation.Property.SetMethod is null)
+            {
+                // This is either invalid code, or an assignment through a ref-returning getter
+                return false;
+            }
 
-        //            IOperation potentialLeftSide = operation;
-        //            while (potentialLeftSide.Parent is IParenthesizedOperation or ITupleOperation)
-        //            {
-        //                potentialLeftSide = potentialLeftSide.Parent;
-        //            }
+            IOperation potentialLeftSide = operation;
+            while (potentialLeftSide.Parent is IParenthesizedOperation or ITupleOperation)
+            {
+                potentialLeftSide = potentialLeftSide.Parent;
+            }
 
-        //            return potentialLeftSide.Parent switch
-        //            {
-        //                IAssignmentOperation { Target: var target } when target == potentialLeftSide => true,
-        //                _ => false,
-        //            };
-        //        }
+            return potentialLeftSide.Parent switch
+            {
+                IAssignmentOperation { Target: var target } when target == potentialLeftSide => true,
+                _ => false,
+            };
+        }
 
         public static bool TryGetArgumentForParameterAtIndex(
             this ImmutableArray<IArgumentOperation> arguments,
