@@ -198,7 +198,7 @@ public static class CSharpFormattingOptions
         Contract.ThrowIfTrue(typeof(TToEnum).GetEnumUnderlyingType() != typeof(int));
 
         var definition = (OptionDefinition<TFromEnum>)((IOption2)option).Definition;
-        var newDefaultValue = ConvertInt32Enum<TFromEnum, TToEnum>(Unsafe.Unbox<TFromEnum>(definition.DefaultValue));
+        var newDefaultValue = ConvertInt32Enum<TFromEnum, TToEnum>((TFromEnum)definition.DefaultValue);
         var newSerializer = ConvertInt32EnumSerializer<TFromEnum, TToEnum>(definition.Serializer);
 
         var newDefinition = new OptionDefinition<TToEnum>(
