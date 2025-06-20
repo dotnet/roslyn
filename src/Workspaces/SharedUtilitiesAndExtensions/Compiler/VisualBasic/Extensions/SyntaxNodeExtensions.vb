@@ -1295,5 +1295,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return node
             End If
         End Function
+
+        Friend Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
+            Select Case declaration.Kind
+                Case SyntaxKind.PropertyBlock
+                    Return DirectCast(declaration, PropertyBlockSyntax).Accessors
+                Case SyntaxKind.EventBlock
+                    Return DirectCast(declaration, EventBlockSyntax).Accessors
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
     End Module
 End Namespace
