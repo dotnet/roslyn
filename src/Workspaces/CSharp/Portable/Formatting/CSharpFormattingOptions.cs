@@ -6,7 +6,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Humanizer;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
