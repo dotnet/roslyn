@@ -61,7 +61,11 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
         public SemanticModelReuseWorkspaceService(Workspace workspace)
         {
             _workspace = workspace;
+#if WORKSPACE
             _workspace.RegisterWorkspaceChangedHandler((e) =>
+#else
+            _workspace.WorkspaceChanged += (sender, e) =>
+#endif
             {
                 // if our map points at documents not in the current solution, then we want to clear things out.
                 // this way we don't hold onto semantic models past, say, the c#/vb solutions closing.
@@ -78,7 +82,11 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
                         return;
                     }
                 }
-            });
+            }
+#if WORKSPACE
+            )
+#endif
+            ;
         }
 
         public async ValueTask<SemanticModel> ReuseExistingSpeculativeModelAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
