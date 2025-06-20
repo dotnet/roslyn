@@ -465,33 +465,33 @@ namespace Analyzer.Utilities.Extensions
         //            return symbol.IsImplementationOfAnyExplicitInterfaceMember() || symbol.IsImplementationOfAnyImplicitInterfaceMember();
         //        }
 
-        //        public static bool IsImplementationOfAnyImplicitInterfaceMember(this ISymbol symbol)
-        //        {
-        //            return IsImplementationOfAnyImplicitInterfaceMember<ISymbol>(symbol);
-        //        }
+        public static bool IsImplementationOfAnyImplicitInterfaceMember(this ISymbol symbol)
+        {
+            return IsImplementationOfAnyImplicitInterfaceMember<ISymbol>(symbol);
+        }
 
-        //        /// <summary>
-        //        /// Checks if a given symbol implements an interface member implicitly
-        //        /// </summary>
-        //        public static bool IsImplementationOfAnyImplicitInterfaceMember<TSymbol>(this ISymbol symbol)
-        //            where TSymbol : ISymbol
-        //        {
-        //            if (symbol.ContainingType != null)
-        //            {
-        //                foreach (INamedTypeSymbol interfaceSymbol in symbol.ContainingType.AllInterfaces)
-        //                {
-        //                    foreach (var interfaceMember in interfaceSymbol.GetMembers().OfType<TSymbol>())
-        //                    {
-        //                        if (IsImplementationOfInterfaceMember(symbol, interfaceMember))
-        //                        {
-        //                            return true;
-        //                        }
-        //                    }
-        //                }
-        //            }
+        /// <summary>
+        /// Checks if a given symbol implements an interface member implicitly
+        /// </summary>
+        public static bool IsImplementationOfAnyImplicitInterfaceMember<TSymbol>(this ISymbol symbol)
+            where TSymbol : ISymbol
+        {
+            if (symbol.ContainingType != null)
+            {
+                foreach (INamedTypeSymbol interfaceSymbol in symbol.ContainingType.AllInterfaces)
+                {
+                    foreach (var interfaceMember in interfaceSymbol.GetMembers().OfType<TSymbol>())
+                    {
+                        if (IsImplementationOfInterfaceMember(symbol, interfaceMember))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
 
-        //            return false;
-        //        }
+            return false;
+        }
 
         //        /// <summary>
         //        /// Checks if a given symbol implements an interface member implicitly
@@ -563,28 +563,28 @@ namespace Analyzer.Utilities.Extensions
         //            };
         //        }
 
-        //        /// <summary>
-        //        /// Checks if a given symbol implements an interface member explicitly
-        //        /// </summary>
-        //        public static bool IsImplementationOfAnyExplicitInterfaceMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        //        {
-        //            if (symbol is IMethodSymbol methodSymbol && !methodSymbol.ExplicitInterfaceImplementations.IsEmpty)
-        //            {
-        //                return true;
-        //            }
+        /// <summary>
+        /// Checks if a given symbol implements an interface member explicitly
+        /// </summary>
+        public static bool IsImplementationOfAnyExplicitInterfaceMember([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        {
+            if (symbol is IMethodSymbol methodSymbol && !methodSymbol.ExplicitInterfaceImplementations.IsEmpty)
+            {
+                return true;
+            }
 
-        //            if (symbol is IPropertySymbol propertySymbol && !propertySymbol.ExplicitInterfaceImplementations.IsEmpty)
-        //            {
-        //                return true;
-        //            }
+            if (symbol is IPropertySymbol propertySymbol && !propertySymbol.ExplicitInterfaceImplementations.IsEmpty)
+            {
+                return true;
+            }
 
-        //            if (symbol is IEventSymbol eventSymbol && !eventSymbol.ExplicitInterfaceImplementations.IsEmpty)
-        //            {
-        //                return true;
-        //            }
+            if (symbol is IEventSymbol eventSymbol && !eventSymbol.ExplicitInterfaceImplementations.IsEmpty)
+            {
+                return true;
+            }
 
-        //            return false;
-        //        }
+            return false;
+        }
 
         public static ITypeSymbol? GetMemberOrLocalOrParameterType(this ISymbol symbol)
         {

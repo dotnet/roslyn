@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         //        public const string Reliability = nameof(Reliability);
         //        public const string Security = nameof(Security);
         //        public const string Usage = nameof(Usage);
-        //        public const string Naming = nameof(Naming);
+        public const string Naming = nameof(Naming);
         public const string Library = nameof(Library);
         //        public const string Documentation = nameof(Documentation);
         //        public const string Maintainability = nameof(Maintainability);
