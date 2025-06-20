@@ -836,6 +836,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
                 return builder.ToString();
             }
+#if !LAST_PUBLIC_RELEASED_ROSLYN
             else if (memberDeclaration is ExtensionBlockDeclarationSyntax extensionDeclaration)
             {
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -847,6 +848,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 AppendParameterList(builder, extensionDeclaration.ParameterList);
                 return builder.ToString();
             }
+#endif
             else
             {
                 Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
+    <DefineConstants>$(DefineConstants),LAST_PUBLIC_RELEASED_ROSLYN</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj" />
