@@ -234,8 +234,7 @@ public static class CSharpFormattingOptions
         where TToEnum : struct
         where TUnderlyingEnumType : struct
     {
-        var intValue = Unsafe.As<TFromEnum, TUnderlyingEnumType>(ref value);
-        return Unsafe.As<TUnderlyingEnumType, TToEnum>(ref intValue);
+        return Unsafe.As<TUnderlyingEnumType, TToEnum>(ref Unsafe.As<TFromEnum, TUnderlyingEnumType>(ref value));
     }
 }
 
