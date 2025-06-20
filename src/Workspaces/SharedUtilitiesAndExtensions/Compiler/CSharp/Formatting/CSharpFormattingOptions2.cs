@@ -32,19 +32,19 @@ internal static partial class CSharpFormattingOptions2
             KeyValuePairUtil.Create("type_casts", SpacePlacementWithinParentheses.TypeCasts),
             KeyValuePairUtil.Create("control_flow_statements", SpacePlacementWithinParentheses.ControlFlowStatements),
         ]);
-    private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptions> s_binaryOperatorSpacingOptionsEditorConfigMap =
+    private static readonly BidirectionalMap<string, BinaryOperatorSpacingOptionsInternal> s_binaryOperatorSpacingOptionsEditorConfigMap =
         new(
         [
-            KeyValuePairUtil.Create("ignore", BinaryOperatorSpacingOptions.Ignore),
-            KeyValuePairUtil.Create("none", BinaryOperatorSpacingOptions.Remove),
-            KeyValuePairUtil.Create("before_and_after", BinaryOperatorSpacingOptions.Single),
+            KeyValuePairUtil.Create("ignore", BinaryOperatorSpacingOptionsInternal.Ignore),
+            KeyValuePairUtil.Create("none", BinaryOperatorSpacingOptionsInternal.Remove),
+            KeyValuePairUtil.Create("before_and_after", BinaryOperatorSpacingOptionsInternal.Single),
         ]);
-    private static readonly BidirectionalMap<string, LabelPositionOptions> s_labelPositionOptionsEditorConfigMap =
+    private static readonly BidirectionalMap<string, LabelPositionOptionsInternal> s_labelPositionOptionsEditorConfigMap =
         new(
         [
-            KeyValuePairUtil.Create("flush_left", LabelPositionOptions.LeftMost),
-            KeyValuePairUtil.Create("no_change", LabelPositionOptions.NoIndent),
-            KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptions.OneLess),
+            KeyValuePairUtil.Create("flush_left", LabelPositionOptionsInternal.LeftMost),
+            KeyValuePairUtil.Create("no_change", LabelPositionOptionsInternal.NoIndent),
+            KeyValuePairUtil.Create("one_less_than_current", LabelPositionOptionsInternal.OneLess),
         ]);
     private static readonly BidirectionalMap<string, NewLineBeforeOpenBracePlacement> s_legacyNewLineOptionsEditorConfigMap =
         new(
@@ -185,10 +185,10 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.SpacingDefault.HasFlag(SpacePlacement.BeforeSemicolonsInForStatement))
         .WithPublicOption(PublicFeatureName, "SpaceBeforeSemicolonsInForStatement");
 
-    public static Option2<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CreateOption(
+    public static Option2<BinaryOperatorSpacingOptionsInternal> SpacingAroundBinaryOperator { get; } = CreateOption(
         CSharpFormattingOptionGroups.Spacing, "csharp_space_around_binary_operators",
         CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
-        new EditorConfigValueSerializer<BinaryOperatorSpacingOptions>(
+        new EditorConfigValueSerializer<BinaryOperatorSpacingOptionsInternal>(
             s => ParseEditorConfigSpacingAroundBinaryOperator(s),
             GetSpacingAroundBinaryOperatorEditorConfigString))
         .WithPublicOption(PublicFeatureName, "SpacingAroundBinaryOperator");
@@ -218,10 +218,10 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock))
         .WithPublicOption(PublicFeatureName, "IndentSwitchCaseSectionWhenBlock");
 
-    public static Option2<LabelPositionOptions> LabelPositioning { get; } = CreateOption(
+    public static Option2<LabelPositionOptionsInternal> LabelPositioning { get; } = CreateOption(
         CSharpFormattingOptionGroups.Indentation, "csharp_indent_labels",
         CSharpSyntaxFormattingOptions.Default.LabelPositioning,
-        new EditorConfigValueSerializer<LabelPositionOptions>(
+        new EditorConfigValueSerializer<LabelPositionOptionsInternal>(
             s => ParseEditorConfigLabelPositioning(s),
             GetLabelPositionOptionEditorConfigString))
         .WithPublicOption(PublicFeatureName, "LabelPositioning");
@@ -294,11 +294,15 @@ internal static partial class CSharpFormattingOptions2
     internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
 }
 
+<<<<<<< HEAD
 #if CSHARP_WORKSPACE
 public enum LabelPositionOptions
 #else
 internal enum LabelPositionOptions
 #endif
+=======
+internal enum LabelPositionOptionsInternal
+>>>>>>> csharpFOrmattingOptionLayering
 {
     /// Placed in the Zeroth column of the text editor
     LeftMost = 0,
@@ -310,11 +314,15 @@ internal enum LabelPositionOptions
     NoIndent = 2
 }
 
+<<<<<<< HEAD
 #if CSHARP_WORKSPACE
 public enum BinaryOperatorSpacingOptions
 #else
 internal enum BinaryOperatorSpacingOptions
 #endif
+=======
+internal enum BinaryOperatorSpacingOptionsInternal
+>>>>>>> csharpFOrmattingOptionLayering
 {
     /// Single Spacing
     Single = 0,

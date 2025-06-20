@@ -57,13 +57,17 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
     public static readonly CSharpSyntaxFormattingOptions Default = new();
 
     [DataMember] public SpacePlacement Spacing { get; init; } = SpacingDefault;
+<<<<<<< HEAD
 #if CSHARP_WORKSPACE
     [DataMember] public BinaryOperatorSpacingOptions SpacingAroundBinaryOperator { get; init; } = BinaryOperatorSpacingOptions.Single;
 #else
     [DataMember] public Microsoft.CodeAnalysis.CSharp.Formatting.Internal.BinaryOperatorSpacingOptions SpacingAroundBinaryOperator { get; init; } = Microsoft.CodeAnalysis.CSharp.Formatting.Internal.BinaryOperatorSpacingOptions.Single;
 #endif
+=======
+    [DataMember] public BinaryOperatorSpacingOptionsInternal SpacingAroundBinaryOperator { get; init; } = BinaryOperatorSpacingOptionsInternal.Single;
+>>>>>>> csharpFOrmattingOptionLayering
     [DataMember] public NewLinePlacement NewLines { get; init; } = NewLinesDefault;
-    [DataMember] public LabelPositionOptions LabelPositioning { get; init; } = LabelPositionOptions.OneLess;
+    [DataMember] public LabelPositionOptionsInternal LabelPositioning { get; init; } = LabelPositionOptionsInternal.OneLess;
     [DataMember] public IndentationPlacement Indentation { get; init; } = IndentationDefault;
     [DataMember] public bool WrappingKeepStatementsOnSingleLine { get; init; } = true;
     [DataMember] public bool WrappingPreserveSingleLine { get; init; } = true;
