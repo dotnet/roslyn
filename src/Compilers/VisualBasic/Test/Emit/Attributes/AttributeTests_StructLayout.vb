@@ -953,7 +953,7 @@ End Structure
                 allReferences:=New List(Of MetadataReference) From {
                     MinimalCoreLibBuilder.Create(New String() {ExtendedLayoutAttribute}).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
                 },
-                emitOptions:=New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"),
+                emitOptions:=New CodeAnalysis.Emit.EmitOptions(debugInformationFormat:=CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion:="v4.0.3100.0"),
                 verify:=Verification.Skipped,
                 validator:=
                 Sub(assembly)

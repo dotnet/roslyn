@@ -1013,7 +1013,7 @@ partial struct C
                     source,
                     references: [MinimalCoreLibBuilder.Create(ExtendedLayoutAttribute).ToMetadataReference()],
                     targetFramework: TargetFramework.Empty),
-                emitOptions: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v4.0.3100.0"),
+                emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.3100.0"),
                 validator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -1042,7 +1042,7 @@ partial struct C
                     source,
                     references: [MinimalCoreLibBuilder.Create(ExtendedLayoutAttribute).ToMetadataReference()],
                     targetFramework: TargetFramework.Empty),
-                emitOptions: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v4.0.3100.0"),
+                emitOptions: new CodeAnalysis.Emit.EmitOptions(debugInformationFormat: CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion: "v4.0.3100.0"),
                 validator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
