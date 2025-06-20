@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// <see cref="global::System.ObsoleteAttribute"/>
+    /// <see cref="System.ObsoleteAttribute"/>
+    /// <see cref="ObsoleteAttribute"/>
     /// </summary>
     [System.Obsolete]
     internal class Foo
