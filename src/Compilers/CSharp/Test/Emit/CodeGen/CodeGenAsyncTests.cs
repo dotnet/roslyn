@@ -371,6 +371,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public virtual void Post(SendOrPostCallback d, object state) {}
                     }
                     public delegate void SendOrPostCallback(object state);
+                    public class SemaphoreSlim
+                    {
+                        public SemaphoreSlim(int initialCount, int maxCount) {}
+                        public int Release() => default;
+                        public void Wait() {}
+                        public bool Wait(int millisecondsTimeout) => default;
+                    }
                     public class Thread
                     {
                         public static void Sleep(int millisecondsTimeout) {}
