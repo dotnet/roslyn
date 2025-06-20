@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -202,5 +203,15 @@ internal static class EditorConfigValueSerializer
         {
             builder[option.Definition.ConfigName] = option.Definition.Serializer.Serialize(value);
         }
+    }
+
+    public static EditorConfigValueSerializer<TToEnum>? ConvertEnumSerializer<TFromEnum, TToEnum, TUnderlyingEnumType>(EditorConfigValueSerializer<TFromEnum> serializer)
+        where TFromEnum : struct
+        where TToEnum : struct
+        where TUnderlyingEnumType : struct
+    {
+        return new(
+            value => serializer.ParseValue(value).ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(),
+            value => serializer.SerializeValue(EnumValueUtilities.ConvertEnum<TToEnum, TFromEnum, TUnderlyingEnumType>(value)));
     }
 }
