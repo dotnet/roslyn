@@ -16,14 +16,13 @@ internal static class OptionExtensions
     /// Useful for some cases in Roslyn where we have an existing shipped public option in the Workspace layer, and an internal option
     /// in the CodeStyle layer, and we want to map between them.
     /// </summary>
-    public static Option<TToEnum> ConvertEnumOption<TFromEnum, TToEnum, TUnderlyingEnumType>(this Option<TFromEnum> option)
+    public static Option<TToEnum> ConvertEnumOption<TFromEnum, TToEnum>(this Option<TFromEnum> option)
         where TFromEnum : struct, Enum
         where TToEnum : struct, Enum
-        where TUnderlyingEnumType : struct
     {
         var definition = option.OptionDefinition;
-        var newDefaultValue = EnumValueUtilities.ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(definition.DefaultValue);
-        var newSerializer = EditorConfigValueSerializer.ConvertEnumSerializer<TFromEnum, TToEnum, TUnderlyingEnumType>(definition.Serializer);
+        var newDefaultValue = EnumValueUtilities.ConvertEnum<TFromEnum, TToEnum>(definition.DefaultValue);
+        var newSerializer = EditorConfigValueSerializer.ConvertEnumSerializer<TFromEnum, TToEnum>(definition.Serializer);
 
         var newDefinition = new OptionDefinition<TToEnum>(
             defaultValue: newDefaultValue, newSerializer, definition.Group, definition.ConfigName, definition.StorageMapping, definition.IsEditorConfigOption);
