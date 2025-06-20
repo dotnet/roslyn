@@ -61,4 +61,8 @@
     <FileSignInfo Include="Microsoft.VisualStudio.Threading.dll" CertificateName="MicrosoftSHA2" />
     <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == 'test'">
+    <FileExtensionSignInfo Remove=".nupkg" />
+  </ItemGroup>
 </Project>
