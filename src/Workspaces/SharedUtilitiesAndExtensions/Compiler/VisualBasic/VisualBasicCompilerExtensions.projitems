@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DefaultOperationProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\AggregatedFormattingResult.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\FormattingResult.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.AbstractLineBreakTrivia.vb" />
