@@ -326,7 +326,7 @@ internal struct StackFrameLexer
     /// <summary>
     /// Scans a form similar to g__, where g is a GeneratedNameKind (a single character)
     /// and identifier is valid identifier characters as with <see cref="TryScanIdentifier()"/>.
-    /// If <see cref="scanNumericsAfter"/> is true, it will also scan for a numeric suffix after "__"
+    /// If <paramref name="scanNumericsAfter"/> is true, it will also scan for a numeric suffix after "__"
     /// </summary>
     public Result<StackFrameToken> TryScanRequiredGeneratedNameSeparator(bool scanNumericsAfter = false)
     {
