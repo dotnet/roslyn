@@ -70,10 +70,10 @@ namespace Analyzer.Utilities.Extensions
         //            }
         //        }
 
-        //        public static bool IsDefaultConstructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-        //        {
-        //            return symbol.IsConstructor() && symbol.GetParameters().IsEmpty;
-        //        }
+        public static bool IsDefaultConstructor([NotNullWhen(returnValue: true)] this ISymbol? symbol)
+        {
+            return symbol.IsConstructor() && symbol.GetParameters().IsEmpty;
+        }
 
         public static bool IsPublic(this ISymbol symbol)
         {

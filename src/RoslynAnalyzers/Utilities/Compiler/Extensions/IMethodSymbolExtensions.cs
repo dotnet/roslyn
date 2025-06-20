@@ -462,10 +462,10 @@ namespace Analyzer.Utilities.Extensions
         //            return methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
         //        }
 
-        //        public static bool HasOptionalParameters(this IMethodSymbol methodSymbol)
-        //        {
-        //            return methodSymbol.Parameters.Any(p => p.IsOptional);
-        //        }
+        public static bool HasOptionalParameters(this IMethodSymbol methodSymbol)
+        {
+            return methodSymbol.Parameters.Any(p => p.IsOptional);
+        }
 
         public static IEnumerable<IMethodSymbol> GetOverloads(this IMethodSymbol? method)
         {
