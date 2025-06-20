@@ -21,7 +21,6 @@ internal static class OptionExtensions
         where TToEnum : struct, Enum
         where TUnderlyingEnumType : struct
     {
-
         var definition = option.OptionDefinition;
         var newDefaultValue = EnumValueUtilities.ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(definition.DefaultValue);
         var newSerializer = EditorConfigValueSerializer.ConvertEnumSerializer<TFromEnum, TToEnum, TUnderlyingEnumType>(definition.Serializer);
