@@ -212,6 +212,11 @@
         <target state="translated">가능한 경우 프라이빗 필드를 읽기 전용으로 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_to_Resx">
+        <source>Move to Resx</source>
+        <target state="new">Move to Resx</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">역 'for' 문</target>
@@ -230,6 +235,11 @@
       <trans-unit id="Selection_cannot_include_top_level_statements">
         <source>Selection cannot include top-level statements</source>
         <target state="translated">선택 영역에는 최상위 문을 포함할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Resx_for_user_facing_strings">
+        <source>Use Resx for user facing strings</source>
+        <target state="new">Use Resx for user facing strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">

@@ -587,4 +587,10 @@
   <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
     <value>Convert all extension methods in '{0}' to extension</value>
   </data>
+  <data name="Move_to_Resx" xml:space="preserve">
+    <value>Move to Resx</value>
+  </data>
+  <data name="Use_Resx_for_user_facing_strings" xml:space="preserve">
+    <value>Use Resx for user facing strings</value>
+  </data>
 </root>

@@ -212,6 +212,11 @@
         <target state="translated">Private Felder nach Möglichkeit als schreibgeschützt festlegen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_to_Resx">
+        <source>Move to Resx</source>
+        <target state="new">Move to Resx</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">for-Anweisung umkehren</target>
@@ -230,6 +235,11 @@
       <trans-unit id="Selection_cannot_include_top_level_statements">
         <source>Selection cannot include top-level statements</source>
         <target state="translated">Die Auswahl darf keine Anweisungen der obersten Ebene enthalten.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Resx_for_user_facing_strings">
+        <source>Use Resx for user facing strings</source>
+        <target state="new">Use Resx for user facing strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">
