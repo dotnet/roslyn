@@ -2822,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue DefaultVisit(IOperation operation, object? argument)
         {
-            return VisitArray(operation.Children, argument);
+            return VisitArray(operation.ChildOperations, argument);
         }
 
         public override TAbstractAnalysisValue VisitSimpleAssignment(ISimpleAssignmentOperation operation, object? argument)
