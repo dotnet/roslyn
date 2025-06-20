@@ -211,18 +211,7 @@ internal static class EditorConfigValueSerializer
         where TUnderlyingEnumType : struct
     {
         return new(
-            value => ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(serializer.ParseValue(value)),
+            value => serializer.ParseValue(value).ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(),
             value => serializer.SerializeValue(EnumValueUtilities.ConvertEnum<TToEnum, TFromEnum, TUnderlyingEnumType>(value)));
-    }
-
-    private static Optional<TToEnum> ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(Optional<TFromEnum> optional)
-        where TFromEnum : struct
-        where TToEnum : struct
-        where TUnderlyingEnumType : struct
-    {
-        if (!optional.HasValue)
-            return default;
-
-        return EnumValueUtilities.ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(optional.Value);
     }
 }
