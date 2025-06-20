@@ -11,9 +11,6 @@
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Workspaces\VisualBasic\Portable\Formatting\DefaultOperationProvider.vb" Link="Formatting\DefaultOperationProvider.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />
     <Import Include="Microsoft.CodeAnalysis.Shared.Utilities" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Extensions" />
