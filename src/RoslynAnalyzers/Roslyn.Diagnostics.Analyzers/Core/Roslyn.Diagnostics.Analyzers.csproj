@@ -24,12 +24,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
   </ItemGroup>
   <ItemGroup>
-    <!--
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationKind.cs" Link="Editing\DeclarationKind.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Editing\DeclarationModifiers.cs" Link="Editing\DeclarationModifiers.cs" />
-    <Compile Include="..\..\..\Workspaces\Core\Portable\Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" Link="Formatting\VisualBasic\VisualBasicSyntaxFormattingOptions.cs" />-->
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="RoslynDiagnosticsAnalyzersResources.resx" GenerateSource="true" />
   </ItemGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
