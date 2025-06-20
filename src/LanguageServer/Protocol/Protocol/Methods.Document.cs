@@ -617,4 +617,22 @@ partial class Methods
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
     public static readonly LspRequest<LinkedEditingRangeParams, LinkedEditingRanges?> TextDocumentLinkedEditingRange = new(TextDocumentLinkedEditingRangeName);
+
+    /// <summary>
+    /// Method name for 'workspace/textDocumentContent'.
+    /// <para>
+    /// This request is sent from the client to the server to request the content of a virtual text document.
+    /// </para>
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#workspace_textDocumentContent">Language Server Protocol specification</see> for additional information.
+    /// </para>
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    public const string WorkspaceTextDocumentContentName = "workspace/textDocumentContent";
+
+    /// <summary>
+    /// Strongly typed message object for 'workspace/textDocumentContent'.
+    /// </summary>
+    /// <remarks>Since LSP 3.18</remarks>
+    public static readonly LspRequest<TextDocumentContentParams, TextDocumentContentResult> WorkspaceTextDocumentContent = new(WorkspaceTextDocumentContentName);
 }

@@ -37,7 +37,7 @@ internal sealed class NullResultMetadataAsSourceFileProvider : IMetadataAsSource
     {
     }
 
-    public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, TelemetryMessage? telemetry, CancellationToken cancellationToken)
+    public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, TelemetryMessage? telemetry, IMetadataDocumentPersister persister, CancellationToken cancellationToken)
     {
         return Task.FromResult<MetadataAsSourceFile?>(NullResult);
     }
@@ -45,17 +45,6 @@ internal sealed class NullResultMetadataAsSourceFileProvider : IMetadataAsSource
     public Project? MapDocument(Document document)
     {
         return null;
-    }
-
-    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, Text.SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
-    {
-        documentId = null!;
-        return true;
-    }
-
-    public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
-    {
-        return true;
     }
 
     public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions options)

@@ -36,7 +36,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         };
 
     [WpfTheory, CombinatorialData]
-    public async Task TestClass(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestClass(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C {}";
         var symbolName = "C";
@@ -99,11 +99,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546241"), CombinatorialData]
-    public async Task TestInterface(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestInterface(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public interface I {}";
         var symbolName = "I";
@@ -164,11 +164,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestConstructor(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestConstructor(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C {}";
         var symbolName = "C..ctor";
@@ -231,11 +231,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestMethod(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestMethod(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C { public void Goo() {} }";
         var symbolName = "C.Goo";
@@ -308,11 +308,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestField(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestField(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C { public string S; }";
         var symbolName = "C.S";
@@ -381,11 +381,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546240"), CombinatorialData]
-    public async Task TestProperty(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestProperty(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C { public string S { get; protected set; } }";
         var symbolName = "C.S";
@@ -454,12 +454,12 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546291"), CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546194")]
-    public async Task TestEvent(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEvent(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "using System; public class C { public event Action E; }";
         var symbolName = "C.E";
@@ -536,11 +536,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestNestedType(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestNestedType(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C { protected class D { } }";
         var symbolName = "C+D";
@@ -618,11 +618,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269"), CombinatorialData]
-    public async Task TestEnum(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEnum(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public enum E { A, B, C }";
         var symbolName = "E";
@@ -695,11 +695,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546195"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546269"), CombinatorialData]
-    public async Task TestEnumFromField(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEnumFromField(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public enum E { A, B, C }";
         var symbolName = "E.C";
@@ -772,11 +772,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546273"), CombinatorialData]
-    public async Task TestEnumWithUnderlyingType(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEnumWithUnderlyingType(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public enum E : short { A = 0, B = 1, C = 2 }";
         var symbolName = "E.C";
@@ -849,11 +849,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650741"), CombinatorialData]
-    public async Task TestEnumWithOverflowingUnderlyingType(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEnumWithOverflowingUnderlyingType(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public enum E : ulong { A = 9223372036854775808 }";
         var symbolName = "E.A";
@@ -918,11 +918,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestEnumWithDifferentValues(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEnumWithDifferentValues(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public enum E : short { A = 1, B = 2, C = 3 }";
         var symbolName = "E.C";
@@ -995,11 +995,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198"), CombinatorialData]
-    public async Task TestTypeInNamespace(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestTypeInNamespace(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "namespace N { public class C {} }";
         var symbolName = "N.C";
@@ -1071,15 +1071,15 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
-    public async Task TestTypeInFileScopedNamespace1()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+    public async Task TestTypeInFileScopedNamespace1(bool useVirtualFiles)
     {
         var metadataSource = "namespace N { public class C {} }";
 
-        using var context = TestContext.Create(
+        using var context = TestContext.Create(useVirtualFiles,
             LanguageNames.CSharp, [metadataSource], languageVersion: "10", fileScopedNamespaces: true);
 
         await context.GenerateAndVerifySourceAsync("N.C",
@@ -1097,12 +1097,12 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
-    public async Task TestTypeInFileScopedNamespace2()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+    public async Task TestTypeInFileScopedNamespace2(bool useVirtualFiles)
     {
         var metadataSource = "namespace N { public class C {} }";
 
-        using var context = TestContext.Create(
+        using var context = TestContext.Create(useVirtualFiles,
             LanguageNames.CSharp, [metadataSource], languageVersion: "9", fileScopedNamespaces: true);
 
         await context.GenerateAndVerifySourceAsync("N.C",
@@ -1121,12 +1121,12 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
-    public async Task TestTypeInFileScopedNamespace3()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546198")]
+    public async Task TestTypeInFileScopedNamespace3(bool useVirtualFiles)
     {
         var metadataSource = "namespace N { public class C {} }";
 
-        using var context = TestContext.Create(
+        using var context = TestContext.Create(useVirtualFiles,
             LanguageNames.CSharp, [metadataSource], languageVersion: "10");
 
         await context.GenerateAndVerifySourceAsync("N.C",
@@ -1146,7 +1146,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546223"), CombinatorialData]
-    public async Task TestInlineConstant(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestInlineConstant(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = @"public class C { public const string S = ""Hello mas""; }";
         var symbolName = "C.S";
@@ -1215,11 +1215,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546221"), CombinatorialData]
-    public async Task TestInlineTypeOf(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestInlineTypeOf(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -1298,11 +1298,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546231"), CombinatorialData]
-    public async Task TestNoDefaultConstructorInStructs(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestNoDefaultConstructorInStructs(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public struct S {}";
         var symbolName = "S";
@@ -1369,11 +1369,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestReferenceDefinedType(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestReferenceDefinedType(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C { public static C Create() { return new C(); } }";
         var symbolName = "C";
@@ -1448,11 +1448,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227"), CombinatorialData]
-    public async Task TestGenericType(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestGenericType(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class G<SomeType> { public SomeType S; }";
         var symbolName = "G`1";
@@ -1521,12 +1521,12 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/38916")]
-    public async Task TestParameterAttributes(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestParameterAttributes(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -1608,12 +1608,12 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/38916")]
-    public async Task TestGenericWithNullableReferenceTypes(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestGenericWithNullableReferenceTypes(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -1688,11 +1688,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546227"), CombinatorialData]
-    public async Task TestGenericDelegate(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestGenericDelegate(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = "public class C { public delegate void D<SomeType>(SomeType s); }";
         var symbolName = "C+D`1";
@@ -1760,11 +1760,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546200"), CombinatorialData]
-    public async Task TestAttribute(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestAttribute(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -1854,59 +1854,59 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
-    [WpfFact]
-    public async Task TestSymbolIdMatchesMetadata()
+    [WpfTheory, CombinatorialData]
+    public async Task TestSymbolIdMatchesMetadata(bool useVirtualFiles)
     {
-        await TestSymbolIdMatchesMetadataAsync(LanguageNames.CSharp);
-        await TestSymbolIdMatchesMetadataAsync(LanguageNames.VisualBasic);
+        await TestSymbolIdMatchesMetadataAsync(LanguageNames.CSharp, useVirtualFiles);
+        await TestSymbolIdMatchesMetadataAsync(LanguageNames.VisualBasic, useVirtualFiles);
     }
 
-    [WpfFact]
-    public async Task TestNotReusedOnAssemblyDiffers()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNotReusedOnAssemblyDiffers(bool useVirtualFiles)
     {
-        await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.CSharp);
-        await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.VisualBasic);
+        await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.CSharp, useVirtualFiles);
+        await TestNotReusedOnAssemblyDiffersAsync(LanguageNames.VisualBasic, useVirtualFiles);
     }
 
-    [WpfFact]
-    public async Task TestThrowsOnGenerateNamespace()
+    [WpfTheory, CombinatorialData]
+    public async Task TestThrowsOnGenerateNamespace(bool useVirtualFiles)
     {
         var namespaceSymbol = CodeGenerationSymbolFactory.CreateNamespaceSymbol("Outerspace");
 
-        using var context = TestContext.Create();
+        using var context = TestContext.Create(useVirtualFiles);
         await Assert.ThrowsAsync<ArgumentException>(async () =>
         {
             await context.GenerateSourceAsync(namespaceSymbol);
         });
     }
 
-    [WpfFact]
-    public async Task TestReuseGenerateMemberOfGeneratedType()
+    [WpfTheory, CombinatorialData]
+    public async Task TestReuseGenerateMemberOfGeneratedType(bool useVirtualFiles)
     {
         var metadataSource = "public class C { public bool Is; }";
 
-        using var context = TestContext.Create(LanguageNames.CSharp, [metadataSource]);
+        using var context = TestContext.Create(useVirtualFiles, LanguageNames.CSharp, [metadataSource]);
         var a = await context.GenerateSourceAsync("C");
         var b = await context.GenerateSourceAsync("C.Is");
         TestContext.VerifyDocumentReused(a, b);
     }
 
-    [WpfFact]
-    public async Task TestReuseRepeatGeneration()
+    [WpfTheory, CombinatorialData]
+    public async Task TestReuseRepeatGeneration(bool useVirtualFiles)
     {
-        using var context = TestContext.Create();
+        using var context = TestContext.Create(useVirtualFiles);
         var a = await context.GenerateSourceAsync();
         var b = await context.GenerateSourceAsync();
         TestContext.VerifyDocumentReused(a, b);
     }
 
-    [WpfFact]
-    public async Task TestWorkspaceContextHasReasonableProjectName()
+    [WpfTheory, CombinatorialData]
+    public async Task TestWorkspaceContextHasReasonableProjectName(bool useVirtualFiles)
     {
-        using var context = TestContext.Create();
+        using var context = TestContext.Create(useVirtualFiles);
         var compilation = await context.DefaultProject.GetCompilationAsync();
         Assert.NotNull(compilation);
         var result = await context.GenerateSourceAsync(compilation.ObjectType);
@@ -1916,10 +1916,10 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         Assert.Equal("mscorlib", openedDocument.Project.Name);
     }
 
-    [WpfFact]
-    public async Task TestReuseGenerateFromDifferentProject()
+    [WpfTheory, CombinatorialData]
+    public async Task TestReuseGenerateFromDifferentProject(bool useVirtualFiles)
     {
-        using var context = TestContext.Create();
+        using var context = TestContext.Create(useVirtualFiles);
         var projectId = ProjectId.CreateNewId();
         var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.CSharp).GetRequiredProject(projectId)
             .WithMetadataReferences(context.DefaultProject.MetadataReferences)
@@ -1930,10 +1930,10 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         TestContext.VerifyDocumentReused(a, b);
     }
 
-    [WpfFact]
-    public async Task TestNotReusedGeneratingForDifferentLanguage()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNotReusedGeneratingForDifferentLanguage(bool useVirtualFiles)
     {
-        using var context = TestContext.Create(LanguageNames.CSharp);
+        using var context = TestContext.Create(useVirtualFiles, LanguageNames.CSharp);
         var projectId = ProjectId.CreateNewId();
         var project = context.CurrentSolution.AddProject(projectId, "ProjectB", "ProjectB", LanguageNames.VisualBasic).GetRequiredProject(projectId)
             .WithMetadataReferences(context.DefaultProject.MetadataReferences)
@@ -1944,17 +1944,17 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
         TestContext.VerifyDocumentNotReused(a, b);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
-    public async Task FormatMetadataAsSource()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546311")]
+    public async Task FormatMetadataAsSource(bool useVirtualFiles)
     {
-        using var context = TestContext.Create(LanguageNames.CSharp);
+        using var context = TestContext.Create(useVirtualFiles, LanguageNames.CSharp);
         var file = await context.GenerateSourceAsync("System.Console", project: context.DefaultProject);
         var document = context.GetDocument(file);
         await Formatter.FormatAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-    public async Task IndexedProperty()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
+    public async Task IndexedProperty(bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -1983,11 +1983,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             }
             """;
         var symbolName = "C.get_IndexProp";
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
-    public async Task AttributeReferencingInternalNestedType()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
+    public async Task AttributeReferencingInternalNestedType(bool useVirtualFiles)
     {
         var metadataSource = """
             using System;
@@ -2017,11 +2017,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             }
             """;
         var symbolName = "C";
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected, useVirtualFiles);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530978"), CombinatorialData]
-    public async Task TestAttributesOnMembers(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestAttributesOnMembers(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
             using System;
@@ -2334,11 +2334,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530923"), CombinatorialData]
-    public async Task TestEmptyLineBetweenMembers(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEmptyLineBetweenMembers(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
             using System;
@@ -2595,11 +2595,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/728644"), CombinatorialData]
-    public async Task TestEmptyLineBetweenMembers2(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestEmptyLineBetweenMembers2(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var source = """
 
@@ -2719,11 +2719,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
+        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679114"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715013"), CombinatorialData]
-    public async Task TestDefaultValueEnum(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestDefaultValueEnum(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var source = """
 
@@ -2813,11 +2813,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651261"), CombinatorialData]
-    public async Task TestNullAttribute(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestNullAttribute(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var source = """
 
@@ -2911,11 +2911,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
-    public async Task TestNavigationViaReducedExtensionMethodCS()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
+    public async Task TestNavigationViaReducedExtensionMethodCS(bool useVirtualFiles)
     {
         var metadata = """
             using System;
@@ -2946,17 +2946,18 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
             sourceWithSymbolReference: sourceWithSymbolReference);
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
-    public async Task TestNavigationViaReducedExtensionMethodVB()
+    [WpfTheory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
+    public async Task TestNavigationViaReducedExtensionMethodVB(bool useVirtualFiles)
     {
         var metadata = """
             Imports System.Runtime.CompilerServices
@@ -2994,17 +2995,18 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.VisualBasic,
             [metadata],
             includeXmlDocComments: false,
             sourceWithSymbolReference: sourceWithSymbolReference);
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestIndexersAndOperators(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestIndexersAndOperators(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
             public class Program
@@ -3131,11 +3133,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/15387"), CombinatorialData]
-    public async Task TestComImport1(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestComImport1(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -3247,11 +3249,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, CombinatorialData]
-    public async Task TestOptionalParameterWithDefaultLiteral(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestOptionalParameterWithDefaultLiteral(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -3346,11 +3348,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, languageVersion: languageVersion);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly, languageVersion: languageVersion);
     }
 
     [WpfTheory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=446567"), CombinatorialData]
-    public async Task TestDocCommentsWithUnixNewLine(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestDocCommentsWithUnixNewLine(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var source = """
 
@@ -3488,11 +3490,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
+        await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
     }
 
-    [WpfFact]
-    public async Task TestUnmanagedCSharpConstraint_Type()
+    [WpfTheory, CombinatorialData]
+    public async Task TestUnmanagedCSharpConstraint_Type(bool useVirtualFiles)
     {
         var metadata = """
             using System;
@@ -3522,6 +3524,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -3529,11 +3532,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             sourceWithSymbolReference: sourceWithSymbolReference);
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestUnmanagedCSharpConstraint_Method()
+    [WpfTheory, CombinatorialData]
+    public async Task TestUnmanagedCSharpConstraint_Method(bool useVirtualFiles)
     {
         var metadata = """
             using System;
@@ -3568,6 +3571,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -3575,11 +3579,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             sourceWithSymbolReference: sourceWithSymbolReference);
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestUnmanagedCSharpConstraint_Delegate()
+    [WpfTheory, CombinatorialData]
+    public async Task TestUnmanagedCSharpConstraint_Delegate(bool useVirtualFiles)
     {
         var metadata = """
             using System;
@@ -3603,6 +3607,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -3610,11 +3615,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             sourceWithSymbolReference: sourceWithSymbolReference);
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestSByteMinValue()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestSByteMinValue(bool useVirtualFiles)
     {
         var source = """
 
@@ -3626,11 +3631,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = "public const SByte MinValue = -128;";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestSByteMinValueVB()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestSByteMinValueVB(bool useVirtualFiles)
     {
         var source = """
 
@@ -3641,11 +3646,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = "Public Const MinValue As [SByte] = -128";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt16MinValue()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestInt16MinValue(bool useVirtualFiles)
     {
         var source = """
 
@@ -3657,11 +3662,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = $"public const Int16 MinValue = -32768;";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt16MinValueVB()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestInt16MinValueVB(bool useVirtualFiles)
     {
         var source = """
 
@@ -3672,11 +3677,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = $"Public Const MinValue As Int16 = -32768";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt32MinValue()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestInt32MinValue(bool useVirtualFiles)
     {
         var source = """
 
@@ -3688,11 +3693,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = $"public const Int32 MinValue = -2147483648;";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt32MinValueVB()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestInt32MinValueVB(bool useVirtualFiles)
     {
         var source = """
 
@@ -3703,11 +3708,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = $"Public Const MinValue As Int32 = -2147483648";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt64MinValue()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestInt64MinValue(bool useVirtualFiles)
     {
         var source = """
 
@@ -3719,11 +3724,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = $"public const Int64 MinValue = -9223372036854775808;";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected, useVirtualFiles);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt64MinValueVB()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
+    public async Task TestInt64MinValueVB(bool useVirtualFiles)
     {
         var source = """
 
@@ -3734,11 +3739,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var expected = $"Public Const MinValue As Int64 = -9223372036854775808";
 
-        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
+        await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected, useVirtualFiles);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestReadOnlyStruct_ReadOnlyField(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestReadOnlyStruct_ReadOnlyField(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -3812,11 +3817,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStruct_ReadOnlyField(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStruct_ReadOnlyField(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -3888,11 +3893,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestRefStruct(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestRefStruct(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -3968,11 +3973,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestReadOnlyRefStruct(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestReadOnlyRefStruct(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4048,11 +4053,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestReadOnlyMethod(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestReadOnlyMethod(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4135,11 +4140,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestReadOnlyMethod_InReadOnlyStruct(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestReadOnlyMethod_InReadOnlyStruct(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4223,11 +4228,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructProperty_ReadOnly(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructProperty_ReadOnly(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4299,11 +4304,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructProperty_ReadOnly_CSharp7_3(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructProperty_ReadOnly_CSharp7_3(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4382,11 +4387,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, metadataLanguageVersion: metadataLanguageVersion);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly, metadataLanguageVersion: metadataLanguageVersion);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructProperty_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructProperty_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4458,11 +4463,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestReadOnlyStructProperty_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestReadOnlyStructProperty_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4536,11 +4541,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructProperty_ReadOnlyGet_Set(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructProperty_ReadOnlyGet_Set(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4636,11 +4641,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructProperty_Get_ReadOnlySet(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructProperty_Get_ReadOnlySet(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4736,11 +4741,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructProperty_ReadOnlyGet_ReadOnlySet(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructProperty_ReadOnlyGet_ReadOnlySet(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4836,11 +4841,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructIndexer_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructIndexer_ReadOnlyGet(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -4924,11 +4929,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStructIndexer_ReadOnlyGet_Set(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStructIndexer_ReadOnlyGet_Set(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -5030,11 +5035,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestStruct_ReadOnlyEvent(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestStruct_ReadOnlyEvent(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -5134,11 +5139,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
-    public async Task TestReadOnlyStruct_ReadOnlyEvent(OriginatingProjectLanguage language, bool signaturesOnly)
+    public async Task TestReadOnlyStruct_ReadOnlyEvent(OriginatingProjectLanguage language, bool signaturesOnly, bool useVirtualFiles)
     {
         var metadataSource = """
 
@@ -5239,11 +5244,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
-        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
+        await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, useVirtualFiles, signaturesOnly: signaturesOnly);
     }
 
-    [WpfFact]
-    public async Task TestNotNullCSharpConstraint_Type()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNotNullCSharpConstraint_Type(bool useVirtualFiles)
     {
         var metadata = """
             using System;
@@ -5273,6 +5278,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5282,11 +5288,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNotNullCSharpConstraint_Method()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNotNullCSharpConstraint_Method(bool useVirtualFiles)
     {
         var metadata = """
             using System;
@@ -5321,6 +5327,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5330,11 +5337,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNotNullCSharpConstraint_Delegate()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNotNullCSharpConstraint_Delegate(bool useVirtualFiles)
     {
         var metadata = """
             using System;
@@ -5358,6 +5365,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5367,11 +5375,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable1()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable1(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5422,6 +5430,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5431,11 +5440,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable2()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable2(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5483,6 +5492,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5492,11 +5502,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable3()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable3(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5552,6 +5562,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5561,11 +5572,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable4()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable4(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5608,6 +5619,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5617,11 +5629,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable5()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable5(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5665,6 +5677,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5674,11 +5687,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable6()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable6(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5719,6 +5732,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5728,11 +5742,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable7()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable7(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5773,6 +5787,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5782,11 +5797,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable8()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable8(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5825,6 +5840,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5834,11 +5850,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable9()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable9(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5877,6 +5893,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5886,11 +5903,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable10()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable10(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5929,6 +5946,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5938,11 +5956,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable11()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable11(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -5979,6 +5997,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -5988,11 +6007,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable12()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable12(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -6049,6 +6068,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -6058,11 +6078,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestNullableEnableDisable13()
+    [WpfTheory, CombinatorialData]
+    public async Task TestNullableEnableDisable13(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -6129,6 +6149,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -6138,11 +6159,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact]
-    public async Task TestDynamic1()
+    [WpfTheory, CombinatorialData]
+    public async Task TestDynamic1(bool useVirtualFiles)
     {
         var metadata = """
 
@@ -6179,6 +6200,7 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """;
 
         using var context = TestContext.Create(
+            useVirtualFiles,
             LanguageNames.CSharp,
             [metadata],
             includeXmlDocComments: false,
@@ -6188,11 +6210,11 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
 
         var navigationSymbol = await context.GetNavigationSymbolAsync();
         var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
-        TestContext.VerifyResult(metadataAsSourceFile, expected);
+        context.VerifyResult(metadataAsSourceFile, expected);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22431")]
-    public async Task TestCDATAComment()
+    [WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/22431")]
+    public async Task TestCDATAComment(bool useVirtualFiles)
     {
         var source = """
 
@@ -6219,6 +6241,6 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
                 [|LeftShift|] = 8
             }
             """;
-        await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, includeXmlDocComments: true);
+        await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, useVirtualFiles, includeXmlDocComments: true);
     }
 }
