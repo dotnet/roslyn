@@ -12,7 +12,7 @@ internal abstract class AbstractEntryPointFinderService : IEntryPointFinderServi
     protected abstract IEnumerable<INamedTypeSymbol> FindEntryPoints(Compilation compilation, bool findFormsOnly);
 
     public IEnumerable<INamedTypeSymbol> FindEntryPoints(INamespaceSymbol symbol, bool findFormsOnly)
-        => symbol is not { ContainingAssembly: ISourceAssemblySymbol sourceAssembly }
-            ? []
-            : FindEntryPoints(sourceAssembly.Compilation, findFormsOnly);
+        => symbol is { ContainingCompilation: Compilation compilation }
+            ? FindEntryPoints(compilation, findFormsOnly)
+            : [];
 }
