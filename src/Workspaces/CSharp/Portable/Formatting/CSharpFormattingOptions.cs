@@ -4,6 +4,9 @@
 
 #pragma warning disable RS0030 // Do not used banned APIs
 
+using System;
+using System.Runtime.CompilerServices;
+using Humanizer;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
@@ -133,14 +136,7 @@ public static class CSharpFormattingOptions
     public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAroundBinaryOperator"/>
-    public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator
-    {
-        get
-        {
-            var publicInternalOption = CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption();
-            return new(publicInternalOption.Feature, publicInternalOption.Name, (BinaryOperatorSpacingOptions)publicInternalOption.DefaultValue);
-        }
-    }
+    public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions>(CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption());
 
     /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
     public static Option<bool> IndentBraces { get; } = CSharpFormattingOptions2.IndentBraces.ToPublicOption();
@@ -158,14 +154,7 @@ public static class CSharpFormattingOptions
     public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.LabelPositioning"/>
-    public static Option<LabelPositionOptions> LabelPositioning
-    {
-        get
-        {
-            var publicInternalOption = CSharpFormattingOptions2.LabelPositioning.ToPublicOption();
-            return new(publicInternalOption.Feature, publicInternalOption.Name, (LabelPositionOptions)publicInternalOption.DefaultValue);
-        }
-    }
+    public static Option<LabelPositionOptions> LabelPositioning { get; } = ConvertEnumOption<LabelPositionOptionsInternal, LabelPositionOptions>(CSharpFormattingOptions2.LabelPositioning.ToPublicOption());
 
     /// <inheritdoc cref="CSharpFormattingOptions2.WrappingPreserveSingleLine"/>
     public static Option<bool> WrappingPreserveSingleLine { get; } = CSharpFormattingOptions2.WrappingPreserveSingleLine.ToPublicOption();
@@ -200,6 +189,50 @@ public static class CSharpFormattingOptions
 
     /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForClausesInQuery"/>
     public static Option<bool> NewLineForClausesInQuery { get; } = CSharpFormattingOptions2.NewLineForClausesInQuery.ToPublicOption();
+
+    private static Option<TToEnum> ConvertEnumOption<TFromEnum, TToEnum>(Option<TFromEnum> option)
+        where TFromEnum : struct, Enum
+        where TToEnum : struct, Enum
+    {
+        Contract.ThrowIfTrue(typeof(TFromEnum).GetEnumUnderlyingType() != typeof(int));
+        Contract.ThrowIfTrue(typeof(TToEnum).GetEnumUnderlyingType() != typeof(int));
+
+        var definition = (OptionDefinition<TFromEnum>)((IOption2)option).Definition;
+        var newDefaultValue = Convert<TFromEnum, TToEnum>(Unsafe.Unbox<TFromEnum>(definition.DefaultValue));
+        var newSerializer = ConvertSerializer<TFromEnum, TToEnum>(definition.Serializer);
+
+        var newDefinition = new OptionDefinition<TToEnum>(
+            defaultValue: newDefaultValue, newSerializer, definition.Group, definition.ConfigName, definition.StorageMapping, definition.IsEditorConfigOption);
+
+        return new(newDefinition, option.Feature, option.Name, option.StorageLocations);
+    }
+
+    private static EditorConfigValueSerializer<TToEnum>? ConvertSerializer<TFromEnum, TToEnum>(EditorConfigValueSerializer<TFromEnum> serializer)
+        where TFromEnum : struct
+        where TToEnum : struct
+    {
+        return new(
+            value => Convert<TFromEnum, TToEnum>(serializer.ParseValue(value)),
+            value => serializer.SerializeValue(Convert<TToEnum, TFromEnum>(value)));
+    }
+
+    private static Optional<TToEnum> Convert<TFromEnum, TToEnum>(Optional<TFromEnum> optional)
+        where TFromEnum : struct
+        where TToEnum : struct
+    {
+        if (!optional.HasValue)
+            return default;
+
+        return Convert<TFromEnum, TToEnum>(optional.Value);
+    }
+
+    private static TToEnum Convert<TFromEnum, TToEnum>(TFromEnum value)
+        where TFromEnum : struct
+        where TToEnum : struct
+    {
+        var intValue = Unsafe.As<TFromEnum, int>(ref value);
+        return Unsafe.As<int, TToEnum>(ref intValue);
+    }
 }
 
 public enum LabelPositionOptions
