@@ -954,6 +954,7 @@ End Structure
                     MinimalCoreLibBuilder.Create(New String() {ExtendedLayoutAttribute}).EmitToImageReference(New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"))
                 },
                 emitOptions:=New CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion:="v4.0.3100.0"),
+                verify:=Verification.Skipped,
                 validator:=
                 Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
