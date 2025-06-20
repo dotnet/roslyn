@@ -26,7 +26,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 {
     private static readonly DiagnosticDescriptorComparer s_comparer = new();
 
-    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
     private readonly BulkObservableCollection<BaseItem> _items = [];
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -48,14 +47,12 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         Workspace workspace,
         ProjectId projectId,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
         Workspace = workspace;
         ProjectId = projectId;
         CommandHandler = commandHandler;
-        _diagnosticAnalyzerService = diagnosticAnalyzerService;
 
         _workQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Idle,
@@ -152,8 +149,9 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             var specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
+            var diagnosticAnalyzerService = this.Workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             return analyzerReference.GetAnalyzers(project.Language)
-                .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
+                .SelectMany(a => diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
                 .GroupBy(d => d.Id)
                 .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .SelectAsArray(g =>
