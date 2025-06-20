@@ -133,20 +133,8 @@ public static class CSharpFormattingOptions
     public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAroundBinaryOperator"/>
-<<<<<<< HEAD
-#if !WORKSPACE
-    internal static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption();
-#else
-    public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption();
-#endif
-=======
     public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } =
-<<<<<<< HEAD
-        CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption().ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions, int>();
->>>>>>> csharpFOrmattingOptionLayering
-=======
         CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption().ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions>();
->>>>>>> csharpFOrmattingOptionLayering
 
     /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
     public static Option<bool> IndentBraces { get; } = CSharpFormattingOptions2.IndentBraces.ToPublicOption();
@@ -164,20 +152,8 @@ public static class CSharpFormattingOptions
     public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.LabelPositioning"/>
-<<<<<<< HEAD
-#if !WORKSPACE
-    internal static Option<LabelPositionOptions> LabelPositioning { get; } = CSharpFormattingOptions2.LabelPositioning.ToPublicOption();
-#else
-    public static Option<LabelPositionOptions> LabelPositioning { get; } = CSharpFormattingOptions2.LabelPositioning.ToPublicOption();
-#endif
-=======
     public static Option<LabelPositionOptions> LabelPositioning { get; } =
-<<<<<<< HEAD
-        CSharpFormattingOptions2.LabelPositioning.ToPublicOption().ConvertEnumOption<LabelPositionOptionsInternal, LabelPositionOptions, int>();
->>>>>>> csharpFOrmattingOptionLayering
-=======
         CSharpFormattingOptions2.LabelPositioning.ToPublicOption().ConvertEnumOption<LabelPositionOptionsInternal, LabelPositionOptions>();
->>>>>>> csharpFOrmattingOptionLayering
 
     /// <inheritdoc cref="CSharpFormattingOptions2.WrappingPreserveSingleLine"/>
     public static Option<bool> WrappingPreserveSingleLine { get; } = CSharpFormattingOptions2.WrappingPreserveSingleLine.ToPublicOption();

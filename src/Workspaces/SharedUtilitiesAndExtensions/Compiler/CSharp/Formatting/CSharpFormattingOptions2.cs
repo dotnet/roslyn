@@ -294,15 +294,7 @@ internal static partial class CSharpFormattingOptions2
     internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
 }
 
-<<<<<<< HEAD
-#if CSHARP_WORKSPACE
-public enum LabelPositionOptions
-#else
-internal enum LabelPositionOptions
-#endif
-=======
 internal enum LabelPositionOptionsInternal
->>>>>>> csharpFOrmattingOptionLayering
 {
     /// Placed in the Zeroth column of the text editor
     LeftMost = 0,
@@ -314,15 +306,7 @@ internal enum LabelPositionOptionsInternal
     NoIndent = 2
 }
 
-<<<<<<< HEAD
-#if CSHARP_WORKSPACE
-public enum BinaryOperatorSpacingOptions
-#else
-internal enum BinaryOperatorSpacingOptions
-#endif
-=======
 internal enum BinaryOperatorSpacingOptionsInternal
->>>>>>> csharpFOrmattingOptionLayering
 {
     /// Single Spacing
     Single = 0,
