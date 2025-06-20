@@ -7,9 +7,9 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
 
-#if CODE_STYLE
-using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
-#endif
+//#if CODE_STYLE
+//using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
+//#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -290,11 +290,7 @@ internal static partial class CSharpFormattingOptions2
     internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
 }
 
-#if !WORKSPACE
-internal enum LabelPositionOptions
-#else
 public enum LabelPositionOptions
-#endif
 {
     /// Placed in the Zeroth column of the text editor
     LeftMost = 0,
@@ -306,11 +302,7 @@ public enum LabelPositionOptions
     NoIndent = 2
 }
 
-#if !WORKSPACE
-internal enum BinaryOperatorSpacingOptions
-#else
 public enum BinaryOperatorSpacingOptions
-#endif
 {
     /// Single Spacing
     Single = 0,
