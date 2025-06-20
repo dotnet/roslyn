@@ -307,7 +307,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function CreatePreprocessingSymbol(model As SemanticModel, token As SyntaxToken) As IPreprocessingSymbol
+#If Not ROSLYN_4_12_OR_LOWER Then
             Return model.Compilation.CreatePreprocessingSymbol(token.ValueText)
+#Else
+            return nothing
+#End If
         End Function
 
         Friend Shared Function IsWithinPreprocessorConditionalExpression(node As IdentifierNameSyntax) As Boolean
