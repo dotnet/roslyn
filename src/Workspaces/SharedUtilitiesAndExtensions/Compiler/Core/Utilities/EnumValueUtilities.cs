@@ -140,15 +140,13 @@ internal static class EnumValueUtilities
         return false;
     }
 
-    public static TToEnum ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(TFromEnum value)
-        where TFromEnum : struct
-        where TToEnum : struct
-        where TUnderlyingEnumType : struct
+    public static TToEnum ConvertEnum<TFromEnum, TToEnum>(TFromEnum value)
+        where TFromEnum : struct, Enum
+        where TToEnum : struct, Enum
     {
         // Ensure that this is only called for enums that are actually compatible with each other.
-        Contract.ThrowIfTrue(typeof(TFromEnum).GetEnumUnderlyingType() != typeof(TUnderlyingEnumType));
-        Contract.ThrowIfTrue(typeof(TToEnum).GetEnumUnderlyingType() != typeof(TUnderlyingEnumType));
+        Contract.ThrowIfTrue(typeof(TFromEnum).GetEnumUnderlyingType() != typeof(TToEnum).GetEnumUnderlyingType());
 
-        return Unsafe.As<TUnderlyingEnumType, TToEnum>(ref Unsafe.As<TFromEnum, TUnderlyingEnumType>(ref value));
+        return Unsafe.As<TFromEnum, TToEnum>(ref value);
     }
 }

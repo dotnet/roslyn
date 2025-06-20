@@ -141,7 +141,11 @@ public static class CSharpFormattingOptions
 #endif
 =======
     public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } =
+<<<<<<< HEAD
         CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption().ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions, int>();
+>>>>>>> csharpFOrmattingOptionLayering
+=======
+        CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption().ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions>();
 >>>>>>> csharpFOrmattingOptionLayering
 
     /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
@@ -168,7 +172,11 @@ public static class CSharpFormattingOptions
 #endif
 =======
     public static Option<LabelPositionOptions> LabelPositioning { get; } =
+<<<<<<< HEAD
         CSharpFormattingOptions2.LabelPositioning.ToPublicOption().ConvertEnumOption<LabelPositionOptionsInternal, LabelPositionOptions, int>();
+>>>>>>> csharpFOrmattingOptionLayering
+=======
+        CSharpFormattingOptions2.LabelPositioning.ToPublicOption().ConvertEnumOption<LabelPositionOptionsInternal, LabelPositionOptions>();
 >>>>>>> csharpFOrmattingOptionLayering
 
     /// <inheritdoc cref="CSharpFormattingOptions2.WrappingPreserveSingleLine"/>

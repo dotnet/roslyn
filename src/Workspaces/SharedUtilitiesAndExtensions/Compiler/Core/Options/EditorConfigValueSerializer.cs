@@ -205,13 +205,12 @@ internal static class EditorConfigValueSerializer
         }
     }
 
-    public static EditorConfigValueSerializer<TToEnum>? ConvertEnumSerializer<TFromEnum, TToEnum, TUnderlyingEnumType>(EditorConfigValueSerializer<TFromEnum> serializer)
-        where TFromEnum : struct
-        where TToEnum : struct
-        where TUnderlyingEnumType : struct
+    public static EditorConfigValueSerializer<TToEnum>? ConvertEnumSerializer<TFromEnum, TToEnum>(EditorConfigValueSerializer<TFromEnum> serializer)
+        where TFromEnum : struct, Enum
+        where TToEnum : struct, Enum
     {
         return new(
-            value => serializer.ParseValue(value).ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(),
-            value => serializer.SerializeValue(EnumValueUtilities.ConvertEnum<TToEnum, TFromEnum, TUnderlyingEnumType>(value)));
+            value => serializer.ParseValue(value).ConvertEnum<TFromEnum, TToEnum>(),
+            value => serializer.SerializeValue(EnumValueUtilities.ConvertEnum<TToEnum, TFromEnum>(value)));
     }
 }
