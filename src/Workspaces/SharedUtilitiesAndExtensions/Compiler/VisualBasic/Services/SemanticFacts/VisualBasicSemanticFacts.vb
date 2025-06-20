@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-#If WORKSPACE Then
+#If VISUAL_BASIC_WORKSPACE Then
 
         Public Function GetInterceptorSymbolAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ISymbol) Implements ISemanticFacts.GetInterceptorSymbolAsync
             ' VB does not support interceptors
