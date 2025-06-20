@@ -506,7 +506,13 @@ namespace Microsoft.CodeAnalysis.Emit
             var associated = GetAssociatedSymbol(symbol);
             if (associated is not null)
             {
-                return associated;
+                // Baking fields of captured primary constructor parameters
+                // point back to the original parameters as associated symbols,
+                // but are not considered to be contained in their respective parameters
+                if (associated is not IParameterSymbolInternal)
+                {
+                    return associated;
+                }
             }
 
             symbol = symbol.ContainingSymbol;

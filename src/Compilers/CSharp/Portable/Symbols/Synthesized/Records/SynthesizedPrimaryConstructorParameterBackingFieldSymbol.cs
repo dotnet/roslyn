@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
 
         public override Symbol? AssociatedSymbol
-            => null;
+            => ParameterSymbol;
 
         public override ImmutableArray<Location> Locations
             => ParameterSymbol.Locations;
