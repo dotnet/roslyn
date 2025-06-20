@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
+
 public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
     public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
