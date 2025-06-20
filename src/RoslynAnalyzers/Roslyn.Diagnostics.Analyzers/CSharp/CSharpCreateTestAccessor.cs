@@ -8,6 +8,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Diagnostics.Analyzers;
 
