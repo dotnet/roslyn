@@ -15,17 +15,17 @@ namespace Microsoft.CodeAnalysis.Options;
 /// <inheritdoc cref="Option2{T}"/>
 public class Option<T> : IPublicOption
 {
-    internal readonly OptionDefinition<T> OptionalDefinition;
+    internal readonly OptionDefinition<T> OptionDefinition;
 
     public string Feature { get; }
 
-    internal OptionGroup Group => OptionalDefinition.Group;
+    internal OptionGroup Group => OptionDefinition.Group;
 
     public string Name { get; }
 
-    public T DefaultValue => (T)OptionalDefinition.DefaultValue!;
+    public T DefaultValue => (T)OptionDefinition.DefaultValue!;
 
-    public Type Type => OptionalDefinition.Type;
+    public Type Type => OptionDefinition.Type;
 
     public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
@@ -76,7 +76,7 @@ public class Option<T> : IPublicOption
     {
         Feature = feature;
         Name = name;
-        OptionalDefinition = optionDefinition;
+        OptionDefinition = optionDefinition;
         StorageLocations = storageLocations;
     }
 
@@ -86,13 +86,13 @@ public class Option<T> : IPublicOption
 
     IPublicOption? IOption2.PublicOption => null;
 
-    OptionDefinition IOption2.Definition => OptionalDefinition;
+    OptionDefinition IOption2.Definition => OptionDefinition;
 
     bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
     public override string ToString() => this.PublicOptionDefinitionToString();
 
-    public override int GetHashCode() => OptionalDefinition.GetHashCode();
+    public override int GetHashCode() => OptionDefinition.GetHashCode();
 
     public override bool Equals(object? obj) => Equals(obj as IOption2);
 
@@ -126,7 +126,7 @@ internal static class OptionUtilities
         Contract.ThrowIfTrue(typeof(TFromEnum).GetEnumUnderlyingType() != typeof(TUnderlyingEnumType));
         Contract.ThrowIfTrue(typeof(TToEnum).GetEnumUnderlyingType() != typeof(TUnderlyingEnumType));
 
-        var definition = option.OptionalDefinition;
+        var definition = option.OptionDefinition;
         var newDefaultValue = ConvertEnum<TFromEnum, TToEnum, TUnderlyingEnumType>(definition.DefaultValue);
         var newSerializer = ConvertEnumSerializer<TFromEnum, TToEnum, TUnderlyingEnumType>(definition.Serializer);
 
