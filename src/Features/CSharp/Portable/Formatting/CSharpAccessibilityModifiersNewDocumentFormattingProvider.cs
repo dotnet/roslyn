@@ -62,7 +62,7 @@ internal sealed class CSharpAccessibilityModifiersNewDocumentFormattingProvider 
             // error.
             var modifiers = syntaxFacts.GetModifiers(declaration);
             CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
-            if (declarationModifiers.IsPartial)
+            if (declarationModifiers.HasFlag(Modifiers.Partial))
                 continue;
 
             var type = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);

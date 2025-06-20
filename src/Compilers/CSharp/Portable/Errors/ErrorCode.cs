@@ -2409,9 +2409,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PPShebangInProjectBasedProgram = 9314,
 
         ERR_TooManyUserStrings_RestartRequired = 9315,
+        ERR_NameofExtensionMember = 9316,
 
-        ERR_StructLayoutAndExtendedLayout = 9316,
-        ERR_InvalidExtendedLayoutAttribute = 9317,
+        ERR_StructLayoutAndExtendedLayout = 9317,
+        ERR_InvalidExtendedLayoutAttribute = 9318,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

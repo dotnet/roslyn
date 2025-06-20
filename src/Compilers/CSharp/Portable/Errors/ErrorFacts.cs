@@ -2522,6 +2522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_OperatorMismatchOnOverride
                 or ErrorCode.ERR_BadCompoundAssignmentOpArgs
                 or ErrorCode.ERR_PPShebangInProjectBasedProgram
+                or ErrorCode.ERR_NameofExtensionMember
                 or ErrorCode.ERR_StructLayoutAndExtendedLayout
                 or ErrorCode.ERR_InvalidExtendedLayoutAttribute
                     => false,

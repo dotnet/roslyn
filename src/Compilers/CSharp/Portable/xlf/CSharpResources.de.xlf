@@ -1562,6 +1562,11 @@
         <target state="translated">Ein Inlinearrayzugriff verfügt möglicherweise nicht über einen benannten Argumentspezifizierer.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension members are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Die new()-Einschränkung kann nicht mit der unmanaged-Einschränkung verwendet werden.</target>
@@ -7928,8 +7933,8 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
-        <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
-        <target state="translated">Das DllImport-Attribut muss für eine Methode angegeben werden, die als "static" und "extern" markiert ist.</target>
+        <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
+        <target state="needs-review-translation">Das DllImport-Attribut muss für eine Methode angegeben werden, die als "static" und "extern" markiert ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">

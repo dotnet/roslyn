@@ -163,6 +163,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\IntervalTreeHelpers.NodeEnumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\Modifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageExtensions.cs" />
@@ -367,6 +368,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\Option2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\PerLanguageOption2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\AbstractRefactoringHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\IRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\AbstractSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ForEachSymbols.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ISemanticFactsExtensions.cs" />
@@ -548,5 +551,6 @@
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
     <Folder Include="$(MSBuildThisFileDirectory)Hashing\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Services\RefactoringHelpers\" />
   </ItemGroup>
 </Project>

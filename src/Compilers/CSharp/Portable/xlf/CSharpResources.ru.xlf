@@ -1562,6 +1562,11 @@
         <target state="translated">Доступ к встроенному массиву может не иметь спецификатора именованного аргумента.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension members are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Ограничение "new()" невозможно использовать вместе с ограничением "unmanaged"</target>
@@ -7929,8 +7934,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
-        <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
-        <target state="translated">Атрибут DllImport должен быть указан для метода, который помечен как "static" и "extern".</target>
+        <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
+        <target state="needs-review-translation">Атрибут DllImport должен быть указан для метода, который помечен как "static" и "extern".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
