@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                         break;
                 }
 
-                Contract.ThrowIfNull(currentRuleEntryKind);
+                RoslynDebug.Assert(currentRuleEntryKind != null);
 
                 var parts = lineText.Trim('|').Split('|').Select(s => s.Trim()).ToArray();
                 if (IsInvalidEntry(parts, currentRuleEntryKind.Value))
