@@ -60,7 +60,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringCompatExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CharExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VersionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\ICollectionExpressionOperationWrapper.cs" />
