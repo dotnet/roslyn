@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {

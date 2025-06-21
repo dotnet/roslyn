@@ -4,10 +4,10 @@
 
 #nullable disable
 
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-using System.Runtime.CompilerServices;
 
 // 🐉 The XAML markup compiler does not recognize InternalsVisibleTo. However, since it allows type
 // forwarding, we use TypeForwardedTo to make CodeStyleNoticeTextBlock appear to the markup compiler

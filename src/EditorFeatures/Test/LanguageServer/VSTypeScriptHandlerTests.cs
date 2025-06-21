@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -22,7 +23,6 @@ using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
-using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServer;
 

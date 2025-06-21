@@ -4,8 +4,8 @@
 
 namespace Roslyn.LanguageServer.Protocol;
 
-using Roslyn.Text.Adornments;
 using System.Text.Json.Serialization;
+using Roslyn.Text.Adornments;
 
 /// <summary>
 /// Extension class for CompletionItem with fields specific to Visual Studio functionalities.
