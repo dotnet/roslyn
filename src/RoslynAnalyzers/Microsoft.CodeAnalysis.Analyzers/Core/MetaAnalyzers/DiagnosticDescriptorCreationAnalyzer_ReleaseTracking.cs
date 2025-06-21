@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                Contract.ThrowIfNull(diagnostics);
+                RoslynDebug.Assert(diagnostics != null);
 
                 // Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.
                 string arg1 = ruleId;
@@ -209,8 +209,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             void OnInvalidEntry(TextLine line, InvalidEntryKind invalidEntryKind, string path, SourceText sourceText)
             {
-                Contract.ThrowIfNull(diagnostics);
-                Contract.ThrowIfNull(reportedInvalidLines);
+                RoslynDebug.Assert(diagnostics != null);
+                RoslynDebug.Assert(reportedInvalidLines != null);
 
                 if (!reportedInvalidLines.Add(line))
                 {
