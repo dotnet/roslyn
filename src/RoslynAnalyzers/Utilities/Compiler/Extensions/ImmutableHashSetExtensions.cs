@@ -36,59 +36,59 @@ namespace System.Collections.Immutable
             return builder.ToImmutable();
         }
 
-        //        public static ImmutableHashSet<T> IntersectSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
-        //        {
-        //            if (set1.IsEmpty || set2.IsEmpty)
-        //            {
-        //                return ImmutableHashSet<T>.Empty;
-        //            }
-        //            else if (set1.Count == 1)
-        //            {
-        //                return set2.Contains(set1.First()) ? set1 : ImmutableHashSet<T>.Empty;
-        //            }
-        //            else if (set2.Count == 1)
-        //            {
-        //                return set1.Contains(set2.First()) ? set2 : ImmutableHashSet<T>.Empty;
-        //            }
+        public static ImmutableHashSet<T> IntersectSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
+        {
+            if (set1.IsEmpty || set2.IsEmpty)
+            {
+                return ImmutableHashSet<T>.Empty;
+            }
+            else if (set1.Count == 1)
+            {
+                return set2.Contains(set1.First()) ? set1 : ImmutableHashSet<T>.Empty;
+            }
+            else if (set2.Count == 1)
+            {
+                return set1.Contains(set2.First()) ? set2 : ImmutableHashSet<T>.Empty;
+            }
 
-        //            using var _ = PooledHashSet<T>.GetInstance(out var builder);
-        //            foreach (var item in set1)
-        //            {
-        //                if (set2.Contains(item))
-        //                {
-        //                    builder.Add(item);
-        //                }
-        //            }
+            using var _ = PooledHashSet<T>.GetInstance(out var builder);
+            foreach (var item in set1)
+            {
+                if (set2.Contains(item))
+                {
+                    builder.Add(item);
+                }
+            }
 
-        //            if (builder.Count == set1.Count)
-        //            {
-        //                return set1;
-        //            }
-        //            else if (builder.Count == set2.Count)
-        //            {
-        //                return set2;
-        //            }
+            if (builder.Count == set1.Count)
+            {
+                return set1;
+            }
+            else if (builder.Count == set2.Count)
+            {
+                return set2;
+            }
 
-        //            return builder.ToImmutable();
-        //        }
+            return builder.ToImmutable();
+        }
 
-        //        public static bool IsSubsetOfSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
-        //        {
-        //            if (set1.Count > set2.Count)
-        //            {
-        //                return false;
-        //            }
+        public static bool IsSubsetOfSet<T>(this ImmutableHashSet<T> set1, ImmutableHashSet<T> set2)
+        {
+            if (set1.Count > set2.Count)
+            {
+                return false;
+            }
 
-        //            foreach (var item in set1)
-        //            {
-        //                if (!set2.Contains(item))
-        //                {
-        //                    return false;
-        //                }
-        //            }
+            foreach (var item in set1)
+            {
+                if (!set2.Contains(item))
+                {
+                    return false;
+                }
+            }
 
-        //            return true;
-        //        }
+            return true;
+        }
 
         //        public static void AddIfNotNull<T>(this ImmutableHashSet<T>.Builder builder, T? item)
         //            where T : class
