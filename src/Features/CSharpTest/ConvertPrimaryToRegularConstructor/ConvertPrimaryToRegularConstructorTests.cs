@@ -2802,4 +2802,527 @@ public sealed class ConvertPrimaryToRegularConstructorTests
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_NotUsed()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public C(int i)
+                        {
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_UsedInSamePartialPart()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        public int I { get; } = i;
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public int I { get; }
+
+                        public C(int i)
+                        {
+                            I = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_UsedInOtherPartialPart()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I { get; } = i;
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public C(int i)
+                        {
+                            I = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I { get; }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_UsedInAllPartialParts()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        public int I1 { get; } = i + 1;
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I2 { get; } = i + 2;
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        public int I1 { get; }
+
+                        public C(int i)
+                        {
+                            I2 = i + 2;
+                            I1 = i + 1;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        public int I2 { get; }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_CapturedInSamePartialPart_SameFieldName()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int i;
+
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
+
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_CapturedInSamePartialPart_UnderscoreFieldName()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int _i;
+
+                        public C(int i)
+                        {
+                            _i = i;
+                        }
+
+                        int M()
+                        {
+                            return _i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_CapturedInOtherPartialPart_SameFieldName()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int i;
+
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_CapturedInOtherPartialPart_UnderscoreFieldName()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int _i;
+
+                        public C(int i)
+                        {
+                            _i = i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int M()
+                        {
+                            return _i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_CapturedInAllPartialParts_SameFieldName()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int i;
+
+                        public C(int i)
+                        {
+                            this.i = i;
+                        }
+
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79077")]
+    public async Task TestOnPartialType_CapturedInAllPartialParts_UnderscoreFieldName()
+    {
+        await new VerifyCS.Test()
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    partial class [|C(int i)|]
+                    {
+                        int M()
+                        {
+                            return i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return i;
+                        }
+                    }
+                    """
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    partial class C
+                    {
+                        private readonly int _i;
+
+                        public C(int i)
+                        {
+                            _i = i;
+                        }
+
+                        int M()
+                        {
+                            return _i;
+                        }
+                    }
+                    """, """
+                    partial class C
+                    {
+                        int N()
+                        {
+                            return _i;
+                        }
+                    }
+                    """
+                }
+            },
+            LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig,
+        }.RunAsync();
+    }
 }

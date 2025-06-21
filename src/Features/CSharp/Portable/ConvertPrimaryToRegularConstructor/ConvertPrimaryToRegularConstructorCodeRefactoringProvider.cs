@@ -119,7 +119,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         RemovePrimaryConstructorParameterList();
         RemovePrimaryConstructorBaseTypeArgumentList();
         RemovePrimaryConstructorTargetingAttributes();
-        RemoveDirectFieldAndPropertyAssignments();
+        await RemoveDirectFieldAndPropertyAssignmentsAsync().ConfigureAwait(false);
         AddNewFields();
         AddConstructorDeclaration();
         await RewritePrimaryConstructorParameterReferencesAsync().ConfigureAwait(false);
@@ -265,14 +265,16 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 mainDocumentEditor.RemoveNode(attributeList);
         }
 
-        void RemoveDirectFieldAndPropertyAssignments()
+        async Task RemoveDirectFieldAndPropertyAssignmentsAsync()
         {
             // Remove all the initializers from existing fields/props the params are assigned to.
             foreach (var (_, initializer) in initializedFieldsAndProperties)
             {
+                var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(initializer.SyntaxTree), cancellationToken).ConfigureAwait(false);
+
                 if (initializer.Parent is PropertyDeclarationSyntax propertyDeclaration)
                 {
-                    mainDocumentEditor.ReplaceNode(
+                    editor.ReplaceNode(
                         propertyDeclaration,
                         propertyDeclaration
                             .WithInitializer(null)
@@ -281,7 +283,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 }
                 else if (initializer.Parent is VariableDeclaratorSyntax)
                 {
-                    mainDocumentEditor.RemoveNode(initializer);
+                    editor.RemoveNode(initializer);
                 }
                 else
                 {
