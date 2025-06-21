@@ -10793,7 +10793,7 @@ class MyClass
 }
                               </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp, True)
                 state.SendTypeChars("if")
                 Await state.AssertSelectedCompletionItem(displayText:="if", inlineDescription:=Nothing, isHardSelected:=True)
                 state.SendDownKey()
@@ -10867,7 +10867,7 @@ class MyClass
 }
                               </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp, False)
                 state.SendInvokeCompletionList()
                 ' We should still work normally w/o pythia recommender
                 Await state.AssertCompletionItemsContainAll("argumentException", "exception")
@@ -10890,7 +10890,7 @@ class MyClass
                               </Document>,
                               extraExportedTypes:={GetType(TestPythiaDeclarationNameRecommenderImplmentation)}.ToList())
 
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp, False)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp, False)
 
                 state.SendInvokeCompletionList()
                 Dim computedItems = (Await state.GetCompletionSession()).GetComputedItems(CancellationToken.None)

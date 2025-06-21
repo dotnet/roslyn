@@ -223,7 +223,7 @@
         }
       }
     },
-    // CompletionOptionsStorage.ShowNewSnippetExperienceUserOption
+    // CompletionOptionsStorage.ShowNewSnippetExperience
     "textEditor.csharp.intellisense.showNewSnippetExperience": {
       "title": "@Show_new_snippet_experience;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",

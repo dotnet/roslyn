@@ -32,7 +32,7 @@ internal static class CompletionOptionsStorage
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
-            ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language)
+            ShowNewSnippetExperience = options.GetOption(ShowNewSnippetExperience, language)
         };
 
     private static readonly OptionGroup s_completionOptionGroup = new(name: "completion", description: "");
@@ -61,5 +61,5 @@ internal static class CompletionOptionsStorage
 
     public static PerLanguageOption2<bool> ProvideRegexCompletions = new("dotnet_provide_regex_completions", CompletionOptions.Default.ProvideRegexCompletions, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions = new("dotnet_provide_date_and_time_completions", CompletionOptions.Default.ProvideDateAndTimeCompletions, group: s_completionOptionGroup);
-    public static readonly PerLanguageOption2<bool> ShowNewSnippetExperienceUserOption = new("dotnet_show_new_snippet_experience", CompletionOptions.Default.ShowNewSnippetExperienceUserOption, group: s_completionOptionGroup);
+    public static readonly PerLanguageOption2<bool> ShowNewSnippetExperience = new("dotnet_show_new_snippet_experience", CompletionOptions.Default.ShowNewSnippetExperience, group: s_completionOptionGroup);
 }

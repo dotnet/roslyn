@@ -42,7 +42,7 @@ internal sealed partial class IntelliSenseOptionPageControl : AbstractOptionPage
         BindToOption(Show_items_from_unimported_namespaces, CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, onNullValue: static () => true);
 
         BindToOption(Tab_twice_to_insert_arguments, CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.CSharp, onNullValue: static () => false);
-        BindToOption(Show_new_snippet_experience, CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, LanguageNames.CSharp);
+        BindToOption(Show_new_snippet_experience, CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp);
     }
 
     private void SetSnippetsDefaultBehavior()

@@ -42,7 +42,7 @@ public sealed class UnifiedSettingsTests
         Add(CompletionOptionsStorage.ShowNameSuggestions, "textEditor.csharp.intellisense.showNameCompletionSuggestions").
         Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "textEditor.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces").
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "textEditor.csharp.intellisense.enableArgumentCompletionSnippets").
-        Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "textEditor.csharp.intellisense.showNewSnippetExperience");
+        Add(CompletionOptionsStorage.ShowNewSnippetExperience, "textEditor.csharp.intellisense.showNewSnippetExperience");
 
     /// <summary>
     /// Array containing the option to expected unified settings for C# intellisense page.
@@ -115,8 +115,8 @@ public sealed class UnifiedSettingsTests
             customDefaultValue: false,
             order: 90,
             languageName: LanguageNames.CSharp)),
-        (CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, CreateBooleanOption(
-            CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
+        (CompletionOptionsStorage.ShowNewSnippetExperience, CreateBooleanOption(
+            CompletionOptionsStorage.ShowNewSnippetExperience,
             title: "Show new snippet experience",
             customDefaultValue: false,
             order: 100,

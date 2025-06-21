@@ -47,7 +47,7 @@ internal sealed record class CompletionOptions
 
     public bool FilterOutOfScopeLocals { get; init; } = true;
     public bool ShowXmlDocCommentCompletion { get; init; } = true;
-    public bool ShowNewSnippetExperienceUserOption { get; init; } = false;
+    public bool ShowNewSnippetExperience { get; init; } = false;
     public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
 
     public static readonly CompletionOptions Default = new();
@@ -83,6 +83,6 @@ internal sealed record class CompletionOptions
             return false;
         }
 
-        return ShowNewSnippetExperienceUserOption;
+        return ShowNewSnippetExperience;
     }
 }
