@@ -2192,6 +2192,7 @@ Global
 		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
+		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems*{3f65d29d-ed95-2d6f-b927-47c5cf070aa5}*SharedItemsImports = 5
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{41ed1bfa-fdad-4fe4-8118-db23fb49b0b0}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\CSharp\CSharpWorkspaceExtensions.projitems*{438db8af-f3f0-4ed9-80b5-13fddd5b8787}*SharedItemsImports = 13
