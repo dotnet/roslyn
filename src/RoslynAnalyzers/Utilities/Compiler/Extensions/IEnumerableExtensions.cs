@@ -93,14 +93,14 @@ namespace Analyzer.Utilities.Extensions
         //            }
         //        }
 
-        //        public static void Dispose<T>(this IEnumerable<T?> collection)
-        //            where T : class, IDisposable
-        //        {
-        //            foreach (var item in collection)
-        //            {
-        //                item?.Dispose();
-        //            }
-        //        }
+        public static void Dispose<T>(this IEnumerable<T?> collection)
+            where T : class, IDisposable
+        {
+            foreach (var item in collection)
+            {
+                item?.Dispose();
+            }
+        }
 
         /// <summary>
         /// Determines whether a sequence contains, exactly, <paramref name="count"/> elements.
