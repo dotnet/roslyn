@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis
 
         public static readonly string[] Telemetry = new string[] { WellKnownDiagnosticTags.Telemetry };
         public static readonly string[] TelemetryEnabledInAggressiveMode = new string[] { WellKnownDiagnosticTags.Telemetry, EnabledRuleInAggressiveMode };
-        //        public static readonly string[] CompilationEndAndTelemetry = new string[] { CompilationEnd, WellKnownDiagnosticTags.Telemetry };
+        public static readonly string[] CompilationEndAndTelemetry = new string[] { CompilationEnd, WellKnownDiagnosticTags.Telemetry };
     }
 }
