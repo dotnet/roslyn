@@ -192,11 +192,6 @@
         <target state="translated">顯示新的程式碼片段體驗</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">顯示新的程式碼片段體驗 (實驗性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">為 .NET Framework 組件中的類型建議 using</target>

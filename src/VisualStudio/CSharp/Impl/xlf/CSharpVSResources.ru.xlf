@@ -192,11 +192,6 @@
         <target state="translated">Показывать новый интерфейс фрагмента кода</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">Показывать новый интерфейс фрагмента кода (экспериментальная функция)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">Предлагать using для типов в сборках .NET Framework</target>

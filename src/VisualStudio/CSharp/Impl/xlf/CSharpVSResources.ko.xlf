@@ -192,11 +192,6 @@
         <target state="translated">새 코드 조각 환경 표시</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">새 코드 조각 환경 표시(실험적)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">.NET Framework 어셈블리의 형식에 using 제안</target>
