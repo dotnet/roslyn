@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // 2. OperationKindEx.Attribute or OperationKind.None (used for attributes before IAttributeOperation support).
             // 3. OperationKind.ParameterInitialzer (default parameter values).
             if (cfg.OriginalOperation == null ||
-                cfg.OriginalOperation.Kind is OperationKindEx.Attribute or OperationKind.None or OperationKind.ParameterInitializer)
+                cfg.OriginalOperation.Kind is OperationKind.Attribute or OperationKind.None or OperationKind.ParameterInitializer)
             {
                 return false;
             }

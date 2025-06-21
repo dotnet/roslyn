@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if HAS_IOPERATION
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -321,7 +319,7 @@ namespace Analyzer.Utilities.Extensions
                     // Attribute blocks have OperationKind.None (prior to IAttributeOperation support) or
                     // OperationKind.Attribute, but we do not support flow analysis for attributes.
                     // Gracefully return null for this case and fire an assert for any other OperationKind.
-                    Debug.Assert(operation.Kind is OperationKind.None or OperationKindEx.Attribute, $"Unexpected root operation kind: {operation.Kind}");
+                    Debug.Assert(operation.Kind is OperationKind.None or OperationKind.Attribute, $"Unexpected root operation kind: {operation.Kind}");
                     return null;
             }
         }
@@ -534,7 +532,6 @@ namespace Analyzer.Utilities.Extensions
 
             throw new InvalidOperationException();
         }
-#endif
     }
 }
 

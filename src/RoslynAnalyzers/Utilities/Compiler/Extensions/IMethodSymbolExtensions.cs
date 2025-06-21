@@ -11,13 +11,10 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-
-#if HAS_IOPERATION
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-#endif
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -425,7 +422,6 @@ namespace Analyzer.Utilities.Extensions
                SymbolEqualityComparer.Default.Equals(method.ContainingType.OriginalDefinition, taskAsyncEnumerableExtensions) &&
                taskAsyncEnumerableExtensions.IsStatic;
 
-        //#if HAS_IOPERATION
         /// <summary>
         /// PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
         /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.

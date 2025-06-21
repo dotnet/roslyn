@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if HAS_IOPERATION
-
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -15,10 +13,10 @@ namespace Analyzer.Utilities.Lightup
     {
         private static readonly Assembly s_codeAnalysisAssembly = typeof(SyntaxNode).GetTypeInfo().Assembly;
 
-        private static readonly ImmutableDictionary<Type, Type?> WrappedTypes = ImmutableDictionary.Create<Type, Type?>()
-            //.Add(typeof(IFunctionPointerInvocationOperationWrapper), s_codeAnalysisAssembly.GetType(IFunctionPointerInvocationOperationWrapper.WrappedTypeName))
-            .Add(typeof(IUtf8StringOperationWrapper), s_codeAnalysisAssembly.GetType(IUtf8StringOperationWrapper.WrappedTypeName))
-            .Add(typeof(ICollectionExpressionOperationWrapper), s_codeAnalysisAssembly.GetType(ICollectionExpressionOperationWrapper.WrappedTypeName));
+        private static readonly ImmutableDictionary<Type, Type?> WrappedTypes = ImmutableDictionary.Create<Type, Type?>();
+            ////.Add(typeof(IFunctionPointerInvocationOperationWrapper), s_codeAnalysisAssembly.GetType(IFunctionPointerInvocationOperationWrapper.WrappedTypeName))
+            //.Add(typeof(IUtf8StringOperationWrapper), s_codeAnalysisAssembly.GetType(IUtf8StringOperationWrapper.WrappedTypeName))
+            //.Add(typeof(ICollectionExpressionOperationWrapper), s_codeAnalysisAssembly.GetType(ICollectionExpressionOperationWrapper.WrappedTypeName));
 
         /// <summary>
         /// Gets the type that is wrapped by the given wrapper.
@@ -36,5 +34,3 @@ namespace Analyzer.Utilities.Lightup
         }
     }
 }
-
-#endif

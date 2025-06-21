@@ -59,7 +59,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\ICollectionExpressionOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IOperationWrapper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IFunctionPointerInvocationOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IUtf8StringOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\OperationKindEx.cs" />
