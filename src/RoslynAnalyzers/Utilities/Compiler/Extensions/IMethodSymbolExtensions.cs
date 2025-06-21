@@ -14,7 +14,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-
 #if HAS_IOPERATION
 using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
