@@ -85,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicSyntaxKindsServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.TypeInferrer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\VisualBasicTypeInferenceService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticModelReuse\VisualBasicSemanticModelReuseLanguageService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\VisualBasicSimplificationHelpers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ModifierCollectionFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxIterator.vb" />

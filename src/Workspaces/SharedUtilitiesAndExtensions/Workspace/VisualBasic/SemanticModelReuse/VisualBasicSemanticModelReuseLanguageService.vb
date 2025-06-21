@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SemanticModelReuse
         Protected Overrides Function GetAccessors(member As DeclarationStatementSyntax) As SyntaxList(Of AccessorBlockSyntax)
             Contract.ThrowIfFalse(TypeOf member Is PropertyBlockSyntax OrElse
                                   TypeOf member Is EventBlockSyntax)
-            Return VisualBasicSyntaxGenerator.GetAccessorList(member)
+            Return GetAccessorList(member)
         End Function
 
         Public Overrides Function TryGetContainingMethodBodyForSpeculation(node As SyntaxNode) As SyntaxNode
