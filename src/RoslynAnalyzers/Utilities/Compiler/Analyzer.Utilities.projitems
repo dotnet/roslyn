@@ -54,9 +54,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ReportDiagnosticExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MethodKindEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringCompatExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VersionExtensions.cs" />
