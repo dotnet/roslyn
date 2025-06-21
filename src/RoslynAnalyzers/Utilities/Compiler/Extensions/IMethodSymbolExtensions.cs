@@ -66,32 +66,6 @@ namespace Analyzer.Utilities.Extensions
                 (method.Name == WellKnownMemberNames.ObjectEquals || method.Name == "ReferenceEquals");
         }
 
-        //        /// <summary>
-        //        /// Checks if the given method overrides Object.GetHashCode.
-        //        /// </summary>
-        //        public static bool IsGetHashCodeOverride(this IMethodSymbol method)
-        //        {
-        //            return method != null &&
-        //                   method.IsOverride &&
-        //                   method.Name == WellKnownMemberNames.ObjectGetHashCode &&
-        //                   method.ReturnType.SpecialType == SpecialType.System_Int32 &&
-        //                   method.Parameters.IsEmpty &&
-        //                   IsObjectMethodOverride(method);
-        //        }
-
-        //        /// <summary>
-        //        /// Checks if the given method overrides Object.ToString.
-        //        /// </summary>
-        //        public static bool IsToStringOverride(this IMethodSymbol method)
-        //        {
-        //            return method != null &&
-        //                   method.IsOverride &&
-        //                   method.ReturnType.SpecialType == SpecialType.System_String &&
-        //                   method.Name == WellKnownMemberNames.ObjectToString &&
-        //                   method.Parameters.IsEmpty &&
-        //                   IsObjectMethodOverride(method);
-        //        }
-
         /// <summary>
         /// Checks if the given method overrides a method from System.Object
         /// </summary>
@@ -110,42 +84,6 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
-
-        //        /// <summary>
-        //        /// Checks if the given method is a Finalizer implementation.
-        //        /// </summary>
-        //        public static bool IsFinalizer(this IMethodSymbol method)
-        //        {
-        //            if (method.MethodKind == MethodKind.Destructor)
-        //            {
-        //                return true; // for C#
-        //            }
-
-        //            if (method.Name != WellKnownMemberNames.DestructorName || !method.Parameters.IsEmpty || !method.ReturnsVoid)
-        //            {
-        //                return false;
-        //            }
-
-        //            IMethodSymbol overridden = method.OverriddenMethod;
-
-        //            if (method.ContainingType.SpecialType == SpecialType.System_Object)
-        //            {
-        //                // This is object.Finalize
-        //                return true;
-        //            }
-
-        //            if (overridden == null)
-        //            {
-        //                return false;
-        //            }
-
-        //            for (IMethodSymbol o = overridden.OverriddenMethod; o != null; o = o.OverriddenMethod)
-        //            {
-        //                overridden = o;
-        //            }
-
-        //            return overridden.ContainingType.SpecialType == SpecialType.System_Object; // it is object.Finalize
-        //        }
 
         /// <summary>
         /// Checks if the given method is an implementation of the given interface method
@@ -383,29 +321,6 @@ namespace Analyzer.Utilities.Extensions
             return DisposeMethodKind.None;
         }
 
-        //        /// <summary>
-        //        /// Checks if the given method implements 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization' or overrides an implementation of 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization'/>.
-        //        /// </summary>
-        //        public static bool IsOnDeserializationImplementation([NotNullWhen(returnValue: true)] this IMethodSymbol? method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? iDeserializationCallback)
-        //        {
-        //            if (method == null)
-        //            {
-        //                return false;
-        //            }
-
-        //            if (method.IsOverride)
-        //            {
-        //                return method.OverriddenMethod.IsOnDeserializationImplementation(iDeserializationCallback);
-        //            }
-
-        //            // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
-        //            // if it is the given method.
-        //            return method.ReturnsVoid &&
-        //                method.Parameters.Length == 1 &&
-        //                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-        //                method.IsImplementationOfInterfaceMethod(null, iDeserializationCallback, "OnDeserialization");
-        //        }
-
         public static bool IsSerializationConstructor([NotNullWhen(returnValue: true)] this IMethodSymbol? method, INamedTypeSymbol? serializationInfoType, INamedTypeSymbol? streamingContextType)
             => method.IsConstructor() &&
                 method.Parameters.Length == 2 &&
@@ -418,48 +333,6 @@ namespace Analyzer.Utilities.Extensions
                 method.Parameters.Length == 2 &&
                 SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, serializationInfoType) &&
                 SymbolEqualityComparer.Default.Equals(method.Parameters[1].Type, streamingContextType);
-
-        //        /// <summary>
-        //        /// Checks if the method is a property getter.
-        //        /// </summary>
-        //        public static bool IsPropertyGetter(this IMethodSymbol method)
-        //        {
-        //            return method.MethodKind == MethodKind.PropertyGet &&
-        //                   method.AssociatedSymbol?.GetParameters().Length == 0;
-        //        }
-
-        //        /// <summary>
-        //        /// Checks if the method is the getter for an indexer.
-        //        /// </summary>
-        //        public static bool IsIndexerGetter(this IMethodSymbol method)
-        //        {
-        //            return method.MethodKind == MethodKind.PropertyGet &&
-        //                   method.AssociatedSymbol.IsIndexer();
-        //        }
-
-        //        /// <summary>
-        //        /// Checks if the method is an accessor for a property.
-        //        /// </summary>
-        //        public static bool IsPropertyAccessor(this IMethodSymbol method)
-        //        {
-        //            return method.MethodKind is MethodKind.PropertyGet or
-        //                   MethodKind.PropertySet;
-        //        }
-
-        //        /// <summary>
-        //        /// Checks if the method is an accessor for an event.
-        //        /// </summary>
-        //        public static bool IsEventAccessor(this IMethodSymbol method)
-        //        {
-        //            return method.MethodKind is MethodKind.EventAdd or
-        //                   MethodKind.EventRaise or
-        //                   MethodKind.EventRemove;
-        //        }
-
-        //        public static bool IsOperator(this IMethodSymbol methodSymbol)
-        //        {
-        //            return methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.BuiltinOperator;
-        //        }
 
         public static bool HasOptionalParameters(this IMethodSymbol methodSymbol)
         {
@@ -622,35 +495,6 @@ namespace Analyzer.Utilities.Extensions
             };
         }
 
-        //        public static int GetParameterIndex(this IMethodSymbol methodSymbol, IParameterSymbol parameterSymbol)
-        //        {
-        //            for (var i = 0; i < methodSymbol.Parameters.Length; i++)
-        //            {
-        //                if (SymbolEqualityComparer.Default.Equals(parameterSymbol, methodSymbol.Parameters[i]))
-        //                {
-        //                    return i;
-        //                }
-        //            }
-
-        //            throw new ArgumentException("Invalid parameter", nameof(parameterSymbol));
-        //        }
-
-        //        /// <summary>
-        //        /// Returns true for void returning methods with two parameters, where
-        //        /// the first parameter is of <see cref="object"/> type and the second
-        //        /// parameter inherits from or equals <see cref="EventArgs"/> type or
-        //        /// whose name ends with 'EventArgs'.
-        //        /// </summary>
-        //        public static bool HasEventHandlerSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? eventArgsType)
-        //            => eventArgsType != null &&
-        //               method.ReturnsVoid &&
-        //               method.Parameters.Length == 2 &&
-        //               method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
-        //               // FxCop compat: Struct with name ending with "EventArgs" are allowed
-        //               // + UWP has specific EventArgs not inheriting from 'System.EventArgs'.
-        //               // See https://github.com/dotnet/roslyn-analyzers/issues/3106
-        //               (method.Parameters[1].Type.DerivesFrom(eventArgsType, baseTypesOnly: true) || method.Parameters[1].Type.Name.EndsWith("EventArgs", StringComparison.Ordinal));
-
         public static bool IsLockMethod(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? systemThreadingMonitor)
         {
             // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
@@ -690,31 +534,6 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
             => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
 
-        //        /// <summary>
-        //        /// Find out if the method overrides from target virtual method of a certain type
-        //        /// or it is the virtual method itself.
-        //        /// </summary>
-        //        /// <param name="methodSymbol">The method</param>
-        //        /// <param name="typeSymbol">The type has virtual method</param>
-        //        public static bool IsOverrideOrVirtualMethodOf([NotNullWhen(returnValue: true)] this IMethodSymbol? methodSymbol, [NotNullWhen(returnValue: true)] INamedTypeSymbol? typeSymbol)
-        //        {
-        //            if (methodSymbol == null)
-        //            {
-        //                return false;
-        //            }
-        //            else
-        //            {
-        //                if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, typeSymbol))
-        //                {
-        //                    return true;
-        //                }
-        //                else
-        //                {
-        //                    return IsOverrideOrVirtualMethodOf(methodSymbol.OverriddenMethod, typeSymbol);
-        //                }
-        //            }
-        //        }
-
         /// <summary>
         /// Returns true if this is a bool returning static method whose name starts with "IsNull"
         /// with a single parameter whose type is not a value type.
@@ -739,68 +558,6 @@ namespace Analyzer.Utilities.Extensions
 
             return false;
         }
-
-        //        /// <summary>
-        //        /// Check if a method is an auto-property accessor.
-        //        /// </summary>
-        //        public static bool IsAutoPropertyAccessor(this IMethodSymbol methodSymbol)
-        //            => methodSymbol.IsPropertyAccessor()
-        //            && methodSymbol.AssociatedSymbol is IPropertySymbol propertySymbol
-        //            && propertySymbol.IsAutoProperty();
-
-        //        /// <summary>
-        //        /// Check if the given <paramref name="methodSymbol"/> is an implicitly generated method for top level statements.
-        //        /// </summary>
-        //        public static bool IsTopLevelStatementsEntryPointMethod([NotNullWhen(true)] this IMethodSymbol? methodSymbol)
-        //            => methodSymbol?.IsStatic == true && methodSymbol.Name switch
-        //            {
-        //                "$Main" => true,
-        //                "<Main>$" => true,
-        //                _ => false
-        //            };
-
-        //        public static bool IsGetAwaiterFromAwaitablePattern([NotNullWhen(true)] this IMethodSymbol? method,
-        //            [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,
-        //            [NotNullWhen(true)] INamedTypeSymbol? icriticalNotifyCompletionType)
-        //        {
-        //            if (method is null
-        //                || !method.Name.Equals("GetAwaiter", StringComparison.Ordinal)
-        //                || method.Parameters.Length != 0)
-        //            {
-        //                return false;
-        //            }
-
-        //            var returnType = method.ReturnType?.OriginalDefinition;
-        //            if (returnType is null)
-        //            {
-        //                return false;
-        //            }
-
-        //            return returnType.DerivesFrom(inotifyCompletionType) ||
-        //                returnType.DerivesFrom(icriticalNotifyCompletionType);
-        //        }
-
-        //        public static bool IsGetResultFromAwaiterPattern(
-        //            [NotNullWhen(true)] this IMethodSymbol? method,
-        //            [NotNullWhen(true)] INamedTypeSymbol? inotifyCompletionType,
-        //            [NotNullWhen(true)] INamedTypeSymbol? icriticalNotifyCompletionType)
-        //        {
-        //            if (method is null
-        //                || !method.Name.Equals("GetResult", StringComparison.Ordinal)
-        //                || method.Parameters.Length != 0)
-        //            {
-        //                return false;
-        //            }
-
-        //            var containingType = method.ContainingType?.OriginalDefinition;
-        //            if (containingType is null)
-        //            {
-        //                return false;
-        //            }
-
-        //            return containingType.DerivesFrom(inotifyCompletionType) ||
-        //                containingType.DerivesFrom(icriticalNotifyCompletionType);
-        //        }
 
         public static ImmutableArray<IMethodSymbol> GetOriginalDefinitions(this IMethodSymbol methodSymbol)
         {
