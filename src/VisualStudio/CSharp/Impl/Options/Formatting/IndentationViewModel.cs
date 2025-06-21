@@ -86,8 +86,8 @@ class MyClass
 
         Items.Add(new TextBlock() { Text = CSharpVSResources.Label_Indentation });
 
-        Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Place_goto_labels_in_leftmost_column, GotoLabelPreview, "goto", LabelPositionOptions.LeftMost, CSharpFormattingOptions2.LabelPositioning, this, optionStore));
-        Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Indent_labels_normally, GotoLabelPreview, "goto", LabelPositionOptions.NoIndent, CSharpFormattingOptions2.LabelPositioning, this, optionStore));
-        Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Place_goto_labels_one_indent_less_than_current, GotoLabelPreview, "goto", LabelPositionOptions.OneLess, CSharpFormattingOptions2.LabelPositioning, this, optionStore));
+        Items.Add(new RadioButtonViewModel<LabelPositionOptionsInternal>(CSharpVSResources.Place_goto_labels_in_leftmost_column, GotoLabelPreview, "goto", LabelPositionOptionsInternal.LeftMost, CSharpFormattingOptions2.LabelPositioning, this, optionStore));
+        Items.Add(new RadioButtonViewModel<LabelPositionOptionsInternal>(CSharpVSResources.Indent_labels_normally, GotoLabelPreview, "goto", LabelPositionOptionsInternal.NoIndent, CSharpFormattingOptions2.LabelPositioning, this, optionStore));
+        Items.Add(new RadioButtonViewModel<LabelPositionOptionsInternal>(CSharpVSResources.Place_goto_labels_one_indent_less_than_current, GotoLabelPreview, "goto", LabelPositionOptionsInternal.OneLess, CSharpFormattingOptions2.LabelPositioning, this, optionStore));
     }
 }
