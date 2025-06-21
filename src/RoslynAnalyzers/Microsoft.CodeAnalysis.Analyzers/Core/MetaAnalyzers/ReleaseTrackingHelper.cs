@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                 builder.Add(ruleId, releaseTrackingDataForRule);
             }
 
-            return new ReleaseTrackingData(builder.ToImmutable(), versionsBuilder.ToImmutable());
+            return new ReleaseTrackingData(builder.ToImmutable(), [.. versionsBuilder]);
 
             // Local functions
             void OnInvalidEntry(TextLine line, InvalidEntryKind invalidEntryKind)
