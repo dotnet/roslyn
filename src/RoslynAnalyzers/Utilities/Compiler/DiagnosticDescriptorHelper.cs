@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Analyzer.Utilities
 {
@@ -41,7 +43,7 @@ namespace Analyzer.Utilities
             var customTags = GetDefaultCustomTags(isPortedFxCopRule, isDataflowRule, isEnabledByDefaultInAggressiveMode);
             if (isReportedAtCompilationEnd)
             {
-                customTags = customTags.Concat(WellKnownDiagnosticTagsExtensions.CompilationEnd).ToArray();
+                customTags = customTags.Concat([WellKnownDiagnosticTagsExtensions.CompilationEnd]).ToArray();
             }
 
             if (additionalCustomTags.Length > 0)
