@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod,
             Syntax.SimpleNameSyntax? nameSyntax)
         {
+            // Note: the extension method rewriter comes after the local rewriter, so we're still dealing with skeleton methods here
             if (this._compilation.TryGetInterceptor(nameSyntax) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
@@ -199,19 +200,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the original call is to an instance method, and the interceptor is an extension method,
             // we need to take special care to intercept with the extension method as though it is being called in reduced form.
             Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
-            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
-            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test interceptors
+            bool receiverIsValue = receiverOpt is not (null or BoundTypeExpression);
+            bool needToReduceInterceptor = receiverIsValue && interceptor.IsExtensionMethod;
 
-            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
+            MethodSymbol? interceptorForCompare =
+                interceptor.GetIsNewExtensionMember() && invokedAsExtensionMethod ? interceptor.TryGetCorrespondingExtensionImplementationMethod() :
+                needToReduceInterceptor ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor;
+
+            if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, interceptorForCompare))
             {
-                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
+                this._diagnostics.Add(ErrorCode.ERR_InterceptorSignatureMismatch, attributeLocation, method, interceptor); // Consider printing the return types as part of the compared signatures with FormattedSymbol
                 return;
             }
 
             _ = SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 _compilation,
                 method,
-                symbolForCompare,
+                interceptorForCompare,
                 _diagnostics,
                 static (diagnostics, method, interceptor, topLevel, attributeLocation) =>
                 {
@@ -223,20 +228,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 },
                 extraArgument: attributeLocation);
 
-            if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, symbolForCompare))
+            if (!MemberSignatureComparer.InterceptorsStrictComparer.Equals(method, interceptorForCompare))
             {
                 this._diagnostics.Add(ErrorCode.WRN_InterceptorSignatureMismatch, attributeLocation, method, interceptor);
             }
 
-            method.TryGetThisParameter(out var methodThisParameter);
-            var interceptorThisParameterForCompare = needToReduce ? interceptor.Parameters[0] :
-                interceptor.TryGetThisParameter(out var interceptorThisParameter) ? interceptorThisParameter : null;
-            switch (methodThisParameter, interceptorThisParameterForCompare)
+            ParameterSymbol? methodReceiverParameter = getReceiverParameter(method, classicExtensionNotInvokedAsStatic: invokedAsExtensionMethod);
+            ParameterSymbol? interceptorThisParameterForCompare = getReceiverParameter(interceptor, classicExtensionNotInvokedAsStatic: invokedAsExtensionMethod || needToReduceInterceptor);
+
+            switch (methodReceiverParameter, interceptorThisParameterForCompare)
             {
                 case (not null, null):
-                case (not null, not null) when !methodThisParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
-                        || methodThisParameter.RefKind != interceptorThisParameterForCompare.RefKind:
-                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodThisParameter, method);
+                case (not null, not null) when !methodReceiverParameter.Type.Equals(interceptorThisParameterForCompare.Type, TypeCompareKind.ObliviousNullableModifierMatchesAny)
+                        || methodReceiverParameter.RefKind != interceptorThisParameterForCompare.RefKind:
+                    this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, methodReceiverParameter, method);
                     return;
                 case (null, not null):
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, attributeLocation, method);
@@ -245,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod)
             {
                 // Special case when intercepting an extension method call in reduced form with a non-extension.
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
@@ -254,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                 method,
-                symbolForCompare,
+                interceptorForCompare,
                 this._diagnostics,
                 static (diagnostics, method, symbolForCompare, implementingParameter, blameAttributes, attributeLocation) =>
                 {
@@ -268,20 +273,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (needToReduce)
+            if (receiverIsValue && (interceptor.IsExtensionMethod || interceptor.GetIsNewExtensionMember()))
             {
-                Debug.Assert(methodThisParameter is not null);
+                Debug.Assert(methodReceiverParameter is not null);
                 Debug.Assert(receiverOpt?.Type is not null);
 
                 // Usually we expect the receiver to already be converted to the this parameter type.
                 // However, in the case of a non-reference type receiver, where the this parameter is some base reference type,
                 // for example a struct type and System.ValueType respectively, we need to convert the receiver to parameter type,
                 // because we can't use the same `.constrained` calling pattern here which we would have used for an instance method receiver.
-                Debug.Assert(receiverOpt.Type.Equals(interceptor.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions)
-                    || (!receiverOpt.Type.IsReferenceType && interceptor.Parameters[0].Type.IsReferenceType));
-                receiverOpt = MakeConversionNode(receiverOpt, interceptor.Parameters[0].Type, @checked: false, markAsChecked: true);
+                Debug.Assert(receiverOpt.Type.Equals(interceptorThisParameterForCompare!.Type, TypeCompareKind.AllIgnoreOptions)
+                    || (!receiverOpt.Type.IsReferenceType && interceptorThisParameterForCompare.Type.IsReferenceType));
 
-                var thisRefKind = methodThisParameter.RefKind;
+                receiverOpt = MakeConversionNode(receiverOpt, interceptorThisParameterForCompare.Type, @checked: false, markAsChecked: true);
+
+                var thisRefKind = methodReceiverParameter.RefKind;
                 // Instance call receivers can be implicitly captured to temps in the emit layer, but not static call arguments
                 // Therefore we may need to explicitly store the receiver to temp here.
                 if (thisRefKind != RefKind.None
@@ -297,24 +303,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverOpt = _factory.Sequence(locals: [], sideEffects: [assignmentToTemp], receiverTemp);
                 }
 
-                arguments = arguments.Insert(0, receiverOpt);
-                receiverOpt = null;
-
-                // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
-                if (argumentRefKindsOpt.IsDefault && thisRefKind != RefKind.None)
+                if (interceptor.IsExtensionMethod)
                 {
-                    argumentRefKindsOpt = method.Parameters.SelectAsArray(static param => param.RefKind);
-                }
+                    arguments = arguments.Insert(0, receiverOpt);
+                    receiverOpt = null;
 
-                if (!argumentRefKindsOpt.IsDefault)
-                {
-                    argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisRefKind);
+                    // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
+                    if (argumentRefKindsOpt.IsDefault && thisRefKind != RefKind.None)
+                    {
+                        argumentRefKindsOpt = method.Parameters.SelectAsArray(static param => param.RefKind);
+                    }
+
+                    if (!argumentRefKindsOpt.IsDefault)
+                    {
+                        argumentRefKindsOpt = argumentRefKindsOpt.Insert(0, thisRefKind);
+                    }
                 }
             }
 
             method = interceptor;
 
             return;
+
+            static ParameterSymbol? getReceiverParameter(MethodSymbol method, bool classicExtensionNotInvokedAsStatic)
+            {
+                if (method.IsExtensionMethod && classicExtensionNotInvokedAsStatic)
+                {
+                    return method.Parameters[0];
+                }
+
+                if (method.GetIsNewExtensionMember())
+                {
+                    if (method.IsStatic)
+                    {
+                        return null;
+                    }
+
+                    Debug.Assert(method.ContainingType.ExtensionParameter is not null);
+                    return method.ContainingType.ExtensionParameter;
+                }
+
+                method.TryGetThisParameter(out ParameterSymbol? methodReceiverParameter);
+                return methodReceiverParameter;
+            }
         }
 
         public override BoundNode VisitCall(BoundCall node)
