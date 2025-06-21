@@ -149,7 +149,7 @@ internal sealed class RenamedSpansTracker
         {
             if (this.IsDocumentChanged(documentId))
             {
-                var document = solution.GetRequiredDocument(documentId);
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                 if (replacementTextValid)
                 {

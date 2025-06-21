@@ -211,11 +211,13 @@ internal static partial class ConflictResolver
 
                 if (IsRenameValid(conflictResolution, renamedSymbolInNewSolution))
                 {
+                    var declarationDocument = await conflictResolution.CurrentSolution.GetRequiredDocumentAsync(_documentIdOfRenameSymbolDeclaration, includeSourceGenerated: true).ConfigureAwait(false);
+                    var semanticModel = await declarationDocument.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                     await AddImplicitConflictsAsync(
                         renamedSymbolInNewSolution,
                         _renameLocationSet.Symbol,
                         _renameLocationSet.ImplicitLocations,
-                        await conflictResolution.CurrentSolution.GetRequiredDocument(_documentIdOfRenameSymbolDeclaration).GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false),
+                        semanticModel,
                         _renameSymbolDeclarationLocation,
                         renamedSpansTracker.GetAdjustedPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration),
                         conflictResolution,
@@ -266,7 +268,7 @@ internal static partial class ConflictResolver
             foreach (var documentId in documents)
             {
                 // remember if there were issues in the document prior to renaming it.
-                var originalDoc = conflictResolution.OldSolution.GetRequiredDocument(documentId);
+                var originalDoc = await conflictResolution.OldSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, _cancellationToken).ConfigureAwait(false);
                 documentIdErrorStateLookup.Add(documentId, await originalDoc.HasAnyErrorsAsync(_cancellationToken).ConfigureAwait(false));
             }
 
@@ -288,7 +290,8 @@ internal static partial class ConflictResolver
                     // errors.
                     if (!documentIdErrorStateLookup[documentId] && _nonConflictSymbolKeys.IsDefault)
                     {
-                        await conflictResolution.CurrentSolution.GetRequiredDocument(documentId).VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
+                        var changeDoc = await conflictResolution.CurrentSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, _cancellationToken).ConfigureAwait(false);
+                        await changeDoc.VerifyNoErrorsAsync("Rename introduced errors in error-free code", _cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
                     }
                 }
             }
@@ -345,9 +348,9 @@ internal static partial class ConflictResolver
 
                 foreach (var documentId in documentIdsForConflictResolution)
                 {
-                    var newDocument = conflictResolution.CurrentSolution.GetRequiredDocument(documentId);
+                    var newDocument = await conflictResolution.CurrentSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true).ConfigureAwait(false);
                     var syntaxRoot = await newDocument.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
-                    var baseDocument = conflictResolution.OldSolution.GetRequiredDocument(documentId);
+                    var baseDocument = await conflictResolution.OldSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true).ConfigureAwait(false);
                     var baseSyntaxTree = await baseDocument.GetRequiredSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
                     var baseRoot = await baseDocument.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                     SemanticModel? newDocumentSemanticModel = null;
@@ -454,7 +457,7 @@ internal static partial class ConflictResolver
                     var referencedSymbols = _renameLocationSet.ReferencedSymbols;
                     var renameSymbol = _renameLocationSet.Symbol;
                     await AddDeclarationConflictsAsync(
-                        renamedSymbolInNewSolution, renameSymbol, referencedSymbols, conflictResolution, reverseMappedLocations, _cancellationToken).ConfigureAwait(false);
+                        projectId, renamedSymbolInNewSolution, renameSymbol, referencedSymbols, conflictResolution, reverseMappedLocations, _cancellationToken).ConfigureAwait(false);
                 }
 
                 return conflictResolution.RelatedLocations.Any(r => r.Type == RelatedLocationType.PossiblyResolvableConflict);
@@ -681,7 +684,7 @@ internal static partial class ConflictResolver
                     ? conflictResolution.GetAdjustedTokenStartingPosition(_renameSymbolDeclarationLocation.SourceSpan.Start, _documentIdOfRenameSymbolDeclaration)
                     : _renameSymbolDeclarationLocation.SourceSpan.Start;
 
-                var document = conflictResolution.CurrentSolution.GetRequiredDocument(_documentIdOfRenameSymbolDeclaration);
+                var document = await conflictResolution.CurrentSolution.GetRequiredDocumentAsync(_documentIdOfRenameSymbolDeclaration, includeSourceGenerated: true).ConfigureAwait(false);
                 var newSymbol = await SymbolFinder.FindSymbolAtPositionAsync(document, start, cancellationToken: _cancellationToken).ConfigureAwait(false);
                 return newSymbol;
             }
@@ -787,7 +790,7 @@ internal static partial class ConflictResolver
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    var document = originalSolution.GetRequiredDocument(documentId);
+                    var document = await originalSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, _cancellationToken).ConfigureAwait(false);
                     var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                     var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
@@ -842,6 +845,14 @@ internal static partial class ConflictResolver
                     }
                     else
                     {
+                        // In a source generated document, we have to ensure we've realized the "old" tree in the modified solution or WithDocumentSyntaxRoot
+                        // won't work. Performing a rename in a source generated document is opt-in, so we can assume that we only hit this condition in
+                        // scenarios that wanted it.
+                        if (documentId.IsSourceGenerated)
+                        {
+                            _ = await partiallyRenamedSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, _cancellationToken).ConfigureAwait(false);
+                        }
+
                         partiallyRenamedSolution = partiallyRenamedSolution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
                     }
                 }

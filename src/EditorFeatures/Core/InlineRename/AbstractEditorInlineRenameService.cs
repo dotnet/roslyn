@@ -24,7 +24,7 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
 
     public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        var symbolicInfo = await SymbolicRenameInfo.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+        var symbolicInfo = await SymbolicRenameInfo.GetRenameInfoAsync(document, position, allowRenameInGeneratedDocument: false, cancellationToken).ConfigureAwait(false);
         if (symbolicInfo.LocalizedErrorMessage != null)
             return new FailureInlineRenameInfo(symbolicInfo.LocalizedErrorMessage);
 

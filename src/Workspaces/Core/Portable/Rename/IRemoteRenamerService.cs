@@ -28,12 +28,14 @@ internal interface IRemoteRenamerService
         string replacementText,
         SymbolRenameOptions options,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
+        bool allowRenameInGeneratedDocument,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
         Checksum solutionChecksum,
         SerializableSymbolAndProjectId symbolAndProjectId,
         SymbolRenameOptions options,
+        bool allowRenameInGeneratedDocument,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(

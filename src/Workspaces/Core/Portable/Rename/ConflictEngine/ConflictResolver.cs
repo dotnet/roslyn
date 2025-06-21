@@ -225,6 +225,7 @@ internal static partial class ConflictResolver
     /// perspective of find all references), but we still need to track it.
     /// </summary>
     private static async Task AddDeclarationConflictsAsync(
+        ProjectId projectId,
         ISymbol renamedSymbol,
         ISymbol renameSymbol,
         IEnumerable<ISymbol> referencedSymbols,
@@ -234,7 +235,7 @@ internal static partial class ConflictResolver
     {
         try
         {
-            var projectOpt = conflictResolution.CurrentSolution.GetProject(renamedSymbol.ContainingAssembly, cancellationToken);
+            var projectOpt = conflictResolution.CurrentSolution.GetProject(projectId);
             if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
             {
                 Contract.ThrowIfNull(projectOpt);

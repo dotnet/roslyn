@@ -70,7 +70,7 @@ internal sealed class MutableConflictResolution(
         {
             if (renamedSpansTracker.IsDocumentChanged(documentId))
             {
-                var document = CurrentSolution.GetRequiredDocument(documentId);
+                var document = await CurrentSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // For the computeReplacementToken and computeReplacementNode functions, use 
@@ -82,6 +82,14 @@ internal sealed class MutableConflictResolution(
                     computeReplacementToken: (original, updated) => annotationSet.WithoutAnnotations(updated, [.. annotationSet.GetAnnotations(updated)]),
                     trivia: [],
                     computeReplacementTrivia: null);
+
+                // In a source generated document, we have to ensure we've realized the "old" tree in the modified solution or WithDocumentSyntaxRoot
+                // won't work. Performing a rename in a source generated document is opt-in, so we can assume that we only hit this condition in
+                // scenarios that wanted it.
+                if (documentId.IsSourceGenerated)
+                {
+                    _ = await intermediateSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                }
 
                 intermediateSolution = intermediateSolution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
             }

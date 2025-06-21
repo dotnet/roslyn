@@ -55,7 +55,7 @@ internal sealed partial class SymbolicRenameLocations
     /// Attempts to find all the locations to rename.  Will not cross any process boundaries to do this.
     /// </summary>
     public static async Task<SymbolicRenameLocations> FindLocationsInCurrentProcessAsync(
-        ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+        ISymbol symbol, Solution solution, SymbolRenameOptions options, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(symbol);
         using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
@@ -63,10 +63,10 @@ internal sealed partial class SymbolicRenameLocations
             symbol = await RenameUtilities.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             // First, find the direct references just to the symbol being renamed.
-            var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false);
 
             // Next, find references to overloads, if the user has asked to rename those as well.
-            var overloadsResult = options.RenameOverloads ? await GetOverloadsAsync(symbol, solution, cancellationToken).ConfigureAwait(false) :
+            var overloadsResult = options.RenameOverloads ? await GetOverloadsAsync(symbol, solution, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false) :
                 [];
 
             // Finally, include strings/comments if that's what the user wants.
@@ -111,12 +111,12 @@ internal sealed partial class SymbolicRenameLocations
     }
 
     private static async Task<ImmutableArray<SearchResult>> GetOverloadsAsync(
-        ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        ISymbol symbol, Solution solution, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SearchResult>.GetInstance(out var overloadsResult);
 
         foreach (var overloadedSymbol in RenameUtilities.GetOverloadedSymbols(symbol))
-            overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, cancellationToken).ConfigureAwait(false));
+            overloadsResult.Add(await AddLocationsReferenceSymbolsAsync(overloadedSymbol, solution, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false));
 
         return overloadsResult.ToImmutableAndClear();
     }
@@ -124,6 +124,7 @@ internal sealed partial class SymbolicRenameLocations
     private static async Task<SearchResult> AddLocationsReferenceSymbolsAsync(
         ISymbol symbol,
         Solution solution,
+        bool allowRenameInGeneratedDocument,
         CancellationToken cancellationToken)
     {
         var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
@@ -133,11 +134,11 @@ internal sealed partial class SymbolicRenameLocations
         foreach (var referencedSymbol in referenceSymbols)
         {
             locations.AddAll(
-                await ReferenceProcessing.GetRenamableDefinitionLocationsAsync(referencedSymbol.Definition, symbol, solution, cancellationToken).ConfigureAwait(false));
+                await ReferenceProcessing.GetRenamableDefinitionLocationsAsync(referencedSymbol.Definition, symbol, solution, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false));
 
             locations.AddAll(
                 await referencedSymbol.Locations.SelectManyInParallelAsync(
-                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(referencedSymbol.Definition, symbol, l, solution, c),
+                    (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(referencedSymbol.Definition, symbol, l, solution, allowRenameInGeneratedDocument, c),
                     cancellationToken).ConfigureAwait(false));
         }
 
