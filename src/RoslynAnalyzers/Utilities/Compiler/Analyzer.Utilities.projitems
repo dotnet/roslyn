@@ -44,7 +44,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\NuGet\PerformanceSensitiveAnalyzers\PerformanceSensitiveAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AdditionalFileProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticDescriptorHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AdditionalTextExtensions.cs" />
@@ -100,7 +99,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledSortedSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynHashCode.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RuleLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RulesetToEditorconfigConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SmallDictionary.cs" />
