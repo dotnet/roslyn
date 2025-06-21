@@ -61,4 +61,12 @@
     <FileSignInfo Include="Microsoft.VisualStudio.Threading.dll" CertificateName="MicrosoftSHA2" />
     <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
   </ItemGroup>
+
+  <!-- We do not want to sign our nupkgs when we are performing a test insertion. -->
+  <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == 'test'">
+    <FileExtensionSignInfo Remove=".nupkg" />
+
+    <_NuPkgsToSign Include="@(ItemsToSign)" Condition="'%(Extension)' == '.nupkg'" />
+    <ItemsToSign Remove="@(_NuPkgsToSign)" />
+  </ItemGroup>
 </Project>
