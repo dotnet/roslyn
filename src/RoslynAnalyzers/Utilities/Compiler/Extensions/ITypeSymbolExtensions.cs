@@ -15,14 +15,6 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class ITypeSymbolExtensions
     {
-        //#if CODEANALYSIS_V3_OR_BETTER
-        //        public static bool IsAssignableTo(
-        //            [NotNullWhen(returnValue: true)] this ITypeSymbol? fromSymbol,
-        //            [NotNullWhen(returnValue: true)] ITypeSymbol? toSymbol,
-        //            Compilation compilation)
-        //            => fromSymbol != null && toSymbol != null && compilation.ClassifyCommonConversion(fromSymbol, toSymbol).IsImplicit;
-        //#endif
-
         public static bool IsPrimitiveType(this ITypeSymbol type)
         {
             return type.SpecialType switch
@@ -68,27 +60,6 @@ namespace Analyzer.Utilities.Extensions
                     return false;
             }
         }
-
-        //        public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol type, Func<INamedTypeSymbol, bool>? takeWhilePredicate = null)
-        //        {
-        //            INamedTypeSymbol current = type.BaseType;
-        //            while (current != null &&
-        //                (takeWhilePredicate == null || takeWhilePredicate(current)))
-        //            {
-        //                yield return current;
-        //                current = current.BaseType;
-        //            }
-        //        }
-
-        //        public static IEnumerable<ITypeSymbol> GetBaseTypesAndThis(this ITypeSymbol type)
-        //        {
-        //            ITypeSymbol current = type;
-        //            while (current != null)
-        //            {
-        //                yield return current;
-        //                current = current.BaseType;
-        //            }
-        //        }
 
         public static bool DerivesFrom([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol, [NotNullWhen(returnValue: true)] ITypeSymbol? candidateBaseType, bool baseTypesOnly = false, bool checkTypeParameterConstraints = true)
         {
@@ -276,24 +247,6 @@ namespace Analyzer.Utilities.Extensions
             return attributes;
         }
 
-        //        public static bool IsAttribute(this ITypeSymbol symbol)
-        //        {
-        //            for (INamedTypeSymbol b = symbol.BaseType; b != null; b = b.BaseType)
-        //            {
-        //                if (b.MetadataName == "Attribute" &&
-        //                     b.ContainingType == null &&
-        //                     b.ContainingNamespace != null &&
-        //                     b.ContainingNamespace.Name == "System" &&
-        //                     b.ContainingNamespace.ContainingNamespace != null &&
-        //                     b.ContainingNamespace.ContainingNamespace.IsGlobalNamespace)
-        //                {
-        //                    return true;
-        //                }
-        //            }
-
-        //            return false;
-        //        }
-
         public static bool HasValueCopySemantics(this ITypeSymbol typeSymbol)
             => typeSymbol.IsValueType || typeSymbol.SpecialType == SpecialType.System_String;
 
@@ -304,9 +257,6 @@ namespace Analyzer.Utilities.Extensions
                typeSymbol is ITypeParameterSymbol typeParameter && !typeParameter.IsValueType;
         //#endif
 
-        //        public static bool IsNonNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
-        //            => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType != SpecialType.System_Nullable_T;
-
         public static bool IsNullableValueType([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol != null && typeSymbol.IsValueType && typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
@@ -315,9 +265,6 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsNullableOfBoolean([NotNullWhen(returnValue: true)] this ITypeSymbol? typeSymbol)
             => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
-
-        //        public static ITypeSymbol? GetNullableValueTypeUnderlyingType(this ITypeSymbol? typeSymbol)
-        //            => typeSymbol.IsNullableValueType() ? ((INamedTypeSymbol)typeSymbol).TypeArguments[0] : null;
 
         //#if HAS_IOPERATION
         public static ITypeSymbol? GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol? typeSymbol)
