@@ -470,14 +470,17 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 assignmentStatements.Add(ExpressionStatement(assignment));
             }
 
-            // Next, actually assign to all the fields/properties that were previously referencing any primary
-            // constructor parameters.
-            foreach (var (fieldOrProperty, initializer) in initializedFieldsAndProperties.OrderBy(i => i.initializer.SpanStart))
+            // Next, actually assign to all the fields/properties that were previously referencing any primary constructor parameters.
+            // Chunk assignments by declarations they are in starting from the declaration with the primary constructor
+            foreach (var location in namedType.Locations.OrderBy(l => !ReferenceEquals(l.SourceTree, typeDeclaration.SyntaxTree)))
             {
-                var left = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldOrProperty.Name.ToIdentifierName())
-                    .WithAdditionalAnnotations(Simplifier.Annotation);
-                var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initializer.EqualsToken, initializer.Value);
-                assignmentStatements.Add(ExpressionStatement(assignment));
+                foreach (var (fieldOrProperty, initializer) in initializedFieldsAndProperties.Where(i => ReferenceEquals(i.initializer.SyntaxTree, location.SourceTree)).OrderBy(i => i.initializer.SpanStart))
+                {
+                    var left = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldOrProperty.Name.ToIdentifierName())
+                        .WithAdditionalAnnotations(Simplifier.Annotation);
+                    var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initializer.EqualsToken, initializer.Value);
+                    assignmentStatements.Add(ExpressionStatement(assignment));
+                }
             }
 
             var rewrittenParameters = parameterList.ReplaceNodes(

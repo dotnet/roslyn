@@ -2969,8 +2969,8 @@ public sealed class ConvertPrimaryToRegularConstructorTests
 
                         public C(int i)
                         {
-                            I2 = i + 2;
                             I1 = i + 1;
+                            I2 = i + 2;
                         }
                     }
                     """, """
