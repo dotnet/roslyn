@@ -17,6 +17,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ConvertTupleToStructCodeRefactoring" ClassName="Microsoft.CodeAnalysis.Remote.RemoteConvertTupleToStructCodeRefactoringService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CopilotChangeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCopilotChangeAnalysisService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CopilotProposalAdjuster" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCopilotProposalAdjusterService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DependentTypeFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDependentTypeFinderService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttributeDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeDiscoveryService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" />
