@@ -120,8 +120,7 @@ public sealed class UnifiedSettingsTests
             title: "Show new snippet experience",
             customDefaultValue: false,
             order: 100,
-            languageName: LanguageNames.CSharp,
-            featureFlagAndExperimentValue: (CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag, true))),
+            languageName: LanguageNames.CSharp)),
     ];
 
     [Fact]

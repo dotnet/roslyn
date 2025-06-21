@@ -47,8 +47,7 @@ internal sealed record class CompletionOptions
 
     public bool FilterOutOfScopeLocals { get; init; } = true;
     public bool ShowXmlDocCommentCompletion { get; init; } = true;
-    public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
-    public bool ShowNewSnippetExperienceFeatureFlag { get; init; } = true;
+    public bool ShowNewSnippetExperienceUserOption { get; init; } = false;
     public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
 
     public static readonly CompletionOptions Default = new();
@@ -68,8 +67,6 @@ internal sealed record class CompletionOptions
 
     /// <summary>
     /// Whether items from new snippet experience should be included in the completion list.
-    /// This takes into consideration the experiment we are running in addition to the value
-    /// from user facing options.
     /// </summary>
     public bool ShouldShowNewSnippetExperience(Document document)
     {
@@ -86,7 +83,6 @@ internal sealed record class CompletionOptions
             return false;
         }
 
-        // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
-        return ShowNewSnippetExperienceUserOption ?? ShowNewSnippetExperienceFeatureFlag;
+        return ShowNewSnippetExperienceUserOption;
     }
 }

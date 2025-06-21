@@ -32,8 +32,7 @@ internal static class CompletionOptionsStorage
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
             ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
-            ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language),
-            ShowNewSnippetExperienceFeatureFlag = options.GetOption(ShowNewSnippetExperienceFeatureFlag)
+            ShowNewSnippetExperienceUserOption = options.GetOption(ShowNewSnippetExperienceUserOption, language)
         };
 
     private static readonly OptionGroup s_completionOptionGroup = new(name: "completion", description: "");
@@ -41,7 +40,6 @@ internal static class CompletionOptionsStorage
     // feature flags
 
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new("dotnet_disable_unnamed_symbol_completion", CompletionOptions.Default.UnnamedSymbolCompletionDisabled, group: s_completionOptionGroup);
-    public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new("dotnet_show_new_snippet_experience_feature_flag", CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool> TriggerOnTyping = new("dotnet_trigger_completion_on_typing", CompletionOptions.Default.TriggerOnTyping, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new("dotnet_trigger_completion_on_typing_letters", CompletionOptions.Default.TriggerOnTypingLetters, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("dotnet_trigger_completion_on_deletion", CompletionOptions.Default.TriggerOnDeletion, group: s_completionOptionGroup);
@@ -63,5 +61,5 @@ internal static class CompletionOptionsStorage
 
     public static PerLanguageOption2<bool> ProvideRegexCompletions = new("dotnet_provide_regex_completions", CompletionOptions.Default.ProvideRegexCompletions, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool> ProvideDateAndTimeCompletions = new("dotnet_provide_date_and_time_completions", CompletionOptions.Default.ProvideDateAndTimeCompletions, group: s_completionOptionGroup);
-    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperienceUserOption = new("dotnet_show_new_snippet_experience", CompletionOptions.Default.ShowNewSnippetExperienceUserOption, group: s_completionOptionGroup);
+    public static readonly PerLanguageOption2<bool> ShowNewSnippetExperienceUserOption = new("dotnet_show_new_snippet_experience", CompletionOptions.Default.ShowNewSnippetExperienceUserOption, group: s_completionOptionGroup);
 }
