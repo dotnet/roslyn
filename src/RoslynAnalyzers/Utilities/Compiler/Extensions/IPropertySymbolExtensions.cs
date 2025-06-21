@@ -12,12 +12,12 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class IPropertySymbolExtensions
     {
-        //        /// <summary>
-        //        /// Check if a property is an auto-property.
-        //        /// TODO: Remove this helper when https://github.com/dotnet/roslyn/issues/46682 is handled.
-        //        /// </summary>
-        //        public static bool IsAutoProperty(this IPropertySymbol propertySymbol)
-        //            => propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && propertySymbol.Equals(f.AssociatedSymbol));
+        /// <summary>
+        /// Check if a property is an auto-property.
+        /// TODO: Remove this helper when https://github.com/dotnet/roslyn/issues/46682 is handled.
+        /// </summary>
+        public static bool IsAutoProperty(this IPropertySymbol propertySymbol)
+            => propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(f => f.IsImplicitlyDeclared && propertySymbol.Equals(f.AssociatedSymbol));
 
         //        public static bool IsIsCompletedFromAwaiterPattern(
         //            [NotNullWhen(true)] this IPropertySymbol? property,

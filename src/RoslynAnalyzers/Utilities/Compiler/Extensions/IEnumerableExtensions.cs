@@ -33,15 +33,15 @@ namespace Analyzer.Utilities.Extensions
         //            }
         //        }
 
-        //        public static ISet<T> ToSet<T>(this IEnumerable<T> source)
-        //        {
-        //            if (source == null)
-        //            {
-        //                throw new ArgumentNullException(nameof(source));
-        //            }
+        public static ISet<T> ToSet<T>(this IEnumerable<T> source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
 
-        //            return source as ISet<T> ?? new HashSet<T>(source);
-        //        }
+            return source as ISet<T> ?? new HashSet<T>(source);
+        }
 
         //        public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T> comparer)
         //        {
