@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.ReleaseTracking.ReleaseTrackingHelper;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                RoslynDebug.Assert(diagnostics != null);
+                Contract.ThrowIfNull(diagnostics);
 
                 // Rule '{0}' has more then one entry for release '{1}' in analyzer release file '{2}'.
                 string arg1 = ruleId;
@@ -208,8 +209,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             void OnInvalidEntry(TextLine line, InvalidEntryKind invalidEntryKind, string path, SourceText sourceText)
             {
-                RoslynDebug.Assert(diagnostics != null);
-                RoslynDebug.Assert(reportedInvalidLines != null);
+                Contract.ThrowIfNull(diagnostics);
+                Contract.ThrowIfNull(reportedInvalidLines);
 
                 if (!reportedInvalidLines.Add(line))
                 {

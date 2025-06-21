@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 #if MICROSOFT_CODEANALYSIS_ANALYZERS
 using Analyzer.Utilities.Extensions;
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
                         break;
                 }
 
-                RoslynDebug.Assert(currentRuleEntryKind != null);
+                Contract.ThrowIfNull(currentRuleEntryKind);
 
                 var parts = lineText.Trim('|').Split('|').Select(s => s.Trim()).ToArray();
                 if (IsInvalidEntry(parts, currentRuleEntryKind.Value))
