@@ -13,25 +13,25 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class IEnumerableExtensions
     {
-        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, T value)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
+        //public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, T value)
+        //{
+        //    if (source == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(source));
+        //    }
 
-            return ConcatImpl(source, value);
+        //    return ConcatImpl(source, value);
 
-            static IEnumerable<T> ConcatImpl(IEnumerable<T> source, T value)
-            {
-                foreach (T v in source)
-                {
-                    yield return v;
-                }
+        //    static IEnumerable<T> ConcatImpl(IEnumerable<T> source, T value)
+        //    {
+        //        foreach (T v in source)
+        //        {
+        //            yield return v;
+        //        }
 
-                yield return value;
-            }
-        }
+        //        yield return value;
+        //    }
+        //}
 
         public static ISet<T> ToSet<T>(this IEnumerable<T> source)
         {
