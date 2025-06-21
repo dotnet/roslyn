@@ -67,13 +67,13 @@ namespace Analyzer.Utilities.Extensions
             return operation.Syntax.CreateDiagnostic(rule, additionalLocations, properties, args);
         }
 
-        //        public static Diagnostic CreateDiagnostic(
-        //            this SyntaxToken token,
-        //            DiagnosticDescriptor rule,
-        //            params object[] args)
-        //        {
-        //            return token.GetLocation().CreateDiagnostic(rule, args);
-        //        }
+        public static Diagnostic CreateDiagnostic(
+            this SyntaxToken token,
+            DiagnosticDescriptor rule,
+            params object[] args)
+        {
+            return token.GetLocation().CreateDiagnostic(rule, args);
+        }
 
         public static Diagnostic CreateDiagnostic(
             this ISymbol symbol,
