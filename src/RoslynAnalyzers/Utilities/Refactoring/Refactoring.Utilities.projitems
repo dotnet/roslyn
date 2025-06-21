@@ -9,16 +9,6 @@
     <Import_RootNamespace>Refactoring.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AbstractSyntaxFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactoringContextExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactoringHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISyntaxFactsExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTokenExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTreeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextLineExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ISyntaxFacts.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ISyntaxKinds.cs" />
   </ItemGroup>
 </Project>
