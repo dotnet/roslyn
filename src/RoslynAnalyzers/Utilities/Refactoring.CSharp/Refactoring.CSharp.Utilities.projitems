@@ -9,9 +9,7 @@
     <Import_RootNamespace>Refactoring.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CSharpRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpSyntaxFacts.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CSharpSyntaxKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
   </ItemGroup>
 </Project>
