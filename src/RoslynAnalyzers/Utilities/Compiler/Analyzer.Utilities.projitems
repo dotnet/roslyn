@@ -84,7 +84,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledConcurrentDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticHelpers.cs" />
