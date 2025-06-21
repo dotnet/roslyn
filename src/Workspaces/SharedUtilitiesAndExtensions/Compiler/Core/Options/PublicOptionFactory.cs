@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Options;
 
 internal static class PublicOptionFactory
 {
-#if CODE_STYLE
+#if !WORKSPACE
 #pragma warning disable IDE0060 // Remove unused parameter
 
     // Stubs to avoid #ifdefs at call sites.

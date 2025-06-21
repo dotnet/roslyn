@@ -17,8 +17,10 @@ internal partial struct SymbolKey
             visitor.WriteSymbolKey(symbol.ContainingSymbol);
             visitor.WriteString(symbol.Name);
             visitor.WriteInteger(symbol.Arity);
+#if !ROSLYN_4_12_OR_LOWER
             // Include the metadata name for extensions.  We need this to uniquely find it when resolving.
             visitor.WriteString(symbol.IsExtension ? symbol.MetadataName : null);
+#endif
             // Include the file path for 'file-local' types.  We need this to uniquely find it when resolving.
             visitor.WriteString(symbol.IsFileLocal ? symbol.DeclaringSyntaxReferences[0].SyntaxTree.FilePath : null);
             visitor.WriteBoolean(symbol.IsUnboundGenericType);
@@ -35,7 +37,11 @@ internal partial struct SymbolKey
             var containingSymbolResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
             var name = reader.ReadRequiredString();
             var arity = reader.ReadInteger();
+#if !ROSLYN_4_12_OR_LOWER
             var extensionMetadataName = reader.ReadString();
+#else
+            string? extensionMetadataName = null;
+#endif
             var filePath = reader.ReadString();
             var isUnboundGenericType = reader.ReadBoolean();
             var isNativeIntegerType = reader.ReadBoolean();

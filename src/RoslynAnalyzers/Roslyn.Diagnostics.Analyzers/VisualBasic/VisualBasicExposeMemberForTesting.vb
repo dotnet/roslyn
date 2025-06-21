@@ -6,6 +6,7 @@ Imports System.Composition
 Imports Analyzer.Utilities
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
 

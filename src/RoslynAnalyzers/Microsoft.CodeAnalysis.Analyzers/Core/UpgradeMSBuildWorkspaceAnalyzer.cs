@@ -5,9 +5,10 @@
 using System.Collections.Immutable;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Analyzers
+namespace Microsoft.CodeAnalysis
 {
     using static CodeAnalysisDiagnosticsResources;
 

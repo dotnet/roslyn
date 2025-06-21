@@ -121,7 +121,7 @@ internal partial interface ISemanticFacts
 
     bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor);
 
-#if !CODE_STYLE
+#if WORKSPACE
 
     /// <summary>
     /// Given a location in a document, returns the symbol that intercepts the original symbol called at that location.

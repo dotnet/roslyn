@@ -241,10 +241,18 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         => symbol.PartialDefinitionPart != null;
 
     private static bool IsPartialEventDefinitionPart(IEventSymbol symbol)
+#if !ROSLYN_4_12_OR_LOWER
         => symbol.PartialImplementationPart != null;
+#else
+        => false;
+#endif
 
     private static bool IsPartialEventImplementationPart(IEventSymbol symbol)
+#if !ROSLYN_4_12_OR_LOWER
         => symbol.PartialDefinitionPart != null;
+#else
+        => false;
+#endif
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
         => x.TypeKind switch

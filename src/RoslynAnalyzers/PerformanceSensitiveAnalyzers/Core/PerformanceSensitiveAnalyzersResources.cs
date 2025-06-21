@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
+namespace Microsoft.CodeAnalysis
 {
     internal partial class PerformanceSensitiveAnalyzersResources
     {

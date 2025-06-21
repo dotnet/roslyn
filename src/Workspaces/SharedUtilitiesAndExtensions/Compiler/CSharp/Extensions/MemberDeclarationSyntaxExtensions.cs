@@ -32,7 +32,9 @@ internal static partial class MemberDeclarationSyntaxExtensions
                 case SyntaxKind.EnumDeclaration:
                     return ((EnumDeclarationSyntax)member).Identifier;
                 case SyntaxKind.ClassDeclaration:
+#if !ROSLYN_4_12_OR_LOWER
                 case SyntaxKind.ExtensionBlockDeclaration:
+#endif
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
@@ -72,7 +74,9 @@ internal static partial class MemberDeclarationSyntaxExtensions
             switch (member.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+#if !ROSLYN_4_12_OR_LOWER
                 case SyntaxKind.ExtensionBlockDeclaration:
+#endif
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
@@ -97,7 +101,9 @@ internal static partial class MemberDeclarationSyntaxExtensions
             switch (member.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+#if !ROSLYN_4_12_OR_LOWER
                 case SyntaxKind.ExtensionBlockDeclaration:
+#endif
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:

@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -167,12 +168,6 @@ namespace Analyzer.Utilities.Extensions
 
         public static void ReportNoLocationDiagnostic(
             this CompilationAnalysisContext context,
-            DiagnosticDescriptor rule,
-            params object[] args)
-            => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
-
-        public static void ReportNoLocationDiagnostic(
-            this SyntaxNodeAnalysisContext context,
             DiagnosticDescriptor rule,
             params object[] args)
             => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
