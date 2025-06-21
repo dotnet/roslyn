@@ -94,7 +94,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableOfIMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\INamedTypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions.cs" />
