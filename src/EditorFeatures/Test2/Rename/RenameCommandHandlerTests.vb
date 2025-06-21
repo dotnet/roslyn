@@ -3,11 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
-Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.InlineRename
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
@@ -1000,9 +997,6 @@ partial class [|Program|]
                     </Project>
                 </Workspace>, host)
 
-                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, False)
-
                 Dim view = workspace.Documents.Single().GetTextView()
 
                 Dim commandHandler = CreateCommandHandler(workspace)
@@ -1017,13 +1011,13 @@ partial class [|Program|]
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c),
                                               Sub() editorOperations.InsertText("B"), Utilities.TestCommandExecutionContext.Create())
 
-                ' Now save the document, which should commit Rename
+                ' Now save the document
                 commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
                 Await VerifyTagsAreCorrect(workspace)
 
-                ' Rename session was indeed committed and is no longer active
-                Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
+                ' Rename session was not commited and is active
+                Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
             End Using
         End Function
 
@@ -1129,8 +1123,7 @@ partial class [|Program|]
 
         Private Shared Sub VerifyCommandCommitsRenameSessionAndExecutesCommand(
                 host As RenameTestHost,
-                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action),
-                Optional commitAsynchronously As Boolean = False)
+                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1143,9 +1136,6 @@ class [|C$$|]
                         </Document>
                     </Project>
                 </Workspace>, host)
-
-                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, commitAsynchronously)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
@@ -1168,7 +1158,7 @@ class [|C$$|]
 
                 ' Verify rename session was committed.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
-                Assert.Contains("D f", view.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Contains("C f", view.TextBuffer.CurrentSnapshot.GetText())
 
                 ' Verify the command was routed to the editor.
                 Assert.Contains(commandInvokedString, view.TextBuffer.CurrentSnapshot.GetText())
@@ -1209,8 +1199,7 @@ class [|C$$|]
 
         Private Shared Sub VerifySessionCommittedAfterCutPasteOutsideIdentifier(
                 host As RenameTestHost,
-                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action),
-                Optional commitAsynchronously As Boolean = False)
+                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1223,9 +1212,6 @@ class [|C$$|]
                         </Document>
                         </Project>
                     </Workspace>, host)
-
-                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
-                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, commitAsynchronously)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
@@ -1253,7 +1239,7 @@ class [|C$$|]
 
                 ' Verify rename session was committed
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
-                Assert.Contains("D f", view.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Contains("C f", view.TextBuffer.CurrentSnapshot.GetText())
                 Assert.Contains(commandInvokedString, view.TextBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub

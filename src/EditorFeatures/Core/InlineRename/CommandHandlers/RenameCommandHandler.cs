@@ -34,9 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 internal sealed partial class RenameCommandHandler(
     IThreadingContext threadingContext,
     InlineRenameService renameService,
-    IGlobalOptionService globalOptionService,
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-    : AbstractRenameCommandHandler(threadingContext, renameService, globalOptionService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
+    : AbstractRenameCommandHandler(threadingContext, renameService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
 {
     protected override void SetFocusToTextView(ITextView textView)
     {
