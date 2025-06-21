@@ -874,6 +874,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
             }
         }
 
+#if !ROSLYN_4_12_OR_LOWER
         void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
         {
             if (parameterList != null)
@@ -883,6 +884,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
                 builder.Append(')');
             }
         }
+#endif
     }
 
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
