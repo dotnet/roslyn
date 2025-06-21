@@ -7,16 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\CommandLine\BuildProtocol.cs" />
-    <Compile Include="..\..\Compilers\Core\CommandLine\CompilerServerLogger.cs" />
-    <Compile Include="..\..\Compilers\Core\CommandLine\NativeMethods.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\CommitHashAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
-    <Compile Include="..\..\Compilers\Shared\BuildServerConnection.cs" />
-    <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" />
-    <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" />
-
     <ProjectReference Include="..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj">
       <Aliases>csc</Aliases>
     </ProjectReference>
@@ -41,4 +31,5 @@
   </ItemGroup>
 
   <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\..\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.targets" />
 </Project>
