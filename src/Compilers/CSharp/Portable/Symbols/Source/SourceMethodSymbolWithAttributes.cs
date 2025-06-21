@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1677,10 +1676,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var data = GetDecodedWellKnownAttributeData();
-                return data != null && data.HasSpecialNameAttribute;
+                return HasSpecialNameAttribute;
             }
         }
+
+        internal sealed override bool HasSpecialNameAttribute =>
+            GetDecodedWellKnownAttributeData()?.HasSpecialNameAttribute == true;
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
             GetDecodedWellKnownAttributeData()?.HasExcludeFromCodeCoverageAttribute == true;
