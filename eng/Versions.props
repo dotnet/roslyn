@@ -120,7 +120,6 @@
         <!-- Microsoft.CodeAnalysis versions for different purposes. -->
         <!-- Surface area that various projects compile against. These should have source-build reference packages -->
         <MicrosoftCodeAnalysisVersionForAnalyzers>4.0.1</MicrosoftCodeAnalysisVersionForAnalyzers>
-
         <!-- Versions for tests and general utility execution. -->
         <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
             area versions. -->
