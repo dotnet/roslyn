@@ -13,6 +13,7 @@ using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {

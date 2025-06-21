@@ -608,7 +608,7 @@ namespace Analyzer.Utilities.Extensions
         {
             return method.MethodKind switch
             {
-                MethodKind.LambdaMethod or MethodKindEx.LocalFunction or MethodKind.DelegateInvoke => true,
+                MethodKind.LambdaMethod or MethodKind.LocalFunction or MethodKind.DelegateInvoke => true,
                 _ => false,
             };
         }
@@ -617,7 +617,7 @@ namespace Analyzer.Utilities.Extensions
         {
             return method.MethodKind switch
             {
-                MethodKind.LambdaMethod or MethodKindEx.LocalFunction => true,
+                MethodKind.LambdaMethod or MethodKind.LocalFunction => true,
                 _ => false,
             };
         }
