@@ -65,8 +65,6 @@
   <!-- We do not want to sign our nupkgs when we are performing a test insertion. -->
   <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == 'test'">
     <FileExtensionSignInfo Remove=".nupkg" />
-
-    <_NuPkgsToSign Include="@(ItemsToSign)" Condition="'%(Extension)' == '.nupkg'" />
-    <ItemsToSign Remove="@(_NuPkgsToSign)" />
+    <ItemsToSign Remove="$(ArtifactsPackagesDir)**\*.nupkg" />
   </ItemGroup>
 </Project>
