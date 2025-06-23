@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -78,6 +79,8 @@ public abstract partial class CodeAction
     /// equal <see cref="EquivalenceKey"/> values, Visual Studio behavior may appear incorrect.
     /// </remarks>
     public virtual string? EquivalenceKey => null;
+
+    internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
 
     /// <summary>
     /// Priority of this particular action within a group of other actions.  Less relevant actions should override
@@ -234,17 +237,17 @@ public abstract partial class CodeAction
     public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
         Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
-        return GetOperationsCoreAsync(originalSolution, progress, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
+        return GetOperationsCoreAsync(originalSolution, progress, cancellationToken);
     }
 
     internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CodeActionCleanup cleanup, CancellationToken cancellationToken)
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         var operations = await this.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
 
         if (operations != null)
         {
-            return await PostProcessAsync(originalSolution, operations, cleanup, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -254,10 +257,10 @@ public abstract partial class CodeAction
     /// The sequence of operations used to construct a preview.
     /// </summary>
     public Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
-        => GetPreviewOperationsAsync(originalSolution: null!, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
+        => GetPreviewOperationsAsync(originalSolution: null!, cancellationToken);
 
     internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
-        Solution originalSolution, CodeActionCleanup cleanup, CancellationToken cancellationToken)
+        Solution originalSolution, CancellationToken cancellationToken)
     {
         using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Preview_Summary, $"Total");
 
@@ -265,7 +268,7 @@ public abstract partial class CodeAction
 
         if (operations != null)
         {
-            return await PostProcessAsync(originalSolution, operations, cleanup, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -392,20 +395,17 @@ public abstract partial class CodeAction
     protected virtual Task<Document> GetChangedDocumentAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         => GetChangedDocumentAsync(cancellationToken);
 
-    internal Task<Solution?> GetChangedSolutionInternalAsync(Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        => GetChangedSolutionInternalAsync(originalSolution, progress, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
-
     /// <summary>
     /// used by batch fixer engine to get new solution
     /// </summary>
     internal async Task<Solution?> GetChangedSolutionInternalAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CodeActionCleanup cleanup, CancellationToken cancellationToken)
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         var solution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
         if (solution == null)
             return solution;
 
-        return await PostProcessChangesAsync(originalSolution, solution, progress, cleanup, cancellationToken).ConfigureAwait(false);
+        return await PostProcessChangesAsync(originalSolution, solution, progress, this.Cleanup, cancellationToken).ConfigureAwait(false);
     }
 
     internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -420,10 +420,10 @@ public abstract partial class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-        => PostProcessAsync(originalSolution: null, operations, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
+        => PostProcessAsync(originalSolution: null, operations, cancellationToken);
 
-    internal static async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
-        Solution? originalSolution, IEnumerable<CodeActionOperation> operations, CodeActionCleanup cleanup, CancellationToken cancellationToken)
+    internal async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
+        Solution? originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
     {
         using var result = TemporaryArray<CodeActionOperation>.Empty;
 
@@ -432,7 +432,7 @@ public abstract partial class CodeAction
             if (op is ApplyChangesOperation ac)
             {
                 result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(
-                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, cleanup, cancellationToken).ConfigureAwait(false)));
+                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, this.Cleanup, cancellationToken).ConfigureAwait(false)));
             }
             else
             {
