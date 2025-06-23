@@ -15,18 +15,14 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// Fix all code action for a code action registered by
 /// a <see cref="CodeFixes.CodeFixProvider"/> or a <see cref="CodeRefactorings.CodeRefactoringProvider"/>.
 /// </summary>
-internal abstract class AbstractFixAllCodeAction : CodeAction
+internal abstract class AbstractFixAllCodeAction(
+    IFixAllState fixAllState, bool showPreviewChangesDialog) : CodeAction
 {
-    private bool _showPreviewChangesDialog;
+    private bool _showPreviewChangesDialog = showPreviewChangesDialog;
 
-    public IFixAllState FixAllState { get; }
+    public IFixAllState FixAllState { get; } = fixAllState;
 
-    protected AbstractFixAllCodeAction(
-        IFixAllState fixAllState, bool showPreviewChangesDialog)
-    {
-        FixAllState = fixAllState;
-        _showPreviewChangesDialog = showPreviewChangesDialog;
-    }
+    internal override CodeActionCleanup Cleanup => this.FixAllState.FixAllProvider.Cleanup;
 
     /// <summary>
     /// Determine if the <see cref="IFixAllState.Provider"/> is an internal first-party provider or not.
