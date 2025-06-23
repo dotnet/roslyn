@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +27,7 @@ internal interface ICopilotProposalAdjusterService : IWorkspaceService
 
 internal interface IRemoteCopilotProposalAdjusterService
 {
+    /// <inheritdoc cref="ICopilotProposalAdjusterService.TryAdjustProposalAsync"/>
     ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
