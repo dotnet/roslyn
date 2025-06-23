@@ -451,7 +451,7 @@ public abstract partial class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-        => PostProcessChangesAsync(originalSolution: null, changedSolution, progress: CodeAnalysisProgress.None, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
+        => PostProcessChangesAsync(originalSolution: null, changedSolution, progress: CodeAnalysisProgress.None, this.Cleanup, cancellationToken);
 
     /// <summary>
     /// Apply post processing steps to a single document:
