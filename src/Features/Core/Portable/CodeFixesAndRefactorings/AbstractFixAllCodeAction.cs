@@ -22,7 +22,8 @@ internal abstract class AbstractFixAllCodeAction(
 
     public IFixAllState FixAllState { get; } = fixAllState;
 
-    internal override CodeActionCleanup Cleanup => this.FixAllState.FixAllProvider.Cleanup;
+    // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
+    internal override CodeActionCleanup Cleanup => CodeActionCleanup.None;
 
     /// <summary>
     /// Determine if the <see cref="IFixAllState.Provider"/> is an internal first-party provider or not.
