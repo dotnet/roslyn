@@ -129,7 +129,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <MicrosoftCodeAnalysisVersionFromSbrp>$(MicrosoftCodeAnalysisVersionForAnalyzers)</MicrosoftCodeAnalysisVersionFromSbrp>
+        <MicrosoftCodeAnalysisVersionFromSbrp>4.12.0</MicrosoftCodeAnalysisVersionFromSbrp>
         <MicrosoftCodeAnalysisVersionForAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForAnalyzers>
         <MicrosoftCodeAnalysisVersionForAnalyzerTests>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForAnalyzerTests>
       </PropertyGroup>
