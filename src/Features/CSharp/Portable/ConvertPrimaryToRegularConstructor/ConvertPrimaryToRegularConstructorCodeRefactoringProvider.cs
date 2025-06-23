@@ -84,7 +84,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         // The naming rule we need to follow if we synthesize new private fields.
         var fieldNameRule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-            DeclarationModifiers.None,
+            Modifiers.None,
             Accessibility.Private,
             cancellationToken).ConfigureAwait(false);
 
@@ -119,7 +119,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         RemovePrimaryConstructorParameterList();
         RemovePrimaryConstructorBaseTypeArgumentList();
         RemovePrimaryConstructorTargetingAttributes();
-        RemoveDirectFieldAndPropertyAssignments();
+        await RemoveDirectFieldAndPropertyAssignmentsAsync().ConfigureAwait(false);
         AddNewFields();
         AddConstructorDeclaration();
         await RewritePrimaryConstructorParameterReferencesAsync().ConfigureAwait(false);
@@ -265,14 +265,16 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 mainDocumentEditor.RemoveNode(attributeList);
         }
 
-        void RemoveDirectFieldAndPropertyAssignments()
+        async Task RemoveDirectFieldAndPropertyAssignmentsAsync()
         {
             // Remove all the initializers from existing fields/props the params are assigned to.
             foreach (var (_, initializer) in initializedFieldsAndProperties)
             {
+                var editor = await solutionEditor.GetDocumentEditorAsync(solution.GetDocumentId(initializer.SyntaxTree), cancellationToken).ConfigureAwait(false);
+
                 if (initializer.Parent is PropertyDeclarationSyntax propertyDeclaration)
                 {
-                    mainDocumentEditor.ReplaceNode(
+                    editor.ReplaceNode(
                         propertyDeclaration,
                         propertyDeclaration
                             .WithInitializer(null)
@@ -281,7 +283,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 }
                 else if (initializer.Parent is VariableDeclaratorSyntax)
                 {
-                    mainDocumentEditor.RemoveNode(initializer);
+                    editor.RemoveNode(initializer);
                 }
                 else
                 {
@@ -468,14 +470,17 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 assignmentStatements.Add(ExpressionStatement(assignment));
             }
 
-            // Next, actually assign to all the fields/properties that were previously referencing any primary
-            // constructor parameters.
-            foreach (var (fieldOrProperty, initializer) in initializedFieldsAndProperties.OrderBy(i => i.initializer.SpanStart))
+            // Next, actually assign to all the fields/properties that were previously referencing any primary constructor parameters.
+            // Chunk assignments by declarations they are in starting from the declaration with the primary constructor
+            foreach (var location in namedType.Locations.OrderBy(l => !ReferenceEquals(l.SourceTree, typeDeclaration.SyntaxTree)))
             {
-                var left = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldOrProperty.Name.ToIdentifierName())
-                    .WithAdditionalAnnotations(Simplifier.Annotation);
-                var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initializer.EqualsToken, initializer.Value);
-                assignmentStatements.Add(ExpressionStatement(assignment));
+                foreach (var (fieldOrProperty, initializer) in initializedFieldsAndProperties.Where(i => ReferenceEquals(i.initializer.SyntaxTree, location.SourceTree)).OrderBy(i => i.initializer.SpanStart))
+                {
+                    var left = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), fieldOrProperty.Name.ToIdentifierName())
+                        .WithAdditionalAnnotations(Simplifier.Annotation);
+                    var assignment = AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, left, initializer.EqualsToken, initializer.Value);
+                    assignmentStatements.Add(ExpressionStatement(assignment));
+                }
             }
 
             var rewrittenParameters = parameterList.ReplaceNodes(

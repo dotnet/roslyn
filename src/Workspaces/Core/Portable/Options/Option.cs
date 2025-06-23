@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.Options;
 /// <inheritdoc cref="Option2{T}"/>
 public class Option<T> : IPublicOption
 {
-    private readonly OptionDefinition _optionDefinition;
+    internal readonly OptionDefinition<T> OptionDefinition;
 
     public string Feature { get; }
 
-    internal OptionGroup Group => _optionDefinition.Group;
+    internal OptionGroup Group => OptionDefinition.Group;
 
     public string Name { get; }
 
-    public T DefaultValue => (T)_optionDefinition.DefaultValue!;
+    public T DefaultValue => (T)OptionDefinition.DefaultValue!;
 
-    public Type Type => _optionDefinition.Type;
+    public Type Type => OptionDefinition.Type;
 
     public ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 
@@ -71,11 +71,11 @@ public class Option<T> : IPublicOption
     {
     }
 
-    internal Option(OptionDefinition optionDefinition, string feature, string name, ImmutableArray<OptionStorageLocation> storageLocations)
+    internal Option(OptionDefinition<T> optionDefinition, string feature, string name, ImmutableArray<OptionStorageLocation> storageLocations)
     {
         Feature = feature;
         Name = name;
-        _optionDefinition = optionDefinition;
+        OptionDefinition = optionDefinition;
         StorageLocations = storageLocations;
     }
 
@@ -85,13 +85,13 @@ public class Option<T> : IPublicOption
 
     IPublicOption? IOption2.PublicOption => null;
 
-    OptionDefinition IOption2.Definition => _optionDefinition;
+    OptionDefinition IOption2.Definition => OptionDefinition;
 
     bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 
     public override string ToString() => this.PublicOptionDefinitionToString();
 
-    public override int GetHashCode() => _optionDefinition.GetHashCode();
+    public override int GetHashCode() => OptionDefinition.GetHashCode();
 
     public override bool Equals(object? obj) => Equals(obj as IOption2);
 

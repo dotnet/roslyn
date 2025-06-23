@@ -830,6 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialWrongConstraints
                 or ErrorCode.ERR_NoImplicitConvCast
                 or ErrorCode.ERR_PartialMisplaced
+                or ErrorCode.ERR_MisplacedExtension
                 or ErrorCode.ERR_ImportedCircularBase
                 or ErrorCode.ERR_UseDefViolationOut
                 or ErrorCode.ERR_ArraySizeInDeclaration
@@ -2521,6 +2522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_OperatorMismatchOnOverride
                 or ErrorCode.ERR_BadCompoundAssignmentOpArgs
                 or ErrorCode.ERR_PPShebangInProjectBasedProgram
+                or ErrorCode.ERR_NameofExtensionMember
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
