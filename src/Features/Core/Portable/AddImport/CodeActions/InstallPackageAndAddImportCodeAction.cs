@@ -51,12 +51,12 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         // Make a SolutionChangeAction.  This way we can let it generate the diff
         // preview appropriately.
         var solutionChangeAction = SolutionChangeAction.Create("", GetUpdatedSolutionAsync, "");
-        return
-        [
-            .. await solutionChangeAction.GetPreviewOperationsAsync(
-                this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false),
-            _installOperation,
-        ];
+
+        using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(out var result);
+        result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(
+            this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false));
+        result.Add(_installOperation);
+        return result.ToImmutableAndClear();
     }
 
     private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)
