@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
+using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
@@ -16,4 +16,11 @@ internal interface IFixAllProvider
 {
     IEnumerable<FixAllScope> GetSupportedFixAllScopes();
     Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext);
+
+    /// <summary>
+    /// Whether or not this fix all provider wants its changed documents to be fully cleaned after the underlying fixer
+    /// changes the document.  Or if it just wants to clean the syntax of the document.  Cleaning the syntax only can
+    /// be much faster, as it just involves formatting, and no semantic cleanup passes.
+    /// </summary>
+    bool CleanSyntaxOnly { get; }
 }

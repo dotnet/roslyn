@@ -34,6 +34,8 @@ internal abstract class FixAllProvider : IFixAllProvider
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
 
+    public virtual bool CleanSyntaxOnly => false;
+
     /// <summary>
     /// Gets fix all occurrences fix for the given fixAllContext.
     /// </summary>
@@ -78,6 +80,14 @@ internal abstract class FixAllProvider : IFixAllProvider
         Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
+        return Create(fixAllAsync, supportedFixAllScopes, cleanSyntaxOnly: false);
+    }
+
+    internal static FixAllProvider Create(
+        Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        bool cleanSyntaxOnly)
+    {
         if (fixAllAsync is null)
             throw new ArgumentNullException(nameof(fixAllAsync));
 
@@ -87,13 +97,16 @@ internal abstract class FixAllProvider : IFixAllProvider
         if (supportedFixAllScopes.Contains(FixAllScope.Custom))
             throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
-        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
+        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes, cleanSyntaxOnly);
     }
 
     private sealed class CallbackDocumentBasedFixAllProvider(
         Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
-        ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        bool cleanSyntaxOnly) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
+        public override bool CleanSyntaxOnly { get; } = cleanSyntaxOnly;
+
         protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans)
             => fixAllAsync(context, document, fixAllSpans);
     }

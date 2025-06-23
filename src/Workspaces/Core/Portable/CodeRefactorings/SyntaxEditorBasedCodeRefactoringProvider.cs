@@ -19,6 +19,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
     protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember];
 
     protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
+    protected virtual bool CleanSyntaxOnly => false;
 
     internal sealed override FixAllProvider? GetFixAllProvider()
     {
@@ -28,7 +29,8 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
         return FixAllProvider.Create(
             async (fixAllContext, document, fixAllSpans) =>
                 await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
-            SupportedFixAllScopes);
+            SupportedFixAllScopes,
+            this.CleanSyntaxOnly);
     }
 
     protected Task<Document> FixAsync(

@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 
 public abstract partial class CodeAction
 {
+    private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanSyntax =
+        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken);
+
     /// <summary>
     /// We do cleanup in N serialized passes.  This allows us to process all documents in parallel, while only forking
     /// the solution N times *total* (instead of N times *per* document).
@@ -31,7 +34,7 @@ public abstract partial class CodeAction
         // First, ensure that everything is formatted as the feature asked for.  We want to do this prior to doing
         // semantic cleanup as the semantic cleanup passes may end up making changes that end up dropping some of
         // the formatting/elastic annotations that the feature wanted respected.
-        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
+        s_cleanSyntax,
         // Then add all missing imports to all changed documents.
         static (document, options, cancellationToken) => ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken),
         // Then simplify any expanded constructs.
@@ -41,7 +44,7 @@ public abstract partial class CodeAction
         // Finally, after doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a
         // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
         // cleaned.
-        static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken),
+        s_cleanSyntax,
     ];
 
     internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
@@ -67,21 +70,28 @@ public abstract partial class CodeAction
             .Concat(solutionChanges.GetAddedProjects().SelectMany(p => p.DocumentIds))
             .Concat(solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments());
 
-        return documentIds.ToImmutableArray();
+        return [.. documentIds];
     }
+
+    internal static Task<Solution> CleanSyntaxAsync(Solution originalSolution, Solution changedSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        => CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, [s_cleanSyntax], cancellationToken);
+
+    internal static Task<Solution> CleanSyntaxAndSemanticsAsync(Solution originalSolution, Solution changedSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        => CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, s_cleanupPasses, cancellationToken);
 
     internal static async Task<Solution> CleanSyntaxAndSemanticsAsync(
         Solution originalSolution,
         Solution changedSolution,
         IProgress<CodeAnalysisProgress> progress,
+        ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> passes,
         CancellationToken cancellationToken)
     {
         var documentIds = GetAllChangedOrAddedDocumentIds(originalSolution, changedSolution);
         var documentIdsAndOptionsToClean = await GetDocumentIdsAndOptionsToCleanAsync().ConfigureAwait(false);
 
         // Then do a pass where we cleanup semantics.
-        var cleanedSolution = await RunAllCleanupPassesInOrderAsync(
-            changedSolution, documentIdsAndOptionsToClean, progress, cancellationToken).ConfigureAwait(false);
+        var cleanedSolution = await RunCleanupPassesInOrderAsync(
+            changedSolution, documentIdsAndOptionsToClean, progress, passes, cancellationToken).ConfigureAwait(false);
 
         return cleanedSolution;
 
@@ -112,26 +122,28 @@ public abstract partial class CodeAction
         if (!document.SupportsSyntaxTree)
             return document;
 
-        var cleanedSolution = await RunAllCleanupPassesInOrderAsync(
+        var cleanedSolution = await RunCleanupPassesInOrderAsync(
             document.Project.Solution,
             [(document.Id, options)],
             CodeAnalysisProgress.None,
+            s_cleanupPasses,
             cancellationToken).ConfigureAwait(false);
 
         return await cleanedSolution.GetRequiredDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<Solution> RunAllCleanupPassesInOrderAsync(
+    private static async Task<Solution> RunCleanupPassesInOrderAsync(
         Solution solution,
         ImmutableArray<(DocumentId documentId, CodeCleanupOptions options)> documentIdsAndOptions,
         IProgress<CodeAnalysisProgress> progress,
+        ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> passes,
         CancellationToken cancellationToken)
     {
         // One item per document per cleanup pass.
-        progress.AddItems(documentIdsAndOptions.Length * s_cleanupPasses.Length);
+        progress.AddItems(documentIdsAndOptions.Length * passes.Length);
 
         var currentSolution = solution;
-        foreach (var cleanupPass in s_cleanupPasses)
+        foreach (var cleanupPass in passes)
             currentSolution = await RunParallelCleanupPassAsync(currentSolution, cleanupPass).ConfigureAwait(false);
 
         return currentSolution;
