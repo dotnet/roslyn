@@ -21,7 +21,7 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     private readonly bool _supportsFixAll = supportsFixAll;
 
 #if WORKSPACE
-    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
+    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 #endif
 
     public sealed override FixAllProvider? GetFixAllProvider()

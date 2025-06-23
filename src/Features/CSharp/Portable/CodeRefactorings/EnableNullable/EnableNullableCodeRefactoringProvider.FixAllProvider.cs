@@ -59,7 +59,7 @@ internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefact
                 (progress, cancellationToken) => createChangedSolution(CodeActionPurpose.Apply, progress, cancellationToken),
                 nameof(CSharpFeaturesResources.Enable_nullable_reference_types_in_solution),
                 CodeActionPriority.Default,
-                CodeActionCleanup.SyntaxAndSemantics)
+                CodeActionCleanup.Default)
         {
             private readonly Func<CodeActionPurpose, IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution = createChangedSolution;
 

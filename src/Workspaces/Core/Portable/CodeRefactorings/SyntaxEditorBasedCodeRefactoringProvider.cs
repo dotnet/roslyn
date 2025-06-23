@@ -20,7 +20,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
     protected static readonly ImmutableArray<FixAllScope> AllFixAllScopes = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType, FixAllScope.ContainingMember];
 
     protected abstract ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
-    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
+    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     internal sealed override FixAllProvider? GetFixAllProvider()
     {

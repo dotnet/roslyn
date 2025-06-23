@@ -27,7 +27,7 @@ internal abstract class FixAllProvider : IFixAllProvider
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
 
-    public virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
+    public virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     /// <summary>
     /// Gets fix all occurrences fix for the given fixAllContext.
@@ -73,7 +73,7 @@ internal abstract class FixAllProvider : IFixAllProvider
         Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
-        return Create(fixAllAsync, supportedFixAllScopes, CodeActionCleanup.SyntaxAndSemantics);
+        return Create(fixAllAsync, supportedFixAllScopes, CodeActionCleanup.Default);
     }
 
     internal static FixAllProvider Create(

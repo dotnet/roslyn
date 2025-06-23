@@ -27,7 +27,7 @@ internal interface IFixAllProvider
 
     /// <summary>
     /// The sort of cleanup that should automatically be poerformed for this fix all provider.  By default this is
-    /// <see cref="CodeActionCleanup.SyntaxAndSemantics"/>.
+    /// <see cref="CodeActionCleanup.Default"/>.
     /// </summary>
     CodeActionCleanup Cleanup { get; }
 }

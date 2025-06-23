@@ -80,7 +80,7 @@ public abstract partial class CodeAction
     /// </remarks>
     public virtual string? EquivalenceKey => null;
 
-    internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
+    internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     /// <summary>
     /// Priority of this particular action within a group of other actions.  Less relevant actions should override
@@ -533,7 +533,7 @@ public abstract partial class CodeAction
     /// <inheritdoc cref="Create(string, Func{CancellationToken, Task{Solution}}, string?, CodeActionPriority)"/>
     [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
     public static CodeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
-        => Create(title, createChangedSolution, equivalenceKey, priority, CodeActionCleanup.SyntaxAndSemantics);
+        => Create(title, createChangedSolution, equivalenceKey, priority, CodeActionCleanup.Default);
 
     internal static CodeAction Create(
         string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey, CodeActionPriority priority, CodeActionCleanup cleanup)

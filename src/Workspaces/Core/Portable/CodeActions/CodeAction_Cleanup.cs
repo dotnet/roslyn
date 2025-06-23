@@ -36,6 +36,8 @@ internal enum CodeActionCleanup
     /// Automatic syntax and semantics cleanup will be performed on the solution after the code action is applied.
     /// </summary>
     SyntaxAndSemantics,
+
+    Default = SyntaxAndSemantics,
 }
 
 public abstract partial class CodeAction
