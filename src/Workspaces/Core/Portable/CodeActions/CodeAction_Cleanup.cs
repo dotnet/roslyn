@@ -40,7 +40,7 @@ internal enum CodeActionCleanup
 
 public abstract partial class CodeAction
 {
-    private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanSyntaxPass =
+    private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanupSyntaxPass =
         static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken);
 
     /// <summary>
@@ -52,7 +52,7 @@ public abstract partial class CodeAction
         // First, ensure that everything is formatted as the feature asked for.  We want to do this prior to doing
         // semantic cleanup as the semantic cleanup passes may end up making changes that end up dropping some of
         // the formatting/elastic annotations that the feature wanted respected.
-        s_cleanSyntaxPass,
+        s_cleanupSyntaxPass,
         // Then add all missing imports to all changed documents.
         static (document, options, cancellationToken) => ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken),
         // Then simplify any expanded constructs.
@@ -62,7 +62,7 @@ public abstract partial class CodeAction
         // Finally, after doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a
         // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
         // cleaned.
-        s_cleanSyntaxPass,
+        s_cleanupSyntaxPass,
     ];
 
     internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
@@ -109,7 +109,7 @@ public abstract partial class CodeAction
 
         return await CleanSyntaxAndSemanticsAsync(
             originalSolution, changedSolution, progress,
-            cleanup is CodeActionCleanup.SyntaxOnly ? [s_cleanSyntaxPass] : s_allCleanupPasses,
+            cleanup is CodeActionCleanup.SyntaxOnly ? [s_cleanupSyntaxPass] : s_allCleanupPasses,
             cancellationToken).ConfigureAwait(false);
     }
 
