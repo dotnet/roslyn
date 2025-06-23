@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -30,8 +31,8 @@ internal sealed class LanguageServerWorkspaceFactory
         IFileChangeWatcher fileChangeWatcher,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
-        ServerConfigurationFactory serverConfigurationFactory,
         ExtensionAssemblyManager extensionManager,
+        [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
@@ -62,11 +63,9 @@ internal sealed class LanguageServerWorkspaceFactory
             fileBasedProgramsWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
         fileBasedProgramsWorkspace.ProjectSystemProjectFactory = FileBasedProgramsProjectFactory;
 
-        var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
-            new HostDiagnosticAnalyzerProvider(razorSourceGenerator),
-            AnalyzerAssemblyRedirectors: []);
+            AnalyzerAssemblyRedirectors: [.. assemblyRedirectors]);
 
         TargetFrameworkManager = projectTargetFrameworkManager;
     }

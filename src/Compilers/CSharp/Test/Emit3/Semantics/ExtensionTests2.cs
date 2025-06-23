@@ -4,9 +4,12 @@
 #nullable disable
 
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -581,7 +584,7 @@ public static class E
 var person = new { Name = "John", Age = 30 };
 person.M();
 person.M2();
-_ = person.P;
+_ = person.Property;
 
 public static class E
 {
@@ -594,12 +597,32 @@ public static class E
     public static void M2<T>(this T t) { System.Console.Write("method2 "); }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should work
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (4,12): error CS1061: '<anonymous type: string Name, int Age>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type '<anonymous type: string Name, int Age>' could be found (are you missing a using directive or an assembly reference?)
-            // _ = person.P;
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("<anonymous type: string Name, int Age>", "P").WithLocation(4, 12));
+        CompileAndVerify(comp, expectedOutput: "method method2 property").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AnonymousType_02()
+    {
+        // instance members come first
+        var src = """
+System.Action a = () => { System.Console.Write("method "); };
+var person = new { DoStuff = a, Property = 42 };
+
+person.DoStuff();
+System.Console.Write(person.Property);
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void DoStuff() => throw null;
+        public int Property => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "method 42").VerifyDiagnostics();
     }
 
     [Fact]
@@ -2385,7 +2408,7 @@ static class E2
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the diagnostic should describe what went wrong
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // var x = object.M; // 1
@@ -2427,6 +2450,3120 @@ class C : I { }
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("I1.M() I1.M()"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CS1943ERR_QueryTypeInferenceFailedSelectMany()
+    {
+        // ReportQueryInferenceFailedSelectMany
+        var comp = CreateCompilation("""
+using System;
+using System.Collections.Generic;
+
+class Test
+{
+    class TestClass
+    { }
+
+    static void Main()
+    {
+        int[] nums = { 0, 1, 2, 3, 4, 5 };
+        TestClass tc = new TestClass();
+
+        var x = from n in nums
+                from s in tc // CS1943
+                select n + s;
+    }
+}
+
+static class E
+{
+    extension<TSource>(IEnumerable<TSource> source)
+    {
+        public IEnumerable<TResult> SelectMany<TCollection, TResult>(
+            Func<TSource, IEnumerable<TCollection>> collectionSelector,
+            Func<TSource, TCollection,TResult> resultSelector)
+            => throw null;
+    }
+}
+""");
+
+        comp.VerifyEmitDiagnostics(
+            // (13,27): error CS1943: An expression of type 'Test.TestClass' is not allowed in a subsequent from clause in a query expression with source type 'int[]'.  Type inference failed in the call to 'SelectMany'.
+            // tc
+            Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "tc").WithArguments("Test.TestClass", "int[]", "SelectMany"));
+    }
+
+    [Fact]
+    public void Foreach_Extension_01()
+    {
+        var src = """
+class Program
+{
+    public static void M(Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+    }
+}
+
+static class Ext 
+{
+    extension<T>(System.Span<T> f)
+    {
+        public Enumerator<T> GetEnumerator() => default;
+    }
+
+    public ref struct Enumerator<T>
+    {
+        public ref T Current => throw null;
+
+        public bool MoveNext() => false;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4<T>
+{
+    private T _element0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+        comp.VerifyEmitDiagnostics(
+            // (5,26): error CS9189: foreach statement on an inline array of type 'Buffer4<int>' is not supported
+            //         foreach(var s in x)
+            Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(5, 26),
+            // (20,25): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension<T>(System.Span<T> f)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<T>").WithArguments("", "System.Span<T>", "System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(20, 25)
+            );
+    }
+
+    [Fact]
+    public void DelegateCreation_01()
+    {
+        var src = """
+string s;
+_ = new System.Action(s.M);
+
+string s2;
+_ = new System.Action(s2.M2);
+
+_ = new System.Action(string.M2);
+
+static class E 
+{
+    extension(string s)
+    {
+        public void M() { }
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,23): error CS0165: Use of unassigned local variable 's'
+            // _ = new System.Action(s.M);
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(2, 23),
+            // (4,8): warning CS0168: The variable 's2' is declared but never used
+            // string s2;
+            Diagnostic(ErrorCode.WRN_UnreferencedVar, "s2").WithArguments("s2").WithLocation(4, 8),
+            // (5,23): error CS0176: Member 'E.extension(string).M2()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // _ = new System.Action(s2.M2);
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "s2.M2").WithArguments("E.extension(string).M2()").WithLocation(5, 23));
+    }
+
+    [Fact]
+    public void AsyncMethodBuilder_01()
+    {
+        var src = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+Console.Write(await object.M());
+
+static class C
+{
+    extension(object)
+    {
+        [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+        public static async MyTask<int> M() { await Task.Yield(); Console.Write("M "); return 3; }
+    }
+}
+
+public class MyTask<T>
+{
+    private Action _continuation;
+    private bool _isCompleted;
+    internal  T _result;
+
+    public Awaiter GetAwaiter() => new Awaiter(this);
+    public T Result => _result;
+
+    internal void Complete(T result)
+    {
+        _result = result;
+        _isCompleted = true;
+        _continuation?.Invoke();
+    }
+
+    public readonly struct Awaiter : ICriticalNotifyCompletion
+    {
+        private readonly MyTask<T> _task;
+        internal Awaiter(MyTask<T> task) => _task = task;
+
+        public bool IsCompleted => _task._isCompleted;
+        public T GetResult() => _task._result;
+
+        public void OnCompleted(Action cont) => HandleCompletion(cont);
+        public void UnsafeOnCompleted(Action cont) => HandleCompletion(cont);
+
+        private void HandleCompletion(Action cont)
+        {
+            if (_task._isCompleted) { cont(); return; }
+
+            _task._continuation = cont;
+        }
+    }
+}
+
+public struct MyTaskMethodBuilder<T>
+{
+    private readonly MyTask<T> _task;
+    private MyTaskMethodBuilder(MyTask<T> task) => _task = task;
+
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>(new MyTask<T>());
+    public MyTask<T> Task => _task;
+    public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine => sm.MoveNext();
+
+    public void SetStateMachine(IAsyncStateMachine _) { }
+    public void SetResult(T result) => _task.Complete(result);
+    public void SetException(Exception e) => throw null;
+
+    public void AwaitOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : INotifyCompletion where TSM: IAsyncStateMachine => a.OnCompleted(sm.MoveNext);
+    public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : ICriticalNotifyCompletion where TSM: IAsyncStateMachine => a.UnsafeOnCompleted(sm.MoveNext);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } } 
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "M 3").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PEMethodSymbol_GetUseSiteInfo()
+    {
+        // missing implementation method for M
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void Retargeting_01()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : System.Attribute {}
+}
+""";
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Mscorlib40);
+
+        var src = """
+object.M();
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Mscorlib46, references: [libComp.ToMetadataReference()]);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.IsType<RetargetingNamedTypeSymbol>(extension);
+        AssertExtensionDeclaration(extension.GetPublicSymbol());
+    }
+
+    [Theory]
+    [InlineData("public")]
+    [InlineData("assembly")]
+    [InlineData("family")]
+    public void PENamedTypeSymbol_01(string accessibility)
+    {
+        // Accessibility of extension marker is not private
+        var ilSrc = $$"""
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "int.M()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_02()
+    {
+        // Accessibility of extension marker is not private, instance extension method
+        var ilSrc = $$"""
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig instance void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M ( int32 i ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+42.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,4): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // 42.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 4));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_03()
+    {
+        // Extension marker method is generic
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_04()
+    {
+        // Extension marker method is not static
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_05()
+    {
+        // Extension marker doesn't return void
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ldc.i4.0
+            IL_0001: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_06()
+    {
+        // Extension marker lacks its parameter
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' () cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_07()
+    {
+        // Extension marker has an extra parameter
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_08()
+    {
+        // No containing type
+        var ilSrc = """
+.class public auto ansi sealed specialname beforefieldinit '<>E__0'
+    extends [mscorlib]System.Object
+{
+    .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+        IL_0000: ret
+    }
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        var extension = comp.GlobalNamespace.GetTypeMember("<>E__0");
+        Assert.True(extension.IsExtension);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_09()
+    {
+        // Two extension markers
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method private hidebysig specialname static void '<Extension>$' ( string '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_10()
+    {
+        // Arity mismatch between skeleton and implementation
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M<T> () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_11()
+    {
+        // Accessibility mismatch between skeleton and implementation
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method assembly hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_12()
+    {
+        // parameter count mismatch between skeleton and implementation
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M (string s) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_13()
+    {
+        // return type mismatch between skeleton and implementation
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static int32 M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_14()
+    {
+        // parameter type mismatch, instance method
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig instance void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M ( object i ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+42.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,4): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // 42.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 4));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_15()
+    {
+        // parameter type mismatch, instance method
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig instance void M ( string s ) cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M ( int32 i, object s ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+42.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,4): error CS0570: 'E.extension(int).M(string)' is not supported by the language
+            // 42.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M(string)").WithLocation(1, 4));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_16()
+    {
+        // constraint mismatch between skeleton and implementation
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M<T> () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M<class T> () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M<T>()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M<T>()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_17()
+    {
+        // implementation is not static
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig instance void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M()' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_18()
+    {
+        // skeleton type is not sealed
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
+    }
+
+    [Theory]
+    [InlineData("assembly")]
+    [InlineData("family")]
+    public void PENamedTypeSymbol_19(string accessibility)
+    {
+        // skeleton type is not public
+        var ilSrc = $$"""
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested {{accessibility}} auto ansi specialname beforefieldinit sealed '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_20()
+    {
+        // skeleton type not sealed
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_21()
+    {
+        // skeleton type has a base that's not object
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+		extends [mscorlib]System.String
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_22()
+    {
+        // skeleton type implements an interface
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+		extends [mscorlib]System.Object
+        implements I
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+
+.class interface private auto ansi abstract beforefieldinit I
+{
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GetTypeByMetadataName("E").GetTypeMembers().Single().IsExtension);
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_23()
+    {
+        // parameter type mismatch, static method
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M ( string s ) cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M ( object s ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0570: 'E.extension(int).M(string)' is not supported by the language
+            // int.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M(string)").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void RefReadonlyExtensionParameterWithOneExplicitRefArgument()
+    {
+        var src = """
+int i = 0;
+42.Copy(ref i);
+System.Console.Write(i);
+
+static class E
+{
+    extension(ref readonly int i)
+    {
+        public void Copy(ref int j) { j = i; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "42");
+    }
+
+    [Fact]
+    public void Cref_01()
+    {
+        var src = """
+/// <see cref="E.extension(int).M(string)"/>
+/// <see cref="E.M(int, string)"/>
+/// <see cref="E.extension(int).M"/>
+/// <see cref="E.M"/>
+static class E
+{
+    extension(int i)
+    {
+        /// <see cref="M(int, string)"/>
+        /// <see cref="M(string)"/>
+        /// <see cref="M"/>
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (10,24): warning CS1574: XML comment has cref attribute 'M(string)' that could not be resolved
+            //         /// <see cref="M(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "M(string)").WithArguments("M(string)").WithLocation(10, 24));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M(System.String)"/>
+    <see cref="M:E.M(System.Int32,System.String)"/>
+    <see cref="M:E.&lt;&gt;E__0.M(System.String)"/>
+    <see cref="M:E.M(System.Int32,System.String)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        AssertEx.Equal("T:E.<>E__0", e.GetTypeMembers().Single().GetDocumentationCommentId());
+
+        var mSkeleton = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember("M");
+        AssertEx.Equal("""
+<member name="M:E.&lt;&gt;E__0.M(System.String)">
+    <see cref="M:E.M(System.Int32,System.String)"/>
+    <see cref="!:M(string)"/>
+    <see cref="M:E.M(System.Int32,System.String)"/>
+</member>
+
+""", mSkeleton.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension(int).M(string), void E.<>E__0.M(System.String s))",
+            "(E.M(int, string), void E.M(this System.Int32 i, System.String s))",
+            "(E.extension(int).M, void E.<>E__0.M(System.String s))",
+            "(E.M, void E.M(this System.Int32 i, System.String s))",
+            "(M(int, string), void E.M(this System.Int32 i, System.String s))",
+            "(M(string), null)",
+            "(M, void E.M(this System.Int32 i, System.String s))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_02()
+    {
+        var src = """
+/// <see cref="E.extension{T}(T).M{U}(U)"/>
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M<U>(U u) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        AssertEx.Equal("T:E.<>E__0`1", e.GetTypeMembers().Single().GetDocumentationCommentId());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension{T}(T).M{U}(U), void E.<>E__0<T>.M<U>(U u))"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_03()
+    {
+        var src = """
+/// <see cref="E.extension(ref int).M()"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(ref int).M()' that could not be resolved
+            // /// <see cref="E.extension(ref int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(ref int).M()").WithArguments("extension(ref int).M()").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void Cref_04()
+    {
+        var src = """
+/// <see cref="E.extension(ref int).M()"/>
+/// <see cref="E.extension(int).M()"/>
+static class E
+{
+    extension(ref int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).M()' that could not be resolved
+            // /// <see cref="E.extension(int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M()").WithArguments("extension(int).M()").WithLocation(2, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="!:E.extension(int).M()"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension(ref int).M(), void E.<>E__0.M())",
+            "(E.extension(int).M(), null)"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_05()
+    {
+        var src = """
+/// <see cref="E.extension(int).M()"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+    extension(string s)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M(), void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_06()
+    {
+        var src = """
+/// <see cref="E.extension(int).M()"/>
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+    extension(int)
+    {
+        public static void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M()'. Assuming 'E.extension(int).M()', but could have also matched other overloads including 'E.extension(int).M()'.
+            // /// <see cref="E.extension(int).M()"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M()").WithArguments("E.extension(int).M()", "E.extension(int).M()", "E.extension(int).M()").WithLocation(1, 16),
+            // (2,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M'. Assuming 'E.extension(int).M()', but could have also matched other overloads including 'E.extension(int).M()'.
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M").WithArguments("E.extension(int).M", "E.extension(int).M()", "E.extension(int).M()").WithLocation(2, 16),
+            // (11,28): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
+            //         public static void M() => throw null!;
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "E").WithLocation(11, 28));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension(int).M(), null)",
+            "(E.extension(int).M, null)"],
+            PrintXmlCrefSymbols(tree, model));
+
+        var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+        var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>()).ToArray();
+        Assert.Equal(CandidateReason.OverloadResolutionFailure, model.GetSymbolInfo(crefs[0].Cref).CandidateReason);
+        Assert.Equal(CandidateReason.Ambiguous, model.GetSymbolInfo(crefs[1].Cref).CandidateReason);
+    }
+
+    [Fact]
+    public void Cref_08()
+    {
+        var src = """
+/// <see cref="E.extension(int).M()"/>
+static class E
+{
+    extension(int i, int j)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (4,22): error CS9285: An extension container can have only one receiver parameter
+            //     extension(int i, int j)
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(4, 22));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M(), void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_09()
+    {
+        var src = """
+/// <see cref="E.extension(int, int).M()"/>
+static class E
+{
+    extension(int i, int j)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int, int).M()' that could not be resolved
+            // /// <see cref="E.extension(int, int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int, int).M()").WithArguments("extension(int, int).M()").WithLocation(1, 16),
+            // (4,22): error CS9285: An extension container can have only one receiver parameter
+            //     extension(int i, int j)
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(4, 22));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(int, int).M()"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int, int).M(), null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_10()
+    {
+        // Missing closing parens
+        var src = """
+/// <see cref="E.extension(.M()"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'E.extension(.M()'
+            // /// <see cref="E.extension(.M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "E.extension(.M()").WithArguments("E.extension(.M()").WithLocation(1, 16),
+            // (1,28): warning CS1658: ) expected. See also error CS1026.
+            // /// <see cref="E.extension(.M()"/>
+            Diagnostic(ErrorCode.WRN_ErrorOverride, ".").WithArguments(") expected", "1026").WithLocation(1, 28));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(.M()"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(.M(), null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_11()
+    {
+        // Missing extension parameter
+        var src = """
+/// <see cref="E.extension().M()"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension().M()' that could not be resolved
+            // /// <see cref="E.extension().M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension().M()").WithArguments("extension().M()").WithLocation(1, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension().M()"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension().M(), null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_12()
+    {
+        // Two extension parameters
+        var src = """
+/// <see cref="E.extension(int, int).M()"/>
+static class E
+{
+    extension(int i, int j)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int, int).M()' that could not be resolved
+            // /// <see cref="E.extension(int, int).M()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int, int).M()").WithArguments("extension(int, int).M()").WithLocation(1, 16),
+            // (4,22): error CS9285: An extension container can have only one receiver parameter
+            //     extension(int i, int j)
+            Diagnostic(ErrorCode.ERR_ReceiverParameterOnlyOne, "int j").WithLocation(4, 22));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(int, int).M()"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int, int).M(), null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_13()
+    {
+        var src = """
+/// <see cref="E.extension(int).P"/>
+static class E
+{
+    extension(int i)
+    {
+        public int P => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="P:E.&lt;&gt;E__0.P"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).P, System.Int32 E.<>E__0.P { get; })"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_14()
+    {
+        var src = """
+/// <see cref="E.extension(int).P"/>
+static class E
+{
+    extension(int i)
+    {
+        public int P => throw null!;
+    }
+    extension(string s)
+    {
+        public string P => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="P:E.&lt;&gt;E__0.P"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).P, System.Int32 E.<>E__0.P { get; })"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_15()
+    {
+        var src = """
+/// <see cref="E.extension(string).P"/>
+static class E
+{
+    extension(int i)
+    {
+        public int P => throw null!;
+    }
+    extension(string s)
+    {
+        public string P => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="P:E.&lt;&gt;E__1.P"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(string).P, System.String E.<>E__1.P { get; })"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_16()
+    {
+        var src = """
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_17()
+    {
+        var src = """
+/// <see cref="E.extension(string).M"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(string).M' that could not be resolved
+            // /// <see cref="E.extension(string).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(string).M").WithArguments("extension(string).M").WithLocation(1, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(string).M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(string).M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_18()
+    {
+        var src = """
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M<T>() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M``1"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, void E.<>E__0.M<T>())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_19()
+    {
+        var src = """
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M<T>() => throw null;
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_20()
+    {
+        var src = """
+/// <see cref="E.extension(int).M{U}"/>
+/// <see cref="E.M{U}"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M<T>() => throw null;
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M``1"/>
+    <see cref="M:E.M``1(System.Int32)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension(int).M{U}, void E.<>E__0.M<U>())",
+            "(E.M{U}, void E.M<U>(this System.Int32 i))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_21()
+    {
+        // Arity for extension in cref differs from that in declaration
+        var src = """
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    extension<T>(int i)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M").WithArguments("extension(int).M").WithLocation(1, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(int).M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_22()
+    {
+        // Arity for extension in cref differs from that in declaration
+        var src = """
+/// <see cref="E.extension{T}(int).M"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension{T}(int).M' that could not be resolved
+            // /// <see cref="E.extension{T}(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension{T}(int).M").WithArguments("extension{T}(int).M").WithLocation(1, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension&lt;T&gt;(int).M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension{T}(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_23()
+    {
+        var src = """
+/// <see cref="E.extension{T}(int).M"/>
+static class E
+{
+    extension<T>(int i)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0`1.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension{T}(int).M, void E.<>E__0<T>.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_24()
+    {
+        var src = """
+/// <see cref="E.M"/>
+static class E<T>
+{
+    public static void M() => throw null;
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'M' that could not be resolved
+            // /// <see cref="E.M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.M").WithArguments("M").WithLocation(1, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E`1">
+    <see cref="!:E.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_25()
+    {
+        // Type argument name differs from type parameter name
+        var src = """
+/// <see cref="E.extension{U}(U).M"/>
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0`1.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension{U}(U).M, void E.<>E__0<U>.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_26()
+    {
+        // __arglist
+        var src = """
+/// <see cref="E.extension(string).P"/>
+static class E
+{
+    extension(__arglist)
+    {
+        public int P => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(string).P' that could not be resolved
+            // /// <see cref="E.extension(string).P"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(string).P").WithArguments("extension(string).P").WithLocation(1, 16),
+            // (4,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(4, 15));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(string).P"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(string).P, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_27()
+    {
+        // member named "extension"
+        var src = """
+/// <see cref="E.extension(string)"/>
+static class E
+{
+    public static void extension(string s) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.extension(System.String)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(string), void E.extension(System.String s))"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_28()
+    {
+        var src = """
+/// <see cref="E.extension(int)."/>
+static class E
+{
+    extension(int i)
+    {
+        public int P => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'E.extension(int).'
+            // /// <see cref="E.extension(int)."/>
+            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "E.extension(int).").WithArguments("E.extension(int).").WithLocation(1, 16),
+            // (1,33): warning CS1658: Identifier expected. See also error CS1001.
+            // /// <see cref="E.extension(int)."/>
+            Diagnostic(ErrorCode.WRN_ErrorOverride, @"""").WithArguments("Identifier expected", "1001").WithLocation(1, 33));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(int)."/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int)., null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_29()
+    {
+        var src = """
+/// <see cref="E.extension(int).Nested"/>
+static class E
+{
+    extension(int i)
+    {
+        public class Nested { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Nested' that could not be resolved
+            // /// <see cref="E.extension(int).Nested"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).Nested").WithArguments("extension(int).Nested").WithLocation(1, 16),
+            // (6,22): error CS9282: This member is not allowed in an extension block
+            //         public class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 22));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(int).Nested"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).Nested, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_30()
+    {
+        var src = """
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    extension(int i)
+    {
+        void I.M() { }
+    }
+}
+
+interface I
+{
+    void M();
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M").WithArguments("extension(int).M").WithLocation(1, 16),
+            // (6,16): error CS0541: 'E.extension(int).M()': explicit interface declaration can only be declared in a class, record, struct or interface
+            //         void I.M() { }
+            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("E.extension(int).M()").WithLocation(6, 16),
+            // (6,16): error CS9282: This member is not allowed in an extension block
+            //         void I.M() { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "M").WithLocation(6, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(int).M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_31()
+    {
+        var src = """
+/// <see cref="E.extension(missing).M"/>
+static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(missing).M' that could not be resolved
+            // /// <see cref="E.extension(missing).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(missing).M").WithArguments("extension(missing).M").WithLocation(1, 16),
+            // (1,28): warning CS1580: Invalid type for parameter missing in XML comment cref attribute: 'E.extension(missing).M'
+            // /// <see cref="E.extension(missing).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "missing").WithArguments("missing", "E.extension(missing).M").WithLocation(1, 28));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="!:E.extension(missing).M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(missing).M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_32()
+    {
+        // nested type named "extension"
+        var src = """
+/// <see cref="E.extension"/>
+/// <see cref="E.extension.M"/>
+/// <see cref="E.extension.M()"/>
+static class E
+{
+    class @extension
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="T:E.extension"/>
+    <see cref="M:E.extension.M"/>
+    <see cref="M:E.extension.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension, E.extension)",
+            "(E.extension.M, void E.extension.M())",
+            "(E.extension.M(), void E.extension.M())"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_33()
+    {
+        // nested type named "extension", error cases
+        var src = """
+/// <see cref="E.extension()"/>
+/// <see cref="E.extension().M"/>
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    class @extension
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (2,16): warning CS1574: XML comment has cref attribute 'extension().M' that could not be resolved
+            // /// <see cref="E.extension().M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension().M").WithArguments("extension().M").WithLocation(2, 16),
+            // (3,16): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M").WithArguments("extension(int).M").WithLocation(3, 16));
+    }
+
+    [Fact]
+    public void Cref_34()
+    {
+        // generic nested type named "extension"
+        var src = """
+/// <see cref="E.extension{T}"/>
+/// <see cref="E.extension{T}.M"/>
+static class E
+{
+    class @extension<T>
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="T:E.extension`1"/>
+    <see cref="M:E.extension`1.M"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension{T}, E.extension<T>)",
+            "(E.extension{T}.M, void E.extension<T>.M())"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_35()
+    {
+        // generic nested type named "extension", error cases
+        var src = """
+/// <see cref="E.extension{T}(int).M"/>
+static class E
+{
+    class @extension<T>
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension{T}(int).M' that could not be resolved
+            // /// <see cref="E.extension{T}(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension{T}(int).M").WithArguments("extension{T}(int).M").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void Cref_36()
+    {
+        // can refer to method named "extension", but cannot refer to extension block
+        var src = """
+/// <see cref="E.extension()"/>
+/// <see cref="E.extension(int)"/>
+static class E
+{
+    public static void extension() { }
+    public static void extension(int i) { }
+}
+
+/// <see cref="E2.extension()"/>
+/// <see cref="E2.extension(int)"/>
+static class E2
+{
+    extension(int)
+    {
+    }
+
+    /// <see cref="extension()"/>
+    /// <see cref="extension(int)"/>
+    static void M() { }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (9,16): warning CS1574: XML comment has cref attribute 'extension()' that could not be resolved
+            // /// <see cref="E2.extension()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E2.extension()").WithArguments("extension()").WithLocation(9, 16),
+            // (10,16): warning CS1574: XML comment has cref attribute 'extension(int)' that could not be resolved
+            // /// <see cref="E2.extension(int)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E2.extension(int)").WithArguments("extension(int)").WithLocation(10, 16),
+            // (17,20): warning CS1574: XML comment has cref attribute 'extension()' that could not be resolved
+            //     /// <see cref="extension()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension()").WithArguments("extension()").WithLocation(17, 20),
+            // (18,20): warning CS1574: XML comment has cref attribute 'extension(int)' that could not be resolved
+            //     /// <see cref="extension(int)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int)").WithArguments("extension(int)").WithLocation(18, 20));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension(), void E.extension())",
+            "(E.extension(int), void E.extension(System.Int32 i))",
+            "(E2.extension(), null)",
+            "(E2.extension(int), null)",
+            "(extension(), null)",
+            "(extension(int), null)"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_37()
+    {
+        // method named "extension"
+        var src = """
+/// <see cref="E.extension()"/>
+/// <see cref="E.extension(int)"/>
+static class E
+{
+    public static void extension() { }
+    public static void extension(int i) { }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(E.extension(), void E.extension())",
+            "(E.extension(int), void E.extension(System.Int32 i))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_38()
+    {
+        // method named "extension", error case
+        var src = """
+/// <see cref="E.extension().M"/>
+/// <see cref="E.extension(int).M"/>
+static class E
+{
+    public static void extension() { }
+    public static void extension(int i) { }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension().M' that could not be resolved
+            // /// <see cref="E.extension().M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension().M").WithArguments("extension().M").WithLocation(1, 16),
+            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M").WithArguments("extension(int).M").WithLocation(2, 16));
+    }
+
+    [Fact]
+    public void Cref_39()
+    {
+        // nested type named "extension"
+        var src = """
+/// <see cref="E.extension"/>
+static class E
+{
+    class @extension
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="T:E.extension"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension, E.extension)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_40()
+    {
+        // inaccessible due to file accessibility on type
+        var src1 = """
+/// <see cref="E.extension(object).M"/>
+class C { }
+""";
+        var src2 = """
+file static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation([(src1, "file1"), (src2, "file2")], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // file1(1,16): warning CS1574: XML comment has cref attribute 'extension(object).M' that could not be resolved
+            // /// <see cref="E.extension(object).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(object).M").WithArguments("extension(object).M").WithLocation(1, 16));
+
+        var c = comp.GetMember<NamedTypeSymbol>("C");
+        AssertEx.Equal("""
+<member name="T:C">
+    <see cref="!:E.extension(object).M"/>
+</member>
+
+""", c.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(object).M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_41()
+    {
+        // inaccessible due to internal
+        var src = """
+/// <see cref="E.extension(object).M"/>
+class C { }
+""";
+        var libSrc = """
+public static class E
+{
+    extension(object)
+    {
+        internal static void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()],
+            parseOptions: TestOptions.RegularPreviewWithDocumentationComments,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+        comp.VerifyEmitDiagnostics();
+
+        var c = comp.GetMember<NamedTypeSymbol>("C");
+        AssertEx.Equal("""
+<member name="T:C">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", c.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(object).M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_42()
+    {
+        // inaccessible due to private
+        var src = """
+/// <see cref="E.extension(object).M"/>
+class C { }
+""";
+        var libSrc = """
+public static class E
+{
+    extension(object)
+    {
+        private static void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularPreviewWithDocumentationComments, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(object).M' that could not be resolved
+            // /// <see cref="E.extension(object).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(object).M").WithArguments("extension(object).M").WithLocation(1, 16));
+
+        var c = comp.GetMember<NamedTypeSymbol>("C");
+        AssertEx.Equal("""
+<member name="T:C">
+    <see cref="!:E.extension(object).M"/>
+</member>
+
+""", c.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(object).M, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_43()
+    {
+        var src = """
+/// <see cref="E.extension{int}(int).M"/>
+static class E
+{
+    extension<T>(T t)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'E.extension{int}(int).M'
+            // /// <see cref="E.extension{int}(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "E.extension{int}(int).M").WithArguments("E.extension{int}(int).M").WithLocation(1, 16),
+            // (1,28): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
+            // /// <see cref="E.extension{int}(int).M"/>
+            Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("Type parameter declaration must be an identifier not a type", "0081").WithLocation(1, 28));
+    }
+
+    [Fact]
+    public void Cref_44()
+    {
+        var src = """
+/// <see cref="extension(int).M"/>
+extension(int)
+{
+    public static void M() { }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
+            // /// <see cref="extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M").WithArguments("extension(int).M").WithLocation(1, 16),
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension(int)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1),
+            // (4,24): warning CS1591: Missing XML comment for publicly visible type or member 'extension(int).M()'
+            //     public static void M() { }
+            Diagnostic(ErrorCode.WRN_MissingXMLComment, "M").WithArguments("extension(int).M()").WithLocation(4, 24));
+    }
+
+    [Fact]
+    public void Cref_45()
+    {
+        var src = """
+/// <see cref="E.extension(int).extension(string).M"/>
+static class E
+{
+    extension(int)
+    {
+        extension(string)
+        {
+            public static void M() { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'E.extension(int).extension(string).M'
+            // /// <see cref="E.extension(int).extension(string).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "E.extension(int).extension(string).M").WithArguments("E.extension(int).extension(string).M").WithLocation(1, 16),
+            // (1,33): warning CS1658: An extension member syntax is disallowed in nested position within an extension member syntax. See also error CS9309.
+            // /// <see cref="E.extension(int).extension(string).M"/>
+            Diagnostic(ErrorCode.WRN_ErrorOverride, "extension(string).M").WithArguments("An extension member syntax is disallowed in nested position within an extension member syntax", "9309").WithLocation(1, 33),
+            // (6,9): error CS9282: This member is not allowed in an extension block
+            //         extension(string)
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(6, 9));
+    }
+
+    [Fact]
+    public void Cref_46()
+    {
+        var src = """
+/// <see cref="E.extension(int).M"/>
+/// <see cref="E.extension(int).M2"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+        public void M(int j) => throw null!;
+        public void M2(int j) => throw null!;
+        public void M2() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M'. Assuming 'E.extension(int).M()', but could have also matched other overloads including 'E.extension(int).M(int)'.
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M").WithArguments("E.extension(int).M", "E.extension(int).M()", "E.extension(int).M(int)").WithLocation(1, 16),
+            // (2,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M2'. Assuming 'E.extension(int).M2(int)', but could have also matched other overloads including 'E.extension(int).M2()'.
+            // /// <see cref="E.extension(int).M2"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M2").WithArguments("E.extension(int).M2", "E.extension(int).M2(int)", "E.extension(int).M2()").WithLocation(2, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;&gt;E__0.M2(System.Int32)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_47()
+    {
+        // Xml doc APIs on PE symbols
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference(documentation: new TestDocumentationProvider())]);
+
+        var mSkeleton = comp2.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember("M");
+        Assert.Equal("M:E.<>E__0.M", mSkeleton.GetDocumentationCommentId());
+        Assert.Equal("M:E.<>E__0.M", mSkeleton.GetDocumentationCommentXml());
+    }
+
+    private class TestDocumentationProvider : DocumentationProvider
+    {
+        protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
+        {
+            return documentationMemberID;
+        }
+
+        public override bool Equals(object obj) => (object)this == obj;
+
+        public override int GetHashCode() => throw new NotImplementedException();
+    }
+
+    [Fact]
+    public void Cref_48()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+
+        var src = """
+/// <see cref="E.extension(int).M"/>
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var c = comp.GetMember<NamedTypeSymbol>("C");
+        AssertEx.Equal("""
+<member name="T:C">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", c.GetDocumentationCommentXml());
+    }
+
+    [Fact]
+    public void Cref_49()
+    {
+        var src = """
+/// <see cref="E.extension(missing).M"/>
+static class E
+{
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(missing).M' that could not be resolved
+            // /// <see cref="E.extension(missing).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(missing).M").WithArguments("extension(missing).M").WithLocation(1, 16),
+            // (1,28): warning CS1580: Invalid type for parameter missing in XML comment cref attribute: 'E.extension(missing).M'
+            // /// <see cref="E.extension(missing).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "missing").WithArguments("missing", "E.extension(missing).M").WithLocation(1, 28));
+    }
+
+    [Fact]
+    public void Cref_50()
+    {
+        var src = """
+/// <see cref="E.extension(int).M"/>
+/// <see cref="E.extension(int).M2"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+        public void M2(int j) => throw null!;
+    }
+    extension(int i)
+    {
+        public void M(int j) => throw null!;
+        public void M2() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M'. Assuming 'E.extension(int).M()', but could have also matched other overloads including 'E.extension(int).M(int)'.
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M").WithArguments("E.extension(int).M", "E.extension(int).M()", "E.extension(int).M(int)").WithLocation(1, 16),
+            // (2,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M2'. Assuming 'E.extension(int).M2(int)', but could have also matched other overloads including 'E.extension(int).M2()'.
+            // /// <see cref="E.extension(int).M2"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M2").WithArguments("E.extension(int).M2", "E.extension(int).M2(int)", "E.extension(int).M2()").WithLocation(2, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;&gt;E__0.M2(System.Int32)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_51()
+    {
+        var src = """
+/// <see cref="E.extension(int).@M"/>
+static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).@M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_52()
+    {
+        // unqualified reference
+        var src = """
+/// <see cref="extension(int).Method"/>
+/// <see cref="extension(int).Property"/>
+static class E
+{
+    extension(int)
+    {
+        /// <see cref="extension(int).Method"/>
+        /// <see cref="extension(int).Property"/>
+        public static void M1() { }
+
+        public static void Method() { }
+        public static int Property => 42;
+    }
+
+    /// <see cref="extension(int).Method"/>
+    /// <see cref="extension(int).Property"/>
+    extension(object)
+    {
+    }
+
+    /// <see cref="extension(int).M2"/>
+    /// <see cref="extension(int).Property"/>
+    public static void M2() { }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : cref, such unqualified references in CREF should work within context of enclosing static type
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
+            // /// <see cref="extension(int).Method"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(1, 16),
+            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            // /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(2, 16),
+            // (7,24): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
+            //         /// <see cref="extension(int).Method"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(7, 24),
+            // (8,24): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            //         /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(8, 24),
+            // (15,20): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
+            //     /// <see cref="extension(int).Method"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(15, 20),
+            // (16,20): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            //     /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(16, 20),
+            // (21,20): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
+            //     /// <see cref="extension(int).M2"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M2").WithArguments("extension(int).M2").WithLocation(21, 20),
+            // (22,20): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            //     /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(22, 20));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(extension(int).Method, null)",
+            "(extension(int).Property, null)",
+            "(extension(int).Method, null)",
+            "(extension(int).Property, null)",
+            "(extension(int).Method, null)",
+            "(extension(int).Property, null)",
+            "(extension(int).M2, null)",
+            "(extension(int).Property, null)"],
+            PrintXmlCrefSymbols(tree, model));
+
+        src = """
+/// <see cref="Nested.Method"/>
+static class E
+{
+    /// <see cref="Nested.Method"/>
+    static class Nested
+    {
+        /// <see cref="Nested.Method"/>
+        public static void M() { }
+
+        public static void Method() { }
+    }
+}
+""";
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Cref_53()
+    {
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        /// <see cref="M2(string)"/>
+        /// <see cref="M2"/>
+        public void M(string s) => throw null!;
+    }
+    extension(int i)
+    {
+        public void M2(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): warning CS1574: XML comment has cref attribute 'M2(string)' that could not be resolved
+            //         /// <see cref="M2(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "M2(string)").WithArguments("M2(string)").WithLocation(5, 24));
+
+        var mSkeleton = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().First().GetMember("M");
+        AssertEx.Equal("""
+<member name="M:E.&lt;&gt;E__0.M(System.String)">
+    <see cref="!:M2(string)"/>
+    <see cref="M:E.M2(System.Int32,System.String)"/>
+</member>
+
+""", mSkeleton.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(M2(string), null)",
+            "(M2, void E.M2(this System.Int32 i, System.String s))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_54()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        var libRef = libComp.EmitToImageReference();
+
+        var src = """
+/// <see cref="E.extension(int).M"/>
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp.VerifyEmitDiagnostics(
+            // (1,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).M").WithArguments("extensions").WithLocation(1, 18));
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Cref_55()
+    {
+        var src = """
+/// <see cref="E.M(string)"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'M(string)' that could not be resolved
+            // /// <see cref="E.M(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.M(string)").WithArguments("M(string)").WithLocation(1, 16));
     }
 }
 
