@@ -133,7 +133,8 @@ public static class CSharpFormattingOptions
     public static Option<bool> SpaceBeforeSemicolonsInForStatement { get; } = CSharpFormattingOptions2.SpaceBeforeSemicolonsInForStatement.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.SpacingAroundBinaryOperator"/>
-    public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption();
+    public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } =
+        CSharpFormattingOptions2.SpacingAroundBinaryOperator.ToPublicOption().ConvertEnumOption<BinaryOperatorSpacingOptionsInternal, BinaryOperatorSpacingOptions>();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.IndentBraces"/>
     public static Option<bool> IndentBraces { get; } = CSharpFormattingOptions2.IndentBraces.ToPublicOption();
@@ -151,7 +152,8 @@ public static class CSharpFormattingOptions
     public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock.ToPublicOption();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.LabelPositioning"/>
-    public static Option<LabelPositionOptions> LabelPositioning { get; } = CSharpFormattingOptions2.LabelPositioning.ToPublicOption();
+    public static Option<LabelPositionOptions> LabelPositioning { get; } =
+        CSharpFormattingOptions2.LabelPositioning.ToPublicOption().ConvertEnumOption<LabelPositionOptionsInternal, LabelPositionOptions>();
 
     /// <inheritdoc cref="CSharpFormattingOptions2.WrappingPreserveSingleLine"/>
     public static Option<bool> WrappingPreserveSingleLine { get; } = CSharpFormattingOptions2.WrappingPreserveSingleLine.ToPublicOption();
@@ -186,4 +188,28 @@ public static class CSharpFormattingOptions
 
     /// <inheritdoc cref="CSharpFormattingOptions2.NewLineForClausesInQuery"/>
     public static Option<bool> NewLineForClausesInQuery { get; } = CSharpFormattingOptions2.NewLineForClausesInQuery.ToPublicOption();
+}
+
+public enum LabelPositionOptions
+{
+    /// Placed in the Zeroth column of the text editor
+    LeftMost = LabelPositionOptionsInternal.LeftMost,
+
+    /// Placed at one less indent to the current context
+    OneLess = LabelPositionOptionsInternal.OneLess,
+
+    /// Placed at the same indent as the current context
+    NoIndent = LabelPositionOptionsInternal.NoIndent,
+}
+
+public enum BinaryOperatorSpacingOptions
+{
+    /// Single Spacing
+    Single = BinaryOperatorSpacingOptionsInternal.Single,
+
+    /// Ignore Formatting
+    Ignore = BinaryOperatorSpacingOptionsInternal.Ignore,
+
+    /// Remove Spacing
+    Remove = BinaryOperatorSpacingOptionsInternal.Remove,
 }
