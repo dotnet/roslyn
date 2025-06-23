@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 // The entire AdjusterProvider api is marked as obsolete since this is a preview API.  So we do the same here as well.
 [Obsolete("This is a preview api and subject to change")]
-[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[ContentType(ContentTypeNames.VisualBasicContentType)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProviderBase
