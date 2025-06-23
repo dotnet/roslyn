@@ -43,6 +43,8 @@ public abstract partial class CodeAction
     private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanupSyntaxPass =
         static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken);
 
+    private static readonly ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> s_cleanupSyntaxPasses = [s_cleanupSyntaxPass];
+
     /// <summary>
     /// We do cleanup in N serialized passes.  This allows us to process all documents in parallel, while only forking
     /// the solution N times *total* (instead of N times *per* document).
@@ -109,7 +111,7 @@ public abstract partial class CodeAction
 
         return await CleanSyntaxAndSemanticsAsync(
             originalSolution, changedSolution, progress,
-            cleanup is CodeActionCleanup.SyntaxOnly ? [s_cleanupSyntaxPass] : s_allCleanupPasses,
+            cleanup is CodeActionCleanup.SyntaxOnly ? s_cleanupSyntaxPasses : s_allCleanupPasses,
             cancellationToken).ConfigureAwait(false);
     }
 
