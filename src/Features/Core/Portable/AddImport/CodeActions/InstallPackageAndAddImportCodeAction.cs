@@ -54,7 +54,7 @@ internal sealed class InstallPackageAndAddImportCodeAction : AddImportCodeAction
         return
         [
             .. await solutionChangeAction.GetPreviewOperationsAsync(
-                this.OriginalDocument.Project.Solution, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false),
+                this.OriginalDocument.Project.Solution, cancellationToken).ConfigureAwait(false),
             _installOperation,
         ];
     }
