@@ -51,10 +51,10 @@ public abstract class CodeActionWithOptions : CodeAction
     }
 
     internal sealed override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CodeActionCleanup cleanup, CancellationToken cancellationToken)
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         var options = this.GetOptions(cancellationToken);
-        var operations = await this.GetOperationsAsync(originalSolution, options, progress, cleanup, cancellationToken).ConfigureAwait(false);
+        var operations = await this.GetOperationsAsync(originalSolution, options, progress, cancellationToken).ConfigureAwait(false);
         return operations.ToImmutableArrayOrEmpty();
     }
 
