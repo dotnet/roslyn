@@ -78,7 +78,7 @@ internal readonly struct SemanticTokensSchema
     /// <summary>
     /// Mapping from additive classification type names to LSP token modifiers.
     /// </summary>
-    public static ImmutableDictionary<string, TokenModifiers> AdditiveClassificationTypeToTokenModifier => new Dictionary<string, TokenModifiers>()
+    public static readonly ImmutableDictionary<string, TokenModifiers> AdditiveClassificationTypeToTokenModifier = new Dictionary<string, TokenModifiers>()
     {
         [ClassificationTypeNames.StaticSymbol] = SemanticTokens.TokenModifiers.Static,
         [ClassificationTypeNames.ReassignedVariable] = SemanticTokens.TokenModifiers.ReassignedVariable,
