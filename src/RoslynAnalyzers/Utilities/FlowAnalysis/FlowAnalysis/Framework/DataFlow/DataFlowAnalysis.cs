@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -60,11 +61,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             using var resultBuilder = new DataFlowAnalysisResultBuilder<TAnalysisData>();
-            using var uniqueSuccessors = PooledHashSet<BasicBlock>.GetInstance();
-            using var finallyBlockSuccessorsMap = PooledDictionary<int, List<BranchWithInfo>>.GetInstance();
+            using var _1 = PooledHashSet<BasicBlock>.GetInstance(out var uniqueSuccessors);
+            using var _2 = PooledDictionary<int, List<BranchWithInfo>>.GetInstance(out var finallyBlockSuccessorsMap);
             var catchBlockInputDataMap = PooledDictionary<ControlFlowRegion, TAnalysisData>.GetInstance();
             var inputDataFromInfeasibleBranchesMap = PooledDictionary<int, TAnalysisData>.GetInstance();
-            using var unreachableBlocks = PooledHashSet<int>.GetInstance();
+            using var _3 = PooledHashSet<int>.GetInstance(out var unreachableBlocks);
             using var worklist = PooledSortedSet<int>.GetInstance();
             using var pendingBlocksNeedingAtLeastOnePass = PooledSortedSet<int>.GetInstance(cfg.Blocks.Select(b => b.Ordinal));
 
@@ -82,12 +83,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             //  This map allows us to optimize the number of merge operations. We can avoid merge and directly
             //  overwrite analysis data into a successor if successor block has no entry or entry with non-null tuple value
             //  with the matching input branch.
-            using var blockToUniqueInputFlowMap = PooledDictionary<int, (int Ordinal, ControlFlowConditionKind BranchKind)?>.GetInstance();
+            using var _4 = PooledDictionary<int, (int Ordinal, ControlFlowConditionKind BranchKind)?>.GetInstance(out var blockToUniqueInputFlowMap);
 
             // Map from basic block ordinals that are destination of back edge(s) to the minimum block ordinal that dominates it,
             // i.e. for every '{key, value}' pair in the dictionary, 'key' is the destination of at least one back edge
             // and 'value' is the minimum ordinal such that there is no back edge to 'key' from any basic block with ordinal > 'value'.
-            using var loopRangeMap = PooledDictionary<int, int>.GetInstance();
+            using var _5 = PooledDictionary<int, int>.GetInstance(out var loopRangeMap);
             var hasAnyTryBlock = ComputeLoopRangeMap(cfg, loopRangeMap);
 
             TAnalysisData? normalPathsExitBlockData = null, exceptionPathsExitBlockData = null;
@@ -172,9 +173,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             finally
             {
                 catchBlockInputDataMap.Values.Dispose();
-                catchBlockInputDataMap.Dispose();
+                catchBlockInputDataMap.Free();
                 inputDataFromInfeasibleBranchesMap.Values.Dispose();
-                inputDataFromInfeasibleBranchesMap.Dispose();
+                inputDataFromInfeasibleBranchesMap.Free();
             }
         }
 
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PooledDictionary<int, int> loopRangeMap,
             bool exceptionPathsAnalysisPostPass)
         {
-            using var unreachableBlocks = PooledHashSet<int>.GetInstance();
+            using var _ = PooledHashSet<int>.GetInstance(out var unreachableBlocks);
             // Add each basic block to the result.
             foreach (var block in cfg.Blocks)
             {

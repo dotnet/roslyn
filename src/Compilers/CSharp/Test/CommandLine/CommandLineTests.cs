@@ -6660,7 +6660,7 @@ class myClass
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        private void SourceFileQuoting()
+        public void SourceFileQuoting()
         {
             string[] responseFile = new string[] {
                 @"d:\\""abc def""\baz.cs ab""c d""e.cs",
@@ -12060,7 +12060,6 @@ System.NotImplementedException: 28
 
             Assert.Equal(0, result.ExitCode);
         }
-#endif
 
         private static ImmutableArray<byte> CreateCSharpAnalyzerNetStandard13(string analyzerAssemblyName)
         {
@@ -12220,6 +12219,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             return analyzerImage;
         }
+
+#endif
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
