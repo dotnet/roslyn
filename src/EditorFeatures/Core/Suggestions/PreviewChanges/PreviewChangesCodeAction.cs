@@ -30,8 +30,8 @@ internal partial class SuggestedActionWithNestedFlavors
 
             public override string Title => EditorFeaturesResources.Preview_changes2;
 
-            internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-                Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CodeActionCleanup cleanup, CancellationToken cancellationToken)
+            private protected override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+                Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
@@ -63,8 +63,7 @@ internal partial class SuggestedActionWithNestedFlavors
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                return await _originalCodeAction.GetOperationsCoreAsync(
-                    originalSolution, progressTracker, cleanup, cancellationToken).ConfigureAwait(false);
+                return await _originalCodeAction.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
             }
         }
     }
