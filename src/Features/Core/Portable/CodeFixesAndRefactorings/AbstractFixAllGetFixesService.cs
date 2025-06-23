@@ -48,7 +48,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             codeAction, showPreviewChangesDialog, fixAllContext.Progress, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
-    protected async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
+    private async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
         CodeAction codeAction,
         bool showPreviewChangesDialog,
         IProgress<CodeAnalysisProgress> progressTracker,
@@ -61,8 +61,8 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         var workspace = fixAllState.Project.Solution.Workspace;
 
         cancellationToken.ThrowIfCancellationRequested();
-        var operations = await codeAction.GetOperationsAsync(
-            fixAllState.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
+        var operations = await codeAction.GetOperationsCoreAsync(
+            fixAllState.Solution, progressTracker, fixAllState.FixAllProvider.Cleanup, cancellationToken).ConfigureAwait(false);
         if (operations == null)
         {
             return [];

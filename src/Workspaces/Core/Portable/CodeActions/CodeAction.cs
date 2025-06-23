@@ -234,17 +234,17 @@ public abstract partial class CodeAction
     public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
         Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
-        return GetOperationsCoreAsync(originalSolution, progress, cancellationToken);
+        return GetOperationsCoreAsync(originalSolution, progress, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
     }
 
-    private protected virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+    internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CodeActionCleanup cleanup, CancellationToken cancellationToken)
     {
         var operations = await this.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
 
         if (operations != null)
         {
-            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cleanup, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -254,10 +254,10 @@ public abstract partial class CodeAction
     /// The sequence of operations used to construct a preview.
     /// </summary>
     public Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
-        => GetPreviewOperationsAsync(originalSolution: null!, cancellationToken);
+        => GetPreviewOperationsAsync(originalSolution: null!, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
 
     internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
-        Solution originalSolution, CancellationToken cancellationToken)
+        Solution originalSolution, CodeActionCleanup cleanup, CancellationToken cancellationToken)
     {
         using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Preview_Summary, $"Total");
 
@@ -265,7 +265,7 @@ public abstract partial class CodeAction
 
         if (operations != null)
         {
-            return await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            return await PostProcessAsync(originalSolution, operations, cleanup, cancellationToken).ConfigureAwait(false);
         }
 
         return [];
@@ -420,10 +420,10 @@ public abstract partial class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-        => PostProcessAsync(originalSolution: null, operations, cancellationToken);
+        => PostProcessAsync(originalSolution: null, operations, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
 
     internal static async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(
-        Solution? originalSolution, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+        Solution? originalSolution, IEnumerable<CodeActionOperation> operations, CodeActionCleanup cleanup, CancellationToken cancellationToken)
     {
         using var result = TemporaryArray<CodeActionOperation>.Empty;
 
@@ -432,7 +432,7 @@ public abstract partial class CodeAction
             if (op is ApplyChangesOperation ac)
             {
                 result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(
-                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false)));
+                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, cleanup, cancellationToken).ConfigureAwait(false)));
             }
             else
             {

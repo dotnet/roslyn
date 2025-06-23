@@ -32,10 +32,10 @@ public abstract class CodeActionWithOptions : CodeAction
     /// <param name="options">An object instance returned from a prior call to <see cref="GetOptions(CancellationToken)"/>.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     public Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(object? options, CancellationToken cancellationToken)
-        => GetOperationsAsync(originalSolution: null!, options, CodeAnalysisProgress.None, cancellationToken);
+        => GetOperationsAsync(originalSolution: null!, options, CodeAnalysisProgress.None, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
 
     internal async Task<IEnumerable<CodeActionOperation>?> GetOperationsAsync(
-        Solution originalSolution, object? options, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        Solution originalSolution, object? options, IProgress<CodeAnalysisProgress> progress, CodeActionCleanup cleanup, CancellationToken cancellationToken)
     {
         if (options == null)
             return [];
@@ -44,17 +44,17 @@ public abstract class CodeActionWithOptions : CodeAction
 
         if (operations != null)
         {
-            operations = await PostProcessAsync(originalSolution, operations, cancellationToken).ConfigureAwait(false);
+            operations = await PostProcessAsync(originalSolution, operations, cleanup, cancellationToken).ConfigureAwait(false);
         }
 
         return operations;
     }
 
-    private protected sealed override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+    internal sealed override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CodeActionCleanup cleanup, CancellationToken cancellationToken)
     {
         var options = this.GetOptions(cancellationToken);
-        var operations = await this.GetOperationsAsync(originalSolution, options, progress, cancellationToken).ConfigureAwait(false);
+        var operations = await this.GetOperationsAsync(originalSolution, options, progress, cleanup, cancellationToken).ConfigureAwait(false);
         return operations.ToImmutableArrayOrEmpty();
     }
 
