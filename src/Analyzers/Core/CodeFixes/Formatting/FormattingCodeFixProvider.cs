@@ -30,6 +30,8 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
+    override Cleanup
+
     /// <summary>
     /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
     /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.
