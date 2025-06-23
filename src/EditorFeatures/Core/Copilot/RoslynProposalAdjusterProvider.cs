@@ -54,6 +54,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         var (solution, failureReason) = CopilotEditorUtilities.TryGetAffectedSolution(proposal);
         if (solution is null)
         {
+            // If we can't find a solution, then we can't adjust the proposal.  Log telemetry and return the original proposal.
             Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
             {
                 var (providerName, before, failureReason, elapsedTime) = args;
@@ -84,6 +85,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
                 solution, proposal, cancellationToken).ConfigureAwait(false);
             var adjustmentsAccepted = newProposal != proposal;
 
+            // Report telemetry if we were or were not able to adjust the proposal.
             Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
             {
                 var (providerName, before, adjustmentsProposed, adjustmentsAccepted, elapsedTime) = args;
@@ -151,7 +153,8 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             // Checked in TryGetAffectedSolution
             Contract.ThrowIfNull(document);
 
-            var proposedEdits = await TryAdjustProposalDisplayAsync(
+            var proposalAdjusterService = document.Project.Solution.Services.GetRequiredService<ICopilotProposalAdjusterService>();
+            var proposedEdits = await proposalAdjusterService.TryAdjustProposalAsync(
                 document, CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
 
             if (proposedEdits.IsDefault)
@@ -180,13 +183,5 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         // those changes in.
         var newProposal = Proposal.TryCreateProposal(proposal, finalEdits);
         return (newProposal ?? proposal, adjustmentsProposed: true);
-    }
-
-    private async Task<ImmutableArray<TextChange>> TryAdjustProposalDisplayAsync(
-        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
-    {
-        var proposalAdjusterService = document.Project.Solution.Services.GetRequiredService<ICopilotProposalAdjusterService>();
-        return await proposalAdjusterService.TryAdjustProposalAsync(
-            document, normalizedChanges, cancellationToken).ConfigureAwait(false);
     }
 }
