@@ -63,8 +63,8 @@ namespace N
 | `BannedType()`                        | `M:N.BannedType.#ctor`
 | `int BannedMethod()`                  | `M:N.BannedType.BannedMethod`
 | `void BannedMethod(int i)`            | `M:N.BannedType.BannedMethod(System.Int32);Don't use BannedMethod`
-| `void BannedMethod<T>(T t)`           | ```M:N.BannedType.BannedMethod`1(``0)```
-| `void BannedMethod<T>(Func<T> f)`     | ```M:N.BannedType.BannedMethod`1(System.Func{``0})```
+| `void BannedMethod<T>(T t)`           | ```M:N.BannedType.BannedMethod`1(`0)```
+| `void BannedMethod<T>(Func<T> f)`     | ```M:N.BannedType.BannedMethod`1(System.Func{`0})```
 | `string BannedField`                  | `F:N.BannedType.BannedField`
 | `string BannedProperty { get; }`      | `P:N.BannedType.BannedProperty`
 | `event EventHandler BannedEvent;`     | `E:N.BannedType.BannedEvent`
