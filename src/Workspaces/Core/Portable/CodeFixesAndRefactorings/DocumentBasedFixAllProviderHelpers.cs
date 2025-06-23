@@ -32,7 +32,7 @@ internal static class DocumentBasedFixAllProviderHelpers
 
         progressTracker.Report(CodeAnalysisProgress.Description(progressTrackerDescription));
 
-        var originalSolution = originalFixAllContext.Solution;
+        var originalSolution = originalFixAllContext.State.Solution;
 
         // One work item for each context.
         progressTracker.AddItems(fixAllContexts.Length);
@@ -77,7 +77,7 @@ internal static class DocumentBasedFixAllProviderHelpers
                     using var _ = progressTracker.ItemCompletedScope();
 
                     Contract.ThrowIfFalse(
-                        fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
+                        fixAllContext.State.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
                     // Defer to the FixAllProvider to actually compute each fixed document.
                     await getFixedDocumentsAsync(
