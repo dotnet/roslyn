@@ -30,7 +30,11 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
-    override Cleanup
+    /// <summary>
+    /// This refactoring provider touches syntax only.  So we can speed up fix all by having it only clean syntax
+    /// and not semantics.
+    /// </summary>
+    protected override bool CleanSyntaxOnly => true;
 
     /// <summary>
     /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by

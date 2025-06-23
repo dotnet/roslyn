@@ -21,15 +21,12 @@ public abstract class FixAllProvider : IFixAllProvider
     private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
         = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
 
-    /// <summary>
-    /// Gets the supported scopes for fixing all occurrences of a diagnostic.
-    /// By default, it returns the following scopes:
-    /// (a) <see cref="FixAllScope.Document"/>
-    /// (b) <see cref="FixAllScope.Project"/> and
-    /// (c) <see cref="FixAllScope.Solution"/>
-    /// </summary>
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
+
+    bool IFixAllProvider.CleanSyntaxOnly => this.CleanSyntaxOnly;
+
+    private protected virtual bool CleanSyntaxOnly => false;
 
     /// <summary>
     /// Gets the diagnostic IDs for which fix all occurrences is supported.
@@ -78,6 +75,14 @@ public abstract class FixAllProvider : IFixAllProvider
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
+        return Create(fixAllAsync, supportedFixAllScopes, cleanSyntaxOnly: false);
+    }
+
+    internal static FixAllProvider Create(
+        Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        bool cleanSyntaxOnly)
+    {
         if (fixAllAsync is null)
             throw new ArgumentNullException(nameof(fixAllAsync));
 
@@ -87,7 +92,7 @@ public abstract class FixAllProvider : IFixAllProvider
         if (supportedFixAllScopes.Contains(FixAllScope.Custom))
             throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
-        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
+        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes, cleanSyntaxOnly);
     }
 
     #region IFixAllProvider implementation
@@ -97,8 +102,11 @@ public abstract class FixAllProvider : IFixAllProvider
 
     private sealed class CallbackDocumentBasedFixAllProvider(
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
-        ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        bool cleanSyntaxOnly) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
+        private protected override bool CleanSyntaxOnly { get; } = cleanSyntaxOnly;
+
         protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
             => fixAllAsync(context, document, diagnostics);
     }

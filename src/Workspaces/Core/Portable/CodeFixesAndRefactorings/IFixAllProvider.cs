@@ -14,7 +14,15 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 /// </summary>
 internal interface IFixAllProvider
 {
+    /// <summary>
+    /// Gets the supported scopes for applying multiple occurrences of a code refactoring.
+    /// By default, it returns the following scopes:
+    /// (a) <see cref="FixAllScope.Document"/>
+    /// (b) <see cref="FixAllScope.Project"/> and
+    /// (c) <see cref="FixAllScope.Solution"/>
+    /// </summary>
     IEnumerable<FixAllScope> GetSupportedFixAllScopes();
+
     Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext);
 
     /// <summary>

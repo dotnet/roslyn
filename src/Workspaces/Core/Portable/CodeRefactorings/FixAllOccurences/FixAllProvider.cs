@@ -24,13 +24,6 @@ internal abstract class FixAllProvider : IFixAllProvider
     private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
         = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
 
-    /// <summary>
-    /// Gets the supported scopes for applying multiple occurrences of a code refactoring.
-    /// By default, it returns the following scopes:
-    /// (a) <see cref="FixAllScope.Document"/>
-    /// (b) <see cref="FixAllScope.Project"/> and
-    /// (c) <see cref="FixAllScope.Solution"/>
-    /// </summary>
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
 

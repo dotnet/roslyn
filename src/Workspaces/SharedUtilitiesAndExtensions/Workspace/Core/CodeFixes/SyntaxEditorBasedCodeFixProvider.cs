@@ -43,8 +43,11 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
 
                 return await FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
             },
-            s_defaultSupportedFixAllScopes,
-            this.CleanSyntaxOnly);
+            s_defaultSupportedFixAllScopes
+#if WORKSPACE
+            , this.CleanSyntaxOnly
+#endif
+            );
     }
 
     protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, Diagnostic? diagnostic = null)
