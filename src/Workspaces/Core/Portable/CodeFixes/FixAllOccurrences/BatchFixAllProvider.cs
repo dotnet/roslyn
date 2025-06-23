@@ -164,7 +164,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 foreach (var codeAction in codeActions)
                 {
                     var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-                        solution, fixAllContext.Progress, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false);
+                        solution, fixAllContext.Progress, fixAllContext.FixAllProvider.Cleanup, cancellationToken).ConfigureAwait(false);
                     if (changedSolution != null)
                     {
                         var changedDocumentIds = new SolutionChanges(changedSolution, solution).GetProjectChanges().SelectMany(p => p.GetChangedDocuments());

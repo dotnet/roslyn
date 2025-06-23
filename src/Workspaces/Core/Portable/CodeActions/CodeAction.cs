@@ -399,6 +399,9 @@ public abstract partial class CodeAction
     protected virtual Task<Document> GetChangedDocumentAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         => GetChangedDocumentAsync(cancellationToken);
 
+    internal Task<Solution?> GetChangedSolutionInternalAsync(Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+        => GetChangedSolutionInternalAsync(originalSolution, progress, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
+
     /// <summary>
     /// used by batch fixer engine to get new solution
     /// </summary>

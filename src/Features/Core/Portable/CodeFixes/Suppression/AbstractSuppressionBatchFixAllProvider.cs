@@ -222,7 +222,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         return null;
     }
 
-    private static async Task<Solution> TryMergeFixesAsync(
+    private async Task<Solution> TryMergeFixesAsync(
         Solution oldSolution,
         ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
         IProgress<CodeAnalysisProgress> progressTracker,
@@ -245,7 +245,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         return finalSolution;
     }
 
-    private static async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
+    private async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
         Solution oldSolution,
         ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
         IProgress<CodeAnalysisProgress> progressTracker,
@@ -340,7 +340,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     private static readonly Func<DocumentId, ConcurrentBag<(CodeAction, Document)>> s_getValue =
         _ => [];
 
-    private static async Task GetChangedDocumentsAsync(
+    private async Task GetChangedDocumentsAsync(
         Solution oldSolution,
         ConcurrentDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
         CodeAction codeAction,
@@ -350,7 +350,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         cancellationToken.ThrowIfCancellationRequested();
 
         var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-            oldSolution, progressTracker, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false);
+            oldSolution, progressTracker, this.Cleanup, cancellationToken).ConfigureAwait(false);
         if (changedSolution is null)
         {
             // No changed documents

@@ -26,7 +26,7 @@ public abstract class FixAllProvider : IFixAllProvider
 
     CodeActionCleanup IFixAllProvider.Cleanup => this.Cleanup;
 
-    private protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
+    internal virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
 
     /// <summary>
     /// Gets the diagnostic IDs for which fix all occurrences is supported.
@@ -105,7 +105,7 @@ public abstract class FixAllProvider : IFixAllProvider
         ImmutableArray<FixAllScope> supportedFixAllScopes,
         CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
-        private protected override CodeActionCleanup Cleanup { get; } = cleanup;
+        internal override CodeActionCleanup Cleanup { get; } = cleanup;
 
         protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
             => fixAllAsync(context, document, diagnostics);

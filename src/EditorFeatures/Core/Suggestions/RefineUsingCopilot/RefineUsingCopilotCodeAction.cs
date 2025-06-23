@@ -60,7 +60,7 @@ internal partial class SuggestedActionWithNestedFlavors
                 //       where clicking on the hyperlink needs to bring up another unrelated UI.
 
                 var newSolution = await originalCodeAction.GetChangedSolutionInternalAsync(
-                    originalSolution, progress, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false);
+                    originalSolution, progress, cancellationToken).ConfigureAwait(false);
                 if (newSolution == null)
                     return [];
 
