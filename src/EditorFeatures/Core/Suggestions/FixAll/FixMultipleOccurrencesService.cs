@@ -68,16 +68,14 @@ internal sealed class FixMultipleOccurrencesService() : IFixMultipleOccurrencesS
         IProgress<CodeAnalysisProgress> progress,
         CancellationToken cancellationToken)
     {
-        var fixMultipleCodeAction = new FixMultipleCodeAction(
-            fixAllState, title, waitDialogMessage);
+        var fixMultipleCodeAction = new FixMultipleCodeAction(fixAllState, title, waitDialogMessage);
 
         Solution newSolution = null;
         var extensionManager = workspace.Services.GetService<IExtensionManager>();
         await extensionManager.PerformActionAsync(fixAllState.FixAllProvider, async () =>
         {
-            // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
             newSolution = await fixMultipleCodeAction.GetChangedSolutionInternalAsync(
-                fixAllState.Solution, progress, CodeActionCleanup.None, cancellationToken).ConfigureAwait(false);
+                fixAllState.Solution, progress, cancellationToken).ConfigureAwait(false);
         }).ConfigureAwait(false);
 
         return newSolution;
