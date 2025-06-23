@@ -50,16 +50,16 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
 
         // Ensure we're only operating on one solution.  It makes the logic much simpler, as we don't have to
         // worry about edits that touch multiple solutions.
-        var solution = CopilotEditorUtilities.TryGetAffectedSolution(proposal);
+        var (solution, failureReason) = CopilotEditorUtilities.TryGetAffectedSolution(proposal);
         if (solution is null)
         {
             Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
             {
-                var (providerName, before, elapsedTime) = args;
+                var (providerName, before, failureReason, elapsedTime) = args;
                 SetDefaultTelemetryProperties(d, providerName, before, elapsedTime);
-                d["SolutionAcquisitionFailure"] = true;
+                d["SolutionAcquisitionFailure"] = failureReason;
             },
-            args: (providerName, before, stopwatch.Elapsed)),
+            args: (providerName, before, failureReason, stopwatch.Elapsed)),
             cancellationToken).Dispose();
 
             return proposal;
