@@ -118,7 +118,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         return (true, addImportChanges);
     }
 
-    private static TextSpan GetSpanToAnalyze(SyntaxNode forkedRoot, ArrayBuilder<TextSpan> newSpans)
+    private static TextSpan GetSpanToAnalyze(SyntaxNode forkedRoot, ImmutableArray<TextSpan> newSpans)
     {
         // Get the span that covers all the new spans that copilot wants to make.
         var newSpan = TextSpan.FromBounds(

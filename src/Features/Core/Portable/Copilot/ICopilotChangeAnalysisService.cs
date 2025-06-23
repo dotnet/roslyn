@@ -160,7 +160,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     private static Task<ImmutableArray<CopilotDiagnosticAnalysis>> ComputeAllDiagnosticAnalysesAsync(
         Document newDocument,
-        ArrayBuilder<TextSpan> newSpans,
+        ImmutableArray<TextSpan> newSpans,
         CancellationToken cancellationToken)
     {
         // Compute the data in parallel for each diagnostic kind.
@@ -200,7 +200,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         static Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
            Document newDocument,
-           ArrayBuilder<TextSpan> newSpans,
+           ImmutableArray<TextSpan> newSpans,
            DiagnosticKind diagnosticKind,
            CancellationToken cancellationToken)
         {
@@ -231,7 +231,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     private async Task<CopilotCodeFixAnalysis> ComputeCodeFixAnalysisAsync(
         Document newDocument,
-        ArrayBuilder<TextSpan> newSpans,
+        ImmutableArray<TextSpan> newSpans,
         CancellationToken cancellationToken)
     {
         // Determine how long it would be to even compute code fixes for these changed regions.
