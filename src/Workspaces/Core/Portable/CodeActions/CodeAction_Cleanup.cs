@@ -20,6 +20,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
+internal enum CodeActionCleanup
+{
+    /// <summary>
+    /// No automatic cleanup will be performed on the solution after the code action is applied.
+    /// </summary>
+    None,
+
+    /// <summary>
+    /// Automatic syntax cleanup will be performed on the solution after the code action is applied.
+    /// </summary>
+    SyntaxOnly,
+
+    /// <summary>
+    /// Automatic syntax and semantics cleanup will be performed on the solution after the code action is applied.
+    /// </summary>
+    SyntaxAndSemantics,
+}
+
 public abstract partial class CodeAction
 {
     private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanSyntaxPass =
