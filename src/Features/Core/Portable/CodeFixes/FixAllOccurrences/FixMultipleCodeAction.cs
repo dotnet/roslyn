@@ -18,7 +18,4 @@ internal sealed partial class FixMultipleCodeAction(
     public override string Title => _title;
 
     internal override string Message => _computingFixWaitDialogMessage;
-
-    // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
-    internal override CodeActionCleanup Cleanup => CodeActionCleanup.None;
 }
