@@ -240,7 +240,7 @@ public abstract partial class CodeAction
         return GetOperationsCoreAsync(originalSolution, progress, cancellationToken);
     }
 
-    internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+    private protected virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
         Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
     {
         var operations = await this.ComputeOperationsAsync(progress, cancellationToken).ConfigureAwait(false);
