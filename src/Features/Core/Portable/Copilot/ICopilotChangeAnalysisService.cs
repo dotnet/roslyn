@@ -271,9 +271,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 var success = true;
                 try
                 {
-                    await firstAction
-                        .GetPreviewOperationsAsync(solution, cancellationToken)
-                        .ConfigureAwait(false);
+                    await firstAction.GetPreviewOperationsAsync(solution, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
