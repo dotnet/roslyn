@@ -29,7 +29,7 @@ public abstract partial class CodeAction
     /// We do cleanup in N serialized passes.  This allows us to process all documents in parallel, while only forking
     /// the solution N times *total* (instead of N times *per* document).
     /// </summary>
-    private static readonly ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> s_cleanupPasses =
+    private static readonly ImmutableArray<Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>>> s_allCleanupPasses =
     [
         // First, ensure that everything is formatted as the feature asked for.  We want to do this prior to doing
         // semantic cleanup as the semantic cleanup passes may end up making changes that end up dropping some of
@@ -77,9 +77,12 @@ public abstract partial class CodeAction
         Solution? originalSolution,
         Solution changedSolution,
         IProgress<CodeAnalysisProgress> progress,
-        bool cleanSyntaxOnly,
+        CodeActionCleanup cleanup,
         CancellationToken cancellationToken)
     {
+        if (cleanup is CodeActionCleanup.None)
+            return changedSolution;
+
         // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
         // current solution.  This is not ideal (as that is a mutable field that could be changing out from
         // underneath us).  But it's the only option we have for the compat case with existing public extension
@@ -88,7 +91,7 @@ public abstract partial class CodeAction
 
         return await CleanSyntaxAndSemanticsAsync(
             originalSolution, changedSolution, progress,
-            cleanSyntaxOnly ? [s_cleanSyntaxPass] : s_cleanupPasses,
+            cleanup is CodeActionCleanup.SyntaxOnly ? [s_cleanSyntaxPass] : s_allCleanupPasses,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -139,7 +142,7 @@ public abstract partial class CodeAction
             document.Project.Solution,
             [(document.Id, options)],
             CodeAnalysisProgress.None,
-            s_cleanupPasses,
+            s_allCleanupPasses,
             cancellationToken).ConfigureAwait(false);
 
         return await cleanedSolution.GetRequiredDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);

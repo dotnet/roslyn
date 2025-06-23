@@ -32,7 +32,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         fixAllContext.CancellationToken.ThrowIfCancellationRequested();
         return await codeAction.GetChangedSolutionInternalAsync(
-            fixAllContext.Solution, fixAllContext.Progress, postProcessChanges: true, fixAllContext.FixAllProvider.CleanSyntaxOnly, fixAllContext.CancellationToken).ConfigureAwait(false);
+            fixAllContext.Solution, fixAllContext.Progress, fixAllContext.FixAllProvider.Cleanup, fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
@@ -70,7 +70,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         cancellationToken.ThrowIfCancellationRequested();
         var newSolution = await codeAction.GetChangedSolutionInternalAsync(
-            fixAllState.Solution, progressTracker, postProcessChanges: true, fixAllState.FixAllProvider.CleanSyntaxOnly, cancellationToken).ConfigureAwait(false);
+            fixAllState.Solution, progressTracker, fixAllState.FixAllProvider.Cleanup, cancellationToken).ConfigureAwait(false);
 
         if (newSolution is null)
         {

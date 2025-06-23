@@ -26,9 +26,8 @@ internal interface IFixAllProvider
     Task<CodeAction?> GetFixAsync(IFixAllContext fixAllContext);
 
     /// <summary>
-    /// Whether or not this fix all provider wants its changed documents to be fully cleaned after the underlying fixer
-    /// changes the document.  Or if it just wants to clean the syntax of the document.  Cleaning the syntax only can
-    /// be much faster, as it just involves formatting, and no semantic cleanup passes.
+    /// The sort of cleanup that should automatically be poerformed for this fix all provider.  By default this is
+    /// <see cref="CodeActionCleanup.SyntaxAndSemantics"/>.
     /// </summary>
-    bool CleanSyntaxOnly { get; }
+    CodeActionCleanup Cleanup { get; }
 }

@@ -24,9 +24,9 @@ public abstract class FixAllProvider : IFixAllProvider
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
 
-    bool IFixAllProvider.CleanSyntaxOnly => this.CleanSyntaxOnly;
+    CodeActionCleanup IFixAllProvider.Cleanup => this.Cleanup;
 
-    private protected virtual bool CleanSyntaxOnly => false;
+    private protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
 
     /// <summary>
     /// Gets the diagnostic IDs for which fix all occurrences is supported.
@@ -75,13 +75,13 @@ public abstract class FixAllProvider : IFixAllProvider
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
-        return Create(fixAllAsync, supportedFixAllScopes, cleanSyntaxOnly: false);
+        return Create(fixAllAsync, supportedFixAllScopes, CodeActionCleanup.SyntaxAndSemantics);
     }
 
     internal static FixAllProvider Create(
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes,
-        bool cleanSyntaxOnly)
+        CodeActionCleanup cleanup)
     {
         if (fixAllAsync is null)
             throw new ArgumentNullException(nameof(fixAllAsync));
@@ -92,7 +92,7 @@ public abstract class FixAllProvider : IFixAllProvider
         if (supportedFixAllScopes.Contains(FixAllScope.Custom))
             throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
-        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes, cleanSyntaxOnly);
+        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes, cleanup);
     }
 
     #region IFixAllProvider implementation
@@ -103,9 +103,9 @@ public abstract class FixAllProvider : IFixAllProvider
     private sealed class CallbackDocumentBasedFixAllProvider(
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes,
-        bool cleanSyntaxOnly) : DocumentBasedFixAllProvider(supportedFixAllScopes)
+        CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
-        private protected override bool CleanSyntaxOnly { get; } = cleanSyntaxOnly;
+        private protected override CodeActionCleanup Cleanup { get; } = cleanup;
 
         protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
             => fixAllAsync(context, document, diagnostics);

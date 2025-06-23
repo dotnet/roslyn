@@ -25,6 +25,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
+internal enum CodeActionCleanup
+{
+    None,
+    SyntaxOnly,
+    SyntaxAndSemantics,
+}
+
 /// <summary>
 /// An action produced by a <see cref="CodeFixProvider"/> or a <see cref="CodeRefactoringProvider"/>.
 /// </summary>
@@ -396,13 +403,13 @@ public abstract partial class CodeAction
     /// used by batch fixer engine to get new solution
     /// </summary>
     internal async Task<Solution?> GetChangedSolutionInternalAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, bool postProcessChanges, bool cleanSyntaxOnly, CancellationToken cancellationToken)
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, CodeActionCleanup cleanup, CancellationToken cancellationToken)
     {
         var solution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
-        if (solution == null || !postProcessChanges)
+        if (solution == null)
             return solution;
 
-        return await PostProcessChangesAsync(originalSolution, solution, progress, cleanSyntaxOnly, cancellationToken).ConfigureAwait(false);
+        return await PostProcessChangesAsync(originalSolution, solution, progress, cleanup, cancellationToken).ConfigureAwait(false);
     }
 
     internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -429,7 +436,7 @@ public abstract partial class CodeAction
             if (op is ApplyChangesOperation ac)
             {
                 result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(
-                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, cleanSyntaxOnly: false, cancellationToken).ConfigureAwait(false)));
+                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false)));
             }
             else
             {
@@ -448,7 +455,7 @@ public abstract partial class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-        => PostProcessChangesAsync(originalSolution: null, changedSolution, progress: CodeAnalysisProgress.None, cleanSyntaxOnly: false, cancellationToken);
+        => PostProcessChangesAsync(originalSolution: null, changedSolution, progress: CodeAnalysisProgress.None, CodeActionCleanup.SyntaxAndSemantics, cancellationToken);
 
     /// <summary>
     /// Apply post processing steps to a single document:

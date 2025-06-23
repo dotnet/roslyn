@@ -19,7 +19,10 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
         [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType];
 
     private readonly bool _supportsFixAll = supportsFixAll;
-    protected virtual bool CleanSyntaxOnly => false;
+
+#if WORKSPACE
+    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxAndSemantics;
+#endif
 
     public sealed override FixAllProvider? GetFixAllProvider()
     {
@@ -45,7 +48,7 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
             },
             s_defaultSupportedFixAllScopes
 #if WORKSPACE
-            , this.CleanSyntaxOnly
+            , this.Cleanup
 #endif
             );
     }

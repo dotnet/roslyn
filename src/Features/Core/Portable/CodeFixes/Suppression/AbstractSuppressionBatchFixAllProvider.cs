@@ -350,7 +350,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         cancellationToken.ThrowIfCancellationRequested();
 
         var changedSolution = await codeAction.GetChangedSolutionInternalAsync(
-            oldSolution, progressTracker, postProcessChanges: true, cleanSyntaxOnly: false, cancellationToken).ConfigureAwait(false);
+            oldSolution, progressTracker, CodeActionCleanup.SyntaxAndSemantics, cancellationToken).ConfigureAwait(false);
         if (changedSolution is null)
         {
             // No changed documents

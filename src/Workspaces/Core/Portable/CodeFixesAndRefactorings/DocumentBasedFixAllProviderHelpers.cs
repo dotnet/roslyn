@@ -45,7 +45,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         progressTracker.Report(CodeAnalysisProgress.Description(WorkspacesResources.Running_code_cleanup_on_fixed_documents));
 
         var cleanedSolution = await CodeAction.PostProcessChangesAsync(
-            originalSolution, dirtySolution, progressTracker, originalFixAllContext.FixAllProvider.CleanSyntaxOnly, cancellationToken).ConfigureAwait(false);
+            originalSolution, dirtySolution, progressTracker, originalFixAllContext.FixAllProvider.Cleanup, cancellationToken).ConfigureAwait(false);
 
         // Once we clean the document, we get the text of it and insert that back into the final solution.  This way we
         // can release both the original fixed tree, and the cleaned tree (both of which can be much more expensive than
