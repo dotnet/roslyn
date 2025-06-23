@@ -89,8 +89,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         // move to in the forked doucment, as that is what we will want to analyze.
         var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<TextSpan>.GetInstance(normalizedChanges.Length, out var newSpans);
-        var newText = CopilotUtilities.GetNewText(oldText, normalizedChanges, newSpans);
+        var (newText, newSpans) = CopilotUtilities.GetNewTextAndChangedSpans(oldText, normalizedChanges);
 
         var forkingTime = forkingTimeStopWatch.Elapsed;
 
@@ -161,7 +160,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     private static Task<ImmutableArray<CopilotDiagnosticAnalysis>> ComputeAllDiagnosticAnalysesAsync(
         Document newDocument,
-        ArrayBuilder<TextSpan> newSpans,
+        ImmutableArray<TextSpan> newSpans,
         CancellationToken cancellationToken)
     {
         // Compute the data in parallel for each diagnostic kind.
@@ -201,7 +200,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
         static Task<ImmutableArray<DiagnosticData>> ComputeDiagnosticsAsync(
            Document newDocument,
-           ArrayBuilder<TextSpan> newSpans,
+           ImmutableArray<TextSpan> newSpans,
            DiagnosticKind diagnosticKind,
            CancellationToken cancellationToken)
         {
@@ -232,7 +231,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     private async Task<CopilotCodeFixAnalysis> ComputeCodeFixAnalysisAsync(
         Document newDocument,
-        ArrayBuilder<TextSpan> newSpans,
+        ImmutableArray<TextSpan> newSpans,
         CancellationToken cancellationToken)
     {
         // Determine how long it would be to even compute code fixes for these changed regions.

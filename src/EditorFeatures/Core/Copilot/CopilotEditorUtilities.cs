@@ -23,7 +23,7 @@ internal static class CopilotEditorUtilities
     /// the same <see cref="ITextSnapshot"/>. Will also fail if this edits non-roslyn files, or files
     /// we cannot process semantics for (like non C#/VB files).
     /// </remarks>
-    public static Solution? TryGetAffectedSolution(ProposalBase proposal)
+    public static (Solution? affectedSolution, string? failureReason) TryGetAffectedSolution(ProposalBase proposal)
     {
         Solution? solution = null;
         foreach (var edit in proposal.Edits)
@@ -32,22 +32,22 @@ internal static class CopilotEditorUtilities
 
             // Edit touches a file roslyn doesn't know about.  Don't touch this.
             if (document is null)
-                return null;
+                return (null, "NonRoslynDocumentAffected");
 
             // Only bother for languages we can actually process semantics for.
             if (document.SupportsSemanticModel)
-                return null;
+                return (null, "NonSemanticDocumentAffected");
 
             var currentSolution = document.Project.Solution;
 
             // Edit touches multiple solutions.  Don't bother with this for now for simplicity's sake.
             if (solution != null && solution != currentSolution)
-                return null;
+                return (null, "MultipleSolutionsAffected");
 
             solution = currentSolution;
         }
 
-        return solution;
+        return (solution, null);
     }
 
     /// <inheritdoc cref="CopilotUtilities.TryNormalizeCopilotTextChanges"/>

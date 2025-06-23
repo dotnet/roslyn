@@ -13,11 +13,11 @@ internal static class CopilotUtilities
 {
     /// <summary>
     /// Returns a new <see cref="SourceText"/> that represents the text after applying the specified changes to
-    /// <paramref name="oldText"/>.  <paramref name="newSpans"/> contains the spans of the <paramref name="changes"/>
+    /// <paramref name="oldText"/>. <c>'newSpans'</c> contains the spans of the <paramref name="changes"/>
     /// mapped to the new text.  The spans are in the same order as the changes, are guaranteed to be non-overlapping.
     /// </summary>
-    public static SourceText GetNewText(
-        SourceText oldText, ImmutableArray<TextChange> changes, ArrayBuilder<TextSpan> newSpans)
+    public static (SourceText newText, ImmutableArray<TextSpan> newSpans) GetNewTextAndChangedSpans(
+        SourceText oldText, ImmutableArray<TextChange> changes)
     {
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked doucment, as that is what we will want to analyze.
@@ -25,6 +25,7 @@ internal static class CopilotUtilities
 
         var totalDelta = 0;
 
+        var newSpans = new FixedSizeArrayBuilder<TextSpan>(changes.Length);
         foreach (var change in changes)
         {
             var newTextLength = change.NewText!.Length;
@@ -33,7 +34,7 @@ internal static class CopilotUtilities
             totalDelta += newTextLength - change.Span.Length;
         }
 
-        return newText;
+        return (newText, newSpans.MoveToImmutable());
     }
 
     /// <summary>
