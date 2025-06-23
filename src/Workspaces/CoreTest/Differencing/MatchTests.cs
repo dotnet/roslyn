@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Differencing.UnitTests;
