@@ -89,8 +89,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         // move to in the forked doucment, as that is what we will want to analyze.
         var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<TextSpan>.GetInstance(normalizedChanges.Length, out var newSpans);
-        var newText = CopilotUtilities.GetNewText(oldText, normalizedChanges, newSpans);
+        var (newText, newSpans) = CopilotUtilities.GetNewTextAndChangedSpans(oldText, normalizedChanges);
 
         var forkingTime = forkingTimeStopWatch.Elapsed;
 
