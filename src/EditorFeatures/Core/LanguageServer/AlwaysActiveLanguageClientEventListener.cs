@@ -66,11 +66,14 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
 
         async Task LoadAsync()
         {
-
             // Explicitly switch to the bg so that if this causes any expensive work (like mef loads) it 
             // doesn't block the UI thread. Note, we always yield because sometimes our caller starts
             // on the threadpool thread but is indirectly blocked on by the UI thread.
             await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
+            // Sometimes the editor can be slow to stop the old server instance when the old solution is closed, so we force it here.
+            // This will no-op if the server hasn't been started yet.
+            await _languageClient.StopServerAsync().ConfigureAwait(false);
 
             await _languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(
             [
