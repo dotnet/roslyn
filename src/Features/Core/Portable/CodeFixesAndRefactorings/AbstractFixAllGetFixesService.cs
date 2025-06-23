@@ -197,7 +197,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
     }
 
-    protected static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
+    private static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(operations.Length, out var result);
         var foundApplyChanges = false;
