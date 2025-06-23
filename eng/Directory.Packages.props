@@ -319,16 +319,16 @@
       but not higher than our minimum dogfoodable Visual Studio version, or else
       the generators we build would load on the command line but not load in IDEs.
     -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
     <!--
       The version of Roslyn used in the RoslynAnalyzers varies. These are defaults that
       will be overridden in the RoslynAnalyzer project files.
     -->
-    <!--<PackageVersion Include="Microsoft.CodeAnalysis" Version="4.14.0" /> -->
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.14.0" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.14.0" />
+    <!--<PackageVersion Include="Microsoft.CodeAnalysis" Version="4.12.0" /> -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.12.0" />
  </ItemGroup>
 </Project>
