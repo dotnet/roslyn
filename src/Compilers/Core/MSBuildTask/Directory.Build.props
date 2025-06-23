@@ -23,18 +23,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildProtocol.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildServerConnection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\CompilerServerLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ConsoleUtil.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NativeMethods.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\CommitHashAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\Debug.cs" Link="Debug.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\PlatformInformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
@@ -68,4 +59,6 @@
       <PackagePath>contentFiles\any\any</PackagePath>
     </Content>
   </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.targets" />
 </Project>
