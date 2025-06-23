@@ -450,24 +450,6 @@ public abstract partial class CodeAction
 #pragma warning restore CA1822 // Mark members as static
         => PostProcessChangesAsync(originalSolution: null, changedSolution, progress: CodeAnalysisProgress.None, cleanSyntaxOnly: false, cancellationToken);
 
-    internal static async Task<Solution> PostProcessChangesAsync(
-        Solution? originalSolution,
-        Solution changedSolution,
-        IProgress<CodeAnalysisProgress> progress,
-        bool cleanSyntaxOnly,
-        CancellationToken cancellationToken)
-    {
-        // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
-        // current solution.  This is not ideal (as that is a mutable field that could be changing out from
-        // underneath us).  But it's the only option we have for the compat case with existing public extension
-        // points.
-        originalSolution ??= changedSolution.Workspace.CurrentSolution;
-
-        return cleanSyntaxOnly
-            ? await CleanSyntaxAsync(originalSolution, changedSolution, progress, cancellationToken).ConfigureAwait(false)
-            : await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, cancellationToken).ConfigureAwait(false);
-    }
-
     /// <summary>
     /// Apply post processing steps to a single document:
     ///   Reducing nodes annotated with <see cref="Simplifier.Annotation"/>

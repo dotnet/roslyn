@@ -73,13 +73,26 @@ public abstract partial class CodeAction
         return [.. documentIds];
     }
 
-    internal static Task<Solution> CleanSyntaxAsync(Solution originalSolution, Solution changedSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        => CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, [s_cleanSyntaxPass], cancellationToken);
+    internal static async Task<Solution> PostProcessChangesAsync(
+        Solution? originalSolution,
+        Solution changedSolution,
+        IProgress<CodeAnalysisProgress> progress,
+        bool cleanSyntaxOnly,
+        CancellationToken cancellationToken)
+    {
+        // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
+        // current solution.  This is not ideal (as that is a mutable field that could be changing out from
+        // underneath us).  But it's the only option we have for the compat case with existing public extension
+        // points.
+        originalSolution ??= changedSolution.Workspace.CurrentSolution;
 
-    internal static Task<Solution> CleanSyntaxAndSemanticsAsync(Solution originalSolution, Solution changedSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        => CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, s_cleanupPasses, cancellationToken);
+        return await CleanSyntaxAndSemanticsAsync(
+            originalSolution, changedSolution, progress,
+            cleanSyntaxOnly ? [s_cleanSyntaxPass] : s_cleanupPasses,
+            cancellationToken).ConfigureAwait(false);
+    }
 
-    internal static async Task<Solution> CleanSyntaxAndSemanticsAsync(
+    private static async Task<Solution> CleanSyntaxAndSemanticsAsync(
         Solution originalSolution,
         Solution changedSolution,
         IProgress<CodeAnalysisProgress> progress,
