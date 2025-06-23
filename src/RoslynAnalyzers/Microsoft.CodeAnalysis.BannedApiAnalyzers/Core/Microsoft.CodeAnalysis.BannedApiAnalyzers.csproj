@@ -7,9 +7,7 @@
       Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.BannedApiAnalyzer package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />

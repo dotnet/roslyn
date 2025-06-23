@@ -5,9 +5,7 @@
     <NonShipping>true</NonShipping>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <DefineConstants>TEST_UTILITIES,ROSLYN_4_12_OR_LOWER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualBasic" />

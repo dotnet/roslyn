@@ -11,9 +11,7 @@
     <!-- Excluded from source build. Otherwise this should be conditionalized to only be set when DotNetBuildSourceOnly != true -->
     <SQLitePCLRawVersion>1.1.2</SQLitePCLRawVersion>
     <VersionPrefix>$(MetricsVersionPrefix)</VersionPrefix>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
   </PropertyGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />

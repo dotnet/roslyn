@@ -7,9 +7,7 @@
       Restore would conclude that there is a cyclic dependency between us and the Roslyn.Diagnostics.Analyzers package.
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.Diagnostics.CSharp.Analyzers" />
