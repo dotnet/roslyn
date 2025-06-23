@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeActions;
 
 public abstract partial class CodeAction
 {
-    private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanSyntax =
+    private static readonly Func<Document, CodeCleanupOptions, CancellationToken, Task<Document>> s_cleanSyntaxPass =
         static (document, options, cancellationToken) => CleanupSyntaxAsync(document, options, cancellationToken);
 
     /// <summary>
@@ -34,7 +34,7 @@ public abstract partial class CodeAction
         // First, ensure that everything is formatted as the feature asked for.  We want to do this prior to doing
         // semantic cleanup as the semantic cleanup passes may end up making changes that end up dropping some of
         // the formatting/elastic annotations that the feature wanted respected.
-        s_cleanSyntax,
+        s_cleanSyntaxPass,
         // Then add all missing imports to all changed documents.
         static (document, options, cancellationToken) => ImportAdder.AddImportsFromSymbolAnnotationAsync(document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken),
         // Then simplify any expanded constructs.
@@ -44,7 +44,7 @@ public abstract partial class CodeAction
         // Finally, after doing the semantic cleanup, do another syntax cleanup pass to ensure that the tree is in a
         // good state. The semantic cleanup passes may have introduced new nodes with elastic trivia that have to be
         // cleaned.
-        s_cleanSyntax,
+        s_cleanSyntaxPass,
     ];
 
     internal static async Task<Document> CleanupSyntaxAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
@@ -74,7 +74,7 @@ public abstract partial class CodeAction
     }
 
     internal static Task<Solution> CleanSyntaxAsync(Solution originalSolution, Solution changedSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        => CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, [s_cleanSyntax], cancellationToken);
+        => CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, [s_cleanSyntaxPass], cancellationToken);
 
     internal static Task<Solution> CleanSyntaxAndSemanticsAsync(Solution originalSolution, Solution changedSolution, IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         => CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, s_cleanupPasses, cancellationToken);
