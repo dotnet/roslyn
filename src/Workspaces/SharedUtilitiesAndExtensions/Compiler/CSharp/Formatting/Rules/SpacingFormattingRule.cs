@@ -333,9 +333,9 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
         {
             switch (_options.SpacingAroundBinaryOperator)
             {
-                case BinaryOperatorSpacingOptions.Single:
+                case BinaryOperatorSpacingOptionsInternal.Single:
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                case BinaryOperatorSpacingOptions.Remove:
+                case BinaryOperatorSpacingOptionsInternal.Remove:
                     if (currentKind == SyntaxKind.IsKeyword ||
                         currentKind == SyntaxKind.AsKeyword ||
                         currentKind == SyntaxKind.AndKeyword ||
@@ -352,7 +352,7 @@ internal sealed class SpacingFormattingRule : BaseFormattingRule
                     {
                         return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                     }
-                case BinaryOperatorSpacingOptions.Ignore:
+                case BinaryOperatorSpacingOptionsInternal.Ignore:
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
                 default:
                     System.Diagnostics.Debug.Assert(false, "Invalid BinaryOperatorSpacingOptions");
