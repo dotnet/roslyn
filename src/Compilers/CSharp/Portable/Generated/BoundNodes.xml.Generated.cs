@@ -1731,7 +1731,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstrainedToTypeOpt = constrainedToTypeOpt;
             this.ResultKind = resultKind;
             this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BinaryOperatorKind OperatorKind { get; }
         public MethodSymbol LogicalOperator { get; }

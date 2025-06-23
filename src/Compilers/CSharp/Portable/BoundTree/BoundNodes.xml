@@ -496,7 +496,7 @@
     <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
-  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true">
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundBinaryOperatorBase" SkipInNullabilityRewriter="true" HasValidate="true">
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>

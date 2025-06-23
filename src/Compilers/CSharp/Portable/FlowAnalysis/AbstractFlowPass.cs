@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AdjustConditionalState(node);
         }
 
-        private void AdjustConditionalState(BoundExpression node)
+        protected void AdjustConditionalState(BoundExpression node)
         {
             if (IsConstantTrue(node))
             {
@@ -2450,14 +2450,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(binary);
             }
 
+            VisitBinaryLogicalOperatorChildren(stack);
+            stack.Free();
+        }
+
+        protected virtual void VisitBinaryLogicalOperatorChildren(ArrayBuilder<BoundExpression> stack)
+        {
+            BoundExpression binary;
             Debug.Assert(stack.Count > 0);
+
+            binary = stack.Pop();
+
+            BoundExpression child;
+            switch (binary.Kind)
+            {
+                case BoundKind.BinaryOperator:
+                    var binOp = (BoundBinaryOperator)binary;
+                    child = binOp.Left;
+                    break;
+                case BoundKind.UserDefinedConditionalLogicalOperator:
+                    var udBinOp = (BoundUserDefinedConditionalLogicalOperator)binary;
+                    child = udBinOp.Left;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(binary.Kind);
+            }
 
             VisitCondition(child);
 
             while (true)
             {
-                binary = stack.Pop();
-
                 BinaryOperatorKind kind;
                 BoundExpression right;
                 switch (binary.Kind)
@@ -2479,6 +2501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var op = kind.Operator();
                 var isAnd = op == BinaryOperatorKind.And;
                 var isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
+                Debug.Assert(!isBool || binary.Kind != BoundKind.UserDefinedConditionalLogicalOperator);
 
                 Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
 
@@ -2494,10 +2517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 AdjustConditionalState(binary);
+                binary = stack.Pop();
             }
-
-            Debug.Assert((object)binary == node);
-            stack.Free();
         }
 
         protected virtual void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression binary, BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
