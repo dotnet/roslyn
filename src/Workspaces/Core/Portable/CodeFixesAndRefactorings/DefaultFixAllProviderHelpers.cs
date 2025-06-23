@@ -26,7 +26,6 @@ internal static class DefaultFixAllProviderHelpers
         Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
         where TFixAllContext : IFixAllContext
     {
-
         // We're about to do a lot of computation to compute all the diagnostics needed and to perform the
         // changes.  Keep this solution alive on the OOP side so that we never drop it and then resync it
         // (which would cause us to drop/recreate compilations, skeletons and sg docs.
@@ -45,7 +44,7 @@ internal static class DefaultFixAllProviderHelpers
             return null;
 
         return CodeAction.Create(
-            title, _ => Task.FromResult(solution));
+            title, (_, _) => Task.FromResult(solution), equivalenceKey: null, CodeActionPriority.Default, fixAllContext.State.FixAllProvider.Cleanup);
     }
 
     private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(

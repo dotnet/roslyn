@@ -533,6 +533,10 @@ public abstract partial class CodeAction
     /// <inheritdoc cref="Create(string, Func{CancellationToken, Task{Solution}}, string?, CodeActionPriority)"/>
     [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "This is source compatible")]
     public static CodeAction Create(string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null, CodeActionPriority priority = CodeActionPriority.Default)
+        => Create(title, createChangedSolution, equivalenceKey, priority, CodeActionCleanup.SyntaxAndSemantics);
+
+    internal static CodeAction Create(
+        string title, Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey, CodeActionPriority priority, CodeActionCleanup cleanup)
     {
         if (title == null)
             throw new ArgumentNullException(nameof(title));
@@ -540,7 +544,7 @@ public abstract partial class CodeAction
         if (createChangedSolution == null)
             throw new ArgumentNullException(nameof(createChangedSolution));
 
-        return SolutionChangeAction.New(title, createChangedSolution, equivalenceKey, priority);
+        return SolutionChangeAction.New(title, createChangedSolution, equivalenceKey, priority, cleanup);
     }
 
     /// <summary>
@@ -693,23 +697,28 @@ public abstract partial class CodeAction
     {
         private readonly Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> _createChangedSolution;
 
+        internal override CodeActionCleanup Cleanup { get; }
+
         protected SolutionChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
             string? equivalenceKey,
             CodeActionPriority priority,
+            CodeActionCleanup cleanup,
             bool createdFromFactoryMethod)
             : base(title, equivalenceKey, priority, createdFromFactoryMethod)
         {
             _createChangedSolution = createChangedSolution;
+            this.Cleanup = cleanup;
         }
 
         protected SolutionChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
             string? equivalenceKey,
-            CodeActionPriority priority = CodeActionPriority.Default)
-            : this(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: false)
+            CodeActionPriority priority,
+            CodeActionCleanup cleanup)
+            : this(title, createChangedSolution, equivalenceKey, priority, cleanup, createdFromFactoryMethod: false)
         {
         }
 
@@ -717,8 +726,9 @@ public abstract partial class CodeAction
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
             string? equivalenceKey,
-            CodeActionPriority priority = CodeActionPriority.Default)
-            => new(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: true);
+            CodeActionPriority priority,
+            CodeActionCleanup cleanup)
+            => new(title, createChangedSolution, equivalenceKey, priority, cleanup, createdFromFactoryMethod: true);
 
         protected sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
             => _createChangedSolution(progress, cancellationToken).AsNullable();
