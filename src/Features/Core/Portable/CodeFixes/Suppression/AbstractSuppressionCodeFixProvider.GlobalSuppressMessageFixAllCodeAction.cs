@@ -55,7 +55,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         private sealed class GlobalSuppressionSolutionChangeAction(
             string title,
             Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Solution>> createChangedSolution,
-            string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey)
+            string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey, CodeActionPriority.Default, CodeActionCleanup.SyntaxAndSemantics)
         {
             protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
             {
