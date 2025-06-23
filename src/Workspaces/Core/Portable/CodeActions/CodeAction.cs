@@ -396,15 +396,13 @@ public abstract partial class CodeAction
     /// used by batch fixer engine to get new solution
     /// </summary>
     internal async Task<Solution?> GetChangedSolutionInternalAsync(
-        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, bool postProcessChanges = true, CancellationToken cancellationToken = default)
+        Solution originalSolution, IProgress<CodeAnalysisProgress> progress, bool postProcessChanges, bool cleanSyntaxOnly, CancellationToken cancellationToken)
     {
         var solution = await GetChangedSolutionAsync(progress, cancellationToken).ConfigureAwait(false);
         if (solution == null || !postProcessChanges)
-        {
             return solution;
-        }
 
-        return await PostProcessChangesAsync(originalSolution, solution, cancellationToken).ConfigureAwait(false);
+        return await PostProcessChangesAsync(originalSolution, solution, progress, cleanSyntaxOnly, cancellationToken).ConfigureAwait(false);
     }
 
     internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
@@ -430,7 +428,8 @@ public abstract partial class CodeAction
         {
             if (op is ApplyChangesOperation ac)
             {
-                result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(originalSolution, ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
+                result.Add(new ApplyChangesOperation(await PostProcessChangesAsync(
+                    originalSolution, ac.ChangedSolution, CodeAnalysisProgress.None, cleanSyntaxOnly: false, cancellationToken).ConfigureAwait(false)));
             }
             else
             {
@@ -449,11 +448,13 @@ public abstract partial class CodeAction
 #pragma warning disable CA1822 // Mark members as static. This is a public API.
     protected Task<Solution> PostProcessChangesAsync(Solution changedSolution, CancellationToken cancellationToken)
 #pragma warning restore CA1822 // Mark members as static
-        => PostProcessChangesAsync(originalSolution: null, changedSolution, cancellationToken);
+        => PostProcessChangesAsync(originalSolution: null, changedSolution, progress: CodeAnalysisProgress.None, cleanSyntaxOnly: false, cancellationToken);
 
-    private static async Task<Solution> PostProcessChangesAsync(
+    internal static async Task<Solution> PostProcessChangesAsync(
         Solution? originalSolution,
         Solution changedSolution,
+        IProgress<CodeAnalysisProgress> progress,
+        bool cleanSyntaxOnly,
         CancellationToken cancellationToken)
     {
         // originalSolution is only null on backward compatible codepaths.  In that case, we get the workspace's
@@ -462,7 +463,9 @@ public abstract partial class CodeAction
         // points.
         originalSolution ??= changedSolution.Workspace.CurrentSolution;
 
-        return await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+        return cleanSyntaxOnly
+            ? await CleanSyntaxAsync(originalSolution, changedSolution, progress, cancellationToken).ConfigureAwait(false)
+            : await CleanSyntaxAndSemanticsAsync(originalSolution, changedSolution, progress, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
