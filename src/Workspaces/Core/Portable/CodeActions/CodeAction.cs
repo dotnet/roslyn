@@ -25,13 +25,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 
-internal enum CodeActionCleanup
-{
-    None,
-    SyntaxOnly,
-    SyntaxAndSemantics,
-}
-
 /// <summary>
 /// An action produced by a <see cref="CodeFixProvider"/> or a <see cref="CodeRefactoringProvider"/>.
 /// </summary>
