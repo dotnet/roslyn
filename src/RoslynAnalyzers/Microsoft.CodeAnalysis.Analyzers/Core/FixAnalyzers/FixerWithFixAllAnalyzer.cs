@@ -10,11 +10,8 @@ using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-<<<<<<< Updated upstream
-=======
-using Microsoft.CodeAnalysis.Shared.Extensions;
->>>>>>> Stashed changes
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 {
