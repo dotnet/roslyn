@@ -210,7 +210,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
             var builder = new List<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>();
             foreach (var (symbol, diagnostics) in diagnosticsMapBuilder)
-                builder.Add(KeyValuePairUtil.Create(symbol, GetUniqueDiagnostics(diagnostics)));
+                builder.Add(KeyValuePair.Create(symbol, GetUniqueDiagnostics(diagnostics)));
 
             return builder.OrderBy(kvp => kvp.Key.GetDocumentationCommentId() ?? string.Empty);
         }
