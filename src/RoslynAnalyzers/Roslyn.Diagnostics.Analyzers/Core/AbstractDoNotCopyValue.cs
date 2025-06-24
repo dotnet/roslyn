@@ -1439,7 +1439,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     case OperationKind.Throw:
                         return RefKind.None;
 
-                    case OperationKind.CollectionExpression:
+                    case OperationKindEx.CollectionExpression:
                         return RefKind.None;
 
                     default:

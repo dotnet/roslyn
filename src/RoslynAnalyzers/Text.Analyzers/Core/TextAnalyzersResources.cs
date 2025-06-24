@@ -5,7 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Text.Analyzers
 {
     internal partial class TextAnalyzersResources
     {

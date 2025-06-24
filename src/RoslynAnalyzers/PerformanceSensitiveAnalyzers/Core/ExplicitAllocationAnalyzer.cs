@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
             if (context.Operation is IObjectCreationOperation or ITypeParameterObjectCreationOperation)
             {
-                if (context.Operation.Parent?.Kind == OperationKind.Attribute)
+                if (context.Operation.Parent?.Kind == OperationKindEx.Attribute)
                 {
                     // Don't report attribute usage as creating a new instance
                     return;

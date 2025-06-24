@@ -2,13 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Analyzer.Utilities
 {
-    internal static partial class DiagnosticCategory
+    internal static class DiagnosticCategory
     {
+        public const string Design = nameof(Design);
+        public const string Globalization = nameof(Globalization);
+        public const string Interoperability = nameof(Interoperability);
+        public const string Mobility = nameof(Mobility);
         public const string Performance = nameof(Performance);
+        public const string Reliability = nameof(Reliability);
+        public const string Security = nameof(Security);
+        public const string Usage = nameof(Usage);
         public const string Naming = nameof(Naming);
         public const string Library = nameof(Library);
+        public const string Documentation = nameof(Documentation);
+        public const string Maintainability = nameof(Maintainability);
 
         public const string RoslynDiagnosticsDesign = nameof(RoslynDiagnosticsDesign);
         public const string RoslynDiagnosticsMaintainability = nameof(RoslynDiagnosticsMaintainability);

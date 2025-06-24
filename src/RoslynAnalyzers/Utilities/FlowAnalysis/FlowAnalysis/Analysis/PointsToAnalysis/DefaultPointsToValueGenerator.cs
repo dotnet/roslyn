@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {

@@ -4,7 +4,6 @@
 
 using System;
 using Analyzer.Utilities.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Analyzer.Utilities
 {

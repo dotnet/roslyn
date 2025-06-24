@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     internal partial class BannedApiAnalyzerResources
     {

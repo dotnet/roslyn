@@ -5,7 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Roslyn.Diagnostics.Analyzers
 {
     internal partial class RoslynDiagnosticsAnalyzersResources
     {

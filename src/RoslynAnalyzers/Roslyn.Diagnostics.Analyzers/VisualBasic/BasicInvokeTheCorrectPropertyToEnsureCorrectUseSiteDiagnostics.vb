@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
-Imports Microsoft.CodeAnalysis.RoslynDiagnosticsAnalyzersResources
+Imports Roslyn.Diagnostics.Analyzers.RoslynDiagnosticsAnalyzersResources
 
 Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

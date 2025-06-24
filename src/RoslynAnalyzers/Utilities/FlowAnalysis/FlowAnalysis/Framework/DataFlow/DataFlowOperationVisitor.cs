@@ -15,8 +15,6 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 #pragma warning disable CA1707 // Identifiers should not contain underscores
 
@@ -2823,7 +2821,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override TAbstractAnalysisValue DefaultVisit(IOperation operation, object? argument)
         {
-            return VisitArray(operation.ChildOperations, argument);
+            return VisitArray(operation.Children, argument);
         }
 
         public override TAbstractAnalysisValue VisitSimpleAssignment(ISimpleAssignmentOperation operation, object? argument)

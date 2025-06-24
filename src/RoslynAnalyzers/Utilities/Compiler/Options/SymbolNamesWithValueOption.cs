@@ -12,7 +12,6 @@ using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -344,7 +343,7 @@ namespace Analyzer.Utilities
 
             static string GetDeclarationId(ISymbol symbol)
             {
-                var declarationIdWithoutPrefix = DocumentationCommentId.CreateDeclarationId(symbol)![2..];
+                var declarationIdWithoutPrefix = DocumentationCommentId.CreateDeclarationId(symbol)[2..];
 
                 // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
                 declarationIdWithoutPrefix = declarationIdWithoutPrefix

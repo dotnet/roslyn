@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
             return rawOperation switch
             {
-                IObjectCreationOperation objectCreation when objectCreation.Type != null =>
+                IObjectCreationOperation objectCreation =>
                     await CallOverloadWithEqualityComparerAsync(
                         document, objectCreation.Syntax, objectCreation.Constructor, objectCreation.Arguments, isUsedAsExtensionMethod: false,
                         (generator, args) => generator.ObjectCreationExpression(objectCreation.Type, args), iEqualityComparer, cancellationToken)

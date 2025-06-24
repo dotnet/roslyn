@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 {

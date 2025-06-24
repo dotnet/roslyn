@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if HAS_IOPERATION
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ImmutableHashSet<object>.Builder? distinctReferencedConstantsBuilder = null;
 
             // Explicit user applied attribute.
-            if ((operationBlock.Kind is OperationKind.None or OperationKind.Attribute) &&
+            if ((operationBlock.Kind is OperationKind.None or OperationKindEx.Attribute) &&
                 hasAnyExplicitExpression(operationBlock))
             {
                 executableLinesOfCode += 1;
@@ -326,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             static bool hasAnyExplicitExpression(IOperation operation)
             {
                 // Check if all descendants are either implicit or are explicit non-branch, non-attribute operations with no constant value or type, indicating it is not user written code.
-                return !operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null && o.Kind is not (OperationKind.Branch or OperationKind.Attribute)));
+                return !operation.DescendantsAndSelf().All(o => o.IsImplicit || (!o.ConstantValue.HasValue && o.Type == null && o.Kind is not (OperationKind.Branch or OperationKindEx.Attribute)));
             }
 
             void countOperator(IOperation operation)
@@ -445,3 +447,5 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         public long EffectiveLinesOfCode { get; }
     }
 }
+
+#endif

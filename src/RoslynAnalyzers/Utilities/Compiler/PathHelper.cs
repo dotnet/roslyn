@@ -6,7 +6,6 @@
 
 using System;
 using System.IO;
-using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {

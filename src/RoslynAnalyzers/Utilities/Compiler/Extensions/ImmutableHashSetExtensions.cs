@@ -89,5 +89,14 @@ namespace System.Collections.Immutable
 
             return true;
         }
+
+        public static void AddIfNotNull<T>(this ImmutableHashSet<T>.Builder builder, T? item)
+            where T : class
+        {
+            if (item != null)
+            {
+                builder.Add(item);
+            }
+        }
     }
 }

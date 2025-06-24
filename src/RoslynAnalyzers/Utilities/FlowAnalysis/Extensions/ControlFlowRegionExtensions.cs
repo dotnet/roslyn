@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    internal static partial class ControlFlowRegionExtensions
+    internal static class ControlFlowRegionExtensions
     {
         public static bool ContainsRegionOrSelf(this ControlFlowRegion controlFlowRegion, ControlFlowRegion nestedRegion)
             => controlFlowRegion.FirstBlockOrdinal <= nestedRegion.FirstBlockOrdinal &&
