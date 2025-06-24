@@ -710,16 +710,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = node.Locals;
 
             var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
+            exceptionFilterPrologueOpt = (BoundStatementList)VisitStatementList(exceptionFilterPrologueOpt);
             BoundSpillSequenceBuilder builder = null;
-            if (exceptionFilterPrologueOpt != null)
-            {
-                exceptionFilterPrologueOpt = (BoundStatementList)VisitStatementList(exceptionFilterPrologueOpt);
-                builder = new BoundSpillSequenceBuilder(exceptionFilterPrologueOpt.Syntax);
-                builder.AddStatements(exceptionFilterPrologueOpt.Statements);
-                exceptionFilterPrologueOpt = null;
-            }
 
             var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt);
+            Debug.Assert(exceptionFilterPrologueOpt is null || builder is null,
+                "You are exercising SpillSequenceSpiller in a new fashion, causing a spill in an exception filter after LocalRewriting is complete. This is not someting " +
+                "that this builder supports today, so please update this rewrite to include the statements from exceptionFilterPrologueOpt with the appropriate " +
+                "syntax node and tracking.");
             if (builder is { })
             {
                 Debug.Assert(builder.Value is null);
