@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundExpression visitArgumentsAndFinishRewrite(BoundTreeRewriter rewriter, BoundCall node, BoundExpression? rewrittenReceiver)
             {
+                Debug.Assert(!node.Method.GetIsNewExtensionMember() || node.Method.IsStatic || node.ReceiverOpt is not null);
+
                 return updateCall(
                     node,
                     VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method),
