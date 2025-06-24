@@ -8313,7 +8313,7 @@ done:
                 return true;
             }
 
-            return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel);
+            return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel);
         }
 
         private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
@@ -8322,7 +8322,7 @@ done:
             return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
         }
 
-        private bool IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(bool isGlobalScriptLevel)
+        private bool IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(bool isGlobalScriptLevel)
         {
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
             if (typedIdentifier != null)
@@ -8394,9 +8394,20 @@ done:
                 return true;
             }
 
-            if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            if (st == ScanTypeFlags.NotType)
             {
                 return false;
+            }
+
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            {
+                // In the case of something like:
+                // List<SomeType>
+                // if
+                // we know that we're in an error case, as the following keyword must be the start of a new statement.
+                // We'd prefer to assume that this is an incomplete local declaration over an expression, as it's more likely
+                // the user is just in the middle of writing a local declaration, and not an expression.
+                return st == ScanTypeFlags.GenericTypeOrExpression && (IsDefiniteStatement() || IsTypeDeclarationStart() || IsAccessibilityModifier(CurrentToken.Kind));
             }
 
             // T? and T* might start an expression, we need to parse further to disambiguate:
@@ -8457,7 +8468,7 @@ done:
                 EatToken();
             }
 
-            return IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(isGlobalScriptLevel: false);
+            return IsPossibleFirstTypedIdentifierInLocalDeclarationStatement(isGlobalScriptLevel: false);
         }
 
         // Looks ahead for a declaration of a field, property or method declaration following a nullable type T?.
@@ -8905,17 +8916,16 @@ done:
                 out trailingTrivia);
         }
 
-        private bool IsPossibleStatement()
+        private bool IsDefiniteStatement()
         {
             var tk = this.CurrentToken.Kind;
+            // Only those cases that can be certain start a new statement, regardless of context
             switch (tk)
             {
                 case SyntaxKind.FixedKeyword:
                 case SyntaxKind.BreakKeyword:
                 case SyntaxKind.ContinueKeyword:
                 case SyntaxKind.TryKeyword:
-                case SyntaxKind.CheckedKeyword:
-                case SyntaxKind.UncheckedKeyword:
                 case SyntaxKind.ConstKeyword:
                 case SyntaxKind.DoKeyword:
                 case SyntaxKind.ForKeyword:
@@ -8926,19 +8936,38 @@ done:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
                 case SyntaxKind.SwitchKeyword:
-                case SyntaxKind.ThrowKeyword:
                 case SyntaxKind.UnsafeKeyword:
                 case SyntaxKind.UsingKeyword:
                 case SyntaxKind.WhileKeyword:
+                case SyntaxKind.VolatileKeyword:
+                case SyntaxKind.ExternKeyword:
+                case SyntaxKind.CaseKeyword: // for parsing an errant case without a switch.
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        private bool IsPossibleStatement()
+        {
+            if (IsDefiniteStatement())
+            {
+                return true;
+            }
+
+            var tk = this.CurrentToken.Kind;
+            switch (tk)
+            {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.UncheckedKeyword:
+                case SyntaxKind.ThrowKeyword:
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
-                case SyntaxKind.VolatileKeyword:
                 case SyntaxKind.RefKeyword:
-                case SyntaxKind.ExternKeyword:
                 case SyntaxKind.OpenBracketToken:
-                case SyntaxKind.CaseKeyword: // for parsing an errant case without a switch.
                     return true;
 
                 case SyntaxKind.IdentifierToken:
