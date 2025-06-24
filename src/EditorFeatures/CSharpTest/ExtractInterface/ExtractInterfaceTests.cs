@@ -1449,7 +1449,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             </Workspace>
             """),
             workspaceKind: WorkspaceKind.Interactive,
-            composition: EditorTestCompositions.EditorFeaturesWpf);
+            composition: EditorTestCompositions.EditorFeatures);
         // Force initialization.
         workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id)!.GetTextView()).ToList();
 
@@ -2007,7 +2007,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var markup = """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet8="true">
-                    <Document FilePath="z:\\file.cs"><![CDATA[using System;
+                    <Document FilePath="file.cs"><![CDATA[using System;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 

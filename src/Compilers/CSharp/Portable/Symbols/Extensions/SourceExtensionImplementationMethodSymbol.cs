@@ -4,6 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -11,15 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
     {
+        private string? lazyDocComment;
+        private StrongBox<byte?>? lazyNullableContext;
+
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
             Debug.Assert(sourceMethod.GetIsNewExtensionMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
-            Debug.Assert(!sourceMethod.IsExtern);
-            Debug.Assert(!sourceMethod.IsExternal);
 
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we creating type parameters with the right emit behavior? Attributes, etc.
+            // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Are we creating type parameters with the right emit behavior? Attributes, etc.
             //            Also, they should be IsImplicitlyDeclared
         }
 
@@ -53,11 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsAccessCheckedOnOverride => false;
 
-        public sealed override bool IsExtern => false;
-        public sealed override DllImportData? GetDllImportData() => null;
-        internal sealed override bool IsExternal => false;
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : How doc comments are supposed to work? GetDocumentationCommentXml
+        public sealed override bool IsExtern => _originalMethod.IsExtern;
+        public sealed override DllImportData? GetDllImportData() => _originalMethod.GetDllImportData();
+        internal sealed override bool IsExternal => _originalMethod.IsExternal;
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
@@ -65,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
+            // Copy ORPA from the property onto the implementation accessors
             if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
                 foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
@@ -76,8 +79,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
             SourceMethodSymbol.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
+        }
+
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            if (_originalMethod is SourcePropertyAccessorSymbol accessor)
+            {
+                accessor.AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
+            }
+
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            if (lazyNullableContext is null)
+            {
+                byte? nullableContext = SourceMemberMethodSymbol.ComputeNullableContextValue(this);
+                Interlocked.CompareExchange(ref lazyNullableContext, new StrongBox<byte?>(nullableContext), comparand: null);
+            }
+
+            return lazyNullableContext.Value;
         }
 
         public override bool IsStatic => true;
@@ -101,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
+                // Tracked by https://github.com/dotnet/roslyn/issues/78962 : Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
                 //            Specifically BoundParameterId, etc.   
                 parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).ExtensionParameter!));
             }
@@ -131,6 +154,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return UnderlyingMethod.TryGetOverloadResolutionPriority();
         }
 
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
+        {
+            // Neither the culture nor the expandIncludes affect the XML for extension implementation methods.
+            string result = SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref lazyDocComment);
+
+#if DEBUG
+            string? ignored = null;
+            string withIncludes = SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: true, lazyXmlText: ref ignored);
+            Debug.Assert(string.Equals(result, withIncludes, System.StringComparison.Ordinal));
+#endif
+
+            return result;
+        }
+
         private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol
         {
             public ExtensionMetadataMethodParameterSymbol(SourceExtensionImplementationMethodSymbol containingMethod, ParameterSymbol sourceParameter) :
@@ -158,6 +195,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return ordinal + 1;
                 }
+            }
+
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            {
+                if (_underlyingParameter is SynthesizedAccessorValueParameterSymbol valueParameter)
+                {
+                    valueParameter.AddSynthesizedFlowAnalysisAttributes(ref attributes);
+                }
+
+                // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here
+                // as that would delegate to underlying parameter symbol
+                SourceParameterSymbolBase.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
             }
         }
     }

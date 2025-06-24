@@ -42,7 +42,7 @@ internal readonly struct RequestContext
     /// It contains text that is consistent with all prior LSP text sync notifications, but LSP text sync requests
     /// which are ordered after this one in the queue are not reflected here.
     /// </remarks>
-    private readonly ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments;
+    private readonly ImmutableDictionary<DocumentUri, (SourceText Text, string LanguageId)> _trackedDocuments;
 
     private readonly ILspServices _lspServices;
 
@@ -174,7 +174,7 @@ internal readonly struct RequestContext
         WellKnownLspServerKinds serverKind,
         TextDocument? document,
         IDocumentChangeTracker documentChangeTracker,
-        ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> trackedDocuments,
+        ImmutableDictionary<DocumentUri, (SourceText Text, string LanguageId)> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
@@ -302,17 +302,17 @@ internal readonly struct RequestContext
     /// Allows a mutating request to open a document and start it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public ValueTask StartTrackingAsync(Uri uri, SourceText initialText, string languageId, CancellationToken cancellationToken)
+    public ValueTask StartTrackingAsync(DocumentUri uri, SourceText initialText, string languageId, CancellationToken cancellationToken)
         => _documentChangeTracker.StartTrackingAsync(uri, initialText, languageId, cancellationToken);
 
     /// <summary>
     /// Allows a mutating request to update the contents of a tracked document.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public void UpdateTrackedDocument(Uri uri, SourceText changedText)
+    public void UpdateTrackedDocument(DocumentUri uri, SourceText changedText)
         => _documentChangeTracker.UpdateTrackedDocument(uri, changedText);
 
-    public SourceText GetTrackedDocumentSourceText(Uri documentUri)
+    public SourceText GetTrackedDocumentSourceText(DocumentUri documentUri)
     {
         Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"Attempted to get text for {documentUri} which is not open.");
         return _trackedDocuments[documentUri].Text;
@@ -328,13 +328,13 @@ internal readonly struct RequestContext
         // handler treats those as separate worlds that they are responsible for.
         if (TextDocument is not TDocument document)
         {
-            TraceInformation($"Ignoring diagnostics request because no {typeof(TDocument).Name} was provided");
+            TraceDebug($"Ignoring diagnostics request because no {typeof(TDocument).Name} was provided");
             return null;
         }
 
         if (!IsTracking(document.GetURI()))
         {
-            TraceWarning($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
+            TraceDebug($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
             return null;
         }
 
@@ -345,10 +345,10 @@ internal readonly struct RequestContext
     /// Allows a mutating request to close a document and stop it being tracked.
     /// Mutating requests are serialized by the execution queue in order to prevent concurrent access.
     /// </summary>
-    public ValueTask StopTrackingAsync(Uri uri, CancellationToken cancellationToken)
+    public ValueTask StopTrackingAsync(DocumentUri uri, CancellationToken cancellationToken)
         => _documentChangeTracker.StopTrackingAsync(uri, cancellationToken);
 
-    public bool IsTracking(Uri documentUri)
+    public bool IsTracking(DocumentUri documentUri)
         => _trackedDocuments.ContainsKey(documentUri);
 
     public void ClearSolutionContext()
@@ -358,6 +358,9 @@ internal readonly struct RequestContext
 
         _lspSolution.Value = default;
     }
+
+    public void TraceDebug(string message)
+        => _logger.LogDebug(message);
 
     /// <summary>
     /// Logs an informational message.

@@ -175,7 +175,7 @@ internal sealed class EditAndContinueLanguageService(
                 // We start the operation but do not wait for it to complete.
                 // The tracking session is cancelled when we exit the break state.
 
-                Debug.Assert(solution != null);
+                Contract.ThrowIfNull(solution);
                 GetActiveStatementTrackingService().StartTracking(solution, session);
             }
         }
@@ -385,8 +385,10 @@ internal sealed class EditAndContinueLanguageService(
 
         switch (result.ModuleUpdates.Status)
         {
-            case ModuleUpdateStatus.Ready:
-                // We have updates to be applied. The debugger will call Commit/Discard on the solution
+            case ModuleUpdateStatus.Ready when result.ProjectsToRebuild.IsEmpty:
+                // We have updates to be applied and no rude edits.
+                //
+                // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
                 break;
@@ -398,7 +400,25 @@ internal sealed class EditAndContinueLanguageService(
                 break;
         }
 
-        UpdateApplyChangesDiagnostics(result.Diagnostics);
+        ArrayBuilder<DiagnosticData>? applyChangesDiagnostics = null;
+        foreach (var diagnostic in result.Diagnostics)
+        {
+            // Report warnings and errors that are not reported when analyzing documents or are reported for deleted documents.
+
+            if (diagnostic.Severity is not (DiagnosticSeverity.Error or DiagnosticSeverity.Warning))
+            {
+                continue;
+            }
+
+            if ((!EditAndContinueDiagnosticDescriptors.IsRudeEdit(diagnostic.Id)) ||
+                await solution.GetDocumentAsync(diagnostic.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            {
+                applyChangesDiagnostics ??= ArrayBuilder<DiagnosticData>.GetInstance();
+                applyChangesDiagnostics.Add(diagnostic);
+            }
+        }
+
+        UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
 
         return new ManagedHotReloadUpdates(
             result.ModuleUpdates.Updates.FromContract(),

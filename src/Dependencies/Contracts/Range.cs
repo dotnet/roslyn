@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 #if NET
 
 #pragma warning disable RS0016 // Add public types and members to the declared API (this is a supporting forwarder for an internal polyfill API)
@@ -72,6 +74,8 @@ namespace System
         /// <summary>Create a Range object starting from first element to the end.</summary>
         public static Range All => new Range(Index.Start, Index.End);
 
+#if !NO_VALUE_TUPLE // workaround for https://github.com/dotnet/roslyn/issues/78392
+
         /// <summary>Calculate the start offset and length of range object using a collection length.</summary>
         /// <param name="length">The length of the collection that the range will be used with. length has to be a positive value.</param>
         /// <remarks>
@@ -103,6 +107,7 @@ namespace System
 
             return (start, end - start);
         }
+#endif
     }
 }
 #endif

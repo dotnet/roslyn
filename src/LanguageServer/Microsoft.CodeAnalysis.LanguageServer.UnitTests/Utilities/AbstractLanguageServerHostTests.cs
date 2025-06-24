@@ -44,8 +44,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         internal static async Task<TestLspServer> CreateAsync(ClientCapabilities clientCapabilities, ILoggerFactory loggerFactory, string cacheDirectory, bool includeDevKitComponents = true, string[]? extensionPaths = null)
         {
-            var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-                loggerFactory, includeDevKitComponents, cacheDirectory, extensionPaths, out var _, out var assemblyLoader);
+            var (exportProvider, assemblyLoader) = await LanguageServerTestComposition.CreateExportProviderAsync(
+                loggerFactory, includeDevKitComponents, cacheDirectory, extensionPaths);
             var testLspServer = new TestLspServer(exportProvider, loggerFactory, assemblyLoader);
             var initializeResponse = await testLspServer.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams { Capabilities = clientCapabilities }, CancellationToken.None);
             Assert.NotNull(initializeResponse?.Capabilities);
@@ -66,7 +66,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, loggerFactory.CreateLogger<LanguageServerHost>(), typeRefResolver);
+            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, loggerFactory, typeRefResolver);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter))

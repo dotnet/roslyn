@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -824,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors = false;
 
             var implementationPart = this.PartialImplementationPart ?? this;
-            if (!implementationPart.IsExtern || !implementationPart.IsStatic)
+            if (!implementationPart.IsExtern || (!implementationPart.IsStatic && !implementationPart.GetIsNewExtensionMember()))
             {
                 diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
@@ -944,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
-            if (MethodKind != MethodKind.Ordinary)
+            if (MethodKind != MethodKind.Ordinary || this.GetIsNewExtensionMember())
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
                 return;

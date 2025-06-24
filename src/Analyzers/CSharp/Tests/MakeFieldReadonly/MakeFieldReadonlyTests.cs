@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly;
 public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePairUtil.Create("strict", "true")]);
+    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePair.Create("strict", "true")]);
 
     private const string s_inlineArrayAttribute = """
         namespace System.Runtime.CompilerServices
@@ -2012,7 +2013,7 @@ $@"class MyClass
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\File1.cs">
+                    <Document FilePath = "File1.cs">
             public sealed partial class Test
             {
                 private int [|_value|];
@@ -2021,7 +2022,7 @@ $@"class MyClass
                     => _ = new Test { Value = 1 };
             }
                     </Document>
-                    <Document FilePath = "z:\\File2.g.cs">
+                    <Document FilePath = "File2.g.cs">
             using System.CodeDom.Compiler;
 
             [GeneratedCode(null, null)]

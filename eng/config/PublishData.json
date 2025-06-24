@@ -36,6 +36,7 @@
       "Microsoft.CodeAnalysis.PooledObjects": "arcade",
       "Microsoft.CodeAnalysis.Collections": "arcade",
       "Microsoft.CodeAnalysis.Threading": "arcade",
+      "Microsoft.CodeAnalysis.Extensions": "vs-impl",
       "Microsoft.CodeAnalysis.Features": "arcade",
       "Microsoft.CodeAnalysis.EditorFeatures": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Common": "vssdk",
@@ -175,6 +176,15 @@
       "insertionCreateDraftPR": false
     },
     "main": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
+    "main-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

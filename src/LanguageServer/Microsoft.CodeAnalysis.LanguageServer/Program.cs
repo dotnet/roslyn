@@ -69,7 +69,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var logger = loggerFactory.CreateLogger<Program>();
 
-    logger.Log(serverConfiguration.LaunchDebugger ? LogLevel.Critical : LogLevel.Trace, "Server started with process ID {processId}", Environment.ProcessId);
+    logger.LogInformation("Server started with process ID {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -122,12 +122,10 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
     Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
 
-    var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
-
     LanguageServerHost? server = null;
     if (serverConfiguration.UseStdIo)
     {
-        server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, languageServerLogger, typeRefResolver);
+        server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory, typeRefResolver);
     }
     else
     {
@@ -147,7 +145,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         // Wait for connection from client
         await pipeServer.WaitForConnectionAsync(cancellationToken);
 
-        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger, typeRefResolver);
+        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory, typeRefResolver);
     }
 
     server.Start();
@@ -275,7 +273,6 @@ static CommandLineConfiguration CreateCommandLineParser()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-        var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
@@ -289,7 +286,6 @@ static CommandLineConfiguration CreateCommandLineParser()
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
-            RazorSourceGenerator: razorSourceGenerator,
             RazorDesignTimePath: razorDesignTimePath,
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,

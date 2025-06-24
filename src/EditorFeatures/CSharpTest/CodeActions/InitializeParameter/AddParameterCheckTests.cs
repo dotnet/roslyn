@@ -220,7 +220,7 @@ public sealed class AddParameterCheckTests
 
             class C
             {
-                public C([||]int i)
+                public C([||]DateTime d)
                 {
                 }
             }
@@ -1977,7 +1977,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2015,7 +2015,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check"
         }.RunAsync();
     }
 
@@ -2046,7 +2046,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check),
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check",
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
@@ -2086,7 +2086,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2142,7 +2142,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check",
             Options =
             {
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
@@ -2740,7 +2740,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2782,7 +2782,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2826,7 +2826,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2867,7 +2867,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2908,7 +2908,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2952,7 +2952,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -3202,5 +3202,732 @@ public sealed class AddParameterCheckTests
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestSimpleEnumIsDefinedCheck_ModernEnumIsDefinedOverload()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestSimpleEnumIsDefinedCheck_OldEnumIsDefinedOverload()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckForOutEnumParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(out DayOfWeek [|result|])
+                {
+                    result = default;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckForFlagsEnumParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(MyFlags [|myFlags|])
+                {
+                }
+            }
+
+            [Flags]
+            enum MyFlags
+            {
+                A = 1,
+                B = 2
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_ModernEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_OldEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckAfterAnotherEnumIsDefinedCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek [|dayOfWeek2|])
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckBeforeAnotherEnumIsDefinedCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek1|], DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckAfterNullCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(string s, DayOfWeek [|dayOfWeek|])
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(string s, DayOfWeek dayOfWeek)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckBeforeNullCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|], object o)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek, object o)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckInBetweenChecks()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(object o, DayOfWeek [|dayOfWeek|], string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(object o, DayOfWeek dayOfWeek, string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("int")]
+    [InlineData("long")]
+    public async Task TestSimpleNumericChecks_ModernOverloads(string validNumericType)
+    {
+        var code = $$"""
+            using System;
+
+            class C
+            {
+                void M({{validNumericType}} [|num|])
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(num);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 0,
+        }.RunAsync();
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(num);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("int")]
+    [InlineData("long")]
+    public async Task TestSimpleNumericChecks_OldStyleCheckStatement(string validNumericType)
+    {
+        var code = $$"""
+            using System;
+
+            class C
+            {
+                void M({{validNumericType}} [|num|])
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        if (num < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+            CodeActionIndex = 0,
+        }.RunAsync();
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        if (num <= 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative_or_zero, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("byte")]
+    [InlineData("ushort")]
+    [InlineData("uint")]
+    [InlineData("ulong")]
+    [InlineData("float")]
+    [InlineData("double")]
+    public async Task TestNoNumericChecksForUnsignedAndFloatingPointNumericTypes(string invalidNumericType)
+    {
+        await VerifyCS.VerifyRefactoringAsync($$"""
+            using System;
+            
+            class C
+            {
+                void M({{invalidNumericType}} [|num|])
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNoNumericChecksForOutParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            
+            class C
+            {
+                void M(out int [|num|])
+                {
+                    num = 0;
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("ThrowIfNegative(num)")]
+    [InlineData("ThrowIfNegativeOrZero(num)")]
+    [InlineData("ThrowIfEqual(num, 5)")]
+    [InlineData("ThrowIfGreaterThan(num, 6)")]
+    [InlineData("ThrowIfGreaterThanOrEqual(num, 1)")]
+    [InlineData("ThrowIfLessThan(num, 2)")]
+    [InlineData("ThrowIfLessThanOrEqual(num, 3)")]
+    [InlineData("ThrowIfEqual(num, 15)")]
+    [InlineData("ThrowIfNotEqual(num, 10)")]
+    [InlineData("ThrowIfZero(num)")]
+    public async Task TestNoNumericChecksIfAlreadyExist_ModernOverloads(string methodInvocation)
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(int [|num|])
+                    {
+                        ArgumentOutOfRangeException.{{methodInvocation}};
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("num < 0")]
+    [InlineData("num <= 0")]
+    [InlineData("num > 11")]
+    [InlineData("num >= 12")]
+    [InlineData("0 > num")]
+    [InlineData("0 >= num")]
+    [InlineData("14 < num")]
+    [InlineData("22 <= num")]
+    [InlineData("num is < 0")]
+    [InlineData("num is <= 0")]
+    [InlineData("num < 1")]
+    [InlineData("num <= 39")]
+    [InlineData("25 > num")]
+    [InlineData("29 >= num")]
+    [InlineData("num is < 8")]
+    [InlineData("num is <= 18")]
+    [InlineData("num is > 5")]
+    [InlineData("num is >= 3")]
+    public async Task TestNoNumericChecksIfAlreadyExist_OldStyleCheckStatements(string numericCheck)
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(int [|num|])
+                    {
+                        if ({{numericCheck}})
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num));
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Latest,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNumericChecksAfterAnotherNumericCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(sbyte a, short [|b|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(a);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(sbyte a, short [|b|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(a);
+                        ArgumentOutOfRangeException.ThrowIfNegative(b);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNumericChecksBeforeAnotherNumericCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(long [|a|], int b)
+                    {
+                        if (b < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(b));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(long a, int b)
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(a);
+                        if (b < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(b));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 1
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNumericChecksInBetweenDifferentChecks()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(DayOfWeek day, int [|i|], string s)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), day))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(day), (int)day, typeof(DayOfWeek));
+                        }
+
+                        if (string.IsNullOrEmpty(s))
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(DayOfWeek day, int i, string s)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), day))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(day), (int)day, typeof(DayOfWeek));
+                        }
+
+                        if (i < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(i), i, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(i)}").Replace("\"", "\\\"")}}");
+                        }
+
+                        if (string.IsNullOrEmpty(s))
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20
+        }.RunAsync();
     }
 }

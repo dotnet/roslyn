@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var thisParam = method.Parameters.First();
 
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should use similar logic when looking up new extension members
+                        // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, we should use similar logic when looking up new extension members
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                             (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {

@@ -90,7 +90,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                 CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
                     accessibility: _state.ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
-                    modifiers: new DeclarationModifiers(),
+                    modifiers: DeclarationModifiers.None,
                     typeName: _state.ContainingType.Name,
                     parameters: _state.Parameters,
                     statements: statements,

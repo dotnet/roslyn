@@ -402,4 +402,91 @@ public {typeKind} A
             """;
         await RunMethodReferenceTest(input);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64592")]
+    public async Task TestFileScopedTypes()
+    {
+        const string input = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="File1.cs"><![CDATA[
+            namespace TestNamespace
+            {
+                {|1:file class C|}
+                {
+                    public C ()
+                    {
+                    }
+
+                    void M()
+                    {
+                        var t1 = new T();
+                        var t2 = new T();
+                    }
+                }
+
+                {|2:file class T|}
+                {
+                }
+            }]]>
+                    </Document>
+                    <Document FilePath="File2.cs"><![CDATA[
+            namespace TestNamespace
+            {
+                {|0:file class C|}
+                {
+                    void M()
+                    {
+                        var t1 = new T();
+                        var t2 = new T();
+                    }
+                }
+            
+                {|2:file class T|}
+                {
+                }
+            }]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+        await RunReferenceTest(input);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67956")]
+    public async Task TestConstructorReferencesInOtherProject()
+    {
+        const string input = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
+                    <Document FilePath="Class1.cs"><![CDATA[
+            namespace ClassLibrary1
+            {
+                public class Class1
+                {
+                    {|2:public Class1()|}
+                    {
+                    }
+                }
+            }]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary2">
+                    <ProjectReference>ClassLibrary1</ProjectReference>
+                    <Document FilePath="Class2.cs"><![CDATA[
+            using ClassLibrary1;
+
+            namespace ClassLibrary2;
+
+            public class Class2
+            {
+                static Class1 x = new Class1();
+                static Class1 y = new();
+            }]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+        await RunReferenceTest(input);
+    }
 }

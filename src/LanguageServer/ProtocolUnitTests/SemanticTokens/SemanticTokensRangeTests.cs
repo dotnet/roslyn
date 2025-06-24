@@ -27,15 +27,14 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
     {
         var markup =
             """
-            {|caret:|}// Comment
-            static class C { }
+            {|range:// Comment
+            static class C { }|}
 
             """;
         await using var testLspServer = await CreateTestLspServerAsync(
             markup, mutatingLspWorkspace, GetCapabilities(isVS));
 
-        var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
-        var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("caret").First(), range);
+        var results = await RunGetSemanticTokensRangeAsync(testLspServer, testLspServer.GetLocations("range").First());
 
         var expectedResults = new LSP.SemanticTokens();
         var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
@@ -604,5 +603,258 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
             var tokenName = schema.TokenTypeMap[expectedClassificationName];
             Assert.True(schema.AllTokenTypes.Contains(tokenName));
         }
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74809")]
+    public async Task TestGetSemanticTokensRange_EmbeddedClassificationVerbatimString(bool mutatingLspWorkspace, bool isVS)
+    {
+        var markup =
+            """
+            public class C
+            {
+                public void M()
+                {
+                    {|range:// lang=c#-test
+                    const string Code = @"
+                    class C {
+                        //
+                    }";|}
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(
+            markup, mutatingLspWorkspace, GetCapabilities(isVS));
+
+        var location = testLspServer.GetLocations("range").Single();
+        var results = await RunGetSemanticTokensRangeAsync(testLspServer, location);
+
+        var expectedResults = new LSP.SemanticTokens();
+        var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
+        if (isVS)
+        {
+            expectedResults.Data =
+            [
+                // Line | Char | Len | Token type                                                       | Modifier
+                   4,     8,     15,   tokenTypeToIndex[SemanticTokenTypes.Comment],                      0,
+                   1,     8,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     7,     4,    tokenTypeToIndex[ClassificationTypeNames.ConstantName],            1,
+                   0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],                     0,
+                   0,     2,     2,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral],   0,
+                   1,     8,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     5,     1,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral],   0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.ClassName],               0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral],   0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     12,   tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral],   0,
+                   0,     12,    2,    tokenTypeToIndex[SemanticTokenTypes.Comment],                      0,
+                   1,     0,     8,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral],   0,
+                   0,     8,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.VerbatimStringLiteral],   0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+            ];
+        }
+        else
+        {
+            expectedResults.Data =
+            [
+                // Line | Char | Len | Token type                                                       | Modifier
+                   4,     8,     15,   tokenTypeToIndex[SemanticTokenTypes.Comment],                      0,
+                   1,     8,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     7,     4,    tokenTypeToIndex[CustomLspSemanticTokenNames.ConstantName],        1,
+                   0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.Operator],                     0,
+                   0,     2,     2,    tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim],      0,
+                   1,     8,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     5,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim],      0,
+                   0,     1,     1,    tokenTypeToIndex[SemanticTokenTypes.Class],                        0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim],      0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     12,   tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim],      0,
+                   0,     12,    2,    tokenTypeToIndex[SemanticTokenTypes.Comment],                      0,
+                   1,     0,     8,    tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim],      0,
+                   0,     8,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.StringVerbatim],      0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+            ];
+        }
+
+        await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
+        AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74435")]
+    public async Task TestGetSemanticTokensRange_AdditiveTestCodeClassification(bool mutatingLspWorkspace, bool isVS)
+    {
+        var markup =
+            """"
+            // lang=c#-test
+            var code2 = {|range:"""
+                using System;
+                namespace Test;
+                public class Program
+                {
+                    public static void Main(string[] args)
+                    {
+                        return;
+                    }
+                }
+                public struct Person {}
+                public interface ICan {}
+                """;|}
+            """";
+        await using var testLspServer = await CreateTestLspServerAsync(
+            markup, mutatingLspWorkspace, GetCapabilities(isVS));
+
+        var location = testLspServer.GetLocations("range").Single();
+        var results = await RunGetSemanticTokensRangeAsync(testLspServer, location);
+
+        var expectedResults = new LSP.SemanticTokens();
+        var tokenTypeToIndex = GetTokenTypeToIndex(testLspServer);
+        if (isVS)
+        {
+            expectedResults.Data =
+            [
+                // Line | Char | Len | Token type                                                       | Modifier
+                   1,     12,    3,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[ClassificationTypeNames.NamespaceName],           0,
+                   0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     9,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     9,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[ClassificationTypeNames.NamespaceName],           0,
+                   0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     7,    tokenTypeToIndex[ClassificationTypeNames.ClassName],               0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     8,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[ClassificationTypeNames.MethodName],              1,
+                   0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   0,     1,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[ClassificationTypeNames.ParameterName],           0,
+                   0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     8,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     12,    6,    tokenTypeToIndex[ClassificationTypeNames.ControlKeyword],          0,
+                   0,     6,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     8,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[ClassificationTypeNames.StructName],              0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     9,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     9,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[ClassificationTypeNames.InterfaceName],           0,
+                   0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   0,     1,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+                   1,     0,     7,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     7,     1,    tokenTypeToIndex[ClassificationTypeNames.Punctuation],             0,
+            ];
+        }
+        else
+        {
+            expectedResults.Data =
+            [
+                // Line | Char | Len | Token type                                                       | Modifier
+                   1,     12,    3,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Namespace],                    0,
+                   0,     6,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     9,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     9,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Namespace],                    0,
+                   0,     4,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     5,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     5,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     7,    tokenTypeToIndex[SemanticTokenTypes.Class],                        0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     8,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Method],                       1,
+                   0,     4,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   0,     1,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Parameter],                    0,
+                   0,     4,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     8,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     12,    6,    tokenTypeToIndex[CustomLspSemanticTokenNames.KeywordControl],      0,
+                   0,     6,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     8,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     6,    tokenTypeToIndex[SemanticTokenTypes.Struct],                       0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     4,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     4,     6,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     6,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     9,    tokenTypeToIndex[SemanticTokenTypes.Keyword],                      0,
+                   0,     9,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     4,    tokenTypeToIndex[SemanticTokenTypes.Interface],                    0,
+                   0,     4,     1,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   0,     1,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+                   1,     0,     7,    tokenTypeToIndex[SemanticTokenTypes.String],                       0,
+                   0,     7,     1,    tokenTypeToIndex[CustomLspSemanticTokenNames.Punctuation],         0,
+            ];
+        }
+
+        await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
+        AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));
     }
 }

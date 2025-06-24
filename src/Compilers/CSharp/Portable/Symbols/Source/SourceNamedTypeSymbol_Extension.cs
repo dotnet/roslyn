@@ -45,8 +45,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declaration = ((SourceNamespaceSymbol)this.ContainingSymbol).MergedDeclaration;
                 }
 
-                var index = declaration.Children.IndexOf(this.declaration);
-                return GeneratedNames.MakeExtensionName(index);
+                int index = 0;
+                foreach (Declaration child in declaration.Children)
+                {
+                    if (child == this.declaration)
+                    {
+                        return GeneratedNames.MakeExtensionName(index);
+                    }
+
+                    if (child.Kind == DeclarationKind.Extension)
+                    {
+                        index++;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -80,12 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                return null;
             }
 
             if (_lazyExtensionInfo is null)
             {
-                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
             }
 
             if (_lazyExtensionInfo.LazyImplementationMap is null)
@@ -126,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MethodSymbol? tryCreateExtensionMarker()
             {
-                var syntax = (ExtensionDeclarationSyntax)this.GetNonNullSyntaxNode();
+                var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
                 var parameterList = syntax.ParameterList;
                 Debug.Assert(parameterList is not null);
 

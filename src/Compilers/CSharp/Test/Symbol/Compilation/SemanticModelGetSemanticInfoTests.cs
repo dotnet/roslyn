@@ -274,7 +274,7 @@ class K
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : see if we can restore a behavior closer to previous (ie. returning the field as candidate symbol)
+            // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, see if we can restore a behavior closer to previous (ie. returning the field as candidate symbol)
             Assert.Empty(semanticInfo.CandidateSymbols);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);

@@ -65,6 +65,7 @@ internal sealed class SumConverter : JsonConverterFactory
 
                 if (parameterTypeInfo.IsPrimitive ||
                     parameterTypeInfo == typeof(string) ||
+                    parameterTypeInfo == typeof(DocumentUri) ||
                     parameterTypeInfo == typeof(Uri) ||
                     typeof(IStringEnum).IsAssignableFrom(parameterTypeInfo))
                 {
@@ -261,7 +262,12 @@ internal sealed class SumConverter<T> : JsonConverter<T>
         var sumValue = value.Value;
 
         // behavior from DocumentUriConverter
-        if (sumValue is Uri)
+        if (sumValue is DocumentUri documentUri)
+        {
+            writer.WriteStringValue(documentUri.UriString);
+            return;
+        }
+        else if (sumValue is Uri)
         {
             writer.WriteStringValue(sumValue.ToString());
             return;
@@ -297,6 +303,7 @@ internal sealed class SumConverter<T> : JsonConverter<T>
             case JsonTokenType.String:
                 isCompatible = unionTypeInfo.Type == typeof(string) ||
                                unionTypeInfo.Type == typeof(Uri) ||
+                               unionTypeInfo.Type == typeof(DocumentUri) ||
                                typeof(IStringEnum).IsAssignableFrom(unionTypeInfo.Type);
                 break;
         }

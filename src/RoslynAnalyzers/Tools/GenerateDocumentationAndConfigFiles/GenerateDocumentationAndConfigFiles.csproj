@@ -5,7 +5,7 @@
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.CodeAnalysis.Analyzers\Core\MetaAnalyzers\ReleaseTrackingHelper.cs" Link="ReleaseTrackingHelper.cs" />
@@ -15,17 +15,31 @@
     <Compile Include="..\..\Utilities\Compiler\FxCopWellKnownDiagnosticTags.cs" Link="FxCopWellKnownDiagnosticTags.cs" />
     <Compile Include="..\..\Utilities\Compiler\Options\MSBuildItemOptionNames.cs" Link="MSBuildItemOptionNames.cs" />
     <Compile Include="..\..\Utilities\Compiler\Options\MSBuildPropertyOptionNames.cs" Link="MSBuildPropertyOptionNames.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ArrayBuilder.cs" Link="ArrayBuilder.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ArrayBuilder.Enumerator.cs" Link="ArrayBuilder.Enumerator.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\ObjectPool.cs" Link="ObjectPool.cs" />
-    <Compile Include="..\..\Utilities\Compiler\PooledObjects\PooledHashSet.cs" Link="PooledHashSet.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
+    <PackageReference Include="System.CommandLine" />
   </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(OfficialBuild)' == 'false'">
+    <!--
+      Don't use the CPM version of these packages. Always use the version that is the transitive dependency of Microsoft.CodeAnalysis.
+      This is because the CPM version can lead to package downgrades, specifically in non-official source-only builds where the
+      dev/ci suffix in the version of these packages coming from the live build is treated as a lower version than the version
+      from the previously source-built artifacts.
+    -->
+    <PackageVersion Remove="System.Collections.Immutable" />
+    <PackageVersion Remove="System.Composition" />
+    <PackageVersion Remove="System.IO.Pipelines" />
+    <PackageVersion Remove="System.Reflection.Metadata" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

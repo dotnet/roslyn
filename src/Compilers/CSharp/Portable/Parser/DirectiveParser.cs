@@ -685,24 +685,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseShebangDirective(SyntaxToken hash, SyntaxToken exclamation, bool isActive)
         {
+            if (lexer.Options.Kind != SourceCodeKind.Script && !lexer.Options.FileBasedProgram)
+            {
+                exclamation = this.AddError(exclamation, ErrorCode.ERR_PPShebangInProjectBasedProgram);
+            }
+
             return SyntaxFactory.ShebangDirectiveTrivia(hash, exclamation, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
         }
 
         private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
         {
-            if (!lexer.Options.FileBasedProgram)
+            if (isActive)
             {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
-            }
+                if (!lexer.Options.FileBasedProgram)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
+                }
 
-            if (isFollowingToken)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
-            }
+                if (isFollowingToken)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
+                }
 
-            if (_context.SeenAnyIfDirectives)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
+                if (_context.SeenAnyIfDirectives)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
+                }
             }
 
             SyntaxToken endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);

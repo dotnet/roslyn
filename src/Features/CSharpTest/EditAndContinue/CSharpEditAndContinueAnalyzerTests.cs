@@ -37,13 +37,9 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         => new(composition: s_composition);
 
     private static Solution AddDefaultTestProject(Solution solution, string source)
-    {
-        var projectId = ProjectId.CreateNewId();
-
-        return solution.
-            AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp)).GetProject(projectId).
-            AddDocument("test.cs", SourceText.From(source, Encoding.UTF8), filePath: Path.Combine(TempRoot.Root, "test.cs")).Project.Solution;
-    }
+        => solution.
+            AddTestProject("proj", LanguageNames.CSharp).
+            AddTestDocument(source, path: Path.Combine(TempRoot.Root, "test.cs")).Project.Solution;
 
     private static void TestSpans(string source, Func<SyntaxNode, bool> hasLabel)
     {
@@ -126,7 +122,7 @@ public sealed class CSharpEditAndContinueAnalyzerTests
         var baseActiveStatements = AsyncLazy.Create(activeStatementMap ?? ActiveStatementsMap.Empty);
         var lazyCapabilities = AsyncLazy.Create(capabilities);
         var log = new TraceLog("Test");
-        return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, newActiveStatementSpans.NullToEmpty(), lazyCapabilities, log, CancellationToken.None);
+        return await analyzer.AnalyzeDocumentAsync(newDocument.Id, oldProject, newDocument.Project, baseActiveStatements, newActiveStatementSpans.NullToEmpty(), lazyCapabilities, log, CancellationToken.None);
     }
 
     #endregion
@@ -319,7 +315,7 @@ class C
         var baseActiveStatements = new ActiveStatementsMap(
             ImmutableDictionary.CreateRange(
             [
-                KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
+                KeyValuePair.Create(newDocument.FilePath, ImmutableArray.Create(
                     new ActiveStatement(
                         new ActiveStatementId(0),
                         ActiveStatementFlags.LeafFrame,
@@ -455,14 +451,12 @@ class C
 ";
         var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
         var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
-        var root = SyntaxFactory.ParseCompilationUnit(source, options: experimental);
 
         using var workspace = CreateWorkspace();
 
-        var projectId = ProjectId.CreateNewId();
         var oldSolution = workspace.CurrentSolution.
-            AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp)).GetProject(projectId).
-            AddDocument("test.cs", root, filePath: Path.Combine(TempRoot.Root, "test.cs")).Project.Solution;
+            AddTestProject("proj", LanguageNames.CSharp).WithParseOptions(experimental).
+            AddTestDocument(source, path: Path.Combine(TempRoot.Root, "test.cs")).Project.Solution;
 
         var oldProject = oldSolution.Projects.Single();
         var oldDocument = oldProject.Documents.Single();
@@ -760,7 +754,7 @@ class D
         };
 
         var log = new TraceLog("Test");
-        var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, [], capabilities, log, CancellationToken.None);
+        var result = await analyzer.AnalyzeDocumentAsync(newDocument.Id, oldProject, newDocument.Project, baseActiveStatements, [], capabilities, log, CancellationToken.None);
 
         var expectedDiagnostic = outOfMemory
             ? $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, filePath)}"

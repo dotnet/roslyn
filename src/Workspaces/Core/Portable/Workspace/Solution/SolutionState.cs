@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -324,11 +325,23 @@ internal sealed partial class SolutionState
     /// Searches for the project state with the specified project id in the given project states.
     /// </summary>
     /// <remarks>Requires the input array to be sorted by Id</remarks>
-    private static ProjectState? GetProjectState(ImmutableArray<ProjectState> sortedPojectStates, ProjectId projectId)
+    private static ProjectState? GetProjectState(ImmutableArray<ProjectState> sortedProjectStates, ProjectId projectId)
     {
-        var index = sortedPojectStates.BinarySearch(projectId, static (projectState, projectId) => projectState.Id.CompareTo(projectId));
+        var index = GetProjectStateIndex(sortedProjectStates, projectId);
 
-        return index >= 0 ? sortedPojectStates[index] : null;
+        return index >= 0 ? sortedProjectStates[index] : null;
+    }
+
+    /// <summary>
+    /// Searches for the project state with the specified project id in the given project states and
+    /// returns it's index if found, otherwise -1.
+    /// </summary>
+    /// <remarks>Requires the input array to be sorted by Id</remarks>
+    private static int GetProjectStateIndex(ImmutableArray<ProjectState> sortedProjectStates, ProjectId projectId)
+    {
+        var index = sortedProjectStates.BinarySearch(projectId, static (projectState, projectId) => projectState.Id.CompareTo(projectId));
+
+        return index >= 0 ? index : -1;
     }
 
     public ProjectState GetRequiredProjectState(ProjectId projectId)
@@ -464,11 +477,7 @@ internal sealed partial class SolutionState
 
         var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
         var newProjectStates = SortedProjectStates.WhereAsArray(static (p, projectIdsSet) => !projectIdsSet.Contains(p.Id), projectIdsSet);
-
-        // Note: it would be nice to not cause N forks of the dependency graph here.
-        var newDependencyGraph = _dependencyGraph;
-        foreach (var projectId in projectIds)
-            newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
+        var newDependencyGraph = _dependencyGraph.WithProjectsRemoved(projectIds);
 
         var languageCountDeltas = new TemporaryArray<(string language, int count)>();
         foreach (var projectId in projectIds)
@@ -1170,8 +1179,9 @@ internal sealed partial class SolutionState
     {
         var projectId = newProjectState.Id;
 
-        Contract.ThrowIfFalse(ContainsProject(projectId));
-        var newProjectStates = SortedProjectStates.Replace(oldProjectState, newProjectState);
+        var projectStateIndex = GetProjectStateIndex(SortedProjectStates, projectId);
+        Contract.ThrowIfFalse(projectStateIndex >= 0);
+        var newProjectStates = SortedProjectStates.SetItem(projectStateIndex, newProjectState);
 
         newDependencyGraph ??= _dependencyGraph;
 
@@ -1204,7 +1214,7 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         ImmutableArray<ProjectState> sortedNewProjectStates)
     {
-        var map = sortedNewProjectStates.Select(state => KeyValuePairUtil.Create(
+        var map = sortedNewProjectStates.Select(state => KeyValuePair.Create(
                 state.Id,
                 state.ProjectReferences.Where(pr => GetProjectState(sortedNewProjectStates, pr.ProjectId) != null).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();
@@ -1271,7 +1281,8 @@ internal sealed partial class SolutionState
         {
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
-                if (relatedDocumentId != documentId)
+                // Match the linear search behavior below and do not return documents from the same project.
+                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId)
                     return relatedDocumentId;
             }
 

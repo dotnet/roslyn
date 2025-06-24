@@ -135,7 +135,7 @@ End Class
                 CompilationName,
                 {DirectCast(tree, VisualBasicSyntaxTree)},
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC0219", ReportDiagnostic.Suppress)}))
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePair.Create("BC0219", ReportDiagnostic.Suppress)}))
         End Function
 
         Protected Overrides Function CompilationSucceeded(compilation As Compilation, temporaryStream As Stream) As Boolean

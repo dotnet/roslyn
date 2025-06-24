@@ -48,16 +48,16 @@ internal sealed class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryS
         {
             if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
             {
-                _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionPath;
+                _workspaceFactory.HostProjectFactory.SolutionPath = solutionPath;
             }
 
-            var project = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+            var project = await _workspaceFactory.HostProjectFactory.CreateAndAddToWorkspaceAsync(
                 creationInfo.DisplayName,
                 creationInfo.Language,
                 new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
                 _workspaceFactory.ProjectSystemHostInfo);
 
-            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.Workspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager, _loggerFactory);
+            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.HostWorkspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager, _loggerFactory);
 
             // We've created a new project, so initialize properties we have
             await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);

@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
@@ -1293,6 +1294,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Else
                 Return node
             End If
+        End Function
+
+        Friend Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
+            Select Case declaration.Kind
+                Case SyntaxKind.PropertyBlock
+                    Return DirectCast(declaration, PropertyBlockSyntax).Accessors
+                Case SyntaxKind.EventBlock
+                    Return DirectCast(declaration, EventBlockSyntax).Accessors
+                Case Else
+                    Return Nothing
+            End Select
         End Function
     End Module
 End Namespace

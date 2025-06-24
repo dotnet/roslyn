@@ -4,7 +4,7 @@
     <RoslynDiagnosticsNugetPackageVersion>3.11.0-beta1.24081.1</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.24319.1</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
+    <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.785-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <_BasicReferenceAssembliesVersion>1.7.9</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
@@ -66,9 +66,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="17.12.2037-preview3" />
     <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.13.1100801-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.Common" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.Progression.Interfaces" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="15.8.27812-alpha" />
@@ -99,14 +96,12 @@
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.13.33" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.13.7" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.13.226" />
@@ -147,6 +142,11 @@
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftNETTestSdkVersion)" />
 
     <!--
+      MSBuildWorkspace
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
+
+    <!--
       Analyzers
     -->
 
@@ -159,7 +159,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" />
 
     <!--

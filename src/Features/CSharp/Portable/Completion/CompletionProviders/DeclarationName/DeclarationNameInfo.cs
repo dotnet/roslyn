@@ -551,7 +551,7 @@ internal readonly struct NameDeclarationInfo(
 
     private static DeclarationModifiers GetDeclarationModifiers(SyntaxTokenList modifiers)
     {
-        var declarationModifiers = new DeclarationModifiers();
+        var declarationModifiers = DeclarationModifiers.None;
         foreach (var modifer in modifiers)
         {
             switch (modifer.Kind())

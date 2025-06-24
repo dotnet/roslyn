@@ -111,9 +111,9 @@ internal sealed partial class ProjectSystemProject
     private readonly IFileChangeContext _documentFileChangeContext;
 
     /// <summary>
-    /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
+    /// The set of dynamic file info providers we have already subscribed to.
     /// </summary>
-    private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = [];
+    private readonly HashSet<IDynamicFileInfoProvider> _dynamicFileInfoProvidersSubscribedTo = [];
 
     /// <summary>
     /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
@@ -1044,6 +1044,7 @@ internal sealed partial class ProjectSystemProject
     public void AddAnalyzerReference(string fullPath)
     {
         CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestAddToProject(fullPath, DisplayName);
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
@@ -1074,6 +1075,7 @@ internal sealed partial class ProjectSystemProject
                 // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid
                 // removing it once we apply the batch
                 _projectAnalyzerPaths.Add(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceAddedToProject(mappedFullPath, DisplayName);
 
                 if (!_analyzersRemovedInBatch.Remove(mappedFullPath))
                     _analyzersAddedInBatch.Add(mappedFullPath);
@@ -1087,6 +1089,8 @@ internal sealed partial class ProjectSystemProject
     {
         if (string.IsNullOrEmpty(fullPath))
             throw new ArgumentException("message", nameof(fullPath));
+
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestRemoveFromProject(fullPath, DisplayName);
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
@@ -1115,6 +1119,7 @@ internal sealed partial class ProjectSystemProject
             foreach (var mappedFullPath in mappedPaths)
             {
                 _projectAnalyzerPaths.Remove(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceRemovedFromProject(fullPath, DisplayName);
 
                 // This analyzer may be one we've just added in the same batch; in that case, just don't add it in
                 // the first place.
@@ -1135,13 +1140,6 @@ internal sealed partial class ProjectSystemProject
             // We discard the CodeStyle analyzers added by the SDK when the EnforceCodeStyleInBuild property is set.
             // The same analyzers ship in-box as part of the Features layer and are version matched to the compiler.
             return OneOrMany<string>.Empty;
-        }
-
-        if (IsSdkRazorSourceGenerator(fullPath))
-        {
-            // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
-            // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
-            return GetMappedRazorSourceGenerator(fullPath);
         }
 
         if (TryRedirectAnalyzerAssembly(fullPath) is { } redirectedPath)
@@ -1165,6 +1163,7 @@ internal sealed partial class ProjectSystemProject
                     if (redirectedPath == null)
                     {
                         redirectedPath = currentlyRedirectedPath;
+                        CodeAnalysisEventSource.Log.AnanlyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
                     }
                     else if (redirectedPath != currentlyRedirectedPath)
                     {
@@ -1190,39 +1189,6 @@ internal sealed partial class ProjectSystemProject
         LanguageNames.VisualBasic => DirectoryNameEndsWith(fullPath, s_visualBasicCodeStyleAnalyzerSdkDirectory),
         _ => false,
     };
-
-    internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
-    private static readonly string s_razorSourceGeneratorSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators");
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
-    [
-        "Microsoft.NET.Sdk.Razor.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-        "Microsoft.CodeAnalysis.Razor.Compiler",
-    ];
-    private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
-        assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
-
-    private static bool IsSdkRazorSourceGenerator(string fullPath) => DirectoryNameEndsWith(fullPath, s_razorSourceGeneratorSdkDirectory);
-
-    private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
-    {
-        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetRazorAssembliesInExtensions().SelectAsArray(
-            predicate: item => item.extensionId == RazorVsixExtensionId,
-            selector: item => item.path);
-
-        if (!vsixRazorAnalyzers.IsEmpty)
-        {
-            if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
-                static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
-            {
-                return OneOrMany.Create(vsixRazorAnalyzers);
-            }
-
-            return OneOrMany<string>.Empty;
-        }
-
-        return OneOrMany.Create(fullPath);
-    }
 
     private static string CreateDirectoryPathFragment(params string[] paths) => Path.Combine([" ", .. paths, " "]).Trim();
 
@@ -1407,12 +1373,12 @@ internal sealed partial class ProjectSystemProject
             _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
 
             // clear tracking to external components
-            foreach (var provider in _eventSubscriptionTracker)
+            foreach (var provider in _dynamicFileInfoProvidersSubscribedTo)
             {
                 provider.Updated -= OnDynamicFileInfoUpdated;
             }
 
-            _eventSubscriptionTracker.Clear();
+            _dynamicFileInfoProvidersSubscribedTo.Clear();
         }
 
         _documentFileChangeContext.Dispose();

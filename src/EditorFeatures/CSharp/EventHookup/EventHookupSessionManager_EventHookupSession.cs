@@ -152,7 +152,7 @@ internal sealed partial class EventHookupSessionManager
 
                 var namingRule = await document.GetApplicableNamingRuleAsync(
                     new SymbolKindOrTypeKind(MethodKind.Ordinary),
-                    new DeclarationModifiers(isStatic: plusEqualsToken.Value.GetRequiredParent().IsInStaticContext()),
+                    new DeclarationModifiers(isStatic: plusEqualsToken.Value.GetRequiredParent().IsInStaticContext()).Modifiers,
                     Accessibility.Private,
                     cancellationToken).ConfigureAwait(false);
 
@@ -245,11 +245,8 @@ internal sealed partial class EventHookupSessionManager
             // Note: For generic, it's ok(it's even a good idea) to exclude type variables,
             // because the name is only used as a prefix for the method name.
 
-            var typeDeclaration = syntaxFactsService.GetContainingTypeDeclaration(
-                semanticModel.SyntaxTree.GetRoot(),
-                plusEqualsToken.SpanStart) as BaseTypeDeclarationSyntax;
-
-            return typeDeclaration != null
+            return syntaxFactsService.GetContainingTypeDeclaration(
+                semanticModel.SyntaxTree.GetRoot(), plusEqualsToken.SpanStart) is BaseTypeDeclarationSyntax typeDeclaration
                 ? typeDeclaration.Identifier.Text
                 : eventSymbol.ContainingType.Name;
         }

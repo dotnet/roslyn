@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -177,7 +178,7 @@ public sealed class CodeRefactoringServiceTest
 
         // Verify code refactoring application
         var codeAction = txtRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
+        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None, CancellationToken.None);
         var changedtxtDocument = solution.Projects.Single().AdditionalDocuments.Single(t => t.Id == txtAdditionalDocument.Id);
         Assert.Empty(txtAdditionalDocument.GetTextSynchronously(CancellationToken.None).ToString());
         Assert.Equal(refactoring1.Title, changedtxtDocument.GetTextSynchronously(CancellationToken.None).ToString());
@@ -216,7 +217,7 @@ public sealed class CodeRefactoringServiceTest
 
         // Verify code refactoring application
         var codeAction = editorConfigRefactorings.Single(s => s.CodeActions.Single().action.Title == refactoring1.Title).CodeActions.Single().action;
-        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None);
+        var solution = await codeAction.GetChangedSolutionInternalAsync(project.Solution, CodeAnalysisProgress.None, CancellationToken.None);
         var changedEditorConfig = solution.Projects.Single().AnalyzerConfigDocuments.Single(t => t.Id == editorConfig.Id);
         Assert.Empty(editorConfig.GetTextSynchronously(CancellationToken.None).ToString());
         Assert.Equal(refactoring1.Title, changedEditorConfig.GetTextSynchronously(CancellationToken.None).ToString());
@@ -227,6 +228,63 @@ public sealed class CodeRefactoringServiceTest
         var globalConfigRefactoring = Assert.Single(globalConfigRefactorings);
         var globalConfigRefactoringTitle = globalConfigRefactoring.CodeActions.Single().action.Title;
         Assert.Equal(refactoring2.Title, globalConfigRefactoringTitle);
+    }
+
+    [Fact]
+    public void TestDelayedLoading()
+    {
+        var composition = FeaturesTestCompositions.Features.AddParts(
+            typeof(NonSourceFileRefactoringWithDocumentKindsAndExtensions),
+            typeof(NonSourceFileRefactoringWithDocumentKinds),
+            typeof(NonSourceFileRefactoringWithDocumentExtensions),
+            typeof(NonSourceFileRefactoringWithoutDocumentKindsAndExtensions));
+
+        using var workspace = TestWorkspace.CreateCSharp("", composition: composition);
+        var refactoringService = (CodeRefactorings.CodeRefactoringService)workspace.GetService<ICodeRefactoringService>();
+
+        var project = workspace.CurrentSolution.Projects.Single()
+            .AddAdditionalDocument("test.TXT", "", filePath: "test.TXT").Project
+            .AddAdditionalDocument("test", "", filePath: "test").Project
+            .AddAdditionalDocument("test.log", "", filePath: "test.log").Project
+            .AddDocument("test.cs", "", filePath: "test.cs").Project
+            .AddDocument("test.editorconfig", "", filePath: "test.editorconfig").Project;
+
+        VerifyProviders(refactoringService,
+            project.AdditionalDocuments.Single(t => t.Name == "test.TXT"),
+            typeof(NonSourceFileRefactoringWithDocumentKindsAndExtensions),
+            typeof(NonSourceFileRefactoringWithDocumentKinds));
+
+        VerifyProviders(refactoringService,
+            project.AdditionalDocuments.Single(t => t.Name == "test"),
+            typeof(NonSourceFileRefactoringWithDocumentKinds));
+
+        VerifyProviders(refactoringService,
+            project.AdditionalDocuments.Single(t => t.Name == "test.log"),
+            typeof(NonSourceFileRefactoringWithDocumentKinds));
+
+        VerifyProviders(refactoringService,
+            project.Documents.Single(t => t.Name == "test.editorconfig"),
+            typeof(NonSourceFileRefactoringWithDocumentExtensions),
+            typeof(NonSourceFileRefactoringWithoutDocumentKindsAndExtensions));
+
+        VerifyProviders(refactoringService,
+            project.Documents.Single(t => t.Name == "test.cs"),
+            typeof(NonSourceFileRefactoringWithoutDocumentKindsAndExtensions));
+    }
+
+    private static void VerifyProviders(CodeRefactorings.CodeRefactoringService service, TextDocument document, params Type[] expectedProviderTypes)
+    {
+        // Exclude providers which have not been setup by test
+        var assembly = Assembly.GetExecutingAssembly();
+        var actualProviders = service.GetProviders(document)
+            .Where(p => p.GetType().Assembly == assembly)
+            .ToArray();
+
+        foreach (var type in expectedProviderTypes)
+        {
+            Assert.Contains(actualProviders, p => p.GetType() == type);
+        }
+        Assert.Equal(expectedProviderTypes.Length, actualProviders.Length);
     }
 
     internal abstract class AbstractNonSourceFileRefactoring : CodeRefactoringProvider

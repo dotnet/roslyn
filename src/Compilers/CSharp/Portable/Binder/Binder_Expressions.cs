@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Helper method to generate a bound expression with HasErrors set to true.
-        /// Returned bound expression is guaranteed to have a non-null type, except when <paramref name="expr"/> is an unbound lambda.
+        /// Returned bound expression is guaranteed to have a non-null type, except when <paramref name="expr"/> is an unbound lambda or a default literal
         /// If <paramref name="expr"/> already has errors and meets the above type requirements, then it is returned unchanged.
         /// Otherwise, if <paramref name="expr"/> is a BoundBadExpression, then it is updated with the <paramref name="resultKind"/> and non-null type.
         /// Otherwise, a new <see cref="BoundBadExpression"/> wrapping <paramref name="expr"/> is returned.
@@ -3905,7 +3905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider removing or adjusting the reported argument position
+                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider removing or adjusting the reported argument position
                 var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
 
                 // Warn for `ref`/`in` or None/`ref readonly` mismatch.
@@ -8016,7 +8016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(typeArgumentsOpt.IsDefault);
                 if (!receiver.HasErrors)
                 {
-                    diagnostics.AddRange(resolution.Diagnostics); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test dependencies/diagnostics
+                    diagnostics.AddRange(resolution.Diagnostics);
                 }
 
                 resolution.Free();
@@ -8030,6 +8030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
             receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
 
             switch (extensionMember)
@@ -8045,7 +8046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
                     return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [receiver], CreateErrorType());
 
                 default:
@@ -8629,7 +8630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 3. resolve properties
                 Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
                 OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 || acceptOnlyMethods ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
@@ -8686,7 +8687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ambiguous between multiple applicable properties
                 propertyResult.Free();
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider using the property overload resolution result in the result to improve reported diagnostics
+                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider using the property overload resolution result in the result to improve reported diagnostics
                 result = makeErrorResult(left.Type, memberName, arity, lookupResult, expression, diagnostics);
                 return true;
             }
@@ -8816,7 +8817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static MethodGroupResolution makeErrorResult(TypeSymbol receiverType, string memberName, int arity, LookupResult lookupResult, SyntaxNode expression, BindingDiagnosticBag diagnostics)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we'll want to describe what went wrong in a useful way (see OverloadResolutionResult.ReportDiagnostics)
+                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way (see OverloadResolutionResult.ReportDiagnostics)
                 var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, receiverType, memberName);
                 diagnostics.Add(errorInfo, expression.Location);
                 var resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, lookupResult.Symbols.ToImmutable(), LookupResultKind.OverloadResolutionFailure, errorInfo, arity);
@@ -11364,38 +11365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For improved diagnostics we detect the cases where the value will be used and produce a
                 // more specific (though not technically correct) diagnostic here:
                 // "Error CS0023: Operator '?' cannot be applied to operand of type 'T'"
-                bool resultIsUsed = true;
-                CSharpSyntaxNode parent = node.Parent;
-
-                if (parent != null)
-                {
-                    switch (parent.Kind())
-                    {
-                        case SyntaxKind.ExpressionStatement:
-                            resultIsUsed = ((ExpressionStatementSyntax)parent).Expression != node;
-                            break;
-
-                        case SyntaxKind.SimpleLambdaExpression:
-                            resultIsUsed = (((SimpleLambdaExpressionSyntax)parent).Body != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
-                            break;
-
-                        case SyntaxKind.ParenthesizedLambdaExpression:
-                            resultIsUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
-                            break;
-
-                        case SyntaxKind.ArrowExpressionClause:
-                            resultIsUsed = (((ArrowExpressionClauseSyntax)parent).Expression != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
-                            break;
-
-                        case SyntaxKind.ForStatement:
-                            // Incrementors and Initializers doesn't have to produce a value
-                            var loop = (ForStatementSyntax)parent;
-                            resultIsUsed = !loop.Incrementors.Contains(node) && !loop.Initializers.Contains(node);
-                            break;
-                    }
-                }
-
-                if (resultIsUsed)
+                if (ResultIsUsed(node))
                 {
                     return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
                 }
@@ -11412,6 +11382,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConditionalAccess(node, receiver, access, accessType);
+        }
+
+        private bool ResultIsUsed(ExpressionSyntax node)
+        {
+            bool resultIsUsed = true;
+            CSharpSyntaxNode parent = node.Parent;
+
+            if (parent != null)
+            {
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.ExpressionStatement:
+                        resultIsUsed = ((ExpressionStatementSyntax)parent).Expression != node;
+                        break;
+
+                    case SyntaxKind.SimpleLambdaExpression:
+                        resultIsUsed = (((SimpleLambdaExpressionSyntax)parent).Body != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
+                        break;
+
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                        resultIsUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
+                        break;
+
+                    case SyntaxKind.ArrowExpressionClause:
+                        resultIsUsed = (((ArrowExpressionClauseSyntax)parent).Expression != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
+                        break;
+
+                    case SyntaxKind.ForStatement:
+                        // Incrementors and Initializers doesn't have to produce a value
+                        var loop = (ForStatementSyntax)parent;
+                        resultIsUsed = !loop.Incrementors.Contains(node) && !loop.Initializers.Contains(node);
+                        break;
+                }
+            }
+
+            return resultIsUsed;
         }
 
         internal static bool MethodOrLambdaRequiresValue(Symbol symbol, CSharpCompilation compilation)

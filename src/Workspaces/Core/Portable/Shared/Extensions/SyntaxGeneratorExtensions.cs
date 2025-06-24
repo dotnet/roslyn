@@ -25,7 +25,7 @@ internal static partial class SyntaxGeneratorExtensions
         return CodeGenerationSymbolFactory.CreateConstructorSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             typeName: typeName,
             parameters: constructor.Parameters,
             statements: default,
@@ -237,8 +237,9 @@ internal static partial class SyntaxGeneratorExtensions
         // Required is not a valid modifier for methods, so clear it if the user typed it
         modifiers = modifiers.WithIsRequired(false);
 
-        // Abstract: Throw not implemented
-        if (overriddenMethod.IsAbstract)
+        // Abstract method: Throw not implemented
+        // Same for operators (they cannot call the base operator).
+        if (overriddenMethod.IsAbstract || overriddenMethod.MethodKind == MethodKind.UserDefinedOperator)
         {
             var compilation = await newDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);

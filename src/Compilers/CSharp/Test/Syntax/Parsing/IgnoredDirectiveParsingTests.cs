@@ -25,11 +25,25 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             #:name value
             """;
 
+        var expectedDiagnostics = script
+            ? new[]
+            {
+                // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
+                // #:name value
+                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2)
+            }
+            : new[]
+            {
+                // (1,2): error CS9314: '#!' directives can be only used in scripts or file-based programs
+                // #!xyz
+                Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(1, 2),
+                // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
+                // #:name value
+                Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2)
+            };
+
         VerifyTrivia();
-        UsingTree(source, options,
-            // (2,2): error CS9282: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
-            // #:name value
-            Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(2, 2));
+        UsingTree(source, options, expectedDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -169,11 +183,25 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
              #!xyz
             """;
 
+        var expectedDiagnostics = script || featureFlag
+            ? new[]
+            {
+                // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                //  #!xyz
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2)
+            }
+            : new[]
+            {
+                // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                //  #!xyz
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2),
+                // (1,3): error CS9314: '#!' directives can be only used in scripts or file-based programs
+                //  #!xyz
+                Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(1, 3)
+            };
+
         VerifyTrivia();
-        UsingTree(source, options,
-            // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
-            //  #!xyz
-            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2));
+        UsingTree(source, options, expectedDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -259,7 +287,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         EOF();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
     public void AfterIf()
     {
         var source = """
@@ -271,11 +299,76 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName),
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName).WithPreprocessorSymbols("X"),
             // (3,2): error CS9283: '#:' directives cannot be after '#if' directive
             // #:y
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 2),
             // (5,2): error CS9283: '#:' directives cannot be after '#if' directive
+            // #:z
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(5, 2));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "x");
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.IfDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.IfKeyword);
+                    {
+                        T(SyntaxKind.WhitespaceTrivia, " ");
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "y");
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.EndIfDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.EndIfKeyword);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "z");
+                    N(SyntaxKind.EndOfDirectiveToken);
+                }
+            }
+        }
+        EOF();
+
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName),
+            // (5,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:z
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(5, 2));
 
@@ -562,7 +655,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular);
+        UsingTree(source, TestOptions.Script);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -625,7 +718,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular,
+        UsingTree(source, TestOptions.Script,
             // (1,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
             // # !xyz
             Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 1));
@@ -660,7 +753,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular,
+        UsingTree(source, TestOptions.Script,
             // (2,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
             // #!xyz
             Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 1));
