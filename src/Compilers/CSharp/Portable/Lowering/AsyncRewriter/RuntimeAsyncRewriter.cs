@@ -22,7 +22,6 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             return node;
         }
 
-        // PROTOTYPE: try/finally rewriting
         // PROTOTYPE: struct lifting
         var rewriter = new RuntimeAsyncRewriter(compilationState.Compilation, new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
         var result = (BoundStatement)rewriter.Visit(node);
