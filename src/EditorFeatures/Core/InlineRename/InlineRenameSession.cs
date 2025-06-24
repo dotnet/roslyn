@@ -730,27 +730,14 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     public void Commit(bool previewChanges = false, IUIThreadOperationContext editorOperationContext = null)
     {
         var token = _asyncListener.BeginAsyncOperation(nameof(Commit));
-        _ = CommitAsync(previewChanges, editorOperationContext)
-            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
-    }
-
-    /// <summary>
-    /// Start to commit the rename session.
-    /// Session might be committed sync or async, depends on the value of InlineRenameUIOptionsStorage.CommitRenameAsynchronously.
-    /// If it is committed async, method will only kick off the task.
-    /// </summary>
-    /// <param name="editorOperationContext"></param>
-    public void InitiateCommit(IUIThreadOperationContext editorOperationContext = null)
-    {
-        var token = _asyncListener.BeginAsyncOperation(nameof(InitiateCommit));
-        _ = CommitAsync(previewChanges: false, editorOperationContext)
+        CommitAsync(previewChanges, editorOperationContext)
             .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
     }
 
     /// <remarks>
     /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
     /// </remarks>
-    public async Task<bool> CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null)
+    public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null)
     {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         VerifyNotDismissed();
@@ -768,13 +755,13 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
             this.ReplacementText == _initialRenameText)
         {
             Cancel();
-            return false;
+            return;
         }
 
         // Don't dup commit.
         if (this.IsCommitInProgress)
         {
-            return false;
+            return;
         }
 
         previewChanges = previewChanges || PreviewChanges;
@@ -812,7 +799,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
             // We've used CA(true) consistently in this method.  So we should always be on the UI thread.
             DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
                 RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
-            return false;
+            return;
         }
         finally
         {
@@ -820,7 +807,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
             this.CommitStateChange?.Invoke(this, EventArgs.Empty);
         }
 
-        return true;
+        return;
     }
 
     private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges)

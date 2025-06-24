@@ -27,7 +27,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
 
     protected virtual void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
     {
-        activeSession.InitiateCommit(operationContext);
+        activeSession.Commit(editorOperationContext: operationContext);
         SetFocusToTextView(textView);
     }
 }
