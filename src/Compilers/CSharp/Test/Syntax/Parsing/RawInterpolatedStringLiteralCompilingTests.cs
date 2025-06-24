@@ -41,7 +41,7 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
         CompileAndVerify(text, expectedOutput: Render(expectedOutput, normalize), trimOutput: false);
     }
 
-    private static void RenderAndVerify(string markup, params DiagnosticDescription[] expected)
+    private void RenderAndVerify(string markup, params DiagnosticDescription[] expected)
     {
         RenderAndVerify(markup, expected, normalize: null);
         RenderAndVerify(markup, expected, normalize: "\r\n");
@@ -49,7 +49,7 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
         RenderAndVerify(markup, expected, normalize: "\r");
     }
 
-    private static void RenderAndVerify(string markup, DiagnosticDescription[] expected, string? normalize)
+    private void RenderAndVerify(string markup, DiagnosticDescription[] expected, string? normalize)
     {
         var text = Render(markup, normalize);
         ParseAllPrefixes(text);

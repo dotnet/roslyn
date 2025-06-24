@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LocalFunctionsTestBase : CSharpTestBase
+    public class LocalFunctionsTestBase(TargetFramework? targetFramework = null) : CSharpTestBase(targetFramework)
     {
         internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular;
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 
     [CompilerTrait(CompilerFeature.LocalFunctions)]
-    public class LocalFunctionTests : LocalFunctionsTestBase
+    public class LocalFunctionTests() : LocalFunctionsTestBase(TargetFramework.Standard)
     {
         [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
         public void RefReturningAsyncLocalFunction()

@@ -19,7 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public abstract class EmitMetadataTestBase : CSharpTestBase
+    public abstract class EmitMetadataTestBase(TargetFramework? targetFramework = null) : CSharpTestBase(targetFramework)
     {
         internal static XElement DumpTypeInfo(ModuleSymbol moduleSymbol)
         {

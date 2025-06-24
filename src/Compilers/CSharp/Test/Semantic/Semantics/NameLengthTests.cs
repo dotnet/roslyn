@@ -465,7 +465,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => p + 1").WithArguments("<" + longName + "1>b__0").WithLocation(13, 16));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/78759")]
         public void TestAnonymousTypeProperties()
         {
             var sourceTemplate = @"
