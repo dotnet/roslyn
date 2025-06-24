@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly;
 public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePairUtil.Create("strict", "true")]);
+    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePair.Create("strict", "true")]);
 
     private const string s_inlineArrayAttribute = """
         namespace System.Runtime.CompilerServices
