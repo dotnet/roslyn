@@ -11300,5 +11300,162 @@ public struct Vec4
                 """;
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        [InlineData("public void UseSpan(Span<int> span)", 17)]
+        [InlineData("void I.UseSpan(Span<int> span)", 12)]
+        public void RefStructInterface_ScopedDifference(string implSignature, int column)
+        {
+            // This is a case where interface methods need to be treated specially in scoped variance checks.
+            // Because a ref struct can implement the interface, we need to compare the signatures as if the interface has a receiver parameter which is ref-to-ref-struct.
+            var source = $$"""
+                using System;
+
+                interface I
+                {
+                    void UseSpan(scoped Span<int> span);
+                }
+
+                ref struct RS : I
+                {
+                    public Span<int> Span { get; set; }
+                    public RS(Span<int> span) => Span = span;
+
+                    {{implSignature}} // 1
+                    {
+                        this.Span = span;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (13,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
+                //     public void UseSpan(Span<int> span)
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(13, column));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        [InlineData("public readonly void UseSpan(Span<int> span)")]
+        [InlineData("readonly void I.UseSpan(Span<int> span)")]
+        public void RefStructInterface_ScopedDifference_ReadonlyImplementation(string implSignature)
+        {
+            var source = $$"""
+                using System;
+
+                interface I
+                {
+                    void UseSpan(scoped Span<int> span);
+                }
+
+                ref struct RS : I
+                {
+                    public Span<int> Span { get; set; }
+                    public RS(Span<int> span) => Span = span;
+
+                    {{implSignature}}
+                    {
+                        Span = span; // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS1604: Cannot assign to 'Span' because it is read-only
+                //         Span = span; // 1
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "Span").WithArguments("Span").WithLocation(15, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        public void SimilarScenarioAs78711InvolvingNonReceiverParameter()
+        {
+            // Demonstrate a scenario similar to https://github.com/dotnet/roslyn/issues/78711 involving a non-receiver parameter has consistent behavior
+            // In this case, the interface and implementation parameters cannot differ by type. But it as close as we can get to the receiver parameter case.
+            var source = """
+                using System;
+
+                interface I
+                {
+                    void UseSpan1(ref RS rs, scoped Span<int> span);
+                    void UseSpan2(ref readonly RS rs, scoped Span<int> span);
+                }
+
+                class C : I
+                {
+                    public void UseSpan1(ref RS rs, Span<int> span) // 1
+                    {
+                        rs.Span = span;
+                    }
+
+                    public void UseSpan2(ref readonly RS rs, Span<int> span)
+                    {
+                        rs.Span = span; // 2
+                    }
+                }
+
+                ref struct RS
+                {
+                    public Span<int> Span { get; set; }
+                    public RS(Span<int> span) => Span = span;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
+                //     public void UseSpan1(ref RS rs, Span<int> span) // 1
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan1").WithArguments("span").WithLocation(11, 17),
+                // (18,9): error CS8332: Cannot assign to a member of variable 'rs' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         rs.Span = span; // 2
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "rs.Span").WithArguments("variable", "rs").WithLocation(18, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        public void Repro_78711()
+        {
+            var source = """
+                using System;
+
+                public static class Demo
+                {
+                    public static void Show()
+                    {
+                        var stru = new Stru();
+
+                        Unsafe(ref stru);
+
+                        Console.Out.WriteLine(stru.Span);
+                    }
+
+                    private static void Unsafe<T>(ref T stru) where T : IStru, allows ref struct
+                    {
+                        Span<char> span = stackalloc char[10];
+
+                        "bug".CopyTo(span);
+
+                        stru.UseSpan(span);
+                    }
+                }
+
+                internal interface IStru
+                {
+                    public void UseSpan(scoped Span<char> span);
+                }
+
+                internal ref struct Stru : IStru
+                {
+                    public Span<char> Span;
+
+                    public void UseSpan(Span<char> span) => Span = span; // 1
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (33,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
+                //     public void UseSpan(Span<char> span) => Span = span;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(33, 17));
+        }
     }
 }

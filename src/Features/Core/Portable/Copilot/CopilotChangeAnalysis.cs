@@ -55,4 +55,6 @@ internal readonly record struct CopilotCodeFixAnalysis(
     [property: DataMember(Order = 3)] Dictionary<string, TimeSpan> DiagnosticIdToApplicationTime,
     [property: DataMember(Order = 4)] Dictionary<string, HashSet<string>> DiagnosticIdToProviderName,
     [property: DataMember(Order = 5)] Dictionary<string, TimeSpan> ProviderNameToApplicationTime,
-    [property: DataMember(Order = 6)] Dictionary<string, bool> ProviderNameToHasConflict);
+    [property: DataMember(Order = 6)] Dictionary<string, bool> ProviderNameToHasConflict,
+    [property: DataMember(Order = 7)] Dictionary<string, int> ProviderNameToTotalCount,
+    [property: DataMember(Order = 8)] Dictionary<string, int> ProviderNameToSuccessCount);

@@ -189,7 +189,7 @@ internal static class ContainedLanguageCodeSupport
         var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Protected,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,

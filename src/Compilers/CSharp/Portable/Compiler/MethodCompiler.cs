@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Emit methods in extensions as skeletons:
             // => throw null;
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should throw NotSupportedException instead
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Should throw NotSupportedException instead
             builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
