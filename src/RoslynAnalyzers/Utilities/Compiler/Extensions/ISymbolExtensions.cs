@@ -265,7 +265,6 @@ namespace Analyzer.Utilities.Extensions
             return symbol.GetAttributes(attributesToMatch: attributeTypesToMatch);
         }
 
-
         public static bool HasAnyAttribute(this ISymbol symbol, IEnumerable<INamedTypeSymbol> attributesToMatch)
         {
             return symbol.GetAttributes(attributesToMatch).Any();
