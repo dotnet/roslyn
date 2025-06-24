@@ -11209,17 +11209,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void ReportArgumentWarnings(BoundExpression argument, TypeWithState argumentType, ParameterSymbol parameter)
-        {
-            var paramType = parameter.TypeWithAnnotations;
-            ReportNullableAssignmentIfNecessary(argument, paramType, argumentType, useLegacyWarnings: false, AssignmentKind.Argument, parameterOpt: parameter);
-
-            if (argumentType.Type is { } argType && IsNullabilityMismatch(paramType.Type, argType))
-            {
-                ReportNullabilityMismatchInArgument(argument.Syntax, argType, parameter, paramType.Type, forOutput: false);
-            }
-        }
-
         private void ReportNullabilityMismatchInRefArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType)
         {
             ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument,
