@@ -147,9 +147,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (interceptor.GetIsNewExtensionMember() && interceptor.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+            if (interceptor.GetIsNewExtensionMember())
             {
-                interceptor = implementationMethod;
+                if (interceptor.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+                {
+                    interceptor = implementationMethod;
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
 
             Debug.Assert(nameSyntax != null);

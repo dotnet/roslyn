@@ -9061,41 +9061,41 @@ static class Interceptors
     extension(object o)
     {
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
-        public string Method0() => throw null!;
+        public string Method0() { System.Console.Write("ran0 "); return ""; }
 
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})] // 1
-        public string? Method1() => throw null!;
+        public string? Method1() { System.Console.Write("ran1 "); return ""; }
 
 #nullable disable
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
-        public string Method2() => throw null!;
+        public string Method2() { System.Console.Write("ran2 "); return ""; }
 
 #nullable enable
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
-        public string Method3() => throw null!;
+        public string Method3() { System.Console.Write("ran3 "); return ""; }
 
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[4]!)}})]
-        public string? Method4() => throw null!;
+        public string? Method4() { System.Console.Write("ran4 "); return ""; }
 
 #nullable disable
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[5]!)}})]
-        public string Method5() => throw null!;
+        public string Method5() { System.Console.Write("ran5 "); return ""; }
 
 #nullable enable
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[6]!)}})]
-        public string Method6() => throw null!;
+        public string Method6() { System.Console.Write("ran6 "); return ""; }
 
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[7]!)}})]
-        public string? Method7() => throw null!;
+        public string? Method7() { System.Console.Write("ran7 "); return ""; }
 
 #nullable disable
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[8]!)}})]
-        public string Method9() => throw null!;
+        public string Method8() { System.Console.Write("ran8 "); return ""; }
     }
 }
 """;
         var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularPreviewWithInterceptors);
-        comp.VerifyEmitDiagnostics(
+        CompileAndVerify(comp, expectedOutput: "ran0 ran1 ran2 ran3 ran4 ran5 ran6 ran7 ran8").VerifyDiagnostics(
             // (10,10): warning CS9158: Nullability of reference types in return type doesn't match interceptable method 'E.M(object)'.
             //         [System.Runtime.CompilerServices.InterceptsLocation(1, "kyzJ78tfBnC7NCAmEETPGDQAAAA=")] // 1
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("E.M(object)").WithLocation(10, 10));
@@ -9166,13 +9166,13 @@ static class Interceptors
 
 #nullable disable
         [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[8]!)}})]
-        public void Method9(string s) { System.Console.Write("ran9 "); }
+        public void Method8(string s) { System.Console.Write("ran8 "); }
     }
 }
 """;
         var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularPreviewWithInterceptors);
 
-        CompileAndVerify(comp, expectedOutput: "ran0 ran1 ran2 ran3 ran4 ran5 ran6 ran7 ran9").VerifyDiagnostics(
+        CompileAndVerify(comp, expectedOutput: "ran0 ran1 ran2 ran3 ran4 ran5 ran6 ran7 ran8").VerifyDiagnostics(
             // (18,10): warning CS9159: Nullability of reference types in type of parameter 's' doesn't match interceptable method 'E.M2(object, string?)'.
             //         [System.Runtime.CompilerServices.InterceptsLocation(1, "+VOLrIHFLh9ndZzTPFZ19mIAAAA=")] // 1
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("s", "E.M2(object, string?)").WithLocation(18, 10));
@@ -9540,6 +9540,36 @@ static class Interceptors
             // (5,10): warning CS9270: 'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)
             //         [System.Runtime.CompilerServices.InterceptsLocation("Program.cs", 1, 17)]
             Diagnostic(ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature, @"System.Runtime.CompilerServices.InterceptsLocation(""Program.cs"", 1, 17)").WithLocation(5, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_29()
+    {
+        // interceptor is a new extension method with no ExtensionParameter and no implementation method
+        var source = """
+new object().M();
+
+public static class Extensions
+{
+    public static void M(this object o) => throw null;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(__arglist)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public void Method() { }
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularPreviewWithInterceptors);
+        comp.VerifyDiagnostics(
+            // (3,15): error CS1669: __arglist is not valid in this context
+            //     extension(__arglist)
+            Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15));
     }
 }
 
