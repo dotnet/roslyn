@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             => Count == 0;
 
         /// <summary>
-        /// Write <paramref name="value"/> to slot <paramref name="index"/>. 
+        /// Write <paramref name="value"/> to slot <paramref name="index"/>.
         /// Fills in unallocated slots preceding the <paramref name="index"/>, if any.
         /// </summary>
         public void SetItem(int index, T value)
@@ -263,7 +263,21 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void RemoveRange(int index, int length)
         {
+#if ROSLYN_ANALYZERS
+            Debug.Assert(index >= 0 && length >= 0);
+            Debug.Assert(length >= 0 && index + length <= _builder.Count);
+
+            var i = index;
+            for (var j = index + length; j < _builder.Count; j++)
+            {
+                _builder[i] = _builder[j];
+                i++;
+            }
+
+            Clip(i);
+#else
             _builder.RemoveRange(index, length);
+#endif
         }
 
         public void RemoveLast()
@@ -273,7 +287,25 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void RemoveAll(Predicate<T> match)
         {
+#if ROSLYN_ANALYZERS
+            var i = 0;
+            for (var j = 0; j < _builder.Count; j++)
+            {
+                if (!match(_builder[j]))
+                {
+                    if (i != j)
+                    {
+                        _builder[i] = _builder[j];
+                    }
+
+                    i++;
+                }
+            }
+
+            Clip(i);
+#else
             _builder.RemoveAll(match);
+#endif
         }
 
         public void RemoveAll<TArg>(Func<T, TArg, bool> match, TArg arg)
@@ -452,7 +484,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         #region Poolable
 
         // To implement Poolable, you need two things:
-        // 1) Expose Freeing primitive. 
+        // 1) Expose Freeing primitive.
         public void Free()
         {
             var pool = _pool;
@@ -463,9 +495,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 // After about 50 (just 67) we have a long tail of infrequently used builder sizes.
                 // However we have builders with size up to 50K   (just one such thing)
                 //
-                // We do not want to retain (potentially indefinitely) very large builders 
+                // We do not want to retain (potentially indefinitely) very large builders
                 // while the chance that we will need their size is diminishingly small.
-                // It makes sense to constrain the size to some "not too small" number. 
+                // It makes sense to constrain the size to some "not too small" number.
                 // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
                 if (_builder.Capacity < PooledArrayLengthLimitExclusive)
                 {
@@ -560,7 +592,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
 
             // bucketize
-            // prevent reallocation. it may not have 'count' entries, but it won't have more. 
+            // prevent reallocation. it may not have 'count' entries, but it won't have more.
             var accumulator = new Dictionary<K, ArrayBuilder<T>>(Count, comparer);
             for (var i = 0; i < Count; i++)
             {
@@ -805,19 +837,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             switch (Count)
             {
                 case 0:
-                    return [];
+                    return ImmutableArray<TResult>.Empty;
 
                 case 1:
-                    return [map(this[0])];
+                    return ImmutableArray.Create(map(this[0]));
 
                 case 2:
-                    return [map(this[0]), map(this[1])];
+                    return ImmutableArray.Create(map(this[0]), map(this[1]));
 
                 case 3:
-                    return [map(this[0]), map(this[1]), map(this[2])];
+                    return ImmutableArray.Create(map(this[0]), map(this[1]), map(this[2]));
 
                 case 4:
-                    return [map(this[0]), map(this[1]), map(this[2]), map(this[3])];
+                    return ImmutableArray.Create(map(this[0]), map(this[1]), map(this[2]), map(this[3]));
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(Count);
@@ -843,19 +875,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             switch (Count)
             {
                 case 0:
-                    return [];
+                    return ImmutableArray<TResult>.Empty;
 
                 case 1:
-                    return [map(this[0], arg)];
+                    return ImmutableArray.Create(map(this[0], arg));
 
                 case 2:
-                    return [map(this[0], arg), map(this[1], arg)];
+                    return ImmutableArray.Create(map(this[0], arg), map(this[1], arg));
 
                 case 3:
-                    return [map(this[0], arg), map(this[1], arg), map(this[2], arg)];
+                    return ImmutableArray.Create(map(this[0], arg), map(this[1], arg), map(this[2], arg));
 
                 case 4:
-                    return [map(this[0], arg), map(this[1], arg), map(this[2], arg), map(this[3], arg)];
+                    return ImmutableArray.Create(map(this[0], arg), map(this[1], arg), map(this[2], arg), map(this[3], arg));
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(Count);
@@ -881,19 +913,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             switch (Count)
             {
                 case 0:
-                    return [];
+                    return ImmutableArray<TResult>.Empty;
 
                 case 1:
-                    return [map(this[0], 0, arg)];
+                    return ImmutableArray.Create(map(this[0], 0, arg));
 
                 case 2:
-                    return [map(this[0], 0, arg), map(this[1], 1, arg)];
+                    return ImmutableArray.Create(map(this[0], 0, arg), map(this[1], 1, arg));
 
                 case 3:
-                    return [map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg)];
+                    return ImmutableArray.Create(map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg));
 
                 case 4:
-                    return [map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg), map(this[3], 3, arg)];
+                    return ImmutableArray.Create(map(this[0], 0, arg), map(this[1], 1, arg), map(this[2], 2, arg), map(this[3], 3, arg));
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(Count);
@@ -906,8 +938,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
         }
 
-        // The following extension methods allow an ArrayBuilder to be used as a stack. 
-        // Note that the order of an IEnumerable from a List is from bottom to top of stack. An IEnumerable 
+        // The following extension methods allow an ArrayBuilder to be used as a stack.
+        // Note that the order of an IEnumerable from a List is from bottom to top of stack. An IEnumerable
         // from the framework Stack is from top to bottom.
         public void Push(T e)
             => Add(e);

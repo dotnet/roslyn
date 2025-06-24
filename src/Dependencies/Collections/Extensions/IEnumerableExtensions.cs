@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using ImmutableArrayExtensions = Microsoft.CodeAnalysis.ImmutableArrayExtensions;
 
 namespace Roslyn.Utilities
 {
@@ -475,7 +476,7 @@ namespace Roslyn.Utilities
                 index++;
             }
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return ImmutableArrayExtensions.Create(builder);
         }
 
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
@@ -491,7 +492,7 @@ namespace Roslyn.Utilities
                 index++;
             }
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return ImmutableArrayExtensions.Create(builder);
         }
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
@@ -872,7 +873,11 @@ namespace Roslyn.Utilities
             var groups = data.GroupBy(keySelector, comparer);
             foreach (var grouping in groups)
             {
+#if ROSLYN_ANALYZERS
+                dictionary.Add(grouping.Key, ImmutableArray.Create(grouping.ToArray()));
+#else
                 dictionary.Add(grouping.Key, [.. grouping]);
+#endif
             }
 
             return dictionary;
