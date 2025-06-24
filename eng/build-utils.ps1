@@ -8,7 +8,7 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
+$PublishDataUrlTemplate = "https://raw.githubusercontent.com/dotnet/roslyn/{0}/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -22,10 +22,12 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
   return Join-Path $ArtifactsDir "bin\$projectName\$configuration\$tfm\$ridDir$publishDir$fileName"
 }
 
-function GetPublishData() {
+function GetPublishData([string]$branchName = "main") {
   if (Test-Path variable:global:_PublishData) {
     return $global:_PublishData
   }
+
+  $PublishDataUrl = $PublishDataUrlTemplate -f $branchName
 
   Write-Host "Downloading $PublishDataUrl"
   $content = (Invoke-WebRequest -Uri $PublishDataUrl -UseBasicParsing).Content
@@ -34,7 +36,7 @@ function GetPublishData() {
 }
 
 function GetBranchPublishData([string]$branchName) {
-  $data = GetPublishData
+  $data = GetPublishData $branchName
 
   if (Get-Member -InputObject $data.branches -Name $branchName) {
     return $data.branches.$branchName
@@ -74,8 +76,8 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 
   if ($useConsole) {
     $exitCode = Exec-Process $command $commandArgs
-    if ($exitCode -ne 0) { 
-      throw "Command failed to execute with exit code $($exitCode): $command $commandArgs" 
+    if ($exitCode -ne 0) {
+      throw "Command failed to execute with exit code $($exitCode): $command $commandArgs"
     }
     return
   }
@@ -95,10 +97,10 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 
   $finished = $false
   try {
-    # The OutputDataReceived event doesn't fire as events are sent by the 
+    # The OutputDataReceived event doesn't fire as events are sent by the
     # process in powershell.  Possibly due to subtlties of how Powershell
     # manages the thread pool that I'm not aware of.  Using blocking
-    # reading here as an alternative which is fine since this blocks 
+    # reading here as an alternative which is fine since this blocks
     # on completion already.
     $out = $process.StandardOutput
     while (-not $out.EndOfStream) {
@@ -106,13 +108,13 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
       Write-Output $line
     }
 
-    while (-not $process.WaitForExit(100)) { 
+    while (-not $process.WaitForExit(100)) {
       # Non-blocking loop done to allow ctr-c interrupts
     }
 
     $finished = $true
-    if ($process.ExitCode -ne 0) { 
-      throw "Command failed to execute with exit code $($process.ExitCode): $command $commandArgs" 
+    if ($process.ExitCode -ne 0) {
+      throw "Command failed to execute with exit code $($process.ExitCode): $command $commandArgs"
     }
   }
   finally {
@@ -124,15 +126,15 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
   }
 }
 
-# Handy function for executing a windows command which needs to go through 
-# windows command line parsing.  
+# Handy function for executing a windows command which needs to go through
+# windows command line parsing.
 #
-# Use this when the command arguments are stored in a variable.  Particularly 
+# Use this when the command arguments are stored in a variable.  Particularly
 # when the variable needs reparsing by the windows command line. Example:
 #
 #   $args = "/p:ManualBuild=true Test.proj"
 #   Exec-Command $msbuild $args
-# 
+#
 # The -useConsole argument controls if the process should re-use the current
 # console for output or return output as a string
 function Exec-Command([string]$command, [string]$commandArgs, [switch]$useConsole = $false, [switch]$echoCommand = $true) {
@@ -142,7 +144,7 @@ function Exec-Command([string]$command, [string]$commandArgs, [switch]$useConsol
   Exec-CommandCore -command $command -commandArgs $commandArgs -useConsole:$useConsole -echoCommand:$echoCommand
 }
 
-# Handy function for executing a dotnet command without having to track down the 
+# Handy function for executing a dotnet command without having to track down the
 # proper dotnet executable or ensure it's on the path.
 function Exec-DotNet([string]$commandArgs = "", [switch]$useConsole = $true, [switch]$echoCommand = $true) {
   if ($args -ne "") {
@@ -236,7 +238,7 @@ function Get-PackagesDir() {
   return $d
 }
 
-# Locate the directory of a specific NuGet package which is restored via our main 
+# Locate the directory of a specific NuGet package which is restored via our main
 # toolset values.
 function Get-PackageDir([string]$name, [string]$version = "") {
   if ($version -eq "") {
