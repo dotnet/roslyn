@@ -19,6 +19,9 @@
     <PackageReference Include="Microsoft.BCL.AsyncInterfaces" VersionOverride="8.0.0" />
     <PackageReference Include="System.CommandLine" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
       <ItemGroup>
