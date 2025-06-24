@@ -36,6 +36,8 @@
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" />
+    <!-- Access to MS.VS.Text.Internal so we can access to prorotype apis (like SpeculativeEditProvider) -->
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\BrokeredServices\ServiceBrokerProvider.cs" Link="BrokeredServices\ServiceBrokerProvider.cs" />
