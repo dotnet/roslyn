@@ -7,10 +7,6 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
 
-#if CODE_STYLE
-using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
 internal static partial class CSharpFormattingOptions2
