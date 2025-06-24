@@ -11,6 +11,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DiagnosticSeverityExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\ReportDiagnosticExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Symbols\AccessibilityUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Symbols\IAssemblySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Symbols\IMethodSymbolExtensions.cs" />

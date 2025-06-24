@@ -31,7 +31,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
 
         fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.State.Solution, fixAllContext.Progress, cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
+        return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.State.Solution, fixAllContext.Progress, fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
@@ -47,7 +47,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             codeAction, showPreviewChangesDialog, fixAllContext.Progress, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
     }
 
-    protected async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
+    private async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
         CodeAction codeAction,
         bool showPreviewChangesDialog,
         IProgress<CodeAnalysisProgress> progressTracker,
@@ -69,7 +69,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         cancellationToken.ThrowIfCancellationRequested();
         var newSolution = await codeAction.GetChangedSolutionInternalAsync(
-            fixAllState.Solution, progressTracker, cancellationToken: cancellationToken).ConfigureAwait(false);
+            fixAllState.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
 
         if (newSolution is null)
         {
@@ -197,7 +197,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         }
     }
 
-    protected static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
+    private static ImmutableArray<CodeActionOperation> GetNewFixAllOperations(ImmutableArray<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<CodeActionOperation>.GetInstance(operations.Length, out var result);
         var foundApplyChanges = false;
