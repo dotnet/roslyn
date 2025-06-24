@@ -41,10 +41,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeMetricsAnalysisContext.cs" />
   </ItemGroup>
   <ItemGroup>
-    <!--
-      <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildSourceOnly)' == 'true'">
-
-  -->
     <Compile Include="$(MSBuildThisFileDirectory)..\..\NuGet\PerformanceSensitiveAnalyzers\PerformanceSensitiveAttribute.cs" Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
     <Compile Include="$(MSBuildThisFileDirectory)AdditionalFileProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
