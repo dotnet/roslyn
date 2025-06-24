@@ -3130,7 +3130,7 @@ public ref struct S
             var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1 2 Done").VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source.Replace(" + s_IAsyncEnumerable", ""));
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3235,7 +3235,7 @@ public ref struct S
             var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "2 4 -1 Done").VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source.Replace(" + AsyncStreamsTypes", ""));
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("2 4 -1 Done", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3412,7 +3412,7 @@ public ref struct S
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source.Replace(" + s_IAsyncEnumerable", ""));
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3812,7 +3812,7 @@ public struct S
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source.Replace(" + s_IAsyncEnumerable", ""));
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -3926,7 +3926,7 @@ public struct S
             comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source.Replace(" + AsyncStreamsTypes", ""));
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
             var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
@@ -13096,7 +13096,7 @@ struct Enumerator : IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
             var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x52 }
@@ -13182,7 +13182,7 @@ struct Enumerator : IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
             var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x58 }
@@ -13268,7 +13268,7 @@ struct Enumerator
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
 
             var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x52 }
@@ -13426,7 +13426,7 @@ public static class Extensions
             CompileAndVerify(comp, expectedOutput: "123Disposed");
 
             var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x52 }
