@@ -468,7 +468,7 @@ public class Class1
                     VerifyBufferContentsInWorkspace(workspace, resolvedConflictWorkspace)
                 End Using
 
-                session.Commit()
+                Await session.CommitAsync(previewChanges:=False)
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -1175,7 +1175,7 @@ End Class
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "f"c), Sub() editorOperations.InsertText("f"), Utilities.TestCommandExecutionContext.Create())
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "g"c), Sub() editorOperations.InsertText("g"), Utilities.TestCommandExecutionContext.Create())
 
-                session.Commit()
+                Await session.CommitAsync(previewChanges:=False)
                 Dim selectionLength = view.Selection.End.Position - view.Selection.Start.Position
                 Assert.Equal(0, selectionLength)
             End Using

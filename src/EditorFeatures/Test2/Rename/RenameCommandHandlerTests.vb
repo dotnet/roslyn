@@ -1156,7 +1156,7 @@ class [|C$$|]
                 Dim commandInvokedString = "/*Command Invoked*/"
                 executeCommand(commandHandler, view, Sub() editorOperations.InsertText(commandInvokedString))
 
-                ' Verify rename session was committed.
+                ' Verify rename session was not committed.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
                 Assert.Contains("C f", view.TextBuffer.CurrentSnapshot.GetText())
 
