@@ -163,6 +163,12 @@ public class UnifiedSettingsTests
 
     // TODO: add test data
     private static readonly ImmutableArray<(IOption2, UnifiedSettingBase)> s_csharpAdvancedExpectedSettings = [
+        (SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, CreateEnumOption<BackgroundAnalysisScope>(
+            SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+            title: "Run background code analysis for",
+            order: 0,
+            enumLabels: ["None", "Current document", "Open document", "Entire solution"],
+            languageName: LanguageNames.CSharp)),
     ];
 
     /// <summary>
