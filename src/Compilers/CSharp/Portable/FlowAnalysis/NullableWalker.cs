@@ -5314,7 +5314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return inferredResult;
         }
 
-        MethodSymbol ReInferBinaryOperator(
+        private MethodSymbol ReInferBinaryOperator(
             SyntaxNode syntax,
             MethodSymbol method,
             BoundExpression leftOperand,
@@ -5343,8 +5343,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     extension,
                     method.OriginalDefinition.ParameterTypesWithAnnotations,
                     method.OriginalDefinition.ParameterRefKinds,
+                    // PROTOTYPE: https://github.com/dotnet/roslyn/pull/79103#discussion_r2162657025
+                    //            In analysis of invocations (`VisitCall`/`VisitArguments`), we use `GetArgumentsForMethodTypeInference` to get inputs to `MethodTypeInferrer.Infer`.
+                    //            Do we need the same thing here (it has extra cases to deal with lambda, collection expressions and typeless expressions)?
                     [new BoundExpressionWithNullability(leftOperand.Syntax, leftOperand, leftUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, leftUnderlyingType.Type),
-                        new BoundExpressionWithNullability(rightOperand.Syntax, rightOperand, rightUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, rightUnderlyingType.Type)],
+                     new BoundExpressionWithNullability(rightOperand.Syntax, rightOperand, rightUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, rightUnderlyingType.Type)],
                     ref discardedUseSiteInfo,
                     new MethodInferenceExtensions(this),
                     ordinals: null);
@@ -10957,6 +10960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (incrementOperator is not null)
                 {
                     incrementOperator = ReInferUnaryOperator(node.Syntax, incrementOperator, node.Operand, GetNullableUnderlyingTypeIfNecessary(isLifted, operandType));
+                    SetUpdatedSymbol(node, node.MethodOpt!, incrementOperator);
                 }
 
                 TypeWithAnnotations targetTypeOfOperandConversion;
@@ -12029,11 +12033,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (binary)
                 {
                     case BoundBinaryOperator binOp:
-                        AfterLeftChildOfBinaryConditionalLogicalOperatorHasBeenVisited(binOp);
+                        afterLeftChildOfBoundBinaryOperatorHasBeenVisited(binOp);
                         break;
                     case BoundUserDefinedConditionalLogicalOperator udBinOp:
                         Debug.Assert(leftOperand is not null);
-                        AfterLeftChildOfBinaryConditionalLogicalOperatorHasBeenVisited(udBinOp, leftOperand, leftConversion);
+                        afterLeftChildOfBoundUserDefinedConditionalLogicalOperatorHasBeenVisited(udBinOp, leftOperand, leftConversion);
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(binary.Kind);
@@ -12051,104 +12055,104 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 binary = stack.Pop();
             }
-        }
 
-        private static void GetBinaryConditionalOperatorInfo(BinaryOperatorKind kind, out bool isAnd, out bool isBool)
-        {
-            BinaryOperatorKind op = kind.Operator();
-            isAnd = op == BinaryOperatorKind.And;
-            isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
-            Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
-        }
+            static void getBinaryConditionalOperatorInfo(BinaryOperatorKind kind, out bool isAnd, out bool isBool)
+            {
+                BinaryOperatorKind op = kind.Operator();
+                isAnd = op == BinaryOperatorKind.And;
+                isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
+                Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
+            }
 
-        private void AfterLeftChildOfBinaryConditionalLogicalOperatorHasBeenVisited(BoundBinaryOperator node)
-        {
-            Debug.Assert(IsConditionalState);
-            TypeWithState leftType = ResultType;
+            void afterLeftChildOfBoundBinaryOperatorHasBeenVisited(BoundBinaryOperator node)
+            {
+                Debug.Assert(IsConditionalState);
+                TypeWithState leftType = ResultType;
 
-            GetBinaryConditionalOperatorInfo(node.OperatorKind, out bool isAnd, out bool isBool);
+                getBinaryConditionalOperatorInfo(node.OperatorKind, out bool isAnd, out bool isBool);
 
-            var leftTrue = this.StateWhenTrue;
-            var leftFalse = this.StateWhenFalse;
-            SetState(isAnd ? leftTrue : leftFalse);
+                var leftTrue = this.StateWhenTrue;
+                var leftFalse = this.StateWhenFalse;
+                SetState(isAnd ? leftTrue : leftFalse);
 
-            Visit(node.Right);
-            TypeWithState rightType = ResultType;
-            SetResultType(node, InferResultNullability(node.OperatorKind, node.Method, node.Type, leftType, rightType));
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
-        }
+                Visit(node.Right);
+                TypeWithState rightType = ResultType;
+                SetResultType(node, InferResultNullability(node.OperatorKind, node.Method, node.Type, leftType, rightType));
+                AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            }
 
-        private void AfterLeftChildOfBinaryConditionalLogicalOperatorHasBeenVisited(BoundUserDefinedConditionalLogicalOperator binary, BoundExpression leftOperand, Conversion leftConversion)
-        {
-            TypeWithState leftType = ResultType;
+            void afterLeftChildOfBoundUserDefinedConditionalLogicalOperatorHasBeenVisited(BoundUserDefinedConditionalLogicalOperator binary, BoundExpression leftOperand, Conversion leftConversion)
+            {
+                TypeWithState leftType = ResultType;
 
-            Unsplit();
-            Split();
+                Unsplit();
+                Split();
 
-            var leftTrue = this.StateWhenTrue;
-            var leftFalse = this.StateWhenFalse;
+                var leftTrue = this.StateWhenTrue;
+                var leftFalse = this.StateWhenFalse;
 
-            GetBinaryConditionalOperatorInfo(binary.OperatorKind, out bool isAnd, out bool isBool);
-            Debug.Assert(!isBool);
-            SetState(isAnd ? leftTrue : leftFalse);
+                getBinaryConditionalOperatorInfo(binary.OperatorKind, out bool isAnd, out bool isBool);
+                Debug.Assert(!isBool);
+                SetState(isAnd ? leftTrue : leftFalse);
 
-            var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
+                var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
 
-            VisitRvalue(rightOperand);
-            var rightType = ResultType;
-            Unsplit();
+                VisitRvalue(rightOperand);
+                var rightType = ResultType;
+                Unsplit();
 
-            var rightState = State.Clone();
+                var rightState = State.Clone();
 
-            // Analyze operator calls properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
+                // Analyze operator calls properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
 
-            bool isLifted = binary.OperatorKind.IsLifted();
-            TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
-            TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
+                bool isLifted = binary.OperatorKind.IsLifted();
+                TypeWithState leftUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, leftType);
+                TypeWithState rightUnderlyingType = GetNullableUnderlyingTypeIfNecessary(isLifted, rightType);
 
-            MethodSymbol logicalOperator = binary.LogicalOperator;
+                MethodSymbol logicalOperator = binary.LogicalOperator;
 
-            // Update method based on inferred operand type.
-            MethodSymbol reInferredMethod = ReInferBinaryOperator(binary.Syntax, logicalOperator, leftOperand, rightOperand, leftUnderlyingType, rightUnderlyingType);
+                // Update method based on inferred operand type.
+                MethodSymbol reInferredMethod = ReInferBinaryOperator(binary.Syntax, logicalOperator, leftOperand, rightOperand, leftUnderlyingType, rightUnderlyingType);
 
-            SetUpdatedSymbol(binary, logicalOperator, reInferredMethod);
-            logicalOperator = reInferredMethod;
+                SetUpdatedSymbol(binary, logicalOperator, reInferredMethod);
+                logicalOperator = reInferredMethod;
 
-            // Conversion of the left operand is actually done before the split (before the true/false check)
-            var leftState = isAnd ? leftFalse : leftTrue;
-            SetState(leftState);
+                // Conversion of the left operand is actually done before the split (before the true/false check)
+                var leftState = isAnd ? leftFalse : leftTrue;
+                SetState(leftState);
 
-            var parameters = logicalOperator.Parameters;
-            leftType = VisitBinaryOperatorOperandConversion(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType, isLifted, out _);
+                var parameters = logicalOperator.Parameters;
+                leftType = VisitBinaryOperatorOperandConversion(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType, isLifted, out _);
 
-            // True/False call is done before the split, short-circuiting happens based on its result
-            MethodSymbol trueFalseOperator = isAnd ? binary.FalseOperator : binary.TrueOperator;
+                // True/False call is done before the split, short-circuiting happens based on its result
+                MethodSymbol trueFalseOperator = isAnd ? binary.FalseOperator : binary.TrueOperator;
 
-            // Update operator method based on inferred operand type.
-            var updatedTrueFalseOperator = ReInferUnaryOperator(leftOperand.Syntax, trueFalseOperator, binary.Left, leftType);
-            SetUpdatedSymbol(binary, trueFalseOperator, updatedTrueFalseOperator);
-            trueFalseOperator = updatedTrueFalseOperator;
+                // Update operator method based on inferred operand type.
+                var updatedTrueFalseOperator = ReInferUnaryOperator(leftOperand.Syntax, trueFalseOperator, binary.Left, leftType);
+                SetUpdatedSymbol(binary, trueFalseOperator, updatedTrueFalseOperator);
+                trueFalseOperator = updatedTrueFalseOperator;
 
-            var trueFalseParameter = trueFalseOperator.Parameters[0];
-            _ = VisitConversion(
-                conversionOpt: null,
-                binary.Left,
-                BoundNode.GetConversion(binary.TrueFalseOperandConversion, binary.TrueFalseOperandPlaceholder),
-                trueFalseParameter.TypeWithAnnotations,
-                leftType,
-                checkConversion: true,
-                fromExplicitCast: false,
-                useLegacyWarnings: false,
-                assignmentKind: AssignmentKind.Argument,
-                parameterOpt: trueFalseParameter);
+                var trueFalseParameter = trueFalseOperator.Parameters[0];
+                _ = VisitConversion(
+                    conversionOpt: null,
+                    binary.Left,
+                    BoundNode.GetConversion(binary.TrueFalseOperandConversion, binary.TrueFalseOperandPlaceholder),
+                    trueFalseParameter.TypeWithAnnotations,
+                    leftType,
+                    checkConversion: true,
+                    fromExplicitCast: false,
+                    useLegacyWarnings: false,
+                    assignmentKind: AssignmentKind.Argument,
+                    parameterOpt: trueFalseParameter);
 
-            SetState(rightState);
+                SetState(rightState);
 
-            rightType = VisitBinaryOperatorOperandConversion(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType, isLifted, out _);
+                rightType = VisitBinaryOperatorOperandConversion(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType, isLifted, out _);
 
-            SetResultType(binary, InferResultNullability(binary.OperatorKind, logicalOperator, binary.Type, leftType, rightType));
+                SetResultType(binary, InferResultNullability(binary.OperatorKind, logicalOperator, binary.Type, leftType, rightType));
 
-            AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
+                AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(binary.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
+            }
         }
 
         protected override void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression node, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)

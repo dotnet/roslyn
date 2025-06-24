@@ -3165,6 +3165,14 @@ class Program
                 //         (-x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "-x").WithLocation(22, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -3215,6 +3223,14 @@ class Program
                 //         (-x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "-x").WithLocation(27, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator -(C1<C2?>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator -(C1<C2>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -7823,7 +7839,6 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/29961")]
         public void Increment_084_NullableAnalysis()
         {
             var src = $$$"""
@@ -7862,6 +7877,14 @@ class Program
                 //         (--x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "--x").WithLocation(22, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator --(C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator --(C2)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -7912,6 +7935,14 @@ class Program
                 //         (--x).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(--x).F").WithLocation(27, 9)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator --(C1<C2?>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator --(C1<C2>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -8065,7 +8096,6 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/29961")]
         public void Increment_089_NullableAnalysis_Constraints()
         {
             var src = $$$"""
@@ -8541,6 +8571,14 @@ class Program
                 //         (--x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "--x").WithLocation(19, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator --()", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator --()", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -8592,6 +8630,14 @@ class Program
                 //         (--x).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "--x").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(24, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator --()", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator --()", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -15037,6 +15083,15 @@ class Program
                 //         (y - x2).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y - x2").WithLocation(25, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2, C2)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -15168,6 +15223,14 @@ class Program
                 //         (x - y).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x - y").WithLocation(29, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?, C2>(C1<C2?>).operator -(C1<C2?>, C1<C2>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2, C2?>(C1<C2>).operator -(C1<C2>, C1<C2?>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -15592,6 +15655,15 @@ class Program
                 //         (y && x2).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y && x2").WithLocation(28, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator &(C2, C2)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -15656,6 +15728,16 @@ class Program
                 //         (y && z).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y && z).F").WithLocation(36, 9)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(4, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator &(C1<C2?>, C1<C2?>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator &(C1<C2?>, C1<C2?>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator &(C1<C2?>, C1<C2?>)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator &(C1<C2>, C1<C2>)", model.GetSymbolInfo(opNodes[3]).Symbol.ToDisplayString());
         }
 
         [Fact]
@@ -16071,6 +16153,104 @@ class Program
                 //         (y && x).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C1<C2?>", "C1<C2>", "y", "C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)").WithLocation(26, 15)
                 );
+        }
+
+        [Fact]
+        public void Binary_127_NullableAnalysis_WithLambda()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(T x, System.Func<T> y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x1 = null;
+        var y = new C2();
+        (y - (() => x1)).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            // PROTOTYPE: Expect to infer T as C2? and get a null dereference warning.
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(1, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2, System.Func<C2>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Binary_128_NullableAnalysis_Logical_Chained()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator &(T x, T y)
+        {
+            return x;
+        }
+
+        public static bool operator true(T x) => true;
+        public static bool operator false(T x) => false;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x1 = null;
+        var y = new C2();
+        (x1 && y && y && y && y && y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (26,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x1 && y && y && y && y && y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1 && y && y && y && y && y").WithLocation(26, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(5, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[3]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[4]).Symbol.ToDisplayString());
         }
 
         [Theory]
@@ -21600,7 +21780,7 @@ static class Extensions
         }
 
         [Fact]
-        public void CompoundAssignment_107_NullableAnalysis()
+        public void CompoundAssignment_108_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -21661,7 +21841,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_108_NullableAnalysis()
+        public void CompoundAssignment_109_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -21700,7 +21880,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_109_NullableAnalysis()
+        public void CompoundAssignment_110_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -21747,10 +21927,19 @@ class Program
                 //         y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(26, 9)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2, C2)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
         }
 
         [Fact]
-        public void CompoundAssignment_110_NullableAnalysis()
+        public void CompoundAssignment_111_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -21790,7 +21979,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_111_NullableAnalysis()
+        public void CompoundAssignment_112_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -21838,10 +22027,18 @@ class Program
                 //         (x -= y).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x -= y).F").WithLocation(29, 9)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?, C2>(C1<C2?>).operator -(C1<C2?>, C1<C2>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2, C2?>(C1<C2>).operator -(C1<C2>, C1<C2?>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
-        public void CompoundAssignment_112_NullableAnalysis_Lifted()
+        public void CompoundAssignment_113_NullableAnalysis_Lifted()
         {
             var src = $$$"""
 #nullable enable
@@ -21896,7 +22093,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_113_NullableAnalysis_Constraints()
+        public void CompoundAssignment_114_NullableAnalysis_Constraints()
         {
             var src = $$$"""
 #nullable enable
@@ -21944,7 +22141,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_114_NullableAnalysis()
+        public void CompoundAssignment_115_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22002,7 +22199,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_115_NullableAnalysis()
+        public void CompoundAssignment_116_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22050,7 +22247,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_116_NullableAnalysis()
+        public void CompoundAssignment_117_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22102,7 +22299,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_117_NullableAnalysis()
+        public void CompoundAssignment_118_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22142,7 +22339,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_118_NullableAnalysis()
+        public void CompoundAssignment_119_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22204,7 +22401,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_119_NullableAnalysis()
+        public void CompoundAssignment_120_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22242,7 +22439,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_120_NullableAnalysis()
+        public void CompoundAssignment_121_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22280,7 +22477,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_121_NullableAnalysis()
+        public void CompoundAssignment_122_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22306,19 +22503,26 @@ class Program
         (y -= 1).ToString();
     }
 }
+""";
 
-""" + CompilerFeatureRequiredAttribute;
-
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (19,10): warning CS8602: Dereference of a possibly null reference.
                 //         (x -= 1).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x -= 1").WithLocation(19, 10)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -=(int)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -=(int)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
-        public void CompoundAssignment_122_NullableAnalysis()
+        public void CompoundAssignment_123_NullableAnalysis()
         {
             var src = $$$"""
 #nullable enable
@@ -22354,19 +22558,26 @@ class Program
         return new C1<T>();
     }
 }
+""";
 
-""" + CompilerFeatureRequiredAttribute;
-
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (24,9): warning CS8602: Dereference of a possibly null reference.
                 //         (x -= 1).F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x -= 1).F").WithLocation(24, 9)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator -=(int)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator -=(int)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
         }
 
         [Fact]
-        public void CompoundAssignment_123_NullableAnalysis_Constraints()
+        public void CompoundAssignment_124_NullableAnalysis_Constraints()
         {
             var src = $$$"""
 #nullable enable
@@ -22407,7 +22618,7 @@ class Program
         }
 
         [Fact]
-        public void CompoundAssignment_124_NullableAnalysis_Constraints()
+        public void CompoundAssignment_125_NullableAnalysis_Constraints()
         {
             var src = $$$"""
 #nullable enable
@@ -22464,3 +22675,6 @@ class Program
 //            Cover ErrorCode.ERR_ExtensionDisallowsMember for conversion operators
 //            CRef binding
 //            'extern' modifier
+//            Nullability suppression
+//            Nullable analysis with interesting target-typed expressions as operands (null, lambda, collection expression) 
+//            Cover null-conditional compound assignment (including nullable analysis)?

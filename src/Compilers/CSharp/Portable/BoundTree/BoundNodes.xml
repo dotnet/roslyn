@@ -518,7 +518,7 @@
     <Field Name="OriginalUserDefinedOperatorsOpt" Type="ImmutableArray&lt;MethodSymbol&gt;" Null="Allow" SkipInNullabilityRewriter="true"/>
   </Node>
 
-  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
+  <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression" SkipInNullabilityRewriter="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
