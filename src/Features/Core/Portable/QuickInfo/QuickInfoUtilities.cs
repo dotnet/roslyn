@@ -142,7 +142,7 @@ internal static class QuickInfoUtilities
         var nullableMessage = nullabilityInfo switch
         {
             (_, NullableFlowState.None) => null,
-            (NullableAnnotation.None, _) => string.Format(FeaturesResources._0_is_not_null_aware, symbol.ToDisplayString(s_nullableDisplayFormat)),
+            (NullableAnnotation.None, _) => string.Format(FeaturesResources._0_is_not_nullable_aware, symbol.ToDisplayString(s_nullableDisplayFormat)),
             (_, NullableFlowState.MaybeNull) => string.Format(FeaturesResources._0_may_be_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
             (_, NullableFlowState.NotNull) => string.Format(FeaturesResources._0_is_not_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
             _ => null

@@ -8109,7 +8109,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription($"({FeaturesResources.parameter}) string s"),
-            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_aware, "s")));
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
     }
 
     [Fact]
@@ -8173,7 +8173,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription($"({FeaturesResources.field}) string X.s"),
-            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_aware, "s")));
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
@@ -8229,7 +8229,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription($"({FeaturesResources.field}) string X.P.field"),
-            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_aware, "P.field")));
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "P.field")));
     }
 
     [Fact]
@@ -8296,7 +8296,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription("string X.S { get; set; }"),
-            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_aware, "S")));
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "S")));
     }
 
     [Fact]
@@ -8371,7 +8371,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription($"({FeaturesResources.local_variable}) string s"),
-            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_aware, "s")));
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
     }
 
     [Fact]
@@ -8434,7 +8434,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription($"({FeaturesResources.local_variable}) string s"),
-            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_aware, "s")));
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
     }
 
     [Fact]
@@ -8491,7 +8491,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription("string X.M()"),
-            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_aware, "M")));
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "M")));
     }
 
     [Fact]

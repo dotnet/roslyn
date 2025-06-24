@@ -3255,14 +3255,14 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">'Implementace symbolů {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_not_null_aware">
-        <source>'{0}' is not nullable aware.</source>
-        <target state="new">'{0}' is not nullable aware.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">{0} tady není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_not_nullable_aware">
+        <source>'{0}' is not nullable aware.</source>
+        <target state="new">'{0}' is not nullable aware.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">

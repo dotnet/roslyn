@@ -3255,14 +3255,14 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">'Implementações de '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_not_null_aware">
-        <source>'{0}' is not nullable aware.</source>
-        <target state="new">'{0}' is not nullable aware.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">'{0}' não é nulo aqui.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_not_nullable_aware">
+        <source>'{0}' is not nullable aware.</source>
+        <target state="new">'{0}' is not nullable aware.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
