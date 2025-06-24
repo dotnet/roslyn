@@ -81,7 +81,7 @@ Test exports should not be discoverable.
 |Category|RoslynDiagnosticsReliability|
 |Enabled|False|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## RS0033: Importing constructor should be marked with 'ObsoleteAttribute'
@@ -93,7 +93,7 @@ Importing constructor should be marked with 'ObsoleteAttribute'.
 |Category|RoslynDiagnosticsReliability|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## RS0034: Exported parts should have a public constructor marked with 'ImportingConstructorAttribute'
@@ -105,7 +105,7 @@ Exported parts should be marked with 'ImportingConstructorAttribute'.
 |Category|RoslynDiagnosticsReliability|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## RS0038: Prefer null literal
