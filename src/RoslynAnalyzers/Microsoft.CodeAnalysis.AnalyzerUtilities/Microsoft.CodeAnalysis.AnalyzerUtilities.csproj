@@ -11,9 +11,7 @@
 
     <ExcludeCodeMetricsUtilities>true</ExcludeCodeMetricsUtilities>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
 
     <!-- RS0026: Avoid public API overloads with differences in optional parameters -->
     <NoWarn>$(NoWarn);RS0026</NoWarn>

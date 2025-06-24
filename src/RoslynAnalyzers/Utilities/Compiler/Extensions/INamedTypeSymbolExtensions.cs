@@ -16,7 +16,7 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class INamedTypeSymbolExtensions
     {
-        public static bool IsFileLocal(this INamedTypeSymbol symbol) => symbol.IsFileLocal;// s_isFileLocal(symbol);
+        public static bool IsFileLocal(this INamedTypeSymbol symbol) => symbol.IsFileLocal;
 
         /// <summary>
         /// Returns a value indicating whether <paramref name="type"/> derives from, or implements

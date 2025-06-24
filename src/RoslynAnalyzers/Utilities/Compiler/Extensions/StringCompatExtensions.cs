@@ -8,6 +8,11 @@ namespace System
 {
     internal static class StringCompatExtensions
     {
+        public static bool Contains(this string str, string value, StringComparison comparisonType)
+        {
+            return str.IndexOf(value, comparisonType) >= 0;
+        }
+
         public static string Replace(this string str, string oldValue, string? newValue, StringComparison comparisonType)
         {
             if (comparisonType != StringComparison.Ordinal)

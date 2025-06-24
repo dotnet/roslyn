@@ -205,7 +205,7 @@ A CodeFixProvider should provide FixAll support to enable users to fix multiple 
 |Category|Correctness|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## RS1017: DiagnosticId for analyzers must be a non-null constant
@@ -385,7 +385,7 @@ The diagnostic title should not contain a period, nor any line return character,
 |Category|MicrosoftCodeAnalysisDesign|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## RS1032: Define diagnostic message correctly
@@ -397,7 +397,7 @@ The diagnostic message should not contain any line return character nor any lead
 |Category|MicrosoftCodeAnalysisDesign|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## RS1033: Define diagnostic description correctly
@@ -409,7 +409,7 @@ The diagnostic description should be one or multiple sentences ending with a pun
 |Category|MicrosoftCodeAnalysisDesign|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## RS1034: Prefer 'IsKind' for checking syntax kinds
@@ -541,7 +541,7 @@ All supported analyzer diagnostic IDs should be part of an analyzer release.
 |Category|MicrosoftCodeAnalysisReleaseTracking|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## [RS2001](https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release
@@ -553,7 +553,7 @@ Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer releas
 |Category|MicrosoftCodeAnalysisReleaseTracking|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---
 
 ## [RS2002](https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Do not add removed analyzer diagnostic IDs to unshipped analyzer release
@@ -637,5 +637,5 @@ Enabling release tracking for analyzer packages helps in tracking and documentin
 |Category|MicrosoftCodeAnalysisReleaseTracking|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|True|
+|CodeFix|False|
 ---

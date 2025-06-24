@@ -15,7 +15,7 @@
     <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
     <!-- Pin SCI and SRM to 8.0, since this generator is built & consumed in our pipeline so it has to work with stock compiler in msbuild (currently shipped with 8.0) -->
-    <PackageReference Include="System.Collections.Immutable" VersionOverride="9.0.0" />
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="8.0.0" />
     <PackageReference Include="System.Reflection.Metadata" VersionOverride="8.0.0" />
   </ItemGroup>
   <ItemGroup>
@@ -25,6 +25,6 @@
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
     <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
 
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" VersionOverride="4.14.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 </Project>

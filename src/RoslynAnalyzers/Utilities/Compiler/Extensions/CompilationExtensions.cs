@@ -2,13 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODEANALYSIS_V3_OR_BETTER
-using System;
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
-#endif
-
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
@@ -27,7 +20,7 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <returns>The <see cref="INamedTypeSymbol"/> if found, null otherwise.</returns>
         internal static INamedTypeSymbol? GetOrCreateTypeByMetadataName(this Compilation compilation, string fullTypeName) =>
-        WellKnownTypeProvider.GetOrCreate(compilation).GetOrCreateTypeByMetadataName(fullTypeName);
+            WellKnownTypeProvider.GetOrCreate(compilation).GetOrCreateTypeByMetadataName(fullTypeName);
 
         /// <summary>
         /// Gets a type by its full type name and cache it at the compilation level.
