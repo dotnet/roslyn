@@ -471,7 +471,6 @@ namespace Analyzer.Utilities.Extensions
                 return null;
             }
         }
-        //#endif
 
         public static bool IsLambdaOrLocalFunctionOrDelegate(this IMethodSymbol method)
         {
