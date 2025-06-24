@@ -52,14 +52,16 @@ namespace GenerateDocumentationAndConfigFiles
                                 }
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            Console.WriteLine($"Error creating instance of {typeInfo.FullName}: {ex.Message}\r\n{ex}");
                         }
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error processing analyzer file reference: {ex.Message}\r\n{ex}");
             }
 
             return builder != null ? builder.ToImmutable() : ImmutableArray<CodeFixProvider>.Empty;
