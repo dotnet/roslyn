@@ -154,12 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, infoAndType.Type!);
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, node.Type);
+                updatedNode = node.Update(op, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, originalUserDefinedOperatorsOpt, node.Type);
             }
             return updatedNode;
         }
