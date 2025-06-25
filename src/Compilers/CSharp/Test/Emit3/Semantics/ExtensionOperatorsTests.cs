@@ -3032,6 +3032,451 @@ static class Extensions
             CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
         }
 
+        [Fact]
+        public void Unary_054_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+
+    extension(C2)
+    {
+        public static C2 operator -(C2? x)
+        {
+            System.Console.Write("operator2");
+            return new C2();
+        }
+    }
+}
+
+public class C1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+#line 23
+        _ = -x;
+        C1 y = new C1();
+        y = -y;
+        C2? z = null;
+        _ = -z;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,14): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x)'.
+                //         _ = -x;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 extension(C1).operator -(C1 x)").WithLocation(23, 14)
+                );
+        }
+
+        [Fact]
+        public void Unary_055_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1? operator -(C1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        C1 y = -x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         C1 y = -x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "-x").WithLocation(23, 16)
+                );
+        }
+
+        [Fact]
+        public void Unary_056_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(T x)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (-x).ToString();
+        var y = new C2();
+        (-y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (22,10): warning CS8602: Dereference of a possibly null reference.
+                //         (-x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "-x").WithLocation(22, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Unary_057_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T>) where T : new()
+    {
+        public static T operator -(C1<T> x)
+        {
+            return x.F;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (-x).ToString();
+        var y = Get(new C2());
+        (-y).ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,10): warning CS8602: Dereference of a possibly null reference.
+                //         (-x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "-x").WithLocation(27, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator -(C1<C2?>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator -(C1<C2>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Unary_058_NullableAnalysis_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : new()
+    {
+        public static S1<T> operator -(S1<T> x)
+        {
+            return x;
+        }
+    }
+}
+
+public struct S1<T> where T : new()
+{
+    public T F;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = -Get((C2?)null);
+
+        if (x != null)
+            x.Value.F.ToString();
+
+        var y = -Get(new C2());
+
+        if (y != null)
+            y.Value.F.ToString();
+    }
+
+    static S1<T>? Get<T>(T x) where T : new()
+    {
+        return new S1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(29, 13)
+                );
+        }
+
+        [Fact]
+        public void Unary_059_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T) where T : notnull
+    {
+        public static object operator -(T x)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (-x).ToString();
+        var y = new C2();
+        (-y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (22,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (-x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "-x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(22, 10)
+                );
+        }
+
+        [Fact]
+        public void Unary_060_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T>) where T : notnull, new()
+    {
+        public static T operator -(C1<T> x)
+        {
+            return x.F;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (-x).ToString();
+        var y = Get(new C2());
+        (-y).ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (-x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "-x").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(27, 10),
+                // (27,10): warning CS8602: Dereference of a possibly null reference.
+                //         (-x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "-x").WithLocation(27, 10)
+                );
+        }
+
+        [Fact]
+        public void Unary_061_NullableAnalysis_True()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static bool operator true(C1 x) => true;
+        public static bool operator false(C1 x) => false;
+    }
+
+    extension(C2)
+    {
+        public static bool operator true(C2? x) => true;
+        public static bool operator false(C2? x) => false;
+    }
+}
+
+public class C1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+#line 20
+        if (x)
+        {}
+
+        C1 y = new C1();
+        if (y)
+        {}
+
+        C2? z= null;
+        if (z)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (20,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool extension(C1).operator true(C1 x)'.
+                //         if (x)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "bool extension(C1).operator true(C1 x)").WithLocation(20, 13)
+                );
+        }
+
+        [Fact]
+        public void Unary_062_NullableAnalysis_True_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T) where T : notnull
+    {
+        public static bool operator true(T x) => true;
+        public static bool operator false(T x) => false;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        if (x)
+        {}
+
+        var y = new C2();
+        if (y)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (20,13): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         if (x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(20, 13)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void Increment_001_Declaration([CombinatorialValues("++", "--")] string op)
@@ -7083,6 +7528,7 @@ static class Extensions
         /// This is a clone of Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics.RefEscapingTests.UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left
         /// </summary>
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
         public void Increment_075_RefSafety()
         {
             var source = """
@@ -7108,6 +7554,8 @@ static class Extensions
 }
 """;
             CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // The error is unexpected, but it is a preexisting condition - https://github.com/dotnet/roslyn/issues/78964.
+
                 // (7,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         c = ++c1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "++c1").WithArguments("scoped C c1").WithLocation(7, 13)
@@ -7297,6 +7745,985 @@ static class Extensions
 """ + CompilerFeatureRequiredAttribute;
 
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_082_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator --(C1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+        _ = --x;
+        C1 y = new C1();
+        y = --y;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,15): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator --(C1 x)'.
+                //         _ = --x;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "C1 extension(C1).operator --(C1 x)").WithLocation(23, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79011")]
+        public void Increment_083_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1? operator --(C1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x = new C1();
+        C1 y = --x;
+        C1 z = new C1();
+        --z;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // This warning is unexpected - https://github.com/dotnet/roslyn/issues/79011
+                // (23,16): warning CS8601: Possible null reference assignment.
+                //         C1 y = --x;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--x").WithLocation(23, 16),
+
+                // (23,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         C1 y = --x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "--x").WithLocation(23, 16),
+                // (25,9): warning CS8601: Possible null reference assignment.
+                //         --z;
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "--z").WithLocation(25, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_084_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator --(T x)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (--x).ToString();
+        var y = new C2();
+        (--y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (22,10): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "--x").WithLocation(22, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator --(C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator --(C2)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_085_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T>) where T : new()
+    {
+        public static C1<T> operator --(C1<T> x)
+        {
+            return x;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (--x).F.ToString();
+        var y = Get(new C2());
+        (--y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,9): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(--x).F").WithLocation(27, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator --(C1<C2?>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator --(C1<C2>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_086_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+
+    public static C1<T> operator --(C1<T> x)
+    {
+        return x;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+#line 27
+        (--x).F.ToString();
+        var y = Get(new C2());
+        (--y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,9): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(--x).F").WithLocation(27, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_087_NullableAnalysis_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : new()
+    {
+        public static S1<T> operator --(S1<T> x)
+        {
+            return x;
+        }
+    }
+}
+
+public struct S1<T> where T : new()
+{
+    public T F;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = --Get((C2?)null);
+
+        if (x != null)
+            x.Value.F.ToString();
+
+        var y = --Get(new C2());
+
+        if (y != null)
+            y.Value.F.ToString();
+    }
+
+    static ref S1<T>? Get<T>(T x) where T : new()
+    {
+        throw null!;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(29, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_088_NullableAnalysis_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public struct S1<T> where T : new()
+{
+    public T F;
+
+    public static S1<T> operator --(S1<T> x)
+    {
+        return x;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = --Get((C2?)null);
+
+        if (x != null)
+#line 29
+            x.Value.F.ToString();
+
+        var y = --Get(new C2());
+
+        if (y != null)
+            y.Value.F.ToString();
+    }
+
+    static ref S1<T>? Get<T>(T x) where T : new()
+    {
+        throw null!;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(29, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_089_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T) where T : notnull
+    {
+        public static T operator --(T x)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (--x).ToString();
+        var y = new C2();
+        (--y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (22,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (--x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "--x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(22, 10),
+                // (22,10): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "--x").WithLocation(22, 10)
+                );
+        }
+
+        [Fact]
+        public void Increment_090_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T>) where T : notnull, new()
+    {
+        public static C1<T> operator --(C1<T> x)
+        {
+            return x;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (--x).F.ToString();
+        var y = Get(new C2());
+        (--y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,9): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(--x).F").WithLocation(27, 9),
+                // (27,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (--x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "--x").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(27, 10)
+                );
+        }
+
+        [Fact]
+        public void Increment_091_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator --() {}
+    }
+
+    extension(C2? x)
+    {
+        public void operator --() {}
+    }
+}
+
+public class C1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+        var x1 = --x;
+        x.ToString();
+        x1.ToString();
+
+        C1 y = new C1();
+        var y1 = --y;
+        y.ToString();
+        y1.ToString();
+
+        C2? z = null;
+        var z1 = --z;
+        z.ToString();
+        z1.ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1)'.
+                //         var x1 = --x;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1)").WithLocation(27, 20),
+                // (38,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
+                // (39,9): warning CS8602: Dereference of a possibly null reference.
+                //         z1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(39, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_092_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+public static class Extensions1
+{
+    extension([NotNull] ref S1? x)
+    {
+        public void operator --() { throw null!; }
+    }
+
+    extension([NotNull] C2? x)
+    {
+        public void operator --() { throw null!; }
+    }
+}
+
+public struct S1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? x = null;
+        var x1 = --x;
+        _ = x.Value;
+        _ = x1.Value;
+
+        C2? z = null;
+        var z1 = --z;
+        z.ToString();
+        z1.ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_093_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(ref S1? x)
+    {
+        public void operator --() {}
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? x = null;
+        var x1 = --x;
+        _ = x.Value;
+        _ = x1.Value;
+
+        S1? y = new S1();
+        var y1 = --y;
+        _ = y.Value;
+        _ = y1.Value;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (20,13): warning CS8629: Nullable value type may be null.
+                //         _ = x.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(20, 13),
+                // (21,13): warning CS8629: Nullable value type may be null.
+                //         _ = x1.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x1").WithLocation(21, 13),
+                // (25,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(25, 13),
+                // (26,13): warning CS8629: Nullable value type may be null.
+                //         _ = y1.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y1").WithLocation(26, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_094_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(ref S1? x)
+    {
+        public void operator --() {}
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        _ = Get(new S1()).Value;
+        var y1 = --Get(new S1());
+#line 26
+        _ = y1.Value;
+    }
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull("x")]
+    static ref S1? Get(S1? x) => throw null!;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (26,13): warning CS8629: Nullable value type may be null.
+                //         _ = y1.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y1").WithLocation(26, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_095_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1Base x)
+    {
+        public void operator --() {}
+    }
+
+    extension(C2Base? x)
+    {
+        public void operator --() {}
+    }
+}
+
+public class C1Base {}
+public class C1 : C1Base {}
+
+public class C2Base {}
+public class C2 : C2Base {}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+        var x1 = --x;
+        x.ToString();
+        x1.ToString();
+
+        C1 y = new C1();
+        var y1 = --y;
+        y.ToString();
+        y1.ToString();
+
+        C2? z = null;
+        var z1 = --z;
+        z.ToString();
+        z1.ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,20): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1Base)'.
+                //         var x1 = --x;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1Base)").WithLocation(27, 20),
+                // (38,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
+                // (39,9): warning CS8602: Dereference of a possibly null reference.
+                //         z1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(39, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_096_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C2Base<string> x)
+    {
+        public void operator --() {}
+    }
+}
+
+public class C2Base<T> {}
+public class C2<T> : C2Base<T> {}
+
+class Program
+{
+    static void Main()
+    {
+        C2<string?> z = new C2<string?>();
+        var z1 = --z;
+        z.ToString();
+        z1.ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (19,20): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'extension(C2Base<string>)' due to differences in the nullability of reference types.
+                //         var z1 = --z;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "extension(C2Base<string>)").WithLocation(19, 20)
+                );
+        }
+
+        [Fact]
+        public void Increment_097_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+public static class Extensions1
+{
+    extension([NotNull] C2Base? x)
+    {
+        public void operator --() { throw null!; }
+    }
+}
+
+public class C2Base
+{}
+
+public class C2 : C2Base
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? z = null;
+        var z1 = --z;
+        z.ToString();
+        z1.ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_098_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T x) where T : class
+    {
+        public void operator --() {}
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (--x).ToString();
+        var y = new C2();
+        (--y).ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (19,10): warning CS8634: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'class' constraint.
+                //         (--x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "--x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(19, 10),
+                // (19,10): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "--x").WithLocation(19, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator --()", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator --()", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_099_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T> x) where T : notnull, new()
+    {
+        public void operator --() {}
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (--x).F.ToString();
+        var y = Get(new C2());
+        (--y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(--x).F").WithLocation(24, 9),
+                // (24,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (--x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "--x").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(24, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator --()", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator --()", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_100_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T x) where T : class?
+    {
+        public void operator --() {}
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (--x).ToString();
+        var y = new C2();
+        (--y).ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (19,10): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "--x").WithLocation(19, 10)
+                );
+        }
+
+        [Fact]
+        public void Increment_101_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T> x) where T : new()
+    {
+        public void operator --() {}
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (--x).F.ToString();
+        var y = Get(new C2());
+        (--y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         (--x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(--x).F").WithLocation(24, 9)
+                );
         }
 
         [Theory]
@@ -13513,6 +14940,1319 @@ static class Extensions
                 );
         }
 
+        [Fact]
+        public void Binary_105_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+
+    extension(C2)
+    {
+        public static C2 operator -(C2? x, C2? y)
+        {
+            System.Console.Write("operator2");
+            return new C2();
+        }
+    }
+}
+
+public class C1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x1 = null;
+        C1? x2 = null;
+        C1 y = new C1();
+#line 25
+        _ = x1 - y;
+        y = y - x2;
+
+        C2? z = null;
+        _ = z - z;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                //         _ = x1 - y;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
+                // (26,17): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                //         y = y - x2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 17)
+                );
+        }
+
+        [Fact]
+        public void Binary_106_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1? operator -(C1 x, C1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        C1 y = x - x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         C1 y = x - x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x - x").WithLocation(23, 16)
+                );
+        }
+
+        [Fact]
+        public void Binary_107_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(T x, T y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x1 = null;
+        C2? x2 = null;
+        var y = new C2();
+        (x1 - y).ToString();
+        (y - x2).ToString();
+        (y - y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (24,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x1 - y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1 - y").WithLocation(24, 10),
+                // (25,10): warning CS8602: Dereference of a possibly null reference.
+                //         (y - x2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y - x2").WithLocation(25, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2, C2)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Binary_108_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(int x, T y)
+        {
+            return y;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        var y = new C2();
+        (1 - x).ToString();
+        (1 - y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,10): warning CS8602: Dereference of a possibly null reference.
+                //         (1 - x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "1 - x").WithLocation(23, 10)
+                );
+        }
+
+        [Fact]
+        public void Binary_109_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(T x, int y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        var y = new C2();
+        (x - 1).ToString();
+        (y - 1).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x - 1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x - 1").WithLocation(23, 10)
+                );
+        }
+
+        [Fact]
+        public void Binary_110_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T, S>(C1<T>) where T : new() where S : new()
+    {
+        public static T operator -(C1<T> x, C1<S> y)
+        {
+            return x.F;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+
+        (x - y).ToString();
+        (y - x).ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x - y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x - y").WithLocation(29, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?, C2>(C1<C2?>).operator -(C1<C2?>, C1<C2>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2, C2?>(C1<C2>).operator -(C1<C2>, C1<C2?>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Binary_111_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T, S>(C1<T>) where T : new() where S : new()
+    {
+        public static T operator -(C1<S> y, C1<T> x)
+        {
+            return x.F;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+
+        (x - y).ToString();
+        (y - x).ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (30,10): warning CS8602: Dereference of a possibly null reference.
+                //         (y - x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y - x").WithLocation(30, 10)
+                );
+        }
+
+        [Fact]
+        public void Binary_112_NullableAnalysis_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : new()
+    {
+        public static S1<T> operator -(S1<T> x, int y)
+        {
+            return x;
+        }
+    }
+}
+
+public struct S1<T> where T : new()
+{
+    public T F;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null) - 1;
+
+        if (x != null)
+            x.Value.F.ToString();
+
+        var y = Get(new C2()) - 1;
+
+        if (y != null)
+            y.Value.F.ToString();
+    }
+
+    static S1<T>? Get<T>(T x) where T : new()
+    {
+        return new S1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(29, 13)
+                );
+        }
+
+        [Fact]
+        public void Binary_113_NullableAnalysis_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : new()
+    {
+        public static S1<T> operator -(int y, S1<T> x)
+        {
+            return x;
+        }
+    }
+}
+
+public struct S1<T> where T : new()
+{
+    public T F;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = 1 - Get((C2?)null);
+
+        if (x != null)
+            x.Value.F.ToString();
+
+        var y = 1 - Get(new C2());
+
+        if (y != null)
+            y.Value.F.ToString();
+    }
+
+    static S1<T>? Get<T>(T x) where T : new()
+    {
+        return new S1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(29, 13)
+                );
+        }
+
+        [Fact]
+        public void Binary_114_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T) where T : notnull
+    {
+        public static object operator -(T x, T y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        var y = new C2();
+        (x - y).ToString();
+        (y - x).ToString();
+        (y - y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x - y).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x - y").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(23, 10),
+                // (24,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (y - x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "y - x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(24, 10)
+                );
+        }
+
+        [Fact]
+        public void Binary_115_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T, S>(C1<T>) where T : notnull, new() where S : notnull, new()
+    {
+        public static T operator -(C1<T> x, C1<S> y)
+        {
+            return x.F;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+        (x - y).ToString();
+        (y - x).ToString();
+        (y - y).ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (28,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T, S>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x - y).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x - y").WithArguments("Extensions1.extension<T, S>(C1<T>)", "T", "C2?").WithLocation(28, 10),
+                // (28,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x - y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x - y").WithLocation(28, 10),
+                // (29,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'S' in the generic type or method 'Extensions1.extension<T, S>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (y - x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "y - x").WithArguments("Extensions1.extension<T, S>(C1<T>)", "S", "C2?").WithLocation(29, 10)
+                );
+        }
+
+        [Fact]
+        public void Binary_116_NullableAnalysis_Logical()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator &(C1 x, C1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public static bool operator true(C1 x) => true;
+        public static bool operator false(C1 x) => false;
+    }
+
+    extension(C2)
+    {
+        public static C2 operator &(C2? x, C2? y)
+        {
+            System.Console.Write("operator1");
+            return new C2();
+        }
+
+        public static bool operator true(C2? x) => true;
+        public static bool operator false(C2? x) => false;
+    }
+}
+
+public class C1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x1 = null;
+        C1? x2 = null;
+        C1 y = new C1();
+#line 28
+        _ = x1 && y;
+        y = y && x2;
+
+        C2? z = null;
+        _ = z && z;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'bool extension(C1).operator false(C1 x)'.
+                //         _ = x1 && y;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "bool extension(C1).operator false(C1 x)").WithLocation(28, 13),
+                // (28,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator &(C1 x, C1 y)'.
+                //         _ = x1 && y;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator &(C1 x, C1 y)").WithLocation(28, 13),
+                // (29,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator &(C1 x, C1 y)'.
+                //         y = y && x2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator &(C1 x, C1 y)").WithLocation(29, 18)
+                );
+        }
+
+        [Fact]
+        public void Binary_117_NullableAnalysis_Logical()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1? operator &(C1 x, C1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public static bool operator true(C1 x) => true;
+        public static bool operator false(C1 x) => false;
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        C1 y = x && x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (26,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         C1 y = x && x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x && x").WithLocation(26, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29605")]
+        public void Binary_118_NullableAnalysis_Logical()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator &(T x, T y)
+        {
+            return x;
+        }
+
+        public static bool operator true(T x) => true;
+        public static bool operator false(T x) => false;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x1 = null;
+        C2? x2 = null;
+        var y = new C2();
+        (x1 && y).ToString();
+        (y && x2).ToString();
+        (y && y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (27,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x1 && y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1 && y").WithLocation(27, 10),
+                // (28,10): warning CS8602: Dereference of a possibly null reference.
+                //         (y && x2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y && x2").WithLocation(28, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator &(C2, C2)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Binary_119_NullableAnalysis_Logical()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T>)
+    {
+        public static C1<T> operator &(C1<T> x, C1<T> y)
+        {
+            return x;
+        }
+
+        public static bool operator true(C1<T> x) => true;
+        public static bool operator false(C1<T> x) => false;
+    }
+}
+
+public interface C1<out T>
+{
+    public T F { get; }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+
+        (x && y).F.ToString();
+        (y && x).F.ToString();
+
+        var z = Get((C2?)null);
+        (y && z).F.ToString();
+        (y && y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x)
+    {
+        throw null!;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (32,9): warning CS8602: Dereference of a possibly null reference.
+                //         (x && y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x && y).F").WithLocation(32, 9),
+                // (33,9): warning CS8602: Dereference of a possibly null reference.
+                //         (y && x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y && x).F").WithLocation(33, 9),
+                // (36,9): warning CS8602: Dereference of a possibly null reference.
+                //         (y && z).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y && z).F").WithLocation(36, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(4, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator &(C1<C2?>, C1<C2?>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator &(C1<C2?>, C1<C2?>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator &(C1<C2?>, C1<C2?>)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator &(C1<C2>, C1<C2>)", model.GetSymbolInfo(opNodes[3]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Binary_120_NullableAnalysis_Logical()
+        {
+            var src = $$$"""
+#nullable enable
+
+public interface C1<out T>
+{
+    public T F { get; }
+
+    public static C1<T> operator &(C1<T> x, C1<T> y)
+    {
+        return x;
+    }
+
+    public static bool operator true(C1<T> x) => true;
+    public static bool operator false(C1<T> x) => false;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+
+        (x && y).F.ToString();
+        (y && x).F.ToString();
+
+        var z = Get((C2?)null);
+        (y && z).F.ToString();
+        (y && y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x)
+    {
+        throw null!;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         (x && y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x && y).F").WithLocation(26, 9),
+                // (27,15): warning CS8620: Argument of type 'C1<C2?>' cannot be used for parameter 'y' of type 'C1<C2>' in 'C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)' due to differences in the nullability of reference types.
+                //         (y && x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C1<C2?>", "C1<C2>", "y", "C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)").WithLocation(27, 15),
+                // (30,15): warning CS8620: Argument of type 'C1<C2?>' cannot be used for parameter 'y' of type 'C1<C2>' in 'C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)' due to differences in the nullability of reference types.
+                //         (y && z).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C1<C2?>", "C1<C2>", "y", "C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)").WithLocation(30, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29605")]
+        public void Binary_121_NullableAnalysis_Logical_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : new()
+    {
+        public static S1<T> operator &(S1<T> x, S1<T> y)
+        {
+            return x;
+        }
+    }
+
+    extension<T>(S1<T>?) where T : new()
+    {
+        public static bool operator true(S1<T>? x) => true;
+        public static bool operator false(S1<T>? x) => false;
+    }
+}
+
+public struct S1<T> where T : new()
+{
+    public T F;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var x1 = x && x;
+
+        if (x1 != null)
+            x1.Value.F.ToString();
+
+        var y = Get(new C2());
+        var y1 = y && y;
+
+        if (y1 != null)
+            y1.Value.F.ToString();
+    }
+
+    static S1<T>? Get<T>(T x) where T : new()
+    {
+        return new S1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (36,13): warning CS8602: Dereference of a possibly null reference.
+                //             x1.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1.Value.F").WithLocation(36, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29605")]
+        public void Binary_122_NullableAnalysis_Logical_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public struct S1<T> where T : new()
+{
+    public T F;
+
+    public static S1<T> operator &(S1<T> x, S1<T> y)
+    {
+        return x;
+    }
+
+    public static bool operator true(S1<T>? x) => true;
+    public static bool operator false(S1<T>? x) => false;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var x1 = x && x;
+
+        if (x1 != null)
+            x1.Value.F.ToString();
+
+        var y = Get(new C2());
+        var y1 = y && y;
+
+        if (y1 != null)
+            y1.Value.F.ToString();
+    }
+
+    static S1<T>? Get<T>(T x) where T : new()
+    {
+        return new S1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (27,13): warning CS8602: Dereference of a possibly null reference.
+                //             x1.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1.Value.F").WithLocation(27, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29605")]
+        public void Binary_123_NullableAnalysis_Logical_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T) where T : notnull
+    {
+        public static T operator &(T x, T y)
+        {
+            return x;
+        }
+    }
+
+    extension<T>(T)
+    {
+        public static bool operator true(T x) => true;
+        public static bool operator false(T x) => false;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        var y = new C2();
+        (x && y).ToString();
+        (y && x).ToString();
+        (y && y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (29,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x && y).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x && y").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(29, 10),
+                // (29,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x && y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x && y").WithLocation(29, 10),
+                // (30,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (y && x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "y && x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(30, 10),
+                // (30,10): warning CS8602: Dereference of a possibly null reference.
+                //         (y && x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y && x").WithLocation(30, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/29605")]
+        public void Binary_124_NullableAnalysis_Logical_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator &(T x, T y)
+        {
+            return x;
+        }
+    }
+
+    extension<T>(T) where T : notnull
+    {
+        public static bool operator true(T x) => true;
+        public static bool operator false(T x) => false;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        var y = new C2();
+        (x && y).ToString();
+        (y && x).ToString();
+        (y && y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (29,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x && y).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(29, 10),
+                // (29,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x && y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x && y").WithLocation(29, 10),
+                // (30,10): warning CS8602: Dereference of a possibly null reference.
+                //         (y && x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y && x").WithLocation(30, 10)
+                );
+        }
+
+        [Fact]
+        public void Binary_125_NullableAnalysis_Logical_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T>) where T : notnull
+    {
+        public static C1<T> operator &(C1<T> x, C1<T> y)
+        {
+            return x;
+        }
+
+        public static bool operator true(C1<T> x) => true;
+        public static bool operator false(C1<T> x) => false;
+    }
+}
+
+public interface C1<out T>
+{
+    public T F { get; }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+        (x && y).F.ToString();
+        (y && x).F.ToString();
+        (y && y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x)
+    {
+        throw null!;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (31,9): warning CS8602: Dereference of a possibly null reference.
+                //         (x && y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x && y).F").WithLocation(31, 9),
+                // (31,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x && y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x && y").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(31, 10),
+                // (31,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x && y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(31, 10),
+                // (32,9): warning CS8602: Dereference of a possibly null reference.
+                //         (y && x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(y && x).F").WithLocation(32, 9),
+                // (32,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (y && x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "y && x").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(32, 10),
+                // (32,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (y && x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "y").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(32, 10)
+                );
+        }
+
+        [Fact]
+        public void Binary_126_NullableAnalysis_Logical_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public interface C1<out T> where T : notnull
+{
+    public T F { get; }
+
+    public static C1<T> operator &(C1<T> x, C1<T> y)
+    {
+        return x;
+    }
+
+    public static bool operator true(C1<T> x) => true;
+    public static bool operator false(C1<T> x) => false;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+        (x && y).F.ToString();
+        (y && x).F.ToString();
+        (y && y).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : notnull
+    {
+        throw null!;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,17): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Program.Get<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         var x = Get((C2?)null);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Get").WithArguments("Program.Get<T>(T)", "T", "C2?").WithLocation(23, 17),
+                // (25,10): warning CS8620: Argument of type 'C1<C2?>' cannot be used for parameter 'x' of type 'C1<C2>' in 'C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)' due to differences in the nullability of reference types.
+                //         (x && y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C1<C2?>", "C1<C2>", "x", "C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)").WithLocation(25, 10),
+                // (26,15): warning CS8620: Argument of type 'C1<C2?>' cannot be used for parameter 'y' of type 'C1<C2>' in 'C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)' due to differences in the nullability of reference types.
+                //         (y && x).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("C1<C2?>", "C1<C2>", "y", "C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)").WithLocation(26, 15)
+                );
+        }
+
+        [Fact]
+        public void Binary_127_NullableAnalysis_WithLambda()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(T x, System.Func<T> y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x1 = null;
+        var y = new C2();
+        (y - (() => x1)).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            // PROTOTYPE: Expect to infer T as C2? and get a null dereference warning.
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(1, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2, System.Func<C2>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void Binary_128_NullableAnalysis_Logical_Chained()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator &(T x, T y)
+        {
+            return x;
+        }
+
+        public static bool operator true(T x) => true;
+        public static bool operator false(T x) => false;
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x1 = null;
+        var y = new C2();
+        (x1 && y && y && y && y && y).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (26,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x1 && y && y && y && y && y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1 && y && y && y && y && y").WithLocation(26, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().ToArray();
+
+            Assert.Equal(5, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[3]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator &(C2?, C2?)", model.GetSymbolInfo(opNodes[4]).Symbol.ToDisplayString());
+        }
+
         [Theory]
         [CombinatorialData]
         public void CompoundAssignment_001_Declaration([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
@@ -19038,10 +21778,903 @@ static class Extensions
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "right").WithArguments("right").WithLocation(20, 22)
                 );
         }
+
+        [Fact]
+        public void CompoundAssignment_108_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+
+    extension(C2)
+    {
+        public static C2 operator -(C2? x, C2? y)
+        {
+            System.Console.Write("operator2");
+            return new C2();
+        }
     }
 }
 
-// PROTOTYPE: Test unsafe and partial, IOperation/CFG , Nullable analysis
+public class C1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x1 = null;
+        C1? x2 = null;
+        C1 y = new C1();
+#line 25
+        _ = x1 -= y;
+        y = y -= x2;
+
+        C2? z = null;
+        _ = z -= z;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                //         _ = x1 -= y;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(25, 13),
+                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'C1 extension(C1).operator -(C1 x, C1 y)'.
+                //         y = y -= x2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "C1 extension(C1).operator -(C1 x, C1 y)").WithLocation(26, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_109_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1? operator -(C1 x, C1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        C1 y = x -= x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         C1 y = x -= x;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x -= x").WithLocation(23, 16)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_110_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(T x, T y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x1 = null;
+        C2? x2 = null;
+        var y = new C2();
+        (x1 -= y).ToString();
+        (y -= x2).ToString();
+        y.ToString();
+        var z = new C2();
+        (z -= z).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (24,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x1 -= y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1 -= y").WithLocation(24, 10),
+                // (25,10): warning CS8602: Dereference of a possibly null reference.
+                //         (y -= x2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y -= x2").WithLocation(25, 10),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(26, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -(C2?, C2?)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -(C2, C2)", model.GetSymbolInfo(opNodes[2]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_111_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T)
+    {
+        public static T operator -(T x, int y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        var y = new C2();
+        (x -= 1).ToString();
+        (y -= 1).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x -= 1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x -= 1").WithLocation(23, 10)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_112_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T, S>(C1<T>) where T : new() where S : new()
+    {
+        public static C1<T> operator -(C1<T> x, C1<S> y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        var y = Get(new C2());
+
+        (x -= y).F.ToString();
+        (y -= x).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,9): warning CS8602: Dereference of a possibly null reference.
+                //         (x -= y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x -= y).F").WithLocation(29, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?, C2>(C1<C2?>).operator -(C1<C2?>, C1<C2>)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2, C2?>(C1<C2>).operator -(C1<C2>, C1<C2?>)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_113_NullableAnalysis_Lifted()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : new()
+    {
+        public static S1<T> operator -(S1<T> x, int y)
+        {
+            return x;
+        }
+    }
+}
+
+public struct S1<T> where T : new()
+{
+    public T F;
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null) -= 1;
+
+        if (x != null)
+            x.Value.F.ToString();
+
+        var y = Get(new C2()) -= 1;
+
+        if (y != null)
+            y.Value.F.ToString();
+    }
+
+    static ref S1<T>? Get<T>(T x) where T : new()
+    {
+        throw null!;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(29, 13)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_114_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T) where T : notnull
+    {
+        public static C2 operator -(T x, T y)
+        {
+            return (C2)(object)x;
+        }
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        var y = new C2();
+        (x -= y).ToString();
+        x = null;
+#line 24
+        (y -= x).ToString();
+
+        var z = new C2();
+        (z -= z).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x -= y).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x -= y").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(23, 10),
+                // (24,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (y -= x).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "y -= x").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(24, 10)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_115_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator -=(C1 y) {}
+    }
+
+    extension(C2? x)
+    {
+        public void operator -=(C2? y) {}
+    }
+}
+
+public class C1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x1 = null;
+        C1? x2 = null;
+        C1 y = new C1();
+#line 25
+        _ = x1 -= y;
+        y = y -= x2;
+
+        C2? z = null;
+        _ = z -= z;
+
+        C2 a = new C2();
+        C2? b = null;
+        C2 c = a -= b;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (25,13): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1)'.
+                //         _ = x1 -= y;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x1").WithArguments("x", "extension(C1)").WithLocation(25, 13),
+                // (26,18): warning CS8604: Possible null reference argument for parameter 'y' in 'void extension(C1).operator -=(C1 y)'.
+                //         y = y -= x2;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("y", "void extension(C1).operator -=(C1 y)").WithLocation(26, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_116_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+public static class Extensions1
+{
+    extension([NotNull] ref S1? x)
+    {
+        public void operator -=(int y) { throw null!; }
+    }
+
+    extension([NotNull] C2? x)
+    {
+        public void operator -=(int y) { throw null!; }
+    }
+}
+
+public struct S1
+{}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? x = null;
+        var x1 = x -= 1;
+        _ = x.Value;
+        _ = x1.Value;
+
+        C2? z = null;
+        var z1 = z -= 1;
+        z.ToString();
+        z1.ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_117_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(ref S1? x)
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? x = null;
+        var x1 = x -= 1;
+        _ = x.Value;
+        _ = x1.Value;
+
+        S1? y = new S1();
+        var y1 = y -= 1;
+        _ = y.Value;
+        _ = y1.Value;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (20,13): warning CS8629: Nullable value type may be null.
+                //         _ = x.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(20, 13),
+                // (21,13): warning CS8629: Nullable value type may be null.
+                //         _ = x1.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x1").WithLocation(21, 13),
+                // (25,13): warning CS8629: Nullable value type may be null.
+                //         _ = y.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(25, 13),
+                // (26,13): warning CS8629: Nullable value type may be null.
+                //         _ = y1.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y1").WithLocation(26, 13)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_118_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(ref S1? x)
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        _ = Get(new S1()).Value;
+        var y1 = Get(new S1()) -= 1;
+#line 26
+        _ = y1.Value;
+    }
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull("x")]
+    static ref S1? Get(S1? x) => throw null!;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (26,13): warning CS8629: Nullable value type may be null.
+                //         _ = y1.Value;
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y1").WithLocation(26, 13)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_119_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C1Base x)
+    {
+        public void operator -=(int y) {}
+    }
+
+    extension(C2Base? x)
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public class C1Base {}
+public class C1 : C1Base {}
+
+public class C2Base {}
+public class C2 : C2Base {}
+
+class Program
+{
+    static void Main()
+    {
+        C1? x = null;
+        var x1 = x -= 1;
+        x.ToString();
+        x1.ToString();
+
+        C1 y = new C1();
+        var y1 = y -= 1;
+        y.ToString();
+        y1.ToString();
+
+        C2? z = null;
+        var z1 = z -= 1;
+        z.ToString();
+        z1.ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (27,18): warning CS8604: Possible null reference argument for parameter 'x' in 'extension(C1Base)'.
+                //         var x1 = x -= 1;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "extension(C1Base)").WithLocation(27, 18),
+                // (38,9): warning CS8602: Dereference of a possibly null reference.
+                //         z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(38, 9),
+                // (39,9): warning CS8602: Dereference of a possibly null reference.
+                //         z1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(39, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_120_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension(C2Base<string> x)
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public class C2Base<T> {}
+public class C2<T> : C2Base<T> {}
+
+class Program
+{
+    static void Main()
+    {
+        C2<string?> z = new C2<string?>();
+        var z1 = z -= 1;
+        z.ToString();
+        z1.ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (19,18): warning CS8620: Argument of type 'C2<string?>' cannot be used for parameter 'x' of type 'C2Base<string>' in 'extension(C2Base<string>)' due to differences in the nullability of reference types.
+                //         var z1 = z -= 1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "z").WithArguments("C2<string?>", "C2Base<string>", "x", "extension(C2Base<string>)").WithLocation(19, 18)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_121_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+public static class Extensions1
+{
+    extension([NotNull] C2Base? x)
+    {
+        public void operator -=(int y) { throw null!; }
+    }
+}
+
+public class C2Base
+{}
+
+public class C2 : C2Base
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? z = null;
+        var z1 = z -= 1;
+        z.ToString();
+        z1.ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_122_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T x) where T : class?
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (x -= 1).ToString();
+        var y = new C2();
+        (y -= 1).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (19,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x -= 1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x -= 1").WithLocation(19, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C2?).operator -=(int)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C2).operator -=(int)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_123_NullableAnalysis()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T> x) where T : new()
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (x -= 1).F.ToString();
+        var y = Get(new C2());
+        (y -= 1).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         (x -= 1).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x -= 1).F").WithLocation(24, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNodes = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().ToArray();
+
+            Assert.Equal(2, opNodes.Length);
+            AssertEx.Equal("Extensions1.extension<C2?>(C1<C2?>).operator -=(int)", model.GetSymbolInfo(opNodes[0]).Symbol.ToDisplayString());
+            AssertEx.Equal("Extensions1.extension<C2>(C1<C2>).operator -=(int)", model.GetSymbolInfo(opNodes[1]).Symbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_124_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(T x) where T : class
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        C2? x = null;
+        (x -= 1).ToString();
+        var y = new C2();
+        (y -= 1).ToString();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (19,10): warning CS8634: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(T)'. Nullability of type argument 'C2?' doesn't match 'class' constraint.
+                //         (x -= 1).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "x -= 1").WithArguments("Extensions1.extension<T>(T)", "T", "C2?").WithLocation(19, 10),
+                // (19,10): warning CS8602: Dereference of a possibly null reference.
+                //         (x -= 1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x -= 1").WithLocation(19, 10)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_125_NullableAnalysis_Constraints()
+        {
+            var src = $$$"""
+#nullable enable
+
+public static class Extensions1
+{
+    extension<T>(C1<T> x) where T : notnull, new()
+    {
+        public void operator -=(int y) {}
+    }
+}
+
+public class C1<T> where T : new()
+{
+    public T F = new T();
+}
+
+public class C2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var x = Get((C2?)null);
+        (x -= 1).F.ToString();
+        var y = Get(new C2());
+        (y -= 1).F.ToString();
+    }
+
+    static C1<T> Get<T>(T x) where T : new()
+    {
+        return new C1<T>();
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (24,9): warning CS8602: Dereference of a possibly null reference.
+                //         (x -= 1).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(x -= 1).F").WithLocation(24, 9),
+                // (24,10): warning CS8714: The type 'C2?' cannot be used as type parameter 'T' in the generic type or method 'Extensions1.extension<T>(C1<T>)'. Nullability of type argument 'C2?' doesn't match 'notnull' constraint.
+                //         (x -= 1).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "x -= 1").WithArguments("Extensions1.extension<T>(C1<T>)", "T", "C2?").WithLocation(24, 10)
+                );
+        }
+    }
+}
+
+// PROTOTYPE: Test unsafe and partial
 //            Assert result of operator for basic consumption scenarios
 //            Cover ErrorCode.ERR_ExtensionDisallowsMember for conversion operators
 //            CRef binding
+//            'extern' modifier
+//            Nullability suppression
+//            Nullable analysis with interesting target-typed expressions as operands (null, lambda, collection expression) 
+//            Cover null-conditional compound assignment (including nullable analysis)?
