@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using System.Threading.Tasks;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 

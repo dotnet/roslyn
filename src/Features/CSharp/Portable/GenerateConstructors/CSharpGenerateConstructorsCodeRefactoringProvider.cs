@@ -5,18 +5,18 @@
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Features.Intents;
+using Microsoft.CodeAnalysis.GenerateConstructors;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.CSharp.Simplification;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Linq;
-using Microsoft.CodeAnalysis.GenerateConstructors;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructors;
 

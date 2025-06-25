@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.IO.Pipes;
-using System.Threading.Tasks;
-using System.Threading;
+using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PrepareTests;
 internal class TestDiscovery
