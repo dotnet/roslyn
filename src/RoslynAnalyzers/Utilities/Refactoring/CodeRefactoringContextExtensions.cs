@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Analyzer.Utilities
