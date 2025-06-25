@@ -260,7 +260,7 @@ class C
             });
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SynthesizedVariables1()
         {
             var source =
@@ -334,7 +334,9 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            vd.VerifyPdb("C.M", @"
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                vd.VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""disposable"">
@@ -374,6 +376,7 @@ class C
   </methods>
 </symbols>
 ", options: PdbValidationOptions.ExcludeDocuments);
+            }
         }
 
         [Fact]

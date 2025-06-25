@@ -173,13 +173,180 @@ public class C : IAsyncEnumerable<uint>
     }
 }
 ";
-            var comp_checked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "checked"), s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            var checkedSource = source.Replace("REPLACE", "checked");
+            var comp_checked = CreateCompilationWithTasksExtensions(new[] { checkedSource, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp_checked.VerifyDiagnostics();
             CompileAndVerify(comp_checked, expectedOutput: "overflow");
 
-            var comp_unchecked = CreateCompilationWithTasksExtensions(new[] { source.Replace("REPLACE", "unchecked"), s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            var uncheckedSource = source.Replace("REPLACE", "unchecked");
+            var comp_unchecked = CreateCompilationWithTasksExtensions(new[] { uncheckedSource, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp_unchecked.VerifyDiagnostics();
             CompileAndVerify(comp_unchecked, expectedOutput: "0xFFFFFFFF");
+
+            var runtimeAsyncCompChecked = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(checkedSource);
+            var verifierChecked = CompileAndVerify(runtimeAsyncCompChecked, expectedOutput: CodeGenAsyncTests.ExpectedOutput("overflow", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x85 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x31, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x24 }
+                    """
+            });
+            verifierChecked.VerifyIL("C.Main()", """
+                {
+                  // Code size      134 (0x86)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<uint> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  .try
+                  {
+                    IL_0000:  newobj     "C..ctor()"
+                    IL_0005:  ldloca.s   V_1
+                    IL_0007:  initobj    "System.Threading.CancellationToken"
+                    IL_000d:  ldloc.1
+                    IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<uint> System.Collections.Generic.IAsyncEnumerable<uint>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                    IL_0013:  stloc.0
+                    IL_0014:  ldnull
+                    IL_0015:  stloc.2
+                    .try
+                    {
+                      IL_0016:  br.s       IL_003e
+                      IL_0018:  ldloc.0
+                      IL_0019:  callvirt   "uint System.Collections.Generic.IAsyncEnumerator<uint>.Current.get"
+                      IL_001e:  conv.ovf.i4.un
+                      IL_001f:  stloc.3
+                      IL_0020:  ldstr      "0x{0:X8}"
+                      IL_0025:  ldc.i4.1
+                      IL_0026:  newarr     "object"
+                      IL_002b:  dup
+                      IL_002c:  ldc.i4.0
+                      IL_002d:  ldloc.3
+                      IL_002e:  box        "int"
+                      IL_0033:  stelem.ref
+                      IL_0034:  call       "string string.Format(string, params object[])"
+                      IL_0039:  call       "void System.Console.Write(object)"
+                      IL_003e:  ldloc.0
+                      IL_003f:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<uint>.MoveNextAsync()"
+                      IL_0044:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                      IL_0049:  brtrue.s   IL_0018
+                      IL_004b:  leave.s    IL_0050
+                    }
+                    catch object
+                    {
+                      IL_004d:  stloc.2
+                      IL_004e:  leave.s    IL_0050
+                    }
+                    IL_0050:  ldloc.0
+                    IL_0051:  brfalse.s  IL_005e
+                    IL_0053:  ldloc.0
+                    IL_0054:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                    IL_0059:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_005e:  ldloc.2
+                    IL_005f:  brfalse.s  IL_0076
+                    IL_0061:  ldloc.2
+                    IL_0062:  isinst     "System.Exception"
+                    IL_0067:  dup
+                    IL_0068:  brtrue.s   IL_006c
+                    IL_006a:  ldloc.2
+                    IL_006b:  throw
+                    IL_006c:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_0071:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0076:  leave.s    IL_0085
+                  }
+                  catch System.OverflowException
+                  {
+                    IL_0078:  pop
+                    IL_0079:  ldstr      "overflow"
+                    IL_007e:  call       "void System.Console.Write(object)"
+                    IL_0083:  leave.s    IL_0085
+                  }
+                  IL_0085:  ret
+                }
+                """);
+
+            var runtimeAsyncCompUnchecked = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(uncheckedSource);
+            var verifierUnchecked = CompileAndVerify(runtimeAsyncCompUnchecked, expectedOutput: CodeGenAsyncTests.ExpectedOutput("0xFFFFFFFF", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x84 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x31, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x24 }
+                    """
+            });
+            verifierUnchecked.VerifyIL("C.Main()", """
+                {
+                  // Code size      133 (0x85)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<uint> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  .try
+                  {
+                    IL_0000:  newobj     "C..ctor()"
+                    IL_0005:  ldloca.s   V_1
+                    IL_0007:  initobj    "System.Threading.CancellationToken"
+                    IL_000d:  ldloc.1
+                    IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<uint> System.Collections.Generic.IAsyncEnumerable<uint>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                    IL_0013:  stloc.0
+                    IL_0014:  ldnull
+                    IL_0015:  stloc.2
+                    .try
+                    {
+                      IL_0016:  br.s       IL_003d
+                      IL_0018:  ldloc.0
+                      IL_0019:  callvirt   "uint System.Collections.Generic.IAsyncEnumerator<uint>.Current.get"
+                      IL_001e:  stloc.3
+                      IL_001f:  ldstr      "0x{0:X8}"
+                      IL_0024:  ldc.i4.1
+                      IL_0025:  newarr     "object"
+                      IL_002a:  dup
+                      IL_002b:  ldc.i4.0
+                      IL_002c:  ldloc.3
+                      IL_002d:  box        "int"
+                      IL_0032:  stelem.ref
+                      IL_0033:  call       "string string.Format(string, params object[])"
+                      IL_0038:  call       "void System.Console.Write(object)"
+                      IL_003d:  ldloc.0
+                      IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<uint>.MoveNextAsync()"
+                      IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                      IL_0048:  brtrue.s   IL_0018
+                      IL_004a:  leave.s    IL_004f
+                    }
+                    catch object
+                    {
+                      IL_004c:  stloc.2
+                      IL_004d:  leave.s    IL_004f
+                    }
+                    IL_004f:  ldloc.0
+                    IL_0050:  brfalse.s  IL_005d
+                    IL_0052:  ldloc.0
+                    IL_0053:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                    IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_005d:  ldloc.2
+                    IL_005e:  brfalse.s  IL_0075
+                    IL_0060:  ldloc.2
+                    IL_0061:  isinst     "System.Exception"
+                    IL_0066:  dup
+                    IL_0067:  brtrue.s   IL_006b
+                    IL_0069:  ldloc.2
+                    IL_006a:  throw
+                    IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0075:  leave.s    IL_0084
+                  }
+                  catch System.OverflowException
+                  {
+                    IL_0077:  pop
+                    IL_0078:  ldstr      "overflow"
+                    IL_007d:  call       "void System.Console.Write(object)"
+                    IL_0082:  leave.s    IL_0084
+                  }
+                  IL_0084:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -816,6 +983,39 @@ public class C
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync 1");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync 1", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x2b }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                System.Threading.CancellationToken V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  call       "C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  br.s       IL_001d
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "int C.Enumerator.Current.get"
+                  IL_001c:  pop
+                  IL_001d:  ldloc.0
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync(int)"
+                  IL_0024:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0029:  brtrue.s   IL_0016
+                  IL_002b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -851,6 +1051,40 @@ public class C
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync 0");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync 0", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x30 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       49 (0x31)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                System.Threading.CancellationToken V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  call       "C.Enumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  br.s       IL_001d
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "int C.Enumerator.Current.get"
+                  IL_001c:  pop
+                  IL_001d:  ldloc.0
+                  IL_001e:  ldc.i4.0
+                  IL_001f:  newarr     "int"
+                  IL_0024:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync(params int[])"
+                  IL_0029:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_002e:  brtrue.s   IL_0016
+                  IL_0030:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1038,8 +1272,80 @@ class Element
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
+            string expectedOutput = "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Current(3) Convert(3) Got(3) NextAsync(3) Dispose(4)";
             CompileAndVerify(comp,
-                expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Current(3) Convert(3) Got(3) NextAsync(3) Dispose(4)");
+                expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x75 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x47 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      118 (0x76)
+                  .maxstack  5
+                  .locals init (C.AsyncEnumerator V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                Element V_3) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  call       "C.AsyncEnumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_003d
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int C.AsyncEnumerator.Current.get"
+                    IL_001e:  call       "Element Element.op_Explicit(int)"
+                    IL_0023:  stloc.3
+                    IL_0024:  ldstr      "Got({0}) "
+                    IL_0029:  ldc.i4.1
+                    IL_002a:  newarr     "object"
+                    IL_002f:  dup
+                    IL_0030:  ldc.i4.0
+                    IL_0031:  ldloc.3
+                    IL_0032:  stelem.ref
+                    IL_0033:  call       "string string.Format(string, params object[])"
+                    IL_0038:  call       "void System.Console.Write(object)"
+                    IL_003d:  ldloc.0
+                    IL_003e:  callvirt   "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                    IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0048:  brtrue.s   IL_0018
+                    IL_004a:  leave.s    IL_004f
+                  }
+                  catch object
+                  {
+                    IL_004c:  stloc.2
+                    IL_004d:  leave.s    IL_004f
+                  }
+                  IL_004f:  ldloc.0
+                  IL_0050:  brfalse.s  IL_005d
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_005d:  ldloc.2
+                  IL_005e:  brfalse.s  IL_0075
+                  IL_0060:  ldloc.2
+                  IL_0061:  isinst     "System.Exception"
+                  IL_0066:  dup
+                  IL_0067:  brtrue.s   IL_006b
+                  IL_0069:  ldloc.2
+                  IL_006a:  throw
+                  IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0075:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1082,6 +1388,92 @@ public class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Captured(1)");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Got(1) Got(2) Captured(1)", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0xa1 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x21, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x24 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      162 (0xa2)
+                  .maxstack  5
+                  .locals init (System.Action V_0, //f
+                                C.AsyncEnumerator V_1,
+                                System.Threading.CancellationToken V_2,
+                                object V_3,
+                                C.<>c__DisplayClass0_0 V_4) //CS$<>8__locals0
+                  IL_0000:  ldnull
+                  IL_0001:  stloc.0
+                  IL_0002:  newobj     "C..ctor()"
+                  IL_0007:  ldloca.s   V_2
+                  IL_0009:  initobj    "System.Threading.CancellationToken"
+                  IL_000f:  ldloc.2
+                  IL_0010:  call       "C.AsyncEnumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0015:  stloc.1
+                  IL_0016:  ldnull
+                  IL_0017:  stloc.3
+                  .try
+                  {
+                    IL_0018:  br.s       IL_0063
+                    IL_001a:  newobj     "C.<>c__DisplayClass0_0..ctor()"
+                    IL_001f:  stloc.s    V_4
+                    IL_0021:  ldloc.s    V_4
+                    IL_0023:  ldloc.1
+                    IL_0024:  callvirt   "int C.AsyncEnumerator.Current.get"
+                    IL_0029:  stfld      "int C.<>c__DisplayClass0_0.i"
+                    IL_002e:  ldstr      "Got({0}) "
+                    IL_0033:  ldc.i4.1
+                    IL_0034:  newarr     "object"
+                    IL_0039:  dup
+                    IL_003a:  ldc.i4.0
+                    IL_003b:  ldloc.s    V_4
+                    IL_003d:  ldfld      "int C.<>c__DisplayClass0_0.i"
+                    IL_0042:  box        "int"
+                    IL_0047:  stelem.ref
+                    IL_0048:  call       "string string.Format(string, params object[])"
+                    IL_004d:  call       "void System.Console.Write(object)"
+                    IL_0052:  ldloc.0
+                    IL_0053:  brtrue.s   IL_0063
+                    IL_0055:  ldloc.s    V_4
+                    IL_0057:  ldftn      "void C.<>c__DisplayClass0_0.<Main>b__0()"
+                    IL_005d:  newobj     "System.Action..ctor(object, System.IntPtr)"
+                    IL_0062:  stloc.0
+                    IL_0063:  ldloc.1
+                    IL_0064:  callvirt   "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                    IL_0069:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_006e:  brtrue.s   IL_001a
+                    IL_0070:  leave.s    IL_0075
+                  }
+                  catch object
+                  {
+                    IL_0072:  stloc.3
+                    IL_0073:  leave.s    IL_0075
+                  }
+                  IL_0075:  ldloc.1
+                  IL_0076:  brfalse.s  IL_0083
+                  IL_0078:  ldloc.1
+                  IL_0079:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                  IL_007e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0083:  ldloc.3
+                  IL_0084:  brfalse.s  IL_009b
+                  IL_0086:  ldloc.3
+                  IL_0087:  isinst     "System.Exception"
+                  IL_008c:  dup
+                  IL_008d:  brtrue.s   IL_0091
+                  IL_008f:  ldloc.3
+                  IL_0090:  throw
+                  IL_0091:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0096:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_009b:  ldloc.0
+                  IL_009c:  callvirt   "void System.Action.Invoke()"
+                  IL_00a1:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1138,7 +1530,80 @@ class C<T> where T : IntContainer, new()
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "NextAsync(1) Current(1) Got(1) NextAsync(2) Current(2) Got(2) NextAsync(3) Current(3) Got(3) NextAsync(4) Dispose(4)");
+            var expectedOutput = "NextAsync(1) Current(1) Got(1) NextAsync(2) Current(2) Got(2) NextAsync(3) Current(3) Got(3) NextAsync(4) Dispose(4)";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7a }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x47 }
+                    """
+            });
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size      123 (0x7b)
+                  .maxstack  5
+                  .locals init (C<IntContainer>.AsyncEnumerator V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                IntContainer V_3) //i
+                  IL_0000:  newobj     "C<IntContainer>..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  call       "C<IntContainer>.AsyncEnumerator C<IntContainer>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0042
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "IntContainer C<IntContainer>.AsyncEnumerator.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "Got({0}) "
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  newarr     "object"
+                    IL_002a:  dup
+                    IL_002b:  ldc.i4.0
+                    IL_002c:  ldloc.3
+                    IL_002d:  callvirt   "int IntContainer.Value.get"
+                    IL_0032:  box        "int"
+                    IL_0037:  stelem.ref
+                    IL_0038:  call       "string string.Format(string, params object[])"
+                    IL_003d:  call       "void System.Console.Write(object)"
+                    IL_0042:  ldloc.0
+                    IL_0043:  callvirt   "System.Threading.Tasks.Task<bool> C<IntContainer>.AsyncEnumerator.MoveNextAsync()"
+                    IL_0048:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_004d:  brtrue.s   IL_0018
+                    IL_004f:  leave.s    IL_0054
+                  }
+                  catch object
+                  {
+                    IL_0051:  stloc.2
+                    IL_0052:  leave.s    IL_0054
+                  }
+                  IL_0054:  ldloc.0
+                  IL_0055:  brfalse.s  IL_0062
+                  IL_0057:  ldloc.0
+                  IL_0058:  callvirt   "System.Threading.Tasks.ValueTask C<IntContainer>.AsyncEnumerator.DisposeAsync()"
+                  IL_005d:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0062:  ldloc.2
+                  IL_0063:  brfalse.s  IL_007a
+                  IL_0065:  ldloc.2
+                  IL_0066:  isinst     "System.Exception"
+                  IL_006b:  dup
+                  IL_006c:  brtrue.s   IL_0070
+                  IL_006e:  ldloc.2
+                  IL_006f:  throw
+                  IL_0070:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0075:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_007a:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1179,6 +1644,77 @@ public class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "exception");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("exception", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x67 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      104 (0x68)
+                  .maxstack  2
+                  .locals init (C.AsyncEnumerator V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2)
+                  .try
+                  {
+                    IL_0000:  newobj     "C..ctor()"
+                    IL_0005:  ldloca.s   V_1
+                    IL_0007:  initobj    "System.Threading.CancellationToken"
+                    IL_000d:  ldloc.1
+                    IL_000e:  call       "C.AsyncEnumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                    IL_0013:  stloc.0
+                    IL_0014:  ldnull
+                    IL_0015:  stloc.2
+                    .try
+                    {
+                      IL_0016:  br.s       IL_0021
+                      IL_0018:  ldloc.0
+                      IL_0019:  callvirt   "int C.AsyncEnumerator.Current.get"
+                      IL_001e:  pop
+                      IL_001f:  ldnull
+                      IL_0020:  throw
+                      IL_0021:  ldloc.0
+                      IL_0022:  callvirt   "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                      IL_0027:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                      IL_002c:  brtrue.s   IL_0018
+                      IL_002e:  leave.s    IL_0033
+                    }
+                    catch object
+                    {
+                      IL_0030:  stloc.2
+                      IL_0031:  leave.s    IL_0033
+                    }
+                    IL_0033:  ldloc.0
+                    IL_0034:  brfalse.s  IL_0041
+                    IL_0036:  ldloc.0
+                    IL_0037:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                    IL_003c:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_0041:  ldloc.2
+                    IL_0042:  brfalse.s  IL_0059
+                    IL_0044:  ldloc.2
+                    IL_0045:  isinst     "System.Exception"
+                    IL_004a:  dup
+                    IL_004b:  brtrue.s   IL_004f
+                    IL_004d:  ldloc.2
+                    IL_004e:  throw
+                    IL_004f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_0054:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0059:  ldnull
+                    IL_005a:  throw
+                  }
+                  catch System.ArgumentException
+                  {
+                    IL_005b:  callvirt   "string System.Exception.Message.get"
+                    IL_0060:  call       "void System.Console.Write(object)"
+                    IL_0065:  leave.s    IL_0067
+                  }
+                  IL_0067:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1222,6 +1758,78 @@ public class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "dispose exception");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("dispose exception", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x67 }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      104 (0x68)
+                  .maxstack  2
+                  .locals init (C.AsyncEnumerator V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2)
+                  .try
+                  {
+                    IL_0000:  newobj     "C..ctor()"
+                    IL_0005:  ldloca.s   V_1
+                    IL_0007:  initobj    "System.Threading.CancellationToken"
+                    IL_000d:  ldloc.1
+                    IL_000e:  call       "C.AsyncEnumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                    IL_0013:  stloc.0
+                    IL_0014:  ldnull
+                    IL_0015:  stloc.2
+                    .try
+                    {
+                      IL_0016:  br.s       IL_0021
+                      IL_0018:  ldloc.0
+                      IL_0019:  callvirt   "int C.AsyncEnumerator.Current.get"
+                      IL_001e:  pop
+                      IL_001f:  ldnull
+                      IL_0020:  throw
+                      IL_0021:  ldloc.0
+                      IL_0022:  callvirt   "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                      IL_0027:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                      IL_002c:  brtrue.s   IL_0018
+                      IL_002e:  leave.s    IL_0033
+                    }
+                    catch object
+                    {
+                      IL_0030:  stloc.2
+                      IL_0031:  leave.s    IL_0033
+                    }
+                    IL_0033:  ldloc.0
+                    IL_0034:  brfalse.s  IL_0041
+                    IL_0036:  ldloc.0
+                    IL_0037:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                    IL_003c:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_0041:  ldloc.2
+                    IL_0042:  brfalse.s  IL_0059
+                    IL_0044:  ldloc.2
+                    IL_0045:  isinst     "System.Exception"
+                    IL_004a:  dup
+                    IL_004b:  brtrue.s   IL_004f
+                    IL_004d:  ldloc.2
+                    IL_004e:  throw
+                    IL_004f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_0054:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0059:  ldnull
+                    IL_005a:  throw
+                  }
+                  catch System.ArgumentException
+                  {
+                    IL_005b:  callvirt   "string System.Exception.Message.get"
+                    IL_0060:  call       "void System.Console.Write(object)"
+                    IL_0065:  leave.s    IL_0067
+                  }
+                  IL_0067:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1269,6 +1877,75 @@ public class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait dispose exception");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("wait dispose exception", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x5e }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       95 (0x5f)
+                  .maxstack  2
+                  .locals init (C.AsyncEnumerator V_0,
+                                object V_1)
+                  .try
+                  {
+                    IL_0000:  newobj     "C..ctor()"
+                    IL_0005:  call       "C.AsyncEnumerator C.GetAsyncEnumerator()"
+                    IL_000a:  stloc.0
+                    IL_000b:  ldnull
+                    IL_000c:  stloc.1
+                    .try
+                    {
+                      IL_000d:  br.s       IL_0018
+                      IL_000f:  ldloc.0
+                      IL_0010:  callvirt   "int C.AsyncEnumerator.Current.get"
+                      IL_0015:  pop
+                      IL_0016:  ldnull
+                      IL_0017:  throw
+                      IL_0018:  ldloc.0
+                      IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                      IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                      IL_0023:  brtrue.s   IL_000f
+                      IL_0025:  leave.s    IL_002a
+                    }
+                    catch object
+                    {
+                      IL_0027:  stloc.1
+                      IL_0028:  leave.s    IL_002a
+                    }
+                    IL_002a:  ldloc.0
+                    IL_002b:  brfalse.s  IL_0038
+                    IL_002d:  ldloc.0
+                    IL_002e:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                    IL_0033:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_0038:  ldloc.1
+                    IL_0039:  brfalse.s  IL_0050
+                    IL_003b:  ldloc.1
+                    IL_003c:  isinst     "System.Exception"
+                    IL_0041:  dup
+                    IL_0042:  brtrue.s   IL_0046
+                    IL_0044:  ldloc.1
+                    IL_0045:  throw
+                    IL_0046:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_004b:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0050:  ldnull
+                    IL_0051:  throw
+                  }
+                  catch System.ArgumentException
+                  {
+                    IL_0052:  callvirt   "string System.Exception.Message.get"
+                    IL_0057:  call       "void System.Console.Write(object)"
+                    IL_005c:  leave.s    IL_005e
+                  }
+                  IL_005e:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1312,6 +1989,74 @@ public class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "wait exception");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("wait exception", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x5e }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       95 (0x5f)
+                  .maxstack  2
+                  .locals init (C.AsyncEnumerator V_0,
+                                object V_1)
+                  .try
+                  {
+                    IL_0000:  newobj     "C..ctor()"
+                    IL_0005:  call       "C.AsyncEnumerator C.GetAsyncEnumerator()"
+                    IL_000a:  stloc.0
+                    IL_000b:  ldnull
+                    IL_000c:  stloc.1
+                    .try
+                    {
+                      IL_000d:  br.s       IL_0018
+                      IL_000f:  ldloc.0
+                      IL_0010:  callvirt   "int C.AsyncEnumerator.Current.get"
+                      IL_0015:  pop
+                      IL_0016:  ldnull
+                      IL_0017:  throw
+                      IL_0018:  ldloc.0
+                      IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                      IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                      IL_0023:  brtrue.s   IL_000f
+                      IL_0025:  leave.s    IL_002a
+                    }
+                    catch object
+                    {
+                      IL_0027:  stloc.1
+                      IL_0028:  leave.s    IL_002a
+                    }
+                    IL_002a:  ldloc.0
+                    IL_002b:  brfalse.s  IL_0038
+                    IL_002d:  ldloc.0
+                    IL_002e:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                    IL_0033:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_0038:  ldloc.1
+                    IL_0039:  brfalse.s  IL_0050
+                    IL_003b:  ldloc.1
+                    IL_003c:  isinst     "System.Exception"
+                    IL_0041:  dup
+                    IL_0042:  brtrue.s   IL_0046
+                    IL_0044:  ldloc.1
+                    IL_0045:  throw
+                    IL_0046:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_004b:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0050:  ldnull
+                    IL_0051:  throw
+                  }
+                  catch System.ArgumentException
+                  {
+                    IL_0052:  callvirt   "string System.Exception.Message.get"
+                    IL_0057:  call       "void System.Console.Write(object)"
+                    IL_005c:  leave.s    IL_005e
+                  }
+                  IL_005e:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1594,6 +2339,34 @@ public class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x21 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0014
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  pop
+                  IL_0014:  ldloc.0
+                  IL_0015:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_001f:  brtrue.s   IL_000d
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1762,9 +2535,10 @@ class C
                         public ref int Current => ref _array[_index];
                     }
                 }
-                """ + AsyncStreamsTypes;
+                """;
 
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12);
+            CSharpTestSource sources = [source, AsyncStreamsTypes];
+            var comp = CreateCompilationWithTasksExtensions(sources, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
                 // (17,41): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (ref readonly var i in new C())
@@ -1772,11 +2546,69 @@ class C
 
             var expectedOutput = "123";
 
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
+            comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x5b }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       92 (0x5c)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2)
+                  IL_0000:  call       "System.Collections.Generic.IAsyncEnumerable<int> C.F()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0023
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  call       "void System.Console.Write(int)"
+                    IL_0023:  ldloc.0
+                    IL_0024:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0029:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_002e:  brtrue.s   IL_0018
+                    IL_0030:  leave.s    IL_0035
+                  }
+                  catch object
+                  {
+                    IL_0032:  stloc.2
+                    IL_0033:  leave.s    IL_0035
+                  }
+                  IL_0035:  ldloc.0
+                  IL_0036:  brfalse.s  IL_0043
+                  IL_0038:  ldloc.0
+                  IL_0039:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_003e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0043:  ldloc.2
+                  IL_0044:  brfalse.s  IL_005b
+                  IL_0046:  ldloc.2
+                  IL_0047:  isinst     "System.Exception"
+                  IL_004c:  dup
+                  IL_004d:  brtrue.s   IL_0051
+                  IL_004f:  ldloc.2
+                  IL_0050:  throw
+                  IL_0051:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0056:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_005b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2059,6 +2891,71 @@ public ref struct S
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x74 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x21, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x24 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      117 (0x75)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1,
+                                int V_2) //s
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0032
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloca.s   V_2
+                    IL_0018:  constrained. "int"
+                    IL_001e:  callvirt   "string object.ToString()"
+                    IL_0023:  ldstr      " "
+                    IL_0028:  call       "string string.Concat(string, string)"
+                    IL_002d:  call       "void System.Console.Write(object)"
+                    IL_0032:  ldloc.0
+                    IL_0033:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_0038:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_003d:  brtrue.s   IL_000f
+                    IL_003f:  leave.s    IL_0044
+                  }
+                  catch object
+                  {
+                    IL_0041:  stloc.1
+                    IL_0042:  leave.s    IL_0044
+                  }
+                  IL_0044:  ldloc.0
+                  IL_0045:  brfalse.s  IL_0052
+                  IL_0047:  ldloc.0
+                  IL_0048:  callvirt   "System.Threading.Tasks.ValueTask C.Enumerator.DisposeAsync()"
+                  IL_004d:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0052:  ldloc.1
+                  IL_0053:  brfalse.s  IL_006a
+                  IL_0055:  ldloc.1
+                  IL_0056:  isinst     "System.Exception"
+                  IL_005b:  dup
+                  IL_005c:  brtrue.s   IL_0060
+                  IL_005e:  ldloc.1
+                  IL_005f:  throw
+                  IL_0060:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0065:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_006a:  ldstr      "Done"
+                  IL_006f:  call       "void System.Console.Write(object)"
+                  IL_0074:  ret
+                }
+                """);
         }
 
         [Theory]
@@ -2232,6 +3129,64 @@ public ref struct S
                 """ + s_IAsyncEnumerable;
             var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "1 2 Done").VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x72 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      115 (0x73)
+                  .maxstack  5
+                  .locals init (C.Enumerator V_0,
+                                C.Enumerable V_1,
+                                int V_2, //x
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_3,
+                                System.Runtime.CompilerServices.YieldAwaitable V_4)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "C.Enumerable"
+                  IL_0009:  call       "C.Enumerator C.Enumerable.GetAsyncEnumerator()"
+                  IL_000e:  stloc.0
+                  IL_000f:  br.s       IL_005b
+                  IL_0011:  ldloc.0
+                  IL_0012:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0017:  stloc.2
+                  IL_0018:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_001d:  stloc.s    V_4
+                  IL_001f:  ldloca.s   V_4
+                  IL_0021:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0026:  stloc.3
+                  IL_0027:  ldloca.s   V_3
+                  IL_0029:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_002e:  brtrue.s   IL_0036
+                  IL_0030:  ldloc.3
+                  IL_0031:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0036:  ldloca.s   V_3
+                  IL_0038:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_003d:  ldstr      "{0} "
+                  IL_0042:  ldc.i4.1
+                  IL_0043:  newarr     "object"
+                  IL_0048:  dup
+                  IL_0049:  ldc.i4.0
+                  IL_004a:  ldloc.2
+                  IL_004b:  box        "int"
+                  IL_0050:  stelem.ref
+                  IL_0051:  call       "string string.Format(string, params object[])"
+                  IL_0056:  call       "void System.Console.Write(object)"
+                  IL_005b:  ldloc.0
+                  IL_005c:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0061:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0066:  brtrue.s   IL_0011
+                  IL_0068:  ldstr      "Done"
+                  IL_006d:  call       "void System.Console.Write(object)"
+                  IL_0072:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2276,9 +3231,81 @@ public ref struct S
                         }
                     }
                 }
-                """ + AsyncStreamsTypes;
-            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+                """;
+            var comp = CreateCompilationWithTasksExtensions([source, AsyncStreamsTypes], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "2 4 -1 Done").VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("2 4 -1 Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7f }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  IL_0000:  call       "System.Collections.Generic.IAsyncEnumerable<int> C.M()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_003d
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "{0} "
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  newarr     "object"
+                    IL_002a:  dup
+                    IL_002b:  ldc.i4.0
+                    IL_002c:  ldloc.3
+                    IL_002d:  box        "int"
+                    IL_0032:  stelem.ref
+                    IL_0033:  call       "string string.Format(string, params object[])"
+                    IL_0038:  call       "void System.Console.Write(object)"
+                    IL_003d:  ldloc.0
+                    IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0048:  brtrue.s   IL_0018
+                    IL_004a:  leave.s    IL_004f
+                  }
+                  catch object
+                  {
+                    IL_004c:  stloc.2
+                    IL_004d:  leave.s    IL_004f
+                  }
+                  IL_004f:  ldloc.0
+                  IL_0050:  brfalse.s  IL_005d
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_005d:  ldloc.2
+                  IL_005e:  brfalse.s  IL_0075
+                  IL_0060:  ldloc.2
+                  IL_0061:  isinst     "System.Exception"
+                  IL_0066:  dup
+                  IL_0067:  brtrue.s   IL_006b
+                  IL_0069:  ldloc.2
+                  IL_006a:  throw
+                  IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0075:  ldstr      "Done"
+                  IL_007a:  call       "void System.Console.Write(object)"
+                  IL_007f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2384,6 +3411,72 @@ public ref struct S
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x74 }
+                    [get_Current]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x24 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      117 (0x75)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1,
+                                S V_2) //s
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0032
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "S C.Enumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloca.s   V_2
+                    IL_0018:  constrained. "S"
+                    IL_001e:  callvirt   "string object.ToString()"
+                    IL_0023:  ldstr      " "
+                    IL_0028:  call       "string string.Concat(string, string)"
+                    IL_002d:  call       "void System.Console.Write(object)"
+                    IL_0032:  ldloc.0
+                    IL_0033:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_0038:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_003d:  brtrue.s   IL_000f
+                    IL_003f:  leave.s    IL_0044
+                  }
+                  catch object
+                  {
+                    IL_0041:  stloc.1
+                    IL_0042:  leave.s    IL_0044
+                  }
+                  IL_0044:  ldloc.0
+                  IL_0045:  brfalse.s  IL_0052
+                  IL_0047:  ldloc.0
+                  IL_0048:  callvirt   "System.Threading.Tasks.ValueTask C.Enumerator.DisposeAsync()"
+                  IL_004d:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0052:  ldloc.1
+                  IL_0053:  brfalse.s  IL_006a
+                  IL_0055:  ldloc.1
+                  IL_0056:  isinst     "System.Exception"
+                  IL_005b:  dup
+                  IL_005c:  brtrue.s   IL_0060
+                  IL_005e:  ldloc.1
+                  IL_005f:  throw
+                  IL_0060:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0065:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_006a:  ldstr      "Done"
+                  IL_006f:  call       "void System.Console.Write(object)"
+                  IL_0074:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2437,7 +3530,7 @@ public ref struct S
                     }
                     public override string ToString() => i.ToString();
                 }
-                """ + AsyncStreamsTypes;
+                """;
 
             var expectedDiagnostics = new[]
             {
@@ -2446,15 +3539,85 @@ public ref struct S
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(16, 24)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CSharpTestSource sources = [source, AsyncStreamsTypes];
+            CreateCompilationWithTasksExtensions(sources, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
 
             var expectedOutput = "M:1 M:2 M:Done MainDone";
 
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithTasksExtensions(sources, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x76 }
+                    [get_Current]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x3b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x24 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      119 (0x77)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<string> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                string V_3) //s
+                  IL_0000:  call       "System.Collections.Generic.IAsyncEnumerable<string> C.M()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<string> System.Collections.Generic.IAsyncEnumerable<string>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0034
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "string System.Collections.Generic.IAsyncEnumerator<string>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "M:"
+                    IL_0024:  ldloc.3
+                    IL_0025:  ldstr      " "
+                    IL_002a:  call       "string string.Concat(string, string, string)"
+                    IL_002f:  call       "void System.Console.Write(object)"
+                    IL_0034:  ldloc.0
+                    IL_0035:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<string>.MoveNextAsync()"
+                    IL_003a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_003f:  brtrue.s   IL_0018
+                    IL_0041:  leave.s    IL_0046
+                  }
+                  catch object
+                  {
+                    IL_0043:  stloc.2
+                    IL_0044:  leave.s    IL_0046
+                  }
+                  IL_0046:  ldloc.0
+                  IL_0047:  brfalse.s  IL_0054
+                  IL_0049:  ldloc.0
+                  IL_004a:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_004f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0054:  ldloc.2
+                  IL_0055:  brfalse.s  IL_006c
+                  IL_0057:  ldloc.2
+                  IL_0058:  isinst     "System.Exception"
+                  IL_005d:  dup
+                  IL_005e:  brtrue.s   IL_0062
+                  IL_0060:  ldloc.2
+                  IL_0061:  throw
+                  IL_0062:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0067:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_006c:  ldstr      "MainDone"
+                  IL_0071:  call       "void System.Console.Write(object)"
+                  IL_0076:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2561,6 +3724,38 @@ public struct S
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 3 Done", verify: Verification.Fails);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("1 2 3 Done", isRuntimeAsync: true), verify: Verification.Fails);
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       77 (0x4d)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                S V_1) //s
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0035
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "ref S C.Enumerator.Current.get"
+                  IL_0013:  ldobj      "S"
+                  IL_0018:  stloc.1
+                  IL_0019:  ldloca.s   V_1
+                  IL_001b:  constrained. "S"
+                  IL_0021:  callvirt   "string object.ToString()"
+                  IL_0026:  ldstr      " "
+                  IL_002b:  call       "string string.Concat(string, string)"
+                  IL_0030:  call       "void System.Console.Write(object)"
+                  IL_0035:  ldloc.0
+                  IL_0036:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_003b:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0040:  brtrue.s   IL_000d
+                  IL_0042:  ldstr      "Done"
+                  IL_0047:  call       "void System.Console.Write(object)"
+                  IL_004c:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2616,6 +3811,55 @@ public struct S
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x59 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x4f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       90 (0x5a)
+                  .maxstack  5
+                  .locals init (C.Enumerator V_0,
+                                S& V_1) //s
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0042
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "ref S C.Enumerator.Current.get"
+                  IL_0013:  stloc.1
+                  IL_0014:  ldstr      "{0} "
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  newarr     "object"
+                  IL_001f:  dup
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  ldloc.1
+                  IL_0022:  ldobj      "S"
+                  IL_0027:  box        "S"
+                  IL_002c:  stelem.ref
+                  IL_002d:  call       "string string.Format(string, params object[])"
+                  IL_0032:  call       "void System.Console.Write(object)"
+                  IL_0037:  ldloc.1
+                  IL_0038:  ldflda     "int S.F"
+                  IL_003d:  dup
+                  IL_003e:  ldind.i4
+                  IL_003f:  ldc.i4.1
+                  IL_0040:  add
+                  IL_0041:  stind.i4
+                  IL_0042:  ldloc.0
+                  IL_0043:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0048:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_004d:  brtrue.s   IL_000d
+                  IL_004f:  ldstr      "Done"
+                  IL_0054:  call       "void System.Console.Write(object)"
+                  IL_0059:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2666,20 +3910,88 @@ public struct S
                     }
                     public override string ToString() => F.ToString();
                 }
-                """ + AsyncStreamsTypes;
+                """;
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            CSharpTestSource sources = [source, AsyncStreamsTypes];
+            CreateCompilationWithTasksExtensions(sources, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (16,32): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (ref var s in new C())
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "s").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(16, 32));
 
             var expectedOutput = "M:2 M:4 M:Done MainDone";
 
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithTasksExtensions(sources, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+            comp = CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x76 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x4f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      119 (0x77)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<string> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                string V_3) //s
+                  IL_0000:  call       "System.Collections.Generic.IAsyncEnumerable<string> C.M()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<string> System.Collections.Generic.IAsyncEnumerable<string>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0034
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "string System.Collections.Generic.IAsyncEnumerator<string>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "M:"
+                    IL_0024:  ldloc.3
+                    IL_0025:  ldstr      " "
+                    IL_002a:  call       "string string.Concat(string, string, string)"
+                    IL_002f:  call       "void System.Console.Write(object)"
+                    IL_0034:  ldloc.0
+                    IL_0035:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<string>.MoveNextAsync()"
+                    IL_003a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_003f:  brtrue.s   IL_0018
+                    IL_0041:  leave.s    IL_0046
+                  }
+                  catch object
+                  {
+                    IL_0043:  stloc.2
+                    IL_0044:  leave.s    IL_0046
+                  }
+                  IL_0046:  ldloc.0
+                  IL_0047:  brfalse.s  IL_0054
+                  IL_0049:  ldloc.0
+                  IL_004a:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_004f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0054:  ldloc.2
+                  IL_0055:  brfalse.s  IL_006c
+                  IL_0057:  ldloc.2
+                  IL_0058:  isinst     "System.Exception"
+                  IL_005d:  dup
+                  IL_005e:  brtrue.s   IL_0062
+                  IL_0060:  ldloc.2
+                  IL_0061:  throw
+                  IL_0062:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0067:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_006c:  ldstr      "MainDone"
+                  IL_0071:  call       "void System.Console.Write(object)"
+                  IL_0076:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2911,8 +4223,75 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp,
-                expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) DisposeAsync Done");
+            var expectedOutput = "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) DisposeAsync Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x76 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      119 (0x77)
+                  .maxstack  5
+                  .locals init (C.AsyncEnumerator V_0,
+                                object V_1,
+                                int V_2) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.AsyncEnumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0035
+                    IL_000f:  ldloca.s   V_0
+                    IL_0011:  call       "int C.AsyncEnumerator.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldstr      "Got({0}) "
+                    IL_001c:  ldc.i4.1
+                    IL_001d:  newarr     "object"
+                    IL_0022:  dup
+                    IL_0023:  ldc.i4.0
+                    IL_0024:  ldloc.2
+                    IL_0025:  box        "int"
+                    IL_002a:  stelem.ref
+                    IL_002b:  call       "string string.Format(string, params object[])"
+                    IL_0030:  call       "void System.Console.Write(object)"
+                    IL_0035:  ldloca.s   V_0
+                    IL_0037:  call       "System.Threading.Tasks.Task<bool> C.AsyncEnumerator.MoveNextAsync()"
+                    IL_003c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0041:  brtrue.s   IL_000f
+                    IL_0043:  leave.s    IL_0048
+                  }
+                  catch object
+                  {
+                    IL_0045:  stloc.1
+                    IL_0046:  leave.s    IL_0048
+                  }
+                  IL_0048:  ldloca.s   V_0
+                  IL_004a:  call       "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                  IL_004f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0054:  ldloc.1
+                  IL_0055:  brfalse.s  IL_006c
+                  IL_0057:  ldloc.1
+                  IL_0058:  isinst     "System.Exception"
+                  IL_005d:  dup
+                  IL_005e:  brtrue.s   IL_0062
+                  IL_0060:  ldloc.1
+                  IL_0061:  throw
+                  IL_0062:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0067:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_006c:  ldstr      "Done"
+                  IL_0071:  call       "void System.Console.Write(object)"
+                  IL_0076:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2962,7 +4341,8 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
+            var expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2976,6 +4356,79 @@ class C
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7f }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x47 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  5
+                  .locals init (C.AsyncEnumerator V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  call       "C.AsyncEnumerator C.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_003d
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int C.AsyncEnumerator.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "Got({0}) "
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  newarr     "object"
+                    IL_002a:  dup
+                    IL_002b:  ldc.i4.0
+                    IL_002c:  ldloc.3
+                    IL_002d:  box        "int"
+                    IL_0032:  stelem.ref
+                    IL_0033:  call       "string string.Format(string, params object[])"
+                    IL_0038:  call       "void System.Console.Write(object)"
+                    IL_003d:  ldloc.0
+                    IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> C.AsyncEnumerator.MoveNextAsync()"
+                    IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0048:  brtrue.s   IL_0018
+                    IL_004a:  leave.s    IL_004f
+                  }
+                  catch object
+                  {
+                    IL_004c:  stloc.2
+                    IL_004d:  leave.s    IL_004f
+                  }
+                  IL_004f:  ldloc.0
+                  IL_0050:  brfalse.s  IL_005d
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_005d:  ldloc.2
+                  IL_005e:  brfalse.s  IL_0075
+                  IL_0060:  ldloc.2
+                  IL_0061:  isinst     "System.Exception"
+                  IL_0066:  dup
+                  IL_0067:  brtrue.s   IL_006b
+                  IL_0069:  ldloc.2
+                  IL_006a:  throw
+                  IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0075:  ldstr      "Done"
+                  IL_007a:  call       "void System.Console.Write(object)"
+                  IL_007f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -3036,6 +4489,84 @@ class C
 
             Assert.Equal("C.Awaitable C.AsyncEnumerator.MoveNextAsync()", info.MoveNextMethod.ToTestDisplayString());
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Item(1) Dispose Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x8d }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      142 (0x8e)
+                  .maxstack  5
+                  .locals init (C.AsyncEnumerator V_0,
+                                object V_1,
+                                int V_2, //i
+                                C.Awaiter V_3)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.AsyncEnumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0036
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.AsyncEnumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldstr      "Item({0}) "
+                    IL_001b:  ldc.i4.1
+                    IL_001c:  newarr     "object"
+                    IL_0021:  dup
+                    IL_0022:  ldc.i4.0
+                    IL_0023:  ldloc.2
+                    IL_0024:  box        "int"
+                    IL_0029:  stelem.ref
+                    IL_002a:  call       "string string.Format(string, params object[])"
+                    IL_002f:  call       "void System.Console.Write(object)"
+                    IL_0034:  br.s       IL_0058
+                    IL_0036:  ldloc.0
+                    IL_0037:  callvirt   "C.Awaitable C.AsyncEnumerator.MoveNextAsync()"
+                    IL_003c:  callvirt   "C.Awaiter C.Awaitable.GetAwaiter()"
+                    IL_0041:  stloc.3
+                    IL_0042:  ldloc.3
+                    IL_0043:  callvirt   "bool C.Awaiter.IsCompleted.get"
+                    IL_0048:  brtrue.s   IL_0050
+                    IL_004a:  ldloc.3
+                    IL_004b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<C.Awaiter>(C.Awaiter)"
+                    IL_0050:  ldloc.3
+                    IL_0051:  callvirt   "bool C.Awaiter.GetResult()"
+                    IL_0056:  brtrue.s   IL_000f
+                    IL_0058:  leave.s    IL_005d
+                  }
+                  catch object
+                  {
+                    IL_005a:  stloc.1
+                    IL_005b:  leave.s    IL_005d
+                  }
+                  IL_005d:  ldloc.0
+                  IL_005e:  brfalse.s  IL_006b
+                  IL_0060:  ldloc.0
+                  IL_0061:  callvirt   "System.Threading.Tasks.ValueTask C.AsyncEnumerator.DisposeAsync()"
+                  IL_0066:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_006b:  ldloc.1
+                  IL_006c:  brfalse.s  IL_0083
+                  IL_006e:  ldloc.1
+                  IL_006f:  isinst     "System.Exception"
+                  IL_0074:  dup
+                  IL_0075:  brtrue.s   IL_0079
+                  IL_0077:  ldloc.1
+                  IL_0078:  throw
+                  IL_0079:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_007e:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0083:  ldstr      "Done"
+                  IL_0088:  call       "void System.Console.Write(object)"
+                  IL_008d:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -3296,11 +4827,79 @@ public class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
+            string expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)";
             CompileAndVerify(comp,
-                expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)");
+                expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x6c }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      109 (0x6d)
+                  .maxstack  5
+                  .locals init (C.Enumerator V_0,
+                                object V_1,
+                                int V_2) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0034
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldstr      "Got({0}) "
+                    IL_001b:  ldc.i4.1
+                    IL_001c:  newarr     "object"
+                    IL_0021:  dup
+                    IL_0022:  ldc.i4.0
+                    IL_0023:  ldloc.2
+                    IL_0024:  box        "int"
+                    IL_0029:  stelem.ref
+                    IL_002a:  call       "string string.Format(string, params object[])"
+                    IL_002f:  call       "void System.Console.Write(object)"
+                    IL_0034:  ldloc.0
+                    IL_0035:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_003a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_003f:  brtrue.s   IL_000f
+                    IL_0041:  leave.s    IL_0046
+                  }
+                  catch object
+                  {
+                    IL_0043:  stloc.1
+                    IL_0044:  leave.s    IL_0046
+                  }
+                  IL_0046:  ldloc.0
+                  IL_0047:  brfalse.s  IL_0054
+                  IL_0049:  ldloc.0
+                  IL_004a:  callvirt   "System.Threading.Tasks.ValueTask C.Enumerator.DisposeAsync()"
+                  IL_004f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0054:  ldloc.1
+                  IL_0055:  brfalse.s  IL_006c
+                  IL_0057:  ldloc.1
+                  IL_0058:  isinst     "System.Exception"
+                  IL_005d:  dup
+                  IL_005e:  brtrue.s   IL_0062
+                  IL_0060:  ldloc.1
+                  IL_0061:  throw
+                  IL_0062:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0067:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_006c:  ret
+                }
+                """);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestWithPattern_WithUnsealed_WithIAsyncDisposable()
         {
             string source = @"
@@ -3550,7 +5149,75 @@ class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)");
+            var expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x6c }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      109 (0x6d)
+                  .maxstack  5
+                  .locals init (C.Enumerator V_0,
+                                object V_1,
+                                int V_2) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0034
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldstr      "Got({0}) "
+                    IL_001b:  ldc.i4.1
+                    IL_001c:  newarr     "object"
+                    IL_0021:  dup
+                    IL_0022:  ldc.i4.0
+                    IL_0023:  ldloc.2
+                    IL_0024:  box        "int"
+                    IL_0029:  stelem.ref
+                    IL_002a:  call       "string string.Format(string, params object[])"
+                    IL_002f:  call       "void System.Console.Write(object)"
+                    IL_0034:  ldloc.0
+                    IL_0035:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_003a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_003f:  brtrue.s   IL_000f
+                    IL_0041:  leave.s    IL_0046
+                  }
+                  catch object
+                  {
+                    IL_0043:  stloc.1
+                    IL_0044:  leave.s    IL_0046
+                  }
+                  IL_0046:  ldloc.0
+                  IL_0047:  brfalse.s  IL_0054
+                  IL_0049:  ldloc.0
+                  IL_004a:  callvirt   "System.Threading.Tasks.ValueTask C.Enumerator.DisposeAsync()"
+                  IL_004f:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0054:  ldloc.1
+                  IL_0055:  brfalse.s  IL_006c
+                  IL_0057:  ldloc.1
+                  IL_0058:  isinst     "System.Exception"
+                  IL_005d:  dup
+                  IL_005e:  brtrue.s   IL_0062
+                  IL_0060:  ldloc.1
+                  IL_0061:  throw
+                  IL_0062:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0067:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_006c:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -3708,7 +5375,8 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)");
+            var expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.First();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -3730,6 +5398,77 @@ class C : IAsyncEnumerable<int>
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x75 }
+                    [System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      118 (0x76)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_003d
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "Got({0}) "
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  newarr     "object"
+                    IL_002a:  dup
+                    IL_002b:  ldc.i4.0
+                    IL_002c:  ldloc.3
+                    IL_002d:  box        "int"
+                    IL_0032:  stelem.ref
+                    IL_0033:  call       "string string.Format(string, params object[])"
+                    IL_0038:  call       "void System.Console.Write(object)"
+                    IL_003d:  ldloc.0
+                    IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0048:  brtrue.s   IL_0018
+                    IL_004a:  leave.s    IL_004f
+                  }
+                  catch object
+                  {
+                    IL_004c:  stloc.2
+                    IL_004d:  leave.s    IL_004f
+                  }
+                  IL_004f:  ldloc.0
+                  IL_0050:  brfalse.s  IL_005d
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_005d:  ldloc.2
+                  IL_005e:  brfalse.s  IL_0075
+                  IL_0060:  ldloc.2
+                  IL_0061:  isinst     "System.Exception"
+                  IL_0066:  dup
+                  IL_0067:  brtrue.s   IL_006b
+                  IL_0069:  ldloc.2
+                  IL_006a:  throw
+                  IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0075:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -3781,7 +5520,8 @@ struct C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)");
+            var expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             // The thing to notice here is that the call to GetAsyncEnumerator is a constrained call (we're not boxing to `IAsyncEnumerable<int>`)
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
@@ -4000,6 +5740,81 @@ struct C : IAsyncEnumerable<int>
   IL_01ee:  nop
   IL_01ef:  ret
 }");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var runtimeAsyncVerifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x81 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            runtimeAsyncVerifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      130 (0x82)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                C V_1,
+                                System.Threading.CancellationToken V_2,
+                                object V_3,
+                                int V_4) //i
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "C"
+                  IL_0009:  ldloca.s   V_2
+                  IL_000b:  initobj    "System.Threading.CancellationToken"
+                  IL_0011:  ldloc.2
+                  IL_0012:  constrained. "C"
+                  IL_0018:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_001d:  stloc.0
+                  IL_001e:  ldnull
+                  IL_001f:  stloc.3
+                  .try
+                  {
+                    IL_0020:  br.s       IL_0049
+                    IL_0022:  ldloc.0
+                    IL_0023:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_0028:  stloc.s    V_4
+                    IL_002a:  ldstr      "Got({0}) "
+                    IL_002f:  ldc.i4.1
+                    IL_0030:  newarr     "object"
+                    IL_0035:  dup
+                    IL_0036:  ldc.i4.0
+                    IL_0037:  ldloc.s    V_4
+                    IL_0039:  box        "int"
+                    IL_003e:  stelem.ref
+                    IL_003f:  call       "string string.Format(string, params object[])"
+                    IL_0044:  call       "void System.Console.Write(object)"
+                    IL_0049:  ldloc.0
+                    IL_004a:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_004f:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0054:  brtrue.s   IL_0022
+                    IL_0056:  leave.s    IL_005b
+                  }
+                  catch object
+                  {
+                    IL_0058:  stloc.3
+                    IL_0059:  leave.s    IL_005b
+                  }
+                  IL_005b:  ldloc.0
+                  IL_005c:  brfalse.s  IL_0069
+                  IL_005e:  ldloc.0
+                  IL_005f:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0064:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0069:  ldloc.3
+                  IL_006a:  brfalse.s  IL_0081
+                  IL_006c:  ldloc.3
+                  IL_006d:  isinst     "System.Exception"
+                  IL_0072:  dup
+                  IL_0073:  brtrue.s   IL_0077
+                  IL_0075:  ldloc.3
+                  IL_0076:  throw
+                  IL_0077:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_007c:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0081:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4052,6 +5867,78 @@ class C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7f }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_003d
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "Got({0}) "
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  newarr     "object"
+                    IL_002a:  dup
+                    IL_002b:  ldc.i4.0
+                    IL_002c:  ldloc.3
+                    IL_002d:  box        "int"
+                    IL_0032:  stelem.ref
+                    IL_0033:  call       "string string.Format(string, params object[])"
+                    IL_0038:  call       "void System.Console.Write(object)"
+                    IL_003d:  ldloc.0
+                    IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0048:  brtrue.s   IL_0018
+                    IL_004a:  leave.s    IL_004f
+                  }
+                  catch object
+                  {
+                    IL_004c:  stloc.2
+                    IL_004d:  leave.s    IL_004f
+                  }
+                  IL_004f:  ldloc.0
+                  IL_0050:  brfalse.s  IL_005d
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_005d:  ldloc.2
+                  IL_005e:  brfalse.s  IL_0075
+                  IL_0060:  ldloc.2
+                  IL_0061:  isinst     "System.Exception"
+                  IL_0066:  dup
+                  IL_0067:  brtrue.s   IL_006b
+                  IL_0069:  ldloc.2
+                  IL_006a:  throw
+                  IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0075:  ldstr      "Done"
+                  IL_007a:  call       "void System.Console.Write(object)"
+                  IL_007f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4105,8 +5992,105 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
+            string expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Break Dispose(4) Done";
             CompileAndVerify(comp,
-                expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Break Dispose(4) Done");
+                expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0xb7 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      184 (0xb8)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0075
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldloc.3
+                    IL_0020:  ldc.i4.2
+                    IL_0021:  beq.s      IL_0027
+                    IL_0023:  ldloc.3
+                    IL_0024:  ldc.i4.3
+                    IL_0025:  bne.un.s   IL_0047
+                    IL_0027:  ldstr      "Continue({0}) "
+                    IL_002c:  ldc.i4.1
+                    IL_002d:  newarr     "object"
+                    IL_0032:  dup
+                    IL_0033:  ldc.i4.0
+                    IL_0034:  ldloc.3
+                    IL_0035:  box        "int"
+                    IL_003a:  stelem.ref
+                    IL_003b:  call       "string string.Format(string, params object[])"
+                    IL_0040:  call       "void System.Console.Write(object)"
+                    IL_0045:  br.s       IL_0075
+                    IL_0047:  ldloc.3
+                    IL_0048:  ldc.i4.4
+                    IL_0049:  bne.un.s   IL_0057
+                    IL_004b:  ldstr      "Break "
+                    IL_0050:  call       "void System.Console.Write(object)"
+                    IL_0055:  br.s       IL_0082
+                    IL_0057:  ldstr      "Got({0}) "
+                    IL_005c:  ldc.i4.1
+                    IL_005d:  newarr     "object"
+                    IL_0062:  dup
+                    IL_0063:  ldc.i4.0
+                    IL_0064:  ldloc.3
+                    IL_0065:  box        "int"
+                    IL_006a:  stelem.ref
+                    IL_006b:  call       "string string.Format(string, params object[])"
+                    IL_0070:  call       "void System.Console.Write(object)"
+                    IL_0075:  ldloc.0
+                    IL_0076:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_007b:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0080:  brtrue.s   IL_0018
+                    IL_0082:  leave.s    IL_0087
+                  }
+                  catch object
+                  {
+                    IL_0084:  stloc.2
+                    IL_0085:  leave.s    IL_0087
+                  }
+                  IL_0087:  ldloc.0
+                  IL_0088:  brfalse.s  IL_0095
+                  IL_008a:  ldloc.0
+                  IL_008b:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0090:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0095:  ldloc.2
+                  IL_0096:  brfalse.s  IL_00ad
+                  IL_0098:  ldloc.2
+                  IL_0099:  isinst     "System.Exception"
+                  IL_009e:  dup
+                  IL_009f:  brtrue.s   IL_00a3
+                  IL_00a1:  ldloc.2
+                  IL_00a2:  throw
+                  IL_00a3:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_00a8:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_00ad:  ldstr      "Done"
+                  IL_00b2:  call       "void System.Console.Write(object)"
+                  IL_00b7:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4161,8 +6145,115 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
+            string expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Goto Dispose(4) Done";
             CompileAndVerify(comp,
-                expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Goto Dispose(4) Done");
+                expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0xc7 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      200 (0xc8)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3,
+                                int V_4) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  IL_0016:  ldc.i4.0
+                  IL_0017:  stloc.3
+                  .try
+                  {
+                    IL_0018:  br.s       IL_007d
+                    IL_001a:  ldloc.0
+                    IL_001b:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_0020:  stloc.s    V_4
+                    IL_0022:  ldloc.s    V_4
+                    IL_0024:  ldc.i4.2
+                    IL_0025:  beq.s      IL_002c
+                    IL_0027:  ldloc.s    V_4
+                    IL_0029:  ldc.i4.3
+                    IL_002a:  bne.un.s   IL_004d
+                    IL_002c:  ldstr      "Continue({0}) "
+                    IL_0031:  ldc.i4.1
+                    IL_0032:  newarr     "object"
+                    IL_0037:  dup
+                    IL_0038:  ldc.i4.0
+                    IL_0039:  ldloc.s    V_4
+                    IL_003b:  box        "int"
+                    IL_0040:  stelem.ref
+                    IL_0041:  call       "string string.Format(string, params object[])"
+                    IL_0046:  call       "void System.Console.Write(object)"
+                    IL_004b:  br.s       IL_007d
+                    IL_004d:  ldloc.s    V_4
+                    IL_004f:  ldc.i4.4
+                    IL_0050:  bne.un.s   IL_005e
+                    IL_0052:  ldstr      "Goto "
+                    IL_0057:  call       "void System.Console.Write(object)"
+                    IL_005c:  br.s       IL_008c
+                    IL_005e:  ldstr      "Got({0}) "
+                    IL_0063:  ldc.i4.1
+                    IL_0064:  newarr     "object"
+                    IL_0069:  dup
+                    IL_006a:  ldc.i4.0
+                    IL_006b:  ldloc.s    V_4
+                    IL_006d:  box        "int"
+                    IL_0072:  stelem.ref
+                    IL_0073:  call       "string string.Format(string, params object[])"
+                    IL_0078:  call       "void System.Console.Write(object)"
+                    IL_007d:  ldloc.0
+                    IL_007e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0083:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0088:  brtrue.s   IL_001a
+                    IL_008a:  leave.s    IL_0093
+                    IL_008c:  ldc.i4.1
+                    IL_008d:  stloc.3
+                    IL_008e:  leave.s    IL_0093
+                  }
+                  catch object
+                  {
+                    IL_0090:  stloc.2
+                    IL_0091:  leave.s    IL_0093
+                  }
+                  IL_0093:  ldloc.0
+                  IL_0094:  brfalse.s  IL_00a1
+                  IL_0096:  ldloc.0
+                  IL_0097:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_009c:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_00a1:  ldloc.2
+                  IL_00a2:  brfalse.s  IL_00b9
+                  IL_00a4:  ldloc.2
+                  IL_00a5:  isinst     "System.Exception"
+                  IL_00aa:  dup
+                  IL_00ab:  brtrue.s   IL_00af
+                  IL_00ad:  ldloc.2
+                  IL_00ae:  throw
+                  IL_00af:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_00b4:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_00b9:  ldloc.3
+                  IL_00ba:  ldc.i4.1
+                  IL_00bb:  pop
+                  IL_00bc:  pop
+                  IL_00bd:  ldstr      "Done"
+                  IL_00c2:  call       "void System.Console.Write(object)"
+                  IL_00c7:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4216,8 +6307,82 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
+            string expectedOutput = "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) Dispose(4) Done";
             CompileAndVerify(comp,
-                expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) Dispose(4) Done");
+                expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7f }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x45, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x47 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_003d
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldstr      "Got({0}) "
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  newarr     "object"
+                    IL_002a:  dup
+                    IL_002b:  ldc.i4.0
+                    IL_002c:  ldloc.3
+                    IL_002d:  box        "int"
+                    IL_0032:  stelem.ref
+                    IL_0033:  call       "string string.Format(string, params object[])"
+                    IL_0038:  call       "void System.Console.Write(object)"
+                    IL_003d:  ldloc.0
+                    IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0048:  brtrue.s   IL_0018
+                    IL_004a:  leave.s    IL_004f
+                  }
+                  catch object
+                  {
+                    IL_004c:  stloc.2
+                    IL_004d:  leave.s    IL_004f
+                  }
+                  IL_004f:  ldloc.0
+                  IL_0050:  brfalse.s  IL_005d
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_005d:  ldloc.2
+                  IL_005e:  brfalse.s  IL_0075
+                  IL_0060:  ldloc.2
+                  IL_0061:  isinst     "System.Exception"
+                  IL_0066:  dup
+                  IL_0067:  brtrue.s   IL_006b
+                  IL_0069:  ldloc.2
+                  IL_006a:  throw
+                  IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0075:  ldstr      "Done"
+                  IL_007a:  call       "void System.Console.Write(object)"
+                  IL_007f:  ret
+                }
+                """);
         }
 
         [Fact, WorkItem(27651, "https://github.com/dotnet/roslyn/issues/27651")]
@@ -4307,6 +6472,78 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Success", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x64 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      101 (0x65)
+                  .maxstack  2
+                  .locals init (C V_0, //c
+                                System.Collections.Generic.IAsyncEnumerator<int> V_1,
+                                System.Threading.CancellationToken V_2,
+                                object V_3)
+                  IL_0000:  ldnull
+                  IL_0001:  stloc.0
+                  .try
+                  {
+                    IL_0002:  ldloc.0
+                    IL_0003:  ldloca.s   V_2
+                    IL_0005:  initobj    "System.Threading.CancellationToken"
+                    IL_000b:  ldloc.2
+                    IL_000c:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                    IL_0011:  stloc.1
+                    IL_0012:  ldnull
+                    IL_0013:  stloc.3
+                    .try
+                    {
+                      IL_0014:  br.s       IL_001d
+                      IL_0016:  ldloc.1
+                      IL_0017:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                      IL_001c:  pop
+                      IL_001d:  ldloc.1
+                      IL_001e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                      IL_0023:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                      IL_0028:  brtrue.s   IL_0016
+                      IL_002a:  leave.s    IL_002f
+                    }
+                    catch object
+                    {
+                      IL_002c:  stloc.3
+                      IL_002d:  leave.s    IL_002f
+                    }
+                    IL_002f:  ldloc.1
+                    IL_0030:  brfalse.s  IL_003d
+                    IL_0032:  ldloc.1
+                    IL_0033:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                    IL_0038:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_003d:  ldloc.3
+                    IL_003e:  brfalse.s  IL_0055
+                    IL_0040:  ldloc.3
+                    IL_0041:  isinst     "System.Exception"
+                    IL_0046:  dup
+                    IL_0047:  brtrue.s   IL_004b
+                    IL_0049:  ldloc.3
+                    IL_004a:  throw
+                    IL_004b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_0050:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0055:  leave.s    IL_0064
+                  }
+                  catch System.NullReferenceException
+                  {
+                    IL_0057:  pop
+                    IL_0058:  ldstr      "Success"
+                    IL_005d:  call       "void System.Console.Write(object)"
+                    IL_0062:  leave.s    IL_0064
+                  }
+                  IL_0064:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4367,6 +6604,100 @@ class C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var expectedOutput = "Try NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done";
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x98 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      153 (0x99)
+                  .maxstack  5
+                  .locals init (int V_0,
+                                System.Collections.Generic.IAsyncEnumerator<int> V_1,
+                                System.Threading.CancellationToken V_2,
+                                object V_3,
+                                int V_4) //i
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  .try
+                  {
+                    IL_0002:  ldstr      "Try "
+                    IL_0007:  call       "void System.Console.Write(object)"
+                    IL_000c:  ldnull
+                    IL_000d:  throw
+                  }
+                  catch System.NullReferenceException
+                  {
+                    IL_000e:  pop
+                    IL_000f:  ldc.i4.1
+                    IL_0010:  stloc.0
+                    IL_0011:  leave.s    IL_0013
+                  }
+                  IL_0013:  ldloc.0
+                  IL_0014:  ldc.i4.1
+                  IL_0015:  bne.un.s   IL_008e
+                  IL_0017:  newobj     "C..ctor()"
+                  IL_001c:  ldloca.s   V_2
+                  IL_001e:  initobj    "System.Threading.CancellationToken"
+                  IL_0024:  ldloc.2
+                  IL_0025:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_002a:  stloc.1
+                  IL_002b:  ldnull
+                  IL_002c:  stloc.3
+                  .try
+                  {
+                    IL_002d:  br.s       IL_0056
+                    IL_002f:  ldloc.1
+                    IL_0030:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_0035:  stloc.s    V_4
+                    IL_0037:  ldstr      "Got({0}) "
+                    IL_003c:  ldc.i4.1
+                    IL_003d:  newarr     "object"
+                    IL_0042:  dup
+                    IL_0043:  ldc.i4.0
+                    IL_0044:  ldloc.s    V_4
+                    IL_0046:  box        "int"
+                    IL_004b:  stelem.ref
+                    IL_004c:  call       "string string.Format(string, params object[])"
+                    IL_0051:  call       "void System.Console.Write(object)"
+                    IL_0056:  ldloc.1
+                    IL_0057:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_005c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0061:  brtrue.s   IL_002f
+                    IL_0063:  leave.s    IL_0068
+                  }
+                  catch object
+                  {
+                    IL_0065:  stloc.3
+                    IL_0066:  leave.s    IL_0068
+                  }
+                  IL_0068:  ldloc.1
+                  IL_0069:  brfalse.s  IL_0076
+                  IL_006b:  ldloc.1
+                  IL_006c:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0071:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0076:  ldloc.3
+                  IL_0077:  brfalse.s  IL_008e
+                  IL_0079:  ldloc.3
+                  IL_007a:  isinst     "System.Exception"
+                  IL_007f:  dup
+                  IL_0080:  brtrue.s   IL_0084
+                  IL_0082:  ldloc.3
+                  IL_0083:  throw
+                  IL_0084:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0089:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_008e:  ldstr      "Done"
+                  IL_0093:  call       "void System.Console.Write(object)"
+                  IL_0098:  ret
+                }
+                """);
         }
 
         /// Covered in greater details by <see cref="CodeGenAsyncIteratorTests.TryFinally_AwaitForeachInFinally"/>
@@ -4478,6 +6809,80 @@ class Element
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var expectedOutput = "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Dispose(3) Done";
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x7f }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                Element V_3) //i
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_003d
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  call       "Element Element.op_Implicit(int)"
+                    IL_0023:  stloc.3
+                    IL_0024:  ldstr      "Got({0}) "
+                    IL_0029:  ldc.i4.1
+                    IL_002a:  newarr     "object"
+                    IL_002f:  dup
+                    IL_0030:  ldc.i4.0
+                    IL_0031:  ldloc.3
+                    IL_0032:  stelem.ref
+                    IL_0033:  call       "string string.Format(string, params object[])"
+                    IL_0038:  call       "void System.Console.Write(object)"
+                    IL_003d:  ldloc.0
+                    IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0048:  brtrue.s   IL_0018
+                    IL_004a:  leave.s    IL_004f
+                  }
+                  catch object
+                  {
+                    IL_004c:  stloc.2
+                    IL_004d:  leave.s    IL_004f
+                  }
+                  IL_004f:  ldloc.0
+                  IL_0050:  brfalse.s  IL_005d
+                  IL_0052:  ldloc.0
+                  IL_0053:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0058:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_005d:  ldloc.2
+                  IL_005e:  brfalse.s  IL_0075
+                  IL_0060:  ldloc.2
+                  IL_0061:  isinst     "System.Exception"
+                  IL_0066:  dup
+                  IL_0067:  brtrue.s   IL_006b
+                  IL_0069:  ldloc.2
+                  IL_006a:  throw
+                  IL_006b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0070:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0075:  ldstr      "Done"
+                  IL_007a:  call       "void System.Console.Write(object)"
+                  IL_007f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4529,7 +6934,8 @@ struct C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Dispose(3)");
+            var expectedOutput = "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Dispose(3)";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -4551,6 +6957,88 @@ struct C : IAsyncEnumerable<int>
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x97 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      152 (0x98)
+                  .maxstack  5
+                  .locals init (C? V_0, //c
+                                C V_1,
+                                System.Collections.Generic.IAsyncEnumerator<int> V_2,
+                                System.Threading.CancellationToken V_3,
+                                object V_4,
+                                int V_5) //i
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldloca.s   V_1
+                  IL_0004:  initobj    "C"
+                  IL_000a:  ldloc.1
+                  IL_000b:  call       "C?..ctor(C)"
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  call       "C C?.Value.get"
+                  IL_0017:  stloc.1
+                  IL_0018:  ldloca.s   V_1
+                  IL_001a:  ldloca.s   V_3
+                  IL_001c:  initobj    "System.Threading.CancellationToken"
+                  IL_0022:  ldloc.3
+                  IL_0023:  constrained. "C"
+                  IL_0029:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_002e:  stloc.2
+                  IL_002f:  ldnull
+                  IL_0030:  stloc.s    V_4
+                  .try
+                  {
+                    IL_0032:  br.s       IL_005b
+                    IL_0034:  ldloc.2
+                    IL_0035:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_003a:  stloc.s    V_5
+                    IL_003c:  ldstr      "Got({0}) "
+                    IL_0041:  ldc.i4.1
+                    IL_0042:  newarr     "object"
+                    IL_0047:  dup
+                    IL_0048:  ldc.i4.0
+                    IL_0049:  ldloc.s    V_5
+                    IL_004b:  box        "int"
+                    IL_0050:  stelem.ref
+                    IL_0051:  call       "string string.Format(string, params object[])"
+                    IL_0056:  call       "void System.Console.Write(object)"
+                    IL_005b:  ldloc.2
+                    IL_005c:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0061:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0066:  brtrue.s   IL_0034
+                    IL_0068:  leave.s    IL_006e
+                  }
+                  catch object
+                  {
+                    IL_006a:  stloc.s    V_4
+                    IL_006c:  leave.s    IL_006e
+                  }
+                  IL_006e:  ldloc.2
+                  IL_006f:  brfalse.s  IL_007c
+                  IL_0071:  ldloc.2
+                  IL_0072:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0077:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_007c:  ldloc.s    V_4
+                  IL_007e:  brfalse.s  IL_0097
+                  IL_0080:  ldloc.s    V_4
+                  IL_0082:  isinst     "System.Exception"
+                  IL_0087:  dup
+                  IL_0088:  brtrue.s   IL_008d
+                  IL_008a:  ldloc.s    V_4
+                  IL_008c:  throw
+                  IL_008d:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0092:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0097:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4585,6 +7073,85 @@ struct C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("Success", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x88 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      137 (0x89)
+                  .maxstack  2
+                  .locals init (C? V_0, //c
+                                System.Collections.Generic.IAsyncEnumerator<int> V_1,
+                                C V_2,
+                                System.Threading.CancellationToken V_3,
+                                object V_4)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "C?"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_0
+                    IL_000a:  call       "C C?.Value.get"
+                    IL_000f:  stloc.2
+                    IL_0010:  ldloca.s   V_2
+                    IL_0012:  ldloca.s   V_3
+                    IL_0014:  initobj    "System.Threading.CancellationToken"
+                    IL_001a:  ldloc.3
+                    IL_001b:  constrained. "C"
+                    IL_0021:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                    IL_0026:  stloc.1
+                    IL_0027:  ldnull
+                    IL_0028:  stloc.s    V_4
+                    .try
+                    {
+                      IL_002a:  br.s       IL_003d
+                      IL_002c:  ldloc.1
+                      IL_002d:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                      IL_0032:  pop
+                      IL_0033:  ldstr      "UNREACHABLE"
+                      IL_0038:  call       "void System.Console.Write(object)"
+                      IL_003d:  ldloc.1
+                      IL_003e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                      IL_0043:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                      IL_0048:  brtrue.s   IL_002c
+                      IL_004a:  leave.s    IL_0050
+                    }
+                    catch object
+                    {
+                      IL_004c:  stloc.s    V_4
+                      IL_004e:  leave.s    IL_0050
+                    }
+                    IL_0050:  ldloc.1
+                    IL_0051:  brfalse.s  IL_005e
+                    IL_0053:  ldloc.1
+                    IL_0054:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                    IL_0059:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                    IL_005e:  ldloc.s    V_4
+                    IL_0060:  brfalse.s  IL_0079
+                    IL_0062:  ldloc.s    V_4
+                    IL_0064:  isinst     "System.Exception"
+                    IL_0069:  dup
+                    IL_006a:  brtrue.s   IL_006f
+                    IL_006c:  ldloc.s    V_4
+                    IL_006e:  throw
+                    IL_006f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_0074:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0079:  leave.s    IL_0088
+                  }
+                  catch System.InvalidOperationException
+                  {
+                    IL_007b:  pop
+                    IL_007c:  ldstr      "Success"
+                    IL_0081:  call       "void System.Console.Write(object)"
+                    IL_0086:  leave.s    IL_0088
+                  }
+                  IL_0088:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4639,7 +7206,8 @@ public static class Extensions
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Deconstruct(1) Got(1,-1) NextAsync(1) Current(2) Deconstruct(2) Got(2,-2) NextAsync(2) Dispose(3) Done");
+            var expectedOutput = "NextAsync(0) Current(1) Deconstruct(1) Got(1,-1) NextAsync(1) Current(2) Deconstruct(2) Got(2,-2) NextAsync(2) Dispose(3) Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -4661,6 +7229,92 @@ public static class Extensions
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x93 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x47 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      148 (0x94)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                string V_3, //i
+                                int V_4, //j
+                                string V_5,
+                                int V_6)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0051
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  ldloca.s   V_5
+                    IL_0020:  ldloca.s   V_6
+                    IL_0022:  call       "void Extensions.Deconstruct(int, out string, out int)"
+                    IL_0027:  ldloc.s    V_5
+                    IL_0029:  stloc.3
+                    IL_002a:  ldloc.s    V_6
+                    IL_002c:  stloc.s    V_4
+                    IL_002e:  ldstr      "Got({0},{1}) "
+                    IL_0033:  ldc.i4.2
+                    IL_0034:  newarr     "object"
+                    IL_0039:  dup
+                    IL_003a:  ldc.i4.0
+                    IL_003b:  ldloc.3
+                    IL_003c:  stelem.ref
+                    IL_003d:  dup
+                    IL_003e:  ldc.i4.1
+                    IL_003f:  ldloc.s    V_4
+                    IL_0041:  box        "int"
+                    IL_0046:  stelem.ref
+                    IL_0047:  call       "string string.Format(string, params object[])"
+                    IL_004c:  call       "void System.Console.Write(object)"
+                    IL_0051:  ldloc.0
+                    IL_0052:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0057:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_005c:  brtrue.s   IL_0018
+                    IL_005e:  leave.s    IL_0063
+                  }
+                  catch object
+                  {
+                    IL_0060:  stloc.2
+                    IL_0061:  leave.s    IL_0063
+                  }
+                  IL_0063:  ldloc.0
+                  IL_0064:  brfalse.s  IL_0071
+                  IL_0066:  ldloc.0
+                  IL_0067:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_006c:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0071:  ldloc.2
+                  IL_0072:  brfalse.s  IL_0089
+                  IL_0074:  ldloc.2
+                  IL_0075:  isinst     "System.Exception"
+                  IL_007a:  dup
+                  IL_007b:  brtrue.s   IL_007f
+                  IL_007d:  ldloc.2
+                  IL_007e:  throw
+                  IL_007f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0084:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0089:  ldstr      "Done"
+                  IL_008e:  call       "void System.Console.Write(object)"
+                  IL_0093:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4738,7 +7392,8 @@ class C : IAsyncEnumerable<(string, int)>
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done");
+            var expectedOutput = "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -4755,6 +7410,88 @@ class C : IAsyncEnumerable<(string, int)>
             Assert.Equal("(System.String, System.Int32)", info.ElementType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x91 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x47 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      146 (0x92)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<string, int>> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                string V_3, //i
+                                int V_4) //j
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<string, int>> System.Collections.Generic.IAsyncEnumerable<System.ValueTuple<string, int>>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_004f
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "System.ValueTuple<string, int> System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<string, int>>.Current.get"
+                    IL_001e:  dup
+                    IL_001f:  ldfld      "string System.ValueTuple<string, int>.Item1"
+                    IL_0024:  stloc.3
+                    IL_0025:  ldfld      "int System.ValueTuple<string, int>.Item2"
+                    IL_002a:  stloc.s    V_4
+                    IL_002c:  ldstr      "Got({0},{1}) "
+                    IL_0031:  ldc.i4.2
+                    IL_0032:  newarr     "object"
+                    IL_0037:  dup
+                    IL_0038:  ldc.i4.0
+                    IL_0039:  ldloc.3
+                    IL_003a:  stelem.ref
+                    IL_003b:  dup
+                    IL_003c:  ldc.i4.1
+                    IL_003d:  ldloc.s    V_4
+                    IL_003f:  box        "int"
+                    IL_0044:  stelem.ref
+                    IL_0045:  call       "string string.Format(string, params object[])"
+                    IL_004a:  call       "void System.Console.Write(object)"
+                    IL_004f:  ldloc.0
+                    IL_0050:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<string, int>>.MoveNextAsync()"
+                    IL_0055:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_005a:  brtrue.s   IL_0018
+                    IL_005c:  leave.s    IL_0061
+                  }
+                  catch object
+                  {
+                    IL_005e:  stloc.2
+                    IL_005f:  leave.s    IL_0061
+                  }
+                  IL_0061:  ldloc.0
+                  IL_0062:  brfalse.s  IL_006f
+                  IL_0064:  ldloc.0
+                  IL_0065:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_006a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_006f:  ldloc.2
+                  IL_0070:  brfalse.s  IL_0087
+                  IL_0072:  ldloc.2
+                  IL_0073:  isinst     "System.Exception"
+                  IL_0078:  dup
+                  IL_0079:  brtrue.s   IL_007d
+                  IL_007b:  ldloc.2
+                  IL_007c:  throw
+                  IL_007d:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0082:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0087:  ldstr      "Done"
+                  IL_008c:  call       "void System.Console.Write(object)"
+                  IL_0091:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -4818,7 +7555,93 @@ public static class Extensions
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done");
+            string expectedOutput = "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x51 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      150 (0x96)
+                  .maxstack  5
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0, //e
+                                System.Threading.CancellationToken V_1,
+                                object V_2,
+                                int V_3, //i
+                                int V_4, //j
+                                int V_5,
+                                int V_6)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0056
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  ldloca.s   V_5
+                    IL_0020:  ldloca.s   V_6
+                    IL_0022:  call       "void Extensions.Deconstruct(int, out int, out int)"
+                    IL_0027:  ldloc.s    V_5
+                    IL_0029:  stloc.3
+                    IL_002a:  ldloc.s    V_6
+                    IL_002c:  stloc.s    V_4
+                    IL_002e:  ldstr      "Got({0},{1}) "
+                    IL_0033:  ldc.i4.2
+                    IL_0034:  newarr     "object"
+                    IL_0039:  dup
+                    IL_003a:  ldc.i4.0
+                    IL_003b:  ldloc.3
+                    IL_003c:  box        "int"
+                    IL_0041:  stelem.ref
+                    IL_0042:  dup
+                    IL_0043:  ldc.i4.1
+                    IL_0044:  ldloc.s    V_4
+                    IL_0046:  box        "int"
+                    IL_004b:  stelem.ref
+                    IL_004c:  call       "string string.Format(string, params object[])"
+                    IL_0051:  call       "void System.Console.Write(object)"
+                    IL_0056:  ldloc.0
+                    IL_0057:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_005c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0061:  brtrue.s   IL_0018
+                    IL_0063:  leave.s    IL_0068
+                  }
+                  catch object
+                  {
+                    IL_0065:  stloc.2
+                    IL_0066:  leave.s    IL_0068
+                  }
+                  IL_0068:  ldloc.0
+                  IL_0069:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_006e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0073:  ldloc.2
+                  IL_0074:  brfalse.s  IL_008b
+                  IL_0076:  ldloc.2
+                  IL_0077:  isinst     "System.Exception"
+                  IL_007c:  dup
+                  IL_007d:  brtrue.s   IL_0081
+                  IL_007f:  ldloc.2
+                  IL_0080:  throw
+                  IL_0081:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0086:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_008b:  ldstr      "Done"
+                  IL_0090:  call       "void System.Console.Write(object)"
+                  IL_0095:  ret
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30257")]
@@ -5042,7 +7865,8 @@ class C
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3) Dispose(4)");
+            var expectedOutput = "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3) Dispose(4)";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -5064,9 +7888,71 @@ class C
             var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposal);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x61 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x47 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       98 (0x62)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2)
+                  IL_0000:  newobj     "Collection<int>..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0029
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  pop
+                    IL_001f:  ldstr      "Got "
+                    IL_0024:  call       "void System.Console.Write(object)"
+                    IL_0029:  ldloc.0
+                    IL_002a:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_002f:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0034:  brtrue.s   IL_0018
+                    IL_0036:  leave.s    IL_003b
+                  }
+                  catch object
+                  {
+                    IL_0038:  stloc.2
+                    IL_0039:  leave.s    IL_003b
+                  }
+                  IL_003b:  ldloc.0
+                  IL_003c:  brfalse.s  IL_0049
+                  IL_003e:  ldloc.0
+                  IL_003f:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0044:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0049:  ldloc.2
+                  IL_004a:  brfalse.s  IL_0061
+                  IL_004c:  ldloc.2
+                  IL_004d:  isinst     "System.Exception"
+                  IL_0052:  dup
+                  IL_0053:  brtrue.s   IL_0057
+                  IL_0055:  ldloc.2
+                  IL_0056:  throw
+                  IL_0057:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_005c:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0061:  ret
+                }
+                """);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestWithInterfaceImplementingPattern()
         {
             string source = @"
@@ -5123,7 +8009,8 @@ class C
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3)");
+            string expectedOutput = "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3)";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -5287,9 +8174,43 @@ class C
   IL_0119:  nop
   IL_011a:  ret
 }", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [Main]: Return value missing on the stack. { Offset = 0x34 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  2
+                  .locals init (IMyAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1)
+                  IL_0000:  newobj     "Collection<int>..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "IMyAsyncEnumerator<int> ICollection<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  br.s       IL_0027
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "int IMyAsyncEnumerator<int>.Current.get"
+                  IL_001c:  pop
+                  IL_001d:  ldstr      "Got "
+                  IL_0022:  call       "void System.Console.Write(object)"
+                  IL_0027:  ldloc.0
+                  IL_0028:  callvirt   "System.Threading.Tasks.Task<bool> IMyAsyncEnumerator<int>.MoveNextAsync()"
+                  IL_002d:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0032:  brtrue.s   IL_0016
+                  IL_0034:  ret
+                }
+                """);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestWithInterfaceImplementingPattern_ChildImplementsDisposeAsync()
         {
             string source = @"
@@ -5349,7 +8270,8 @@ class C
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3)");
+            var expectedOutput = "NextAsync(0) Current(1) Got NextAsync(1) Current(2) Got NextAsync(2) Current(3) Got NextAsync(3)";
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -5357,6 +8279,40 @@ class C
             var info = model.GetForEachStatementInfo(foreachSyntax);
 
             Assert.Null(info.DisposeMethod);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier2 = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x44, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [Main]: Return value missing on the stack. { Offset = 0x34 }
+                    """
+            });
+            verifier2.VerifyIL("C.Main()", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  2
+                  .locals init (IMyAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1)
+                  IL_0000:  newobj     "Collection<int>..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "IMyAsyncEnumerator<int> ICollection<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  br.s       IL_0027
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "int IMyAsyncEnumerator<int>.Current.get"
+                  IL_001c:  pop
+                  IL_001d:  ldstr      "Got "
+                  IL_0022:  call       "void System.Console.Write(object)"
+                  IL_0027:  ldloc.0
+                  IL_0028:  callvirt   "System.Threading.Tasks.Task<bool> IMyAsyncEnumerator<int>.MoveNextAsync()"
+                  IL_002d:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0032:  brtrue.s   IL_0016
+                  IL_0034:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -5623,6 +8579,36 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x27 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       40 (0x28)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  newarr     "int"
+                  IL_000b:  call       "C.Enumerator C.GetAsyncEnumerator(params int[])"
+                  IL_0010:  stloc.0
+                  IL_0011:  br.s       IL_001a
+                  IL_0013:  ldloc.0
+                  IL_0014:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0019:  pop
+                  IL_001a:  ldloc.0
+                  IL_001b:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0020:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0025:  brtrue.s   IL_0013
+                  IL_0027:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -5719,6 +8705,64 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x58 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       89 (0x59)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0016
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  pop
+                    IL_0016:  ldloc.0
+                    IL_0017:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_001c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0021:  brtrue.s   IL_000f
+                    IL_0023:  leave.s    IL_0028
+                  }
+                  catch object
+                  {
+                    IL_0025:  stloc.1
+                    IL_0026:  leave.s    IL_0028
+                  }
+                  IL_0028:  ldloc.0
+                  IL_0029:  brfalse.s  IL_0036
+                  IL_002b:  ldloc.0
+                  IL_002c:  callvirt   "System.Threading.Tasks.Task C.Enumerator.DisposeAsync()"
+                  IL_0031:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0036:  ldloc.1
+                  IL_0037:  brfalse.s  IL_004e
+                  IL_0039:  ldloc.1
+                  IL_003a:  isinst     "System.Exception"
+                  IL_003f:  dup
+                  IL_0040:  brtrue.s   IL_0044
+                  IL_0042:  ldloc.1
+                  IL_0043:  throw
+                  IL_0044:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0049:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_004e:  ldstr      "Done"
+                  IL_0053:  call       "void System.Console.Write(object)"
+                  IL_0058:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -5807,6 +8851,36 @@ public static class Extension
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x2b }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0014
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  pop
+                  IL_0014:  ldloc.0
+                  IL_0015:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_001f:  brtrue.s   IL_000d
+                  IL_0021:  ldstr      "Done"
+                  IL_0026:  call       "void System.Console.Write(object)"
+                  IL_002b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -5855,6 +8929,36 @@ public static class Extension2
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x2b }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0014
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  pop
+                  IL_0014:  ldloc.0
+                  IL_0015:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_001f:  brtrue.s   IL_000d
+                  IL_0021:  ldstr      "Done"
+                  IL_0026:  call       "void System.Console.Write(object)"
+                  IL_002b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -5899,6 +9003,64 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x58 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       89 (0x59)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0016
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  pop
+                    IL_0016:  ldloc.0
+                    IL_0017:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_001c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0021:  brtrue.s   IL_000f
+                    IL_0023:  leave.s    IL_0028
+                  }
+                  catch object
+                  {
+                    IL_0025:  stloc.1
+                    IL_0026:  leave.s    IL_0028
+                  }
+                  IL_0028:  ldloc.0
+                  IL_0029:  brfalse.s  IL_0036
+                  IL_002b:  ldloc.0
+                  IL_002c:  callvirt   "System.Threading.Tasks.ValueTask C.Enumerator.DisposeAsync()"
+                  IL_0031:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0036:  ldloc.1
+                  IL_0037:  brfalse.s  IL_004e
+                  IL_0039:  ldloc.1
+                  IL_003a:  isinst     "System.Exception"
+                  IL_003f:  dup
+                  IL_0040:  brtrue.s   IL_0044
+                  IL_0042:  ldloc.1
+                  IL_0043:  throw
+                  IL_0044:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0049:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_004e:  ldstr      "Done"
+                  IL_0053:  call       "void System.Console.Write(object)"
+                  IL_0058:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6033,6 +9195,73 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x6e }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      111 (0x6f)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1,
+                                Awaiter V_2)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0016
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  pop
+                    IL_0016:  ldloc.0
+                    IL_0017:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_001c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0021:  brtrue.s   IL_000f
+                    IL_0023:  leave.s    IL_0028
+                  }
+                  catch object
+                  {
+                    IL_0025:  stloc.1
+                    IL_0026:  leave.s    IL_0028
+                  }
+                  IL_0028:  ldloc.0
+                  IL_0029:  brfalse.s  IL_004c
+                  IL_002b:  ldloc.0
+                  IL_002c:  callvirt   "Awaitable C.Enumerator.DisposeAsync()"
+                  IL_0031:  callvirt   "Awaiter Awaitable.GetAwaiter()"
+                  IL_0036:  stloc.2
+                  IL_0037:  ldloc.2
+                  IL_0038:  callvirt   "bool Awaiter.IsCompleted.get"
+                  IL_003d:  brtrue.s   IL_0045
+                  IL_003f:  ldloc.2
+                  IL_0040:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<Awaiter>(Awaiter)"
+                  IL_0045:  ldloc.2
+                  IL_0046:  callvirt   "bool Awaiter.GetResult()"
+                  IL_004b:  pop
+                  IL_004c:  ldloc.1
+                  IL_004d:  brfalse.s  IL_0064
+                  IL_004f:  ldloc.1
+                  IL_0050:  isinst     "System.Exception"
+                  IL_0055:  dup
+                  IL_0056:  brtrue.s   IL_005a
+                  IL_0058:  ldloc.1
+                  IL_0059:  throw
+                  IL_005a:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_005f:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0064:  ldstr      "Done"
+                  IL_0069:  call       "void System.Console.Write(object)"
+                  IL_006e:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6077,6 +9306,64 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x58 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       89 (0x59)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0016
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  pop
+                    IL_0016:  ldloc.0
+                    IL_0017:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_001c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0021:  brtrue.s   IL_000f
+                    IL_0023:  leave.s    IL_0028
+                  }
+                  catch object
+                  {
+                    IL_0025:  stloc.1
+                    IL_0026:  leave.s    IL_0028
+                  }
+                  IL_0028:  ldloc.0
+                  IL_0029:  brfalse.s  IL_0036
+                  IL_002b:  ldloc.0
+                  IL_002c:  callvirt   "System.Threading.Tasks.Task C.Enumerator.DisposeAsync()"
+                  IL_0031:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0036:  ldloc.1
+                  IL_0037:  brfalse.s  IL_004e
+                  IL_0039:  ldloc.1
+                  IL_003a:  isinst     "System.Exception"
+                  IL_003f:  dup
+                  IL_0040:  brtrue.s   IL_0044
+                  IL_0042:  ldloc.1
+                  IL_0043:  throw
+                  IL_0044:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0049:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_004e:  ldstr      "Done"
+                  IL_0053:  call       "void System.Console.Write(object)"
+                  IL_0058:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6123,6 +9410,65 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x59 }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       90 (0x5a)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0016
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  pop
+                    IL_0016:  ldloc.0
+                    IL_0017:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_001c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0021:  brtrue.s   IL_000f
+                    IL_0023:  leave.s    IL_0028
+                  }
+                  catch object
+                  {
+                    IL_0025:  stloc.1
+                    IL_0026:  leave.s    IL_0028
+                  }
+                  IL_0028:  ldloc.0
+                  IL_0029:  brfalse.s  IL_0037
+                  IL_002b:  ldloc.0
+                  IL_002c:  callvirt   "System.Threading.Tasks.Task<int> C.Enumerator.DisposeAsync()"
+                  IL_0031:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0036:  pop
+                  IL_0037:  ldloc.1
+                  IL_0038:  brfalse.s  IL_004f
+                  IL_003a:  ldloc.1
+                  IL_003b:  isinst     "System.Exception"
+                  IL_0040:  dup
+                  IL_0041:  brtrue.s   IL_0045
+                  IL_0043:  ldloc.1
+                  IL_0044:  throw
+                  IL_0045:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_004a:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_004f:  ldstr      "Done"
+                  IL_0054:  call       "void System.Console.Write(object)"
+                  IL_0059:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6168,6 +9514,66 @@ class C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync 1 Done");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("MoveNextAsync DisposeAsync 1 Done", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x5a }
+                    [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<bool>' }
+                    [DisposeAsync]: Unexpected type on the stack. { Offset = 0x43, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       91 (0x5b)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0016
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  pop
+                    IL_0016:  ldloc.0
+                    IL_0017:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_001c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0021:  brtrue.s   IL_000f
+                    IL_0023:  leave.s    IL_0028
+                  }
+                  catch object
+                  {
+                    IL_0025:  stloc.1
+                    IL_0026:  leave.s    IL_0028
+                  }
+                  IL_0028:  ldloc.0
+                  IL_0029:  brfalse.s  IL_0038
+                  IL_002b:  ldloc.0
+                  IL_002c:  ldc.i4.1
+                  IL_002d:  callvirt   "System.Threading.Tasks.Task<int> C.Enumerator.DisposeAsync(int)"
+                  IL_0032:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0037:  pop
+                  IL_0038:  ldloc.1
+                  IL_0039:  brfalse.s  IL_0050
+                  IL_003b:  ldloc.1
+                  IL_003c:  isinst     "System.Exception"
+                  IL_0041:  dup
+                  IL_0042:  brtrue.s   IL_0046
+                  IL_0044:  ldloc.1
+                  IL_0045:  throw
+                  IL_0046:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_004b:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0050:  ldstr      "Done"
+                  IL_0055:  call       "void System.Console.Write(object)"
+                  IL_005a:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6222,6 +9628,80 @@ class Program
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "StructAwaitable1StructAwaitable2");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("StructAwaitable1StructAwaitable2", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x86 }
+                    """
+            });
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size      135 (0x87)
+                  .maxstack  2
+                  .locals init (Enumerable.Enumerator V_0,
+                                object V_1,
+                                System.Runtime.CompilerServices.TaskAwaiter<bool> V_2,
+                                System.Runtime.CompilerServices.TaskAwaiter V_3)
+                  IL_0000:  newobj     "Enumerable..ctor()"
+                  IL_0005:  call       "Enumerable.Enumerator Enumerable.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0016
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "object Enumerable.Enumerator.Current.get"
+                    IL_0015:  pop
+                    IL_0016:  ldloc.0
+                    IL_0017:  callvirt   "StructAwaitable1 Enumerable.Enumerator.MoveNextAsync()"
+                    IL_001c:  box        "StructAwaitable1"
+                    IL_0021:  call       "System.Runtime.CompilerServices.TaskAwaiter<bool> Extensions.GetAwaiter(I1)"
+                    IL_0026:  stloc.2
+                    IL_0027:  ldloca.s   V_2
+                    IL_0029:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<bool>.IsCompleted.get"
+                    IL_002e:  brtrue.s   IL_0036
+                    IL_0030:  ldloc.2
+                    IL_0031:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter<bool>>(System.Runtime.CompilerServices.TaskAwaiter<bool>)"
+                    IL_0036:  ldloca.s   V_2
+                    IL_0038:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<bool>.GetResult()"
+                    IL_003d:  brtrue.s   IL_000f
+                    IL_003f:  leave.s    IL_0044
+                  }
+                  catch object
+                  {
+                    IL_0041:  stloc.1
+                    IL_0042:  leave.s    IL_0044
+                  }
+                  IL_0044:  ldloc.0
+                  IL_0045:  brfalse.s  IL_006e
+                  IL_0047:  ldloc.0
+                  IL_0048:  callvirt   "StructAwaitable2 Enumerable.Enumerator.DisposeAsync()"
+                  IL_004d:  box        "StructAwaitable2"
+                  IL_0052:  call       "System.Runtime.CompilerServices.TaskAwaiter Extensions.GetAwaiter(I2)"
+                  IL_0057:  stloc.3
+                  IL_0058:  ldloca.s   V_3
+                  IL_005a:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+                  IL_005f:  brtrue.s   IL_0067
+                  IL_0061:  ldloc.3
+                  IL_0062:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_0067:  ldloca.s   V_3
+                  IL_0069:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_006e:  ldloc.1
+                  IL_006f:  brfalse.s  IL_0086
+                  IL_0071:  ldloc.1
+                  IL_0072:  isinst     "System.Exception"
+                  IL_0077:  dup
+                  IL_0078:  brtrue.s   IL_007c
+                  IL_007a:  ldloc.1
+                  IL_007b:  throw
+                  IL_007c:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0081:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0086:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6322,6 +9802,72 @@ public struct C : IAsyncEnumerable<int>
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x72 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      115 (0x73)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                C? V_1,
+                                C V_2,
+                                System.Threading.CancellationToken V_3,
+                                object V_4)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "C?"
+                  IL_0009:  call       "C C?.Value.get"
+                  IL_000e:  stloc.2
+                  IL_000f:  ldloca.s   V_2
+                  IL_0011:  ldloca.s   V_3
+                  IL_0013:  initobj    "System.Threading.CancellationToken"
+                  IL_0019:  ldloc.3
+                  IL_001a:  constrained. "C"
+                  IL_0020:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0025:  stloc.0
+                  IL_0026:  ldnull
+                  IL_0027:  stloc.s    V_4
+                  .try
+                  {
+                    IL_0029:  br.s       IL_0036
+                    IL_002b:  ldloc.0
+                    IL_002c:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_0031:  call       "void System.Console.Write(int)"
+                    IL_0036:  ldloc.0
+                    IL_0037:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_003c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0041:  brtrue.s   IL_002b
+                    IL_0043:  leave.s    IL_0049
+                  }
+                  catch object
+                  {
+                    IL_0045:  stloc.s    V_4
+                    IL_0047:  leave.s    IL_0049
+                  }
+                  IL_0049:  ldloc.0
+                  IL_004a:  brfalse.s  IL_0057
+                  IL_004c:  ldloc.0
+                  IL_004d:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0052:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0057:  ldloc.s    V_4
+                  IL_0059:  brfalse.s  IL_0072
+                  IL_005b:  ldloc.s    V_4
+                  IL_005d:  isinst     "System.Exception"
+                  IL_0062:  dup
+                  IL_0063:  brtrue.s   IL_0068
+                  IL_0065:  ldloc.s    V_4
+                  IL_0067:  throw
+                  IL_0068:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_006d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0072:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6346,6 +9892,67 @@ public struct C
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x5e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       95 (0x5f)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                C? V_1,
+                                C V_2,
+                                object V_3)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "C?"
+                  IL_0009:  call       "C C?.Value.get"
+                  IL_000e:  stloc.2
+                  IL_000f:  ldloca.s   V_2
+                  IL_0011:  call       "System.Collections.Generic.IAsyncEnumerator<int> C.GetAsyncEnumerator()"
+                  IL_0016:  stloc.0
+                  IL_0017:  ldnull
+                  IL_0018:  stloc.3
+                  .try
+                  {
+                    IL_0019:  br.s       IL_0026
+                    IL_001b:  ldloc.0
+                    IL_001c:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_0021:  call       "void System.Console.Write(int)"
+                    IL_0026:  ldloc.0
+                    IL_0027:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_002c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0031:  brtrue.s   IL_001b
+                    IL_0033:  leave.s    IL_0038
+                  }
+                  catch object
+                  {
+                    IL_0035:  stloc.3
+                    IL_0036:  leave.s    IL_0038
+                  }
+                  IL_0038:  ldloc.0
+                  IL_0039:  brfalse.s  IL_0046
+                  IL_003b:  ldloc.0
+                  IL_003c:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0041:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0046:  ldloc.3
+                  IL_0047:  brfalse.s  IL_005e
+                  IL_0049:  ldloc.3
+                  IL_004a:  isinst     "System.Exception"
+                  IL_004f:  dup
+                  IL_0050:  brtrue.s   IL_0054
+                  IL_0052:  ldloc.3
+                  IL_0053:  throw
+                  IL_0054:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0059:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_005e:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6446,6 +10053,33 @@ public static class Extensions
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, info.ElementConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6476,6 +10110,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(object)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6506,6 +10167,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x21 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldnull
+                  IL_0001:  call       "C.Enumerator Extensions.GetAsyncEnumerator(object)"
+                  IL_0006:  stloc.0
+                  IL_0007:  br.s       IL_0014
+                  IL_0009:  ldloc.0
+                  IL_000a:  callvirt   "int C.Enumerator.Current.get"
+                  IL_000f:  call       "void System.Console.Write(int)"
+                  IL_0014:  ldloc.0
+                  IL_0015:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_001f:  brtrue.s   IL_0009
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6536,6 +10224,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x27 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       40 (0x28)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0019
+                  IL_000d:  ldloca.s   V_0
+                  IL_000f:  call       "readonly int C.Enumerator.Current.get"
+                  IL_0014:  call       "void System.Console.Write(int)"
+                  IL_0019:  ldloca.s   V_0
+                  IL_001b:  call       "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0020:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0025:  brtrue.s   IL_000d
+                  IL_0027:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6754,6 +10469,35 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0xb }
+                    [<Main>g__Inner|0_0]: Return value missing on the stack. { Offset = 0x26 }
+                    """
+            });
+            verifier.VerifyIL("C.<Main>g__Inner|0_0<T>(T)", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  box        "T"
+                  IL_0006:  call       "C.Enumerator Extensions.GetAsyncEnumerator(object)"
+                  IL_000b:  stloc.0
+                  IL_000c:  br.s       IL_0019
+                  IL_000e:  ldloc.0
+                  IL_000f:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0014:  call       "void System.Console.Write(int)"
+                  IL_0019:  ldloc.0
+                  IL_001a:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001f:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0024:  brtrue.s   IL_000e
+                  IL_0026:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6789,6 +10533,35 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0xb }
+                    [<Main>g__Inner|0_0]: Return value missing on the stack. { Offset = 0x26 }
+                    """
+            });
+            verifier.VerifyIL("C.<Main>g__Inner|0_0<T>(T)", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  box        "T"
+                  IL_0006:  call       "C.Enumerator Extensions.GetAsyncEnumerator(System.IConvertible)"
+                  IL_000b:  stloc.0
+                  IL_000c:  br.s       IL_0019
+                  IL_000e:  ldloc.0
+                  IL_000f:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0014:  call       "void System.Console.Write(int)"
+                  IL_0019:  ldloc.0
+                  IL_001a:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001f:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0024:  brtrue.s   IL_000e
+                  IL_0026:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6820,6 +10593,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldstr      " "
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(object)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6852,6 +10652,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldstr      " "
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(string)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6951,6 +10778,37 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x2e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0,
+                                C V_1)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  initobj    "C"
+                  IL_0008:  ldloc.1
+                  IL_0009:  box        "C"
+                  IL_000e:  call       "C.Enumerator Extensions.GetAsyncEnumerator(object)"
+                  IL_0013:  stloc.0
+                  IL_0014:  br.s       IL_0021
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "int C.Enumerator.Current.get"
+                  IL_001c:  call       "void System.Console.Write(int)"
+                  IL_0021:  ldloc.0
+                  IL_0022:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0027:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_002c:  brtrue.s   IL_0016
+                  IL_002e:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -6982,6 +10840,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(I)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7012,6 +10897,41 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x3f }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       64 (0x40)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldsfld     "System.Func<int> C.<>c.<>9__0_0"
+                  IL_0005:  dup
+                  IL_0006:  brtrue.s   IL_001f
+                  IL_0008:  pop
+                  IL_0009:  ldsfld     "C.<>c C.<>c.<>9"
+                  IL_000e:  ldftn      "int C.<>c.<Main>b__0_0()"
+                  IL_0014:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
+                  IL_0019:  dup
+                  IL_001a:  stsfld     "System.Func<int> C.<>c.<>9__0_0"
+                  IL_001f:  call       "C.Enumerator Extensions.GetAsyncEnumerator(System.Func<int>)"
+                  IL_0024:  stloc.0
+                  IL_0025:  br.s       IL_0032
+                  IL_0027:  ldloc.0
+                  IL_0028:  callvirt   "int C.Enumerator.Current.get"
+                  IL_002d:  call       "void System.Console.Write(int)"
+                  IL_0032:  ldloc.0
+                  IL_0033:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0038:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_003d:  brtrue.s   IL_0027
+                  IL_003f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7043,6 +10963,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x21 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  call       "C.Enumerator Extensions.GetAsyncEnumerator(E)"
+                  IL_0006:  stloc.0
+                  IL_0007:  br.s       IL_0014
+                  IL_0009:  ldloc.0
+                  IL_000a:  callvirt   "int C.Enumerator.Current.get"
+                  IL_000f:  call       "void System.Console.Write(int)"
+                  IL_0014:  ldloc.0
+                  IL_0015:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_001f:  brtrue.s   IL_0009
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7073,6 +11020,36 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x29 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       42 (0x2a)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0,
+                                int? V_1)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  initobj    "int?"
+                  IL_0008:  ldloc.1
+                  IL_0009:  call       "C.Enumerator Extensions.GetAsyncEnumerator(int?)"
+                  IL_000e:  stloc.0
+                  IL_000f:  br.s       IL_001c
+                  IL_0011:  ldloc.0
+                  IL_0012:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0017:  call       "void System.Console.Write(int)"
+                  IL_001c:  ldloc.0
+                  IL_001d:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0022:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0027:  brtrue.s   IL_0011
+                  IL_0029:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7103,6 +11080,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x21 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  ldnull
+                  IL_0001:  call       "C.Enumerator Extensions.GetAsyncEnumerator(object)"
+                  IL_0006:  stloc.0
+                  IL_0007:  br.s       IL_0014
+                  IL_0009:  ldloc.0
+                  IL_000a:  callvirt   "int C.Enumerator.Current.get"
+                  IL_000f:  call       "void System.Console.Write(int)"
+                  IL_0014:  ldloc.0
+                  IL_0015:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001a:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_001f:  brtrue.s   IL_0009
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7133,6 +11137,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "object..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator<object>(object)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7169,6 +11200,64 @@ public static class Extensions
                 parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x5e }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       95 (0x5f)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                object V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "System.Index System.Index.op_Implicit(int)"
+                  IL_0006:  ldc.i4.4
+                  IL_0007:  call       "System.Index System.Index.op_Implicit(int)"
+                  IL_000c:  newobj     "System.Range..ctor(System.Index, System.Index)"
+                  IL_0011:  call       "System.Collections.Generic.IAsyncEnumerator<int> Extensions.GetAsyncEnumerator(System.Range)"
+                  IL_0016:  stloc.0
+                  IL_0017:  ldnull
+                  IL_0018:  stloc.1
+                  .try
+                  {
+                    IL_0019:  br.s       IL_0026
+                    IL_001b:  ldloc.0
+                    IL_001c:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_0021:  call       "void System.Console.Write(int)"
+                    IL_0026:  ldloc.0
+                    IL_0027:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_002c:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0031:  brtrue.s   IL_001b
+                    IL_0033:  leave.s    IL_0038
+                  }
+                  catch object
+                  {
+                    IL_0035:  stloc.1
+                    IL_0036:  leave.s    IL_0038
+                  }
+                  IL_0038:  ldloc.0
+                  IL_0039:  brfalse.s  IL_0046
+                  IL_003b:  ldloc.0
+                  IL_003c:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0041:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0046:  ldloc.1
+                  IL_0047:  brfalse.s  IL_005e
+                  IL_0049:  ldloc.1
+                  IL_004a:  isinst     "System.Exception"
+                  IL_004f:  dup
+                  IL_0050:  brtrue.s   IL_0054
+                  IL_0052:  ldloc.1
+                  IL_0053:  throw
+                  IL_0054:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0059:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_005e:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7201,6 +11290,63 @@ public static class Extensions
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x55 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       86 (0x56)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                object V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ldc.i4.2
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  newobj     "System.ValueTuple<int, int, int>..ctor(int, int, int)"
+                  IL_0008:  call       "System.Collections.Generic.IAsyncEnumerator<int> Extensions.GetAsyncEnumerator<int>(System.ValueTuple<int, int, int>)"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldnull
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  br.s       IL_001d
+                    IL_0012:  ldloc.0
+                    IL_0013:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_0018:  call       "void System.Console.Write(int)"
+                    IL_001d:  ldloc.0
+                    IL_001e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0023:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0028:  brtrue.s   IL_0012
+                    IL_002a:  leave.s    IL_002f
+                  }
+                  catch object
+                  {
+                    IL_002c:  stloc.1
+                    IL_002d:  leave.s    IL_002f
+                  }
+                  IL_002f:  ldloc.0
+                  IL_0030:  brfalse.s  IL_003d
+                  IL_0032:  ldloc.0
+                  IL_0033:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0038:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_003d:  ldloc.1
+                  IL_003e:  brfalse.s  IL_0055
+                  IL_0040:  ldloc.1
+                  IL_0041:  isinst     "System.Exception"
+                  IL_0046:  dup
+                  IL_0047:  brtrue.s   IL_004b
+                  IL_0049:  ldloc.1
+                  IL_004a:  throw
+                  IL_004b:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0050:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0055:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7236,9 +11382,126 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: @"1.1
+            string expectedOutput = @"1.1
 2.2
-3.3");
+3.3";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0xd5 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size      214 (0xd6)
+                  .maxstack  9
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<int, decimal>> V_0,
+                                System.ValueTuple<int[], System.Collections.Generic.List<decimal>> V_1,
+                                object V_2,
+                                int V_3, //a
+                                decimal V_4, //b
+                                decimal V_5)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  newarr     "int"
+                  IL_0008:  dup
+                  IL_0009:  ldc.i4.0
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  stelem.i4
+                  IL_000c:  dup
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  ldc.i4.2
+                  IL_000f:  stelem.i4
+                  IL_0010:  dup
+                  IL_0011:  ldc.i4.2
+                  IL_0012:  ldc.i4.3
+                  IL_0013:  stelem.i4
+                  IL_0014:  newobj     "System.Collections.Generic.List<decimal>..ctor()"
+                  IL_0019:  dup
+                  IL_001a:  ldc.i4.1
+                  IL_001b:  ldc.i4.0
+                  IL_001c:  ldc.i4.0
+                  IL_001d:  ldc.i4.0
+                  IL_001e:  ldc.i4.1
+                  IL_001f:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+                  IL_0024:  callvirt   "void System.Collections.Generic.List<decimal>.Add(decimal)"
+                  IL_0029:  dup
+                  IL_002a:  ldc.i4.2
+                  IL_002b:  ldc.i4.0
+                  IL_002c:  ldc.i4.0
+                  IL_002d:  ldc.i4.0
+                  IL_002e:  ldc.i4.1
+                  IL_002f:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+                  IL_0034:  callvirt   "void System.Collections.Generic.List<decimal>.Add(decimal)"
+                  IL_0039:  dup
+                  IL_003a:  ldc.i4.3
+                  IL_003b:  ldc.i4.0
+                  IL_003c:  ldc.i4.0
+                  IL_003d:  ldc.i4.0
+                  IL_003e:  ldc.i4.1
+                  IL_003f:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+                  IL_0044:  callvirt   "void System.Collections.Generic.List<decimal>.Add(decimal)"
+                  IL_0049:  call       "System.ValueTuple<int[], System.Collections.Generic.List<decimal>>..ctor(int[], System.Collections.Generic.List<decimal>)"
+                  IL_004e:  ldloc.1
+                  IL_004f:  ldfld      "int[] System.ValueTuple<int[], System.Collections.Generic.List<decimal>>.Item1"
+                  IL_0054:  ldloc.1
+                  IL_0055:  ldfld      "System.Collections.Generic.List<decimal> System.ValueTuple<int[], System.Collections.Generic.List<decimal>>.Item2"
+                  IL_005a:  newobj     "System.ValueTuple<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<decimal>>..ctor(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<decimal>)"
+                  IL_005f:  call       "System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<int, decimal>> Extensions.GetAsyncEnumerator<int, decimal>(System.ValueTuple<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<decimal>>)"
+                  IL_0064:  stloc.0
+                  IL_0065:  ldnull
+                  IL_0066:  stloc.2
+                  .try
+                  {
+                    IL_0067:  br.s       IL_009d
+                    IL_0069:  ldloc.0
+                    IL_006a:  callvirt   "System.ValueTuple<int, decimal> System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<int, decimal>>.Current.get"
+                    IL_006f:  dup
+                    IL_0070:  ldfld      "int System.ValueTuple<int, decimal>.Item1"
+                    IL_0075:  stloc.3
+                    IL_0076:  ldfld      "decimal System.ValueTuple<int, decimal>.Item2"
+                    IL_007b:  stloc.s    V_4
+                    IL_007d:  ldloc.3
+                    IL_007e:  call       "decimal decimal.op_Implicit(int)"
+                    IL_0083:  ldloc.s    V_4
+                    IL_0085:  call       "decimal decimal.op_Addition(decimal, decimal)"
+                    IL_008a:  stloc.s    V_5
+                    IL_008c:  ldloca.s   V_5
+                    IL_008e:  call       "System.Globalization.CultureInfo System.Globalization.CultureInfo.InvariantCulture.get"
+                    IL_0093:  call       "string decimal.ToString(System.IFormatProvider)"
+                    IL_0098:  call       "void System.Console.WriteLine(string)"
+                    IL_009d:  ldloc.0
+                    IL_009e:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<System.ValueTuple<int, decimal>>.MoveNextAsync()"
+                    IL_00a3:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_00a8:  brtrue.s   IL_0069
+                    IL_00aa:  leave.s    IL_00af
+                  }
+                  catch object
+                  {
+                    IL_00ac:  stloc.2
+                    IL_00ad:  leave.s    IL_00af
+                  }
+                  IL_00af:  ldloc.0
+                  IL_00b0:  brfalse.s  IL_00bd
+                  IL_00b2:  ldloc.0
+                  IL_00b3:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_00b8:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_00bd:  ldloc.2
+                  IL_00be:  brfalse.s  IL_00d5
+                  IL_00c0:  ldloc.2
+                  IL_00c1:  isinst     "System.Exception"
+                  IL_00c6:  dup
+                  IL_00c7:  brtrue.s   IL_00cb
+                  IL_00c9:  ldloc.2
+                  IL_00ca:  throw
+                  IL_00cb:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_00d0:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_00d5:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7352,6 +11615,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator1 V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator1 C.GetAsyncEnumerator()"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator1.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator1.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7439,6 +11729,64 @@ public static class Extensions
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x5b }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       92 (0x5c)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                System.Threading.CancellationToken V_1,
+                                object V_2)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldloca.s   V_1
+                  IL_0007:  initobj    "System.Threading.CancellationToken"
+                  IL_000d:  ldloc.1
+                  IL_000e:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_0013:  stloc.0
+                  IL_0014:  ldnull
+                  IL_0015:  stloc.2
+                  .try
+                  {
+                    IL_0016:  br.s       IL_0023
+                    IL_0018:  ldloc.0
+                    IL_0019:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                    IL_001e:  call       "void System.Console.Write(int)"
+                    IL_0023:  ldloc.0
+                    IL_0024:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                    IL_0029:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_002e:  brtrue.s   IL_0018
+                    IL_0030:  leave.s    IL_0035
+                  }
+                  catch object
+                  {
+                    IL_0032:  stloc.2
+                    IL_0033:  leave.s    IL_0035
+                  }
+                  IL_0035:  ldloc.0
+                  IL_0036:  brfalse.s  IL_0043
+                  IL_0038:  ldloc.0
+                  IL_0039:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_003e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0043:  ldloc.2
+                  IL_0044:  brfalse.s  IL_005b
+                  IL_0046:  ldloc.2
+                  IL_0047:  isinst     "System.Exception"
+                  IL_004c:  dup
+                  IL_004d:  brtrue.s   IL_0051
+                  IL_004f:  ldloc.2
+                  IL_0050:  throw
+                  IL_0051:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0056:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_005b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7629,6 +11977,33 @@ public static class Extensions2
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions2.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7749,6 +12124,33 @@ public static class Extensions2
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions2.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7825,6 +12227,33 @@ public static class Extensions2
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions1.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7896,6 +12325,34 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "23");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("23", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x26 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldc.i4.1
+                  IL_0006:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C, int)"
+                  IL_000b:  stloc.0
+                  IL_000c:  br.s       IL_0019
+                  IL_000e:  ldloc.0
+                  IL_000f:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0014:  call       "void System.Console.Write(int)"
+                  IL_0019:  ldloc.0
+                  IL_001a:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001f:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0024:  brtrue.s   IL_000e
+                  IL_0026:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -7963,6 +12420,35 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x2b }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  newarr     "int"
+                  IL_000b:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C, params int[])"
+                  IL_0010:  stloc.0
+                  IL_0011:  br.s       IL_001e
+                  IL_0013:  ldloc.0
+                  IL_0014:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0019:  call       "void System.Console.Write(int)"
+                  IL_001e:  ldloc.0
+                  IL_001f:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0024:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0029:  brtrue.s   IL_0013
+                  IL_002b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8099,6 +12585,36 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x2b }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", $$"""
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                C V_1)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "C"
+                  IL_0009:  call       "C.Enumerator Extensions.GetAsyncEnumerator({{modifier}} C)"
+                  IL_000e:  stloc.0
+                  IL_000f:  br.s       IL_001d
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "readonly int C.Enumerator.Current.get"
+                  IL_0018:  call       "void System.Console.Write(int)"
+                  IL_001d:  ldloca.s   V_0
+                  IL_001f:  call       "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0024:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0029:  brtrue.s   IL_0011
+                  IL_002b:  ret
+                }
+                """);
         }
 
         [Theory]
@@ -8132,6 +12648,36 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x2c }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", $$"""
+                {
+                  // Code size       45 (0x2d)
+                  .maxstack  1
+                  .locals init (C V_0, //c
+                                C.Enumerator V_1)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "C"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  call       "C.Enumerator Extensions.GetAsyncEnumerator({{modifier}} C)"
+                  IL_000f:  stloc.1
+                  IL_0010:  br.s       IL_001e
+                  IL_0012:  ldloca.s   V_1
+                  IL_0014:  call       "readonly int C.Enumerator.Current.get"
+                  IL_0019:  call       "void System.Console.Write(int)"
+                  IL_001e:  ldloca.s   V_1
+                  IL_0020:  call       "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0025:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_002a:  brtrue.s   IL_0012
+                  IL_002c:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8195,6 +12741,33 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8225,6 +12798,33 @@ internal static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8374,6 +12974,33 @@ internal static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8407,6 +13034,33 @@ internal static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8440,6 +13094,58 @@ struct Enumerator : IAsyncDisposable
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x52 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       83 (0x53)
+                  .maxstack  2
+                  .locals init (Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001b
+                    IL_000f:  ldloca.s   V_0
+                    IL_0011:  call       "readonly int Enumerator.Current.get"
+                    IL_0016:  call       "void System.Console.Write(int)"
+                    IL_001b:  ldloca.s   V_0
+                    IL_001d:  call       "System.Threading.Tasks.Task<bool> Enumerator.MoveNextAsync()"
+                    IL_0022:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0027:  brtrue.s   IL_000f
+                    IL_0029:  leave.s    IL_002e
+                  }
+                  catch object
+                  {
+                    IL_002b:  stloc.1
+                    IL_002c:  leave.s    IL_002e
+                  }
+                  IL_002e:  ldloca.s   V_0
+                  IL_0030:  call       "System.Threading.Tasks.ValueTask Enumerator.DisposeAsync()"
+                  IL_0035:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_003a:  ldloc.1
+                  IL_003b:  brfalse.s  IL_0052
+                  IL_003d:  ldloc.1
+                  IL_003e:  isinst     "System.Exception"
+                  IL_0043:  dup
+                  IL_0044:  brtrue.s   IL_0048
+                  IL_0046:  ldloc.1
+                  IL_0047:  throw
+                  IL_0048:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_004d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0052:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8474,6 +13180,59 @@ struct Enumerator : IAsyncDisposable
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x58 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       89 (0x59)
+                  .maxstack  2
+                  .locals init (Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001b
+                    IL_000f:  ldloca.s   V_0
+                    IL_0011:  call       "readonly int Enumerator.Current.get"
+                    IL_0016:  call       "void System.Console.Write(int)"
+                    IL_001b:  ldloca.s   V_0
+                    IL_001d:  call       "System.Threading.Tasks.Task<bool> Enumerator.MoveNextAsync()"
+                    IL_0022:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0027:  brtrue.s   IL_000f
+                    IL_0029:  leave.s    IL_002e
+                  }
+                  catch object
+                  {
+                    IL_002b:  stloc.1
+                    IL_002c:  leave.s    IL_002e
+                  }
+                  IL_002e:  ldloca.s   V_0
+                  IL_0030:  constrained. "Enumerator"
+                  IL_0036:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_003b:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0040:  ldloc.1
+                  IL_0041:  brfalse.s  IL_0058
+                  IL_0043:  ldloc.1
+                  IL_0044:  isinst     "System.Exception"
+                  IL_0049:  dup
+                  IL_004a:  brtrue.s   IL_004e
+                  IL_004c:  ldloc.1
+                  IL_004d:  throw
+                  IL_004e:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0053:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0058:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8507,6 +13266,58 @@ struct Enumerator
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x52 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       83 (0x53)
+                  .maxstack  2
+                  .locals init (Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001b
+                    IL_000f:  ldloca.s   V_0
+                    IL_0011:  call       "readonly int Enumerator.Current.get"
+                    IL_0016:  call       "void System.Console.Write(int)"
+                    IL_001b:  ldloca.s   V_0
+                    IL_001d:  call       "System.Threading.Tasks.Task<bool> Enumerator.MoveNextAsync()"
+                    IL_0022:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0027:  brtrue.s   IL_000f
+                    IL_0029:  leave.s    IL_002e
+                  }
+                  catch object
+                  {
+                    IL_002b:  stloc.1
+                    IL_002c:  leave.s    IL_002e
+                  }
+                  IL_002e:  ldloca.s   V_0
+                  IL_0030:  call       "System.Threading.Tasks.ValueTask Enumerator.DisposeAsync()"
+                  IL_0035:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_003a:  ldloc.1
+                  IL_003b:  brfalse.s  IL_0052
+                  IL_003d:  ldloc.1
+                  IL_003e:  isinst     "System.Exception"
+                  IL_0043:  dup
+                  IL_0044:  brtrue.s   IL_0048
+                  IL_0046:  ldloc.1
+                  IL_0047:  throw
+                  IL_0048:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_004d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0052:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8537,6 +13348,33 @@ public static class Extensions
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.ValueTask<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8586,6 +13424,60 @@ public static class Extensions
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.Enumerator.Current").WithLocation(8, 15)
                 );
             CompileAndVerify(comp, expectedOutput: "123Disposed");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123Disposed", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x52 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       83 (0x53)
+                  .maxstack  2
+                  .locals init (C.Enumerator V_0,
+                                object V_1)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldnull
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001a
+                    IL_000f:  ldloc.0
+                    IL_0010:  callvirt   "int C.Enumerator.Current.get"
+                    IL_0015:  call       "void System.Console.Write(int)"
+                    IL_001a:  ldloc.0
+                    IL_001b:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                    IL_0020:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                    IL_0025:  brtrue.s   IL_000f
+                    IL_0027:  leave.s    IL_002c
+                  }
+                  catch object
+                  {
+                    IL_0029:  stloc.1
+                    IL_002a:  leave.s    IL_002c
+                  }
+                  IL_002c:  ldloc.0
+                  IL_002d:  brfalse.s  IL_003a
+                  IL_002f:  ldloc.0
+                  IL_0030:  callvirt   "System.Threading.Tasks.Task C.Enumerator.DisposeAsync()"
+                  IL_0035:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_003a:  ldloc.1
+                  IL_003b:  brfalse.s  IL_0052
+                  IL_003d:  ldloc.1
+                  IL_003e:  isinst     "System.Exception"
+                  IL_0043:  dup
+                  IL_0044:  brtrue.s   IL_0048
+                  IL_0046:  ldloc.1
+                  IL_0047:  throw
+                  IL_0048:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_004d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0052:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8620,6 +13512,33 @@ namespace N
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator N.Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8738,6 +13657,33 @@ namespace N1
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("N1.N2.N3.C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (N1.N2.N3.C.Enumerator V_0)
+                  IL_0000:  newobj     "N1.N2.N3.C..ctor()"
+                  IL_0005:  call       "N1.N2.N3.C.Enumerator N1.N2.Extensions.GetAsyncEnumerator(N1.N2.N3.C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int N1.N2.N3.C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> N1.N2.N3.C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8790,6 +13736,33 @@ namespace N3
                 // using N3;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N3;").WithLocation(5, 1));
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("N1.C.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (N1.C.Enumerator V_0)
+                  IL_0000:  newobj     "N1.C..ctor()"
+                  IL_0005:  call       "N1.C.Enumerator N2.Extensions.GetAsyncEnumerator(N1.C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int N1.C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> N1.C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8932,6 +13905,33 @@ public class C
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Program.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8967,6 +13967,33 @@ public class C
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    """
+            });
+            verifier.VerifyIL("Program.Inner.Main()", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "C.Enumerator Program.GetAsyncEnumerator(C)"
+                  IL_000a:  stloc.0
+                  IL_000b:  br.s       IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  callvirt   "int C.Enumerator.Current.get"
+                  IL_0013:  call       "void System.Console.Write(int)"
+                  IL_0018:  ldloc.0
+                  IL_0019:  callvirt   "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_001e:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0023:  brtrue.s   IL_000d
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -9037,6 +14064,46 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123123");
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("123123", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x58 }
+                    """
+            });
+            verifier.VerifyIL("C.Main()", """
+                {
+                  // Code size       89 (0x59)
+                  .maxstack  1
+                  .locals init (C.Enumerator V_0)
+                  IL_0000:  newobj     "C..ctor()"
+                  IL_0005:  call       "ref C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_000a:  ldobj      "C.Enumerator"
+                  IL_000f:  stloc.0
+                  IL_0010:  br.s       IL_001e
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  call       "readonly int C.Enumerator.Current.get"
+                  IL_0019:  call       "void System.Console.Write(int)"
+                  IL_001e:  ldloca.s   V_0
+                  IL_0020:  call       "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0025:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_002a:  brtrue.s   IL_0012
+                  IL_002c:  newobj     "C..ctor()"
+                  IL_0031:  call       "ref C.Enumerator Extensions.GetAsyncEnumerator(C)"
+                  IL_0036:  ldobj      "C.Enumerator"
+                  IL_003b:  stloc.0
+                  IL_003c:  br.s       IL_004a
+                  IL_003e:  ldloca.s   V_0
+                  IL_0040:  call       "readonly int C.Enumerator.Current.get"
+                  IL_0045:  call       "void System.Console.Write(int)"
+                  IL_004a:  ldloca.s   V_0
+                  IL_004c:  call       "System.Threading.Tasks.Task<bool> C.Enumerator.MoveNextAsync()"
+                  IL_0051:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.Task<bool>)"
+                  IL_0056:  brtrue.s   IL_003e
+                  IL_0058:  ret
+                }
+                """);
         }
 
         [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
@@ -9092,6 +14159,67 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
             {
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
+
+                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [Main]: Return value missing on the stack. { Offset = 0x5b }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        """
+                });
+                verifier.VerifyIL("C.Main()", """
+                    {
+                      // Code size       92 (0x5c)
+                      .maxstack  2
+                      .locals init (AsyncEnumerator V_0,
+                                    AsyncEnumerable V_1,
+                                    System.Threading.CancellationToken V_2,
+                                    object V_3)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  dup
+                      IL_0003:  initobj    "AsyncEnumerable"
+                      IL_0009:  ldloca.s   V_2
+                      IL_000b:  initobj    "System.Threading.CancellationToken"
+                      IL_0011:  ldloc.2
+                      IL_0012:  call       "AsyncEnumerator AsyncEnumerable.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                      IL_0017:  stloc.0
+                      IL_0018:  ldnull
+                      IL_0019:  stloc.3
+                      .try
+                      {
+                        IL_001a:  br.s       IL_0024
+                        IL_001c:  ldloca.s   V_0
+                        IL_001e:  call       "int AsyncEnumerator.Current.get"
+                        IL_0023:  pop
+                        IL_0024:  ldloca.s   V_0
+                        IL_0026:  call       "System.Threading.Tasks.ValueTask<bool> AsyncEnumerator.MoveNextAsync()"
+                        IL_002b:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                        IL_0030:  brtrue.s   IL_001c
+                        IL_0032:  leave.s    IL_0037
+                      }
+                      catch object
+                      {
+                        IL_0034:  stloc.3
+                        IL_0035:  leave.s    IL_0037
+                      }
+                      IL_0037:  ldloca.s   V_0
+                      IL_0039:  call       "System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync()"
+                      IL_003e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0043:  ldloc.3
+                      IL_0044:  brfalse.s  IL_005b
+                      IL_0046:  ldloc.3
+                      IL_0047:  isinst     "System.Exception"
+                      IL_004c:  dup
+                      IL_004d:  brtrue.s   IL_0051
+                      IL_004f:  ldloc.3
+                      IL_0050:  throw
+                      IL_0051:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_0056:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_005b:  ret
+                    }
+                    """);
             }
             else
             {
@@ -9168,6 +14296,67 @@ struct AsyncEnumerator : IAsyncDisposable
             {
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
+
+                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [Main]: Return value missing on the stack. { Offset = 0x5b }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        """
+                });
+                verifier.VerifyIL("C.Main()", """
+                    {
+                      // Code size       92 (0x5c)
+                      .maxstack  2
+                      .locals init (AsyncEnumerator V_0,
+                                    AsyncEnumerable V_1,
+                                    System.Threading.CancellationToken V_2,
+                                    object V_3)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  dup
+                      IL_0003:  initobj    "AsyncEnumerable"
+                      IL_0009:  ldloca.s   V_2
+                      IL_000b:  initobj    "System.Threading.CancellationToken"
+                      IL_0011:  ldloc.2
+                      IL_0012:  call       "AsyncEnumerator AsyncEnumerable.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                      IL_0017:  stloc.0
+                      IL_0018:  ldnull
+                      IL_0019:  stloc.3
+                      .try
+                      {
+                        IL_001a:  br.s       IL_0024
+                        IL_001c:  ldloca.s   V_0
+                        IL_001e:  call       "int AsyncEnumerator.Current.get"
+                        IL_0023:  pop
+                        IL_0024:  ldloca.s   V_0
+                        IL_0026:  call       "System.Threading.Tasks.ValueTask<bool> AsyncEnumerator.MoveNextAsync()"
+                        IL_002b:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                        IL_0030:  brtrue.s   IL_001c
+                        IL_0032:  leave.s    IL_0037
+                      }
+                      catch object
+                      {
+                        IL_0034:  stloc.3
+                        IL_0035:  leave.s    IL_0037
+                      }
+                      IL_0037:  ldloca.s   V_0
+                      IL_0039:  call       "System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync()"
+                      IL_003e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0043:  ldloc.3
+                      IL_0044:  brfalse.s  IL_005b
+                      IL_0046:  ldloc.3
+                      IL_0047:  isinst     "System.Exception"
+                      IL_004c:  dup
+                      IL_004d:  brtrue.s   IL_0051
+                      IL_004f:  ldloc.3
+                      IL_0050:  throw
+                      IL_0051:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_0056:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_005b:  ret
+                    }
+                    """);
             }
             else
             {
@@ -9246,6 +14435,70 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
             {
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
+
+                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [Main]: Return value missing on the stack. { Offset = 0x61 }
+                        [System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                        [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        """
+                });
+                verifier.VerifyIL("C.Main()", """
+                    {
+                      // Code size       98 (0x62)
+                      .maxstack  2
+                      .locals init (System.Collections.Generic.IAsyncEnumerator<int> V_0,
+                                    AsyncEnumerable V_1,
+                                    System.Threading.CancellationToken V_2,
+                                    object V_3)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  dup
+                      IL_0003:  initobj    "AsyncEnumerable"
+                      IL_0009:  ldloca.s   V_2
+                      IL_000b:  initobj    "System.Threading.CancellationToken"
+                      IL_0011:  ldloc.2
+                      IL_0012:  constrained. "AsyncEnumerable"
+                      IL_0018:  callvirt   "System.Collections.Generic.IAsyncEnumerator<int> System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                      IL_001d:  stloc.0
+                      IL_001e:  ldnull
+                      IL_001f:  stloc.3
+                      .try
+                      {
+                        IL_0020:  br.s       IL_0029
+                        IL_0022:  ldloc.0
+                        IL_0023:  callvirt   "int System.Collections.Generic.IAsyncEnumerator<int>.Current.get"
+                        IL_0028:  pop
+                        IL_0029:  ldloc.0
+                        IL_002a:  callvirt   "System.Threading.Tasks.ValueTask<bool> System.Collections.Generic.IAsyncEnumerator<int>.MoveNextAsync()"
+                        IL_002f:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                        IL_0034:  brtrue.s   IL_0022
+                        IL_0036:  leave.s    IL_003b
+                      }
+                      catch object
+                      {
+                        IL_0038:  stloc.3
+                        IL_0039:  leave.s    IL_003b
+                      }
+                      IL_003b:  ldloc.0
+                      IL_003c:  brfalse.s  IL_0049
+                      IL_003e:  ldloc.0
+                      IL_003f:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                      IL_0044:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0049:  ldloc.3
+                      IL_004a:  brfalse.s  IL_0061
+                      IL_004c:  ldloc.3
+                      IL_004d:  isinst     "System.Exception"
+                      IL_0052:  dup
+                      IL_0053:  brtrue.s   IL_0057
+                      IL_0055:  ldloc.3
+                      IL_0056:  throw
+                      IL_0057:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_005c:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_0061:  ret
+                    }
+                    """);
             }
             else
             {
@@ -9378,6 +14631,67 @@ struct AsyncEnumerator : IAsyncEnumerator<(int, int)>
             {
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: "RAN");
+
+                var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+                var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("RAN", isRuntimeAsync: true), verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [Main]: Return value missing on the stack. { Offset = 0x5b }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value 'System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        """
+                });
+                verifier.VerifyIL("C.Main()", """
+                    {
+                      // Code size       92 (0x5c)
+                      .maxstack  2
+                      .locals init (AsyncEnumerator V_0,
+                                    AsyncEnumerable V_1,
+                                    System.Threading.CancellationToken V_2,
+                                    object V_3)
+                      IL_0000:  ldloca.s   V_1
+                      IL_0002:  dup
+                      IL_0003:  initobj    "AsyncEnumerable"
+                      IL_0009:  ldloca.s   V_2
+                      IL_000b:  initobj    "System.Threading.CancellationToken"
+                      IL_0011:  ldloc.2
+                      IL_0012:  call       "AsyncEnumerator AsyncEnumerable.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                      IL_0017:  stloc.0
+                      IL_0018:  ldnull
+                      IL_0019:  stloc.3
+                      .try
+                      {
+                        IL_001a:  br.s       IL_0024
+                        IL_001c:  ldloca.s   V_0
+                        IL_001e:  call       "System.ValueTuple<int, int> AsyncEnumerator.Current.get"
+                        IL_0023:  pop
+                        IL_0024:  ldloca.s   V_0
+                        IL_0026:  call       "System.Threading.Tasks.ValueTask<bool> AsyncEnumerator.MoveNextAsync()"
+                        IL_002b:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                        IL_0030:  brtrue.s   IL_001c
+                        IL_0032:  leave.s    IL_0037
+                      }
+                      catch object
+                      {
+                        IL_0034:  stloc.3
+                        IL_0035:  leave.s    IL_0037
+                      }
+                      IL_0037:  ldloca.s   V_0
+                      IL_0039:  call       "System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync()"
+                      IL_003e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                      IL_0043:  ldloc.3
+                      IL_0044:  brfalse.s  IL_005b
+                      IL_0046:  ldloc.3
+                      IL_0047:  isinst     "System.Exception"
+                      IL_004c:  dup
+                      IL_004d:  brtrue.s   IL_0051
+                      IL_004f:  ldloc.3
+                      IL_0050:  throw
+                      IL_0051:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                      IL_0056:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                      IL_005b:  ret
+                    }
+                    """);
             }
             else
             {
@@ -9479,9 +14793,77 @@ class C
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var expectedOutput = ExecutionConditionUtil.IsMonoOrCoreClr ? "D" : null;
             CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "D" : null,
+                expectedOutput: expectedOutput,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            var runtimeAsyncComp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(src);
+            var verifier = CompileAndVerify(runtimeAsyncComp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0xa }
+                    [Test]: Return value missing on the stack. { Offset = 0x7f }
+                    """
+            });
+            verifier.VerifyIL("C.Test<TEnumerable, TEnumerator>()", """
+                {
+                  // Code size      128 (0x80)
+                  .maxstack  2
+                  .locals init (TEnumerator V_0,
+                                TEnumerable V_1,
+                                System.Threading.CancellationToken V_2,
+                                object V_3)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "TEnumerable"
+                  IL_0009:  ldloca.s   V_2
+                  IL_000b:  initobj    "System.Threading.CancellationToken"
+                  IL_0011:  ldloc.2
+                  IL_0012:  constrained. "TEnumerable"
+                  IL_0018:  callvirt   "TEnumerator IGetEnumerator<TEnumerator>.GetAsyncEnumerator(System.Threading.CancellationToken)"
+                  IL_001d:  stloc.0
+                  IL_001e:  ldnull
+                  IL_001f:  stloc.3
+                  .try
+                  {
+                    IL_0020:  br.s       IL_0034
+                    IL_0022:  ldloca.s   V_0
+                    IL_0024:  constrained. "TEnumerator"
+                    IL_002a:  callvirt   "int ICustomEnumerator.Current.get"
+                    IL_002f:  call       "void System.Console.Write(int)"
+                    IL_0034:  ldloca.s   V_0
+                    IL_0036:  constrained. "TEnumerator"
+                    IL_003c:  callvirt   "System.Threading.Tasks.ValueTask<bool> ICustomEnumerator.MoveNextAsync()"
+                    IL_0041:  call       "bool System.Runtime.CompilerServices.AsyncHelpers.Await<bool>(System.Threading.Tasks.ValueTask<bool>)"
+                    IL_0046:  brtrue.s   IL_0022
+                    IL_0048:  leave.s    IL_004d
+                  }
+                  catch object
+                  {
+                    IL_004a:  stloc.3
+                    IL_004b:  leave.s    IL_004d
+                  }
+                  IL_004d:  ldloc.0
+                  IL_004e:  box        "TEnumerator"
+                  IL_0053:  brfalse.s  IL_0067
+                  IL_0055:  ldloca.s   V_0
+                  IL_0057:  constrained. "TEnumerator"
+                  IL_005d:  callvirt   "System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()"
+                  IL_0062:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.ValueTask)"
+                  IL_0067:  ldloc.3
+                  IL_0068:  brfalse.s  IL_007f
+                  IL_006a:  ldloc.3
+                  IL_006b:  isinst     "System.Exception"
+                  IL_0070:  dup
+                  IL_0071:  brtrue.s   IL_0075
+                  IL_0073:  ldloc.3
+                  IL_0074:  throw
+                  IL_0075:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_007a:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_007f:  ret
+                }
+                """);
         }
     }
 }

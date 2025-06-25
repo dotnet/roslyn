@@ -34,5 +34,7 @@ partial class BoundAwaitableInfo
                     break;
             }
         }
+
+        Debug.Assert(GetAwaiter is not null || RuntimeAsyncAwaitMethod is not null || IsDynamic || HasErrors);
     }
 }

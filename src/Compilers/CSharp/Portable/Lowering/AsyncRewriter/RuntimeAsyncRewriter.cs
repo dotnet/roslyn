@@ -22,20 +22,17 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             return node;
         }
 
-        // PROTOTYPE: try/finally rewriting
         // PROTOTYPE: struct lifting
-        var rewriter = new RuntimeAsyncRewriter(compilationState.Compilation, new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
+        var rewriter = new RuntimeAsyncRewriter(new SyntheticBoundNodeFactory(method, node.Syntax, compilationState, diagnostics));
         var result = (BoundStatement)rewriter.Visit(node);
         return SpillSequenceSpiller.Rewrite(result, method, compilationState, diagnostics);
     }
 
-    private readonly CSharpCompilation _compilation;
     private readonly SyntheticBoundNodeFactory _factory;
     private readonly Dictionary<BoundAwaitableValuePlaceholder, BoundExpression> _placeholderMap;
 
-    private RuntimeAsyncRewriter(CSharpCompilation compilation, SyntheticBoundNodeFactory factory)
+    private RuntimeAsyncRewriter(SyntheticBoundNodeFactory factory)
     {
-        _compilation = compilation;
         _factory = factory;
         _placeholderMap = [];
     }

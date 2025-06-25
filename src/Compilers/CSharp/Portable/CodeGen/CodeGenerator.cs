@@ -321,7 +321,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             _builder.MarkLabel(s_returnLabel);
 
-            Debug.Assert(_method.ReturnsVoid == (_returnTemp == null));
+            Debug.Assert(_method.ReturnsVoid == (_returnTemp == null)
+                || (_method.IsAsync
+                    && _module.Compilation.IsRuntimeAsyncEnabledIn(_method)
+                    && ((InternalSpecialType)_method.ReturnType.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_Task or InternalSpecialType.System_Threading_Tasks_ValueTask));
 
             if (_emitPdbSequencePoints && !_method.IsIterator && !_method.IsAsync)
             {
