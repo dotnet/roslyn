@@ -29,6 +29,9 @@ internal sealed partial class CSharpOrganizeImportsService() : IOrganizeImportsS
     }
 
     public string SortImportsDisplayStringWithAccelerator
+        => CSharpWorkspaceResources.Sort_Usings_with_accelerator;
+
+    public string SortImportsDisplayStringWithoutAccelerator
         => CSharpWorkspaceResources.Sort_Usings;
 
     public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator

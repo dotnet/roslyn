@@ -136,11 +136,11 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         // label statement
         if (node is LabeledStatementSyntax labeledStatement)
         {
-            if (_options.LabelPositioning == LabelPositionOptions.OneLess)
+            if (_options.LabelPositioning == LabelPositionOptionsInternal.OneLess)
             {
                 AddUnindentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
             }
-            else if (_options.LabelPositioning == LabelPositionOptions.LeftMost)
+            else if (_options.LabelPositioning == LabelPositionOptionsInternal.LeftMost)
             {
                 AddAbsoluteZeroIndentBlockOperation(list, labeledStatement.Identifier, labeledStatement.ColonToken);
             }

@@ -384,8 +384,10 @@ internal sealed class EditAndContinueLanguageService(
 
         switch (result.ModuleUpdates.Status)
         {
-            case ModuleUpdateStatus.Ready:
-                // We have updates to be applied. The debugger will call Commit/Discard on the solution
+            case ModuleUpdateStatus.Ready when result.ProjectsToRebuild.IsEmpty:
+                // We have updates to be applied and no rude edits.
+                //
+                // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
                 break;

@@ -314,7 +314,7 @@ class C
         var baseActiveStatements = new ActiveStatementsMap(
             ImmutableDictionary.CreateRange(
             [
-                KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
+                KeyValuePair.Create(newDocument.FilePath, ImmutableArray.Create(
                     new ActiveStatement(
                         new ActiveStatementId(0),
                         ActiveStatementFlags.LeafFrame,

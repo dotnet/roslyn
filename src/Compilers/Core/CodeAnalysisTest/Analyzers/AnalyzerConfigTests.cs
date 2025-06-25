@@ -14,7 +14,6 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.AnalyzerConfig;
 using static Roslyn.Test.Utilities.TestHelpers;
-using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -1229,7 +1228,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
         }
 
         private static void VerifyAnalyzerOptions(
-            (string key, string val)[][] expected,
+            (string key, string value)[][] expected,
             AnalyzerConfigOptionsResult[] options)
         {
             Assert.Equal(expected.Length, options.Length);
@@ -1243,7 +1242,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
                 else
                 {
                     AssertEx.SetEqual(
-                        expected[i].Select(KeyValuePair.ToKeyValuePair),
+                        expected[i].Select(t => KeyValuePair.Create(t.key, t.value)),
                         options[i].AnalyzerOptions);
                 }
             }

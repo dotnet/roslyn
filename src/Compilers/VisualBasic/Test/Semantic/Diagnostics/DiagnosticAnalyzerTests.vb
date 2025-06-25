@@ -1633,7 +1633,7 @@ End Namespace
                           </compilation>
 
             Dim defines = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
-            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("WindowsForms")))
+            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("WindowsForms")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)

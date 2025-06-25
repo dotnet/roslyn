@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
             => new()
             {
                 Spacing = (SpacePlacement)Spacing,
-                SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptions)SpacingAroundBinaryOperator,
+                SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptionsInternal)SpacingAroundBinaryOperator,
                 NewLines = (NewLinePlacement)NewLines,
-                LabelPositioning = (LabelPositionOptions)LabelPositioning,
+                LabelPositioning = (LabelPositionOptionsInternal)LabelPositioning,
                 Indentation = (IndentationPlacement)Indentation,
                 WrappingKeepStatementsOnSingleLine = WrappingKeepStatementsOnSingleLine,
                 WrappingPreserveSingleLine = WrappingPreserveSingleLine,

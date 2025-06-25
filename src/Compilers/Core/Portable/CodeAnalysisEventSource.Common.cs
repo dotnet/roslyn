@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis
         [Event(16, Message = "Analyzer reference '{0}' was removed from project '{1}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
         internal void AnalyzerReferenceRemovedFromProject(string path, string projectName) => WriteEvent(16, path, projectName);
 
-        [Event(17, Message = "Analyzer reference was redirected by '{0}' from '{1}' to '{2}' for project '{3}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Verbose, Task = Tasks.BuildStateTable)]
+        [Event(17, Message = "Analyzer reference was redirected by '{0}' from '{1}' to '{2}' for project '{3}'", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
         internal unsafe void AnanlyzerReferenceRedirected(string redirectorType, string originalPath, string newPath, string project)
         {
             if (IsEnabled())

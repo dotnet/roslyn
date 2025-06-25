@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
@@ -43,12 +44,14 @@ internal sealed class StackFrameViewModel(
     private TextDocument? _cachedDocument;
     private int _cachedLineNumber;
 
+    private readonly CancellationSeries _navigationCancellation = new(threadingContext.DisposalToken);
+
     public override bool ShowMouseOver => true;
 
     public void NavigateToClass()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToClassAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = _navigationCancellation.CreateNext();
+        _ = NavigateToClassAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToClassAsync(CancellationToken cancellationToken)
@@ -76,8 +79,8 @@ internal sealed class StackFrameViewModel(
 
     public void NavigateToSymbol()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToMethodAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = _navigationCancellation.CreateNext();
+        _ = NavigateToMethodAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToMethodAsync(CancellationToken cancellationToken)
@@ -94,8 +97,8 @@ internal sealed class StackFrameViewModel(
 
     public void NavigateToFile()
     {
-        var cancellationToken = _threadingContext.DisposalToken;
-        Task.Run(() => NavigateToFileAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+        var cancellationToken = _navigationCancellation.CreateNext();
+        _ = NavigateToFileAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
     }
 
     public async Task NavigateToFileAsync(CancellationToken cancellationToken)
