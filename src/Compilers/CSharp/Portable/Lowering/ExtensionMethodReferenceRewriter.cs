@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundExpression visitArgumentsAndFinishRewrite(BoundTreeRewriter rewriter, BoundCall node, BoundExpression? rewrittenReceiver)
             {
-                Debug.Assert(node.Method.MethodKind != MethodKind.Ordinary || node.Method.IsStatic || node.ReceiverOpt is not null);
+                Debug.Assert(node.Method.MethodKind == MethodKind.LocalFunction || node.Method.IsStatic || node.ReceiverOpt is not null);
 
                 return updateCall(
                     node,
