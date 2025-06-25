@@ -40,8 +40,18 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
     /// </summary>
     public void StartListening(Workspace workspace)
     {
-        // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
-        _ = LoadAsync();
+        _ = workspace.RegisterWorkspaceChangedHandler(Workspace_WorkspaceChanged);
+    }
+
+    private void Workspace_WorkspaceChanged(WorkspaceChangeEventArgs e)
+    {
+        if (e.Kind == WorkspaceChangeKind.SolutionAdded)
+        {
+            // Normally VS will load the language client when an editor window is created for one of our content types,
+            // but we want to load it as soon as a solution is loaded so workspace diagnostics work, and so 3rd parties
+            // like Razor can use dynamic registration.
+            Load();
+        }
     }
 
     public void StopListening(Workspace workspace)
@@ -49,16 +59,21 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
         // Nothing to do here.  There's no concept of unloading an ILanguageClient.
     }
 
-    private async Task LoadAsync()
+    private void Load()
     {
-        try
-        {
-            using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadAsync));
+        using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(Load));
+        LoadAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
 
+        async Task LoadAsync()
+        {
             // Explicitly switch to the bg so that if this causes any expensive work (like mef loads) it 
             // doesn't block the UI thread. Note, we always yield because sometimes our caller starts
             // on the threadpool thread but is indirectly blocked on by the UI thread.
             await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
+            // Sometimes the editor can be slow to stop the old server instance when the old solution is closed, so we force it here.
+            // This will no-op if the server hasn't been started yet.
+            await _languageClient.StopServerAsync().ConfigureAwait(false);
 
             await _languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(
             [
@@ -66,9 +81,6 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
                 ContentTypeNames.VisualBasicContentType,
                 ContentTypeNames.FSharpContentType
             ]), _languageClient).ConfigureAwait(false);
-        }
-        catch (Exception e) when (FatalError.ReportAndCatch(e))
-        {
         }
     }
 

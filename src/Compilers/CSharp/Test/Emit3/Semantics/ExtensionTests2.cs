@@ -584,7 +584,7 @@ public static class E
 var person = new { Name = "John", Age = 30 };
 person.M();
 person.M2();
-_ = person.P;
+_ = person.Property;
 
 public static class E
 {
@@ -597,12 +597,32 @@ public static class E
     public static void M2<T>(this T t) { System.Console.Write("method2 "); }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : should work
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (4,12): error CS1061: '<anonymous type: string Name, int Age>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type '<anonymous type: string Name, int Age>' could be found (are you missing a using directive or an assembly reference?)
-            // _ = person.P;
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("<anonymous type: string Name, int Age>", "P").WithLocation(4, 12));
+        CompileAndVerify(comp, expectedOutput: "method method2 property").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AnonymousType_02()
+    {
+        // instance members come first
+        var src = """
+System.Action a = () => { System.Console.Write("method "); };
+var person = new { DoStuff = a, Property = 42 };
+
+person.DoStuff();
+System.Console.Write(person.Property);
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void DoStuff() => throw null;
+        public int Property => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "method 42").VerifyDiagnostics();
     }
 
     [Fact]

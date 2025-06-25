@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Microsoft.CodeAnalysis.Host;
 #endif
 
@@ -33,7 +33,7 @@ internal static class NamingStyleOptions
 }
 
 internal interface NamingStylePreferencesProvider
-#if !CODE_STYLE
+#if WORKSPACE
     : OptionsProvider<NamingStylePreferences>
 #endif
 {

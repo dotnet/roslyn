@@ -1623,7 +1623,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (activeNode.NewTrackedNode != null)
             {
                 lazyKnownMatches ??= [];
-                lazyKnownMatches.Add(KeyValuePairUtil.Create(activeNode.OldNode, activeNode.NewTrackedNode));
+                lazyKnownMatches.Add(KeyValuePair.Create(activeNode.OldNode, activeNode.NewTrackedNode));
             }
         }
 

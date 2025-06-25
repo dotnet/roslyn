@@ -88,7 +88,9 @@ internal sealed class SyntaxKindSet
     public static readonly ISet<SyntaxKind> NonEnumTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.ClassDeclaration,
+#if !ROSLYN_4_12_OR_LOWER
         SyntaxKind.ExtensionBlockDeclaration,
+#endif
         SyntaxKind.InterfaceDeclaration,
         SyntaxKind.RecordDeclaration,
         SyntaxKind.RecordStructDeclaration,

@@ -6,9 +6,12 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+
+#if WORKSPACE
+using Microsoft.CodeAnalysis.Internal.Log;
+#endif
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse;
 
@@ -20,7 +23,9 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
     where TBasePropertyDeclarationSyntax : TMemberDeclarationSyntax
     where TAccessorDeclarationSyntax : SyntaxNode
 {
+#if WORKSPACE
     private readonly CountLogAggregator<bool> _logAggregator = new();
+#endif
 
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
@@ -32,11 +37,13 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
 
     public void Dispose()
     {
+#if WORKSPACE
         Logger.Log(FunctionId.SemanticModelReuseLanguageService_TryGetSpeculativeSemanticModelAsync_Equivalent, KeyValueLogMessage.Create(static (m, _logAggregator) =>
         {
             foreach (var kv in _logAggregator)
                 m[kv.Key.ToString()] = kv.Value.GetCount();
         }, _logAggregator));
+#endif
     }
 
     public async Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)
@@ -48,7 +55,10 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
         // then something very bad happened as we did that document.Project.GetDependentSemanticVersionAsync was
         // still the same.  Log information so we can be alerted if this isn't being as successful as we expect.
         var isEquivalentTo = previousSyntaxTree.IsEquivalentTo(currentSyntaxTree, topLevel: true);
+
+#if WORKSPACE
         _logAggregator.IncreaseCount(isEquivalentTo);
+#endif
 
         if (!isEquivalentTo)
             return null;
@@ -71,13 +81,13 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
         // Given that the common use case for us is continuously editing/typing inside a method body, we believe we can be conservative
         // in creating speculative model with those kind of trivia change, by requiring the method body block not to shift position,
         // w/o sacrificing performance in those common scenarios.
-        if (previousBodyNode.SpanStart != currentBodyNode.SpanStart)
+        if (previousBodyNode?.SpanStart != currentBodyNode.SpanStart)
             return null;
 
         return TryGetSpeculativeSemanticModelWorker(previousSemanticModel, previousBodyNode, currentBodyNode);
     }
 
-    protected SyntaxNode GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
+    protected SyntaxNode? GetPreviousBodyNode(SyntaxNode previousRoot, SyntaxNode currentRoot, SyntaxNode currentBodyNode)
     {
         if (currentBodyNode is TAccessorDeclarationSyntax currentAccessor)
         {

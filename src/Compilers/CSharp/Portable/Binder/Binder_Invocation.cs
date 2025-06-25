@@ -2306,21 +2306,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundArgument = BindExpression(argument, diagnostics);
 
             bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
-            if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)
+            if (boundArgument is BoundMethodGroup methodGroup)
             {
-                var methodGroup = (BoundMethodGroup)boundArgument;
-                if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)
+                if (!boundArgument.HasAnyErrors && syntaxIsOk)
                 {
-                    // method group with type parameters not allowed
-                    diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argument.Location);
-                }
-                else
-                {
-                    EnsureNameofExpressionSymbols(methodGroup, diagnostics);
+                    if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)
+                    {
+                        // method group with type parameters not allowed
+                        diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argument.Location);
+                    }
+                    else
+                    {
+                        EnsureNameofExpressionSymbols(methodGroup, diagnostics);
+                    }
                 }
             }
-
-            if (boundArgument is BoundNamespaceExpression nsExpr)
+            else if (boundArgument is BoundPropertyAccess propertyAccess)
+            {
+                if (propertyAccess.PropertySymbol.GetIsNewExtensionMember())
+                {
+                    diagnostics.Add(ErrorCode.ERR_NameofExtensionMember, boundArgument.Syntax);
+                }
+            }
+            else if (boundArgument is BoundNamespaceExpression nsExpr)
             {
                 diagnostics.AddAssembliesUsedByNamespaceReference(nsExpr.NamespaceSymbol);
             }
