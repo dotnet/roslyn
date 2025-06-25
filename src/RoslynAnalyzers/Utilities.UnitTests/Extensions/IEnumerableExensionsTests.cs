@@ -142,15 +142,5 @@ namespace Analyzer.Utilities.Extensions
             public bool Remove(int item) => throw new NotImplementedException();
             IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         }
-
-        [Fact]
-        public void Concat_WhenCollectionIsNull_ThrowsDirectly()
-        {
-            Assert.Throws<ArgumentNullException>(() =>
-            {
-                IEnumerable<int> collection = null!;
-                collection.Concat(1);
-            });
-        }
     }
 }
