@@ -3445,16 +3445,16 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({$"/pathmap:abc{s}=/", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("abc" & s, "/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("abc" & s, "/"), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:K1=V1,K2=V2", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K2" & s, "V2" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("K1" & s, "V1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K2" & s, "V2" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:,", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
@@ -3487,28 +3487,28 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/pathmap:""supporting spaces=is hard""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("supporting spaces" & s, "is hard" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("supporting spaces" & s, "is hard" & s), parsedArgs.PathMap(0))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1=V 1"",""K 2=V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:""K 1""=""V 1"",""K 2""=""V 2""", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("K 1" & s, "V 1" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2" & s, "V 2" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:""a ==,,b""=""1,,== 2"",""x ==,,y""=""3 4"",", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("a =,b" & s, "1,= 2" & s), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("x =,y" & s, "3 4" & s), parsedArgs.PathMap(1))
 
             parsedArgs = DefaultParse({"/pathmap:C:\temp\=/_1/,C:\temp\a\=/_2/,C:\temp\a\b\=/_3/", "a.cs", "a\b.cs", "a\b\c.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\b\", "/_3/"), parsedArgs.PathMap(0))
-            Assert.Equal(KeyValuePairUtil.Create("C:\temp\a\", "/_2/"), parsedArgs.PathMap(1))
-            Assert.Equal(KeyValuePairUtil.Create("C:\temp\", "/_1/"), parsedArgs.PathMap(2))
+            Assert.Equal(KeyValuePair.Create("C:\temp\a\b\", "/_3/"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("C:\temp\a\", "/_2/"), parsedArgs.PathMap(1))
+            Assert.Equal(KeyValuePair.Create("C:\temp\", "/_1/"), parsedArgs.PathMap(2))
         End Sub
 
         ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an

@@ -8,11 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
 using Microsoft.CodeAnalysis.Editing;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -392,7 +388,7 @@ internal static class CodeGenerationSymbolFactory
         return CreateMethodSymbol(
             attributes,
             accessibility,
-            new DeclarationModifiers(isAbstract: statements == null),
+            DeclarationModifiers.None.WithIsAbstract(statements == null),
             returnType: null,
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,
@@ -475,7 +471,7 @@ internal static class CodeGenerationSymbolFactory
         var invokeMethod = CreateMethodSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             returnType: returnType,
             refKind: refKind,
             explicitInterfaceImplementations: default,

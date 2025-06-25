@@ -788,8 +788,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
-        <source>Extension declarations can include only methods or properties</source>
-        <target state="new">Extension declarations can include only methods or properties</target>
+        <source>This member is not allowed in an extension block</source>
+        <target state="new">This member is not allowed in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
@@ -1472,6 +1472,11 @@
         <target state="translated">“{0}”没有与函数指针“{1}”匹配的重载</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedExtension">
+        <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
+        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>
@@ -1550,6 +1555,11 @@
       <trans-unit id="ERR_NamedArgumentForInlineArray">
         <source>An inline array access may not have a named argument specifier</source>
         <target state="translated">内联数组访问可能没有命名参数说明符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NameofExtensionMember">
+        <source>Extension members are not allowed as an argument to 'nameof'.</source>
+        <target state="new">Extension members are not allowed as an argument to 'nameof'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -7913,8 +7923,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnInvalidMethod">
-        <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
-        <target state="translated">必须在标记为 "static" 和 "extern" 的方法上指定 DllImport 特性</target>
+        <source>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</source>
+        <target state="needs-review-translation">必须在标记为 "static" 和 "extern" 的方法上指定 DllImport 特性</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">

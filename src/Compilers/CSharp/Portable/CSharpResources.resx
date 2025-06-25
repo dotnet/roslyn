@@ -1806,7 +1806,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Invalid value for named attribute argument '{0}'</value>
   </data>
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
-    <value>The DllImport attribute must be specified on a method marked 'static' and 'extern'</value>
+    <value>The DllImport attribute must be specified on a method marked 'extern' that is either 'static' or an extension member</value>
   </data>
   <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot emit update; {0} '{1}' is missing.</value>
@@ -8096,7 +8096,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Extension declarations may not have a name.</value>
   </data>
   <data name="ERR_ExtensionDisallowsMember" xml:space="preserve">
-    <value>Extension declarations can include only methods or properties</value>
+    <value>This member is not allowed in an extension block</value>
   </data>
   <data name="ERR_BadExtensionContainingType" xml:space="preserve">
     <value>Extensions must be declared in a top-level, non-generic, static class</value>
@@ -8184,5 +8184,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
     <value>'#!' directives can be only used in scripts or file-based programs</value>
+  </data>
+  <data name="ERR_MisplacedExtension" xml:space="preserve">
+    <value>An extension member syntax is disallowed in nested position within an extension member syntax</value>
+  </data>
+  <data name="ERR_NameofExtensionMember" xml:space="preserve">
+    <value>Extension members are not allowed as an argument to 'nameof'.</value>
   </data>
 </root>

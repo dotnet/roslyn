@@ -41,7 +41,7 @@ internal static class ContractWrappers
             exceptionRegions: update.ExceptionRegions.SelectAsArray(FromContract));
 
     public static ManagedHotReloadUpdates FromContract(this InternalContracts.ManagedHotReloadUpdates updates)
-        => new(updates.Updates.FromContract(), updates.Diagnostics.FromContract());
+        => new(updates.Updates.FromContract(), updates.Diagnostics.FromContract(), updates.ProjectsToRebuild, updates.ProjectsToRestart);
 
     public static ImmutableArray<ManagedHotReloadUpdate> FromContract(this ImmutableArray<InternalContracts.ManagedHotReloadUpdate> diagnostics)
         => diagnostics.SelectAsArray(FromContract);
