@@ -51,10 +51,11 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri)).Kind);
         AssertMiscFileWorkspaceEmpty(testLspServer);
 
-        // Close the metadata file and verify it gets removed from the metadata workspace.
+        // Close the metadata file - the file will still be present in MAS.
         await testLspServer.CloseDocumentAsync(definition.Single().DocumentUri).ConfigureAwait(false);
 
-        AssertMetadataFileWorkspaceEmpty(testLspServer);
+        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri)).Kind);
+        AssertMiscFileWorkspaceEmpty(testLspServer);
     }
 
     [Theory, CombinatorialData]
@@ -131,12 +132,5 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
     {
         var doc = testLspServer.GetManagerAccessor().GetLspMiscellaneousFilesWorkspace()!.CurrentSolution.Projects.SingleOrDefault()?.Documents.SingleOrDefault();
         Assert.Null(doc);
-    }
-
-    private static void AssertMetadataFileWorkspaceEmpty(TestLspServer testLspServer)
-    {
-        var provider = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IMetadataAsSourceFileService>();
-        var metadataDocument = provider.TryGetWorkspace()?.CurrentSolution.Projects.SingleOrDefault()?.Documents.SingleOrDefault();
-        Assert.Null(metadataDocument);
     }
 }
