@@ -104,7 +104,7 @@ internal sealed partial class DidChangeConfigurationNotificationHandler : ILspSe
             {
                 if (option.Definition.Serializer.TryParse(valueFromClient, out var parsedValue))
                 {
-                    optionsToUpdate.Add(KeyValuePairUtil.Create(new OptionKey2(option, language: languageName), parsedValue));
+                    optionsToUpdate.Add(KeyValuePair.Create(new OptionKey2(option, language: languageName), parsedValue));
                 }
                 else
                 {

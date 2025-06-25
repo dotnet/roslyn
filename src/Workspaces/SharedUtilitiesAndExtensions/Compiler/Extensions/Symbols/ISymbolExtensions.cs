@@ -4,6 +4,7 @@
 
 #nullable enable
 #pragma warning disable RS1024 // Use 'SymbolEqualityComparer' when comparing symbols (https://github.com/dotnet/roslyn/issues/78583)
+#pragma warning disable CS0419 // Ambiguous reference in cref attribute
 
 using System;
 using System.Collections.Generic;
