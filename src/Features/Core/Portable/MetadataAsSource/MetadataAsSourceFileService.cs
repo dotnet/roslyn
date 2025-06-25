@@ -6,18 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 [Export(typeof(IMetadataAsSourceFileService)), Shared]
 internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 {
-    private const string MetadataAsSource = nameof(MetadataAsSource);
+    internal const string MetadataAsSource = nameof(MetadataAsSource);
 
     /// <summary>
     /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
@@ -43,28 +41,13 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
-    /// <summary>
-    /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
-    /// other VS instance will try to delete our _rootTemporaryPathWithGuid folder.
-    /// </summary>
-    private readonly Mutex _mutex;
-    private readonly string _rootTemporaryPathWithGuid;
-    private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSource);
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public MetadataAsSourceFileService(
         [ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
     {
         _providers = new(() => [.. ExtensionOrderer.Order(providers)]);
-
-        var guidString = Guid.NewGuid().ToString("N");
-        _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
-        _mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
     }
-
-    private static string CreateMutexName(string directoryName)
-        => $"{MetadataAsSource}-{directoryName}";
 
     public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
         Workspace sourceWorkspace,
@@ -87,13 +70,20 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
+            IMetadataDocumentPersister persister;
             if (_workspace is null)
             {
                 _workspace = new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
 
+                persister = GetPersister(_workspace, options);
+
                 // We're being initialized the first time.  Use this time to clean up any stale metadata-as-source files
                 // from previous VS sessions.
-                CleanupGeneratedFiles(_rootTemporaryPath);
+                persister.CleanupGeneratedDocuments();
+            }
+            else
+            {
+                persister = GetPersister(_workspace, options);
             }
 
             Contract.ThrowIfNull(_workspace);
@@ -101,11 +91,17 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             // We don't want to track telemetry for signatures only requests, only where we try to show source
             using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
 
+            // todo - path.  we have first root path (metadatassource folder), then a top guid (created by this provider).
+            // sub providers create their own subfolders under this guid with another guid. pdb uses projectid, decompiler uses new guid.
+            // maybe have persister take in the parts to create either uri for temp path?  but somehow need this to be able to clean it up.
+            // but seems possible - path is only accessed inthis method (in local cleanup).
+            // Maybe persister should implement cleanup generated files???? Nice.
+
             foreach (var lazyProvider in _providers.Value)
             {
                 var provider = lazyProvider.Value;
-                var providerTempPath = Path.Combine(_rootTemporaryPathWithGuid, provider.GetType().Name);
-                var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, telemetryMessage, cancellationToken).ConfigureAwait(false);
+                var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject,
+                    symbol, signaturesOnly, options, telemetryMessage, persister, cancellationToken).ConfigureAwait(false);
                 if (result is not null)
                     return result;
             }
@@ -114,45 +110,16 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         // The decompilation provider can always return something
         throw ExceptionUtilities.Unreachable();
 
-        static void CleanupGeneratedFiles(string rootDirectory)
+        static IMetadataDocumentPersister GetPersister(MetadataAsSourceWorkspace workspace, MetadataAsSourceOptions options)
         {
-            try
+            if (options.NavigateToVirtualFile)
             {
-                if (Directory.Exists(rootDirectory))
-                {
-                    // Let's look through directories to delete.
-                    foreach (var directoryInfo in new DirectoryInfo(rootDirectory).EnumerateDirectories())
-                    {
-                        // Is there a mutex for this one?  If so, that means it's a folder open in another VS instance.
-                        // We should leave it alone.  If not, then it's a folder from a previous VS run.  Delete that
-                        // now.
-                        if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
-                        {
-                            acquiredMutex.Dispose();
-                        }
-                        else
-                        {
-                            TryDeleteFolderWhichContainsReadOnlyFiles(directoryInfo.FullName);
-                        }
-                    }
-                }
+                // If we're configured to use virtual files, return the persister that only saves documents to the workspace.
+                return workspace.Services.GetRequiredService<WorkspaceMetadataDocumentPersister>();
             }
-            catch (Exception)
+            else
             {
-            }
-        }
-
-        static void TryDeleteFolderWhichContainsReadOnlyFiles(string directoryPath)
-        {
-            try
-            {
-                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
-                    IOUtilities.PerformIO(() => fileInfo.IsReadOnly = false);
-
-                IOUtilities.PerformIO(() => Directory.Delete(directoryPath, recursive: true));
-            }
-            catch (Exception)
-            {
+                return workspace.Services.GetRequiredService<FileSystemMetadataDocumentPersister>();
             }
         }
     }
@@ -163,51 +130,6 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         Contract.ThrowIfFalse(threadingService.IsOnMainThread);
     }
 
-    public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
-    {
-        // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
-        // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
-        // MetadataAsSource instead of itself.
-        var workspace = _workspace;
-        if (workspace != null)
-        {
-            foreach (var provider in _providers.Value)
-            {
-                if (!provider.IsValueCreated)
-                    continue;
-
-                if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer, out documentId))
-                {
-                    return true;
-                }
-            }
-        }
-
-        documentId = null;
-        return false;
-    }
-
-    public bool TryRemoveDocumentFromWorkspace(string filePath)
-    {
-        // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
-        // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
-        // MetadataAsSource system to see if it owns the file and should handle that event.
-        var workspace = _workspace;
-        if (workspace != null)
-        {
-            foreach (var provider in _providers.Value)
-            {
-                if (!provider.IsValueCreated)
-                    continue;
-
-                if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
     public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)
     {
         if (filePath is null)
@@ -215,7 +137,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         var workspace = _workspace;
 
-        if (workspace == null)
+        if (_workspace == null)
         {
             try
             {
@@ -229,14 +151,14 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             return false;
         }
 
-        AssertIsMainThread(workspace);
+        AssertIsMainThread(_workspace);
 
         foreach (var provider in _providers.Value)
         {
             if (!provider.IsValueCreated)
                 continue;
 
-            if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
+            if (provider.Value.ShouldCollapseOnOpen(_workspace, filePath, blockStructureOptions))
                 return true;
         }
 

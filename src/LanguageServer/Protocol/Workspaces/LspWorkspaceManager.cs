@@ -153,12 +153,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
 
-        // Also remove it from our loose files or metadata workspace if it is still there.
+        // Also remove it from our loose files if it is still there.
         if (_lspMiscellaneousFilesWorkspaceProvider is not null)
         {
             try
             {
-                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: true).ConfigureAwait(false);
+                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
@@ -268,8 +268,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     {
                         try
                         {
-                            // Do not attempt to remove the file from the metadata workspace (the document is still open).
-                            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
+                            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
                         }
                         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                         {

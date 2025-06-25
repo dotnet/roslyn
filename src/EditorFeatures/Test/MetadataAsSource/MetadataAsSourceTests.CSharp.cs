@@ -37,8 +37,7 @@ public sealed partial class MetadataAsSourceTests
         }
 
         [Theory, CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
-        public async Task TestNativeInteger(bool signaturesOnly)
+        public async Task TestNativeInteger(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = "public class C { public nint i; public nuint i2; }";
             var symbolName = "C";
@@ -80,11 +79,11 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", useVirtualFiles: useVirtualFiles, metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
         }
 
         [Theory, CombinatorialData]
-        public async Task TestInitOnlyProperty(bool signaturesOnly)
+        public async Task TestInitOnlyProperty(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = """
                 public class C { public int Property { get; init; } }
@@ -130,11 +129,11 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", useVirtualFiles: useVirtualFiles, metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
         }
 
         [Theory, CombinatorialData]
-        public async Task TestTupleWithNames(bool signaturesOnly)
+        public async Task TestTupleWithNames(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = "public class C { public (int a, int b) t; }";
             var symbolName = "C";
@@ -180,13 +179,13 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, useVirtualFiles: useVirtualFiles, signaturesOnly: signaturesOnly);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]
-        public async Task TestValueTuple(bool signaturesOnly)
+        public async Task TestValueTuple(bool signaturesOnly, bool useVirtualFiles)
         {
-            using var context = TestContext.Create(LanguageNames.CSharp);
+            using var context = TestContext.Create(useVirtualFiles, LanguageNames.CSharp);
 
             var expected = signaturesOnly switch
             {
@@ -408,7 +407,7 @@ public sealed partial class MetadataAsSourceTests
         }
 
         [Theory, CombinatorialData]
-        public async Task TestExtendedPartialMethod1(bool signaturesOnly)
+        public async Task TestExtendedPartialMethod1(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = "public partial class C { public partial void F(); public partial void F() { } }";
             var symbolName = "C";
@@ -449,12 +448,12 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", useVirtualFiles: useVirtualFiles, metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
         }
 
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/44566")]
-        public async Task TestRecordType(bool signaturesOnly)
+        public async Task TestRecordType(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = "public record R;";
             var symbolName = "R";
@@ -517,7 +516,7 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, useVirtualFiles: useVirtualFiles, signaturesOnly: signaturesOnly);
         }
 
         /// <summary>
@@ -525,7 +524,7 @@ public sealed partial class MetadataAsSourceTests
         /// </summary>
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
-        public async Task TestCheckedOperators(bool signaturesOnly)
+        public async Task TestCheckedOperators(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = """
 
@@ -616,11 +615,11 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", useVirtualFiles: useVirtualFiles, metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60567")]
-        public async Task TestStaticInterfaceMembers()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/60567")]
+        public async Task TestStaticInterfaceMembers(bool useVirtualFiles)
         {
             var metadataSource = """
 
@@ -664,11 +663,11 @@ public sealed partial class MetadataAsSourceTests
                 }
                 """;
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: true, metadataCommonReferences: "CommonReferencesNet6");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", useVirtualFiles: useVirtualFiles, metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: true, metadataCommonReferences: "CommonReferencesNet6");
         }
 
         [Theory, CombinatorialData]
-        public async Task UnsignedRightShift(bool signaturesOnly)
+        public async Task UnsignedRightShift(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = "public class C { public static C operator >>>(C x, int y) => x; }";
             var symbolName = "C.op_UnsignedRightShift";
@@ -710,7 +709,7 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, useVirtualFiles: useVirtualFiles, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
         }
 
         private const string CompilerFeatureRequiredAttribute = """
@@ -726,7 +725,7 @@ public sealed partial class MetadataAsSourceTests
             """;
 
         [Theory, CombinatorialData]
-        public async Task InstanceIncrementOperators(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
+        public async Task InstanceIncrementOperators(bool signaturesOnly, [CombinatorialValues("++", "--")] string op, bool useVirtualFiles)
         {
             var metadataSource = "public class C { public void operator " + op + "() {} }" + CompilerFeatureRequiredAttribute;
             var opName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
@@ -772,12 +771,12 @@ public sealed partial class MetadataAsSourceTests
                     """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, useVirtualFiles: useVirtualFiles, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task InstanceIncrementOperators_Checked(bool signaturesOnly, [CombinatorialValues("++", "--")] string op)
+        public async Task InstanceIncrementOperators_Checked(bool signaturesOnly, [CombinatorialValues("++", "--")] string op, bool useVirtualFiles)
         {
             var metadataSource = "public class C { public void operator " + op + "() {} public void operator checked " + op + "() {} }" + CompilerFeatureRequiredAttribute;
             var opName = (op == "++" ? WellKnownMemberNames.IncrementAssignmentOperatorName : WellKnownMemberNames.DecrementAssignmentOperatorName);
@@ -831,12 +830,12 @@ public sealed partial class MetadataAsSourceTests
                     """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, useVirtualFiles: useVirtualFiles, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task InstanceCompoundAssignmentOperators(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        public async Task InstanceCompoundAssignmentOperators(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool useVirtualFiles)
         {
             var metadataSource = "public class C { public void operator " + op + "(int x) {} }" + CompilerFeatureRequiredAttribute;
             var symbolName = "C." + CompoundAssignmentOperatorName(op);
@@ -881,7 +880,7 @@ public sealed partial class MetadataAsSourceTests
                     """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, useVirtualFiles: useVirtualFiles, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
         }
 
         private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
@@ -898,7 +897,7 @@ public sealed partial class MetadataAsSourceTests
 
         [Theory]
         [CombinatorialData]
-        public async Task InstanceCompoundAssignmentOperators_Checked(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        public async Task InstanceCompoundAssignmentOperators_Checked(bool signaturesOnly, [CombinatorialValues("+=", "-=", "*=", "/=")] string op, bool useVirtualFiles)
         {
             var metadataSource = "public class C { public void operator " + op + "(int x) {} public void operator checked " + op + "(int x) {} }" + CompilerFeatureRequiredAttribute;
             var symbolName = "C." + CompoundAssignmentOperatorName(op, isChecked: true);
@@ -950,11 +949,11 @@ public sealed partial class MetadataAsSourceTests
                     """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, useVirtualFiles: useVirtualFiles, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
         }
 
         [Theory, CombinatorialData]
-        public async Task TestRequiredProperty(bool signaturesOnly)
+        public async Task TestRequiredProperty(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = """
                 public class C
@@ -1018,11 +1017,11 @@ public sealed partial class MetadataAsSourceTests
                 """,
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", useVirtualFiles: useVirtualFiles, metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76676")]
-        public async Task TestParamsScoped()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/76676")]
+        public async Task TestParamsScoped(bool useVirtualFiles)
         {
             var metadataSource = """
                 public class C
@@ -1060,7 +1059,7 @@ public sealed partial class MetadataAsSourceTests
                 symbolName,
                 LanguageNames.CSharp,
                 languageVersion: "Preview",
-                metadataLanguageVersion: "Preview",
+                useVirtualFiles: useVirtualFiles, metadataLanguageVersion: "Preview",
                 expected: expected,
                 signaturesOnly: true,
                 commonReferencesValue: """CommonReferencesNet9="true" """);
