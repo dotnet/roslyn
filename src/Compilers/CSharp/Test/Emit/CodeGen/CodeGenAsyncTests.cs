@@ -8914,24 +8914,98 @@ class Test1
         }
 
         [Fact]
+        public void MultipleValidRuntimeAsyncAwaitMethods()
+        {
+            var code = """
+                await System.Threading.Tasks.Task.CompletedTask;
+                """;
+
+            var runtimeAsyncHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
+
+                    public static void Await(object task) => throw null!;
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            // No error when multiple valid runtime async await methods are present, we just fall back to AwaitAwaiter
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+                  IL_0012:  brtrue.s   IL_001a
+                  IL_0014:  ldloc.0
+                  IL_0015:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_001a:  ldloca.s   V_0
+                  IL_001c:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0021:  ret
+                }
+                """);
+        }
+
+        [Fact]
         public void MissingAwaitTask()
         {
             var code = """
                 await System.Threading.Tasks.Task.CompletedTask;
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(code);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask);
-            comp.VerifyDiagnostics(
-                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
-                // await System.Threading.Tasks.Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.CompletedTask").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
-            );
+            var runtimeAsyncHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
 
-            // Runtime async not turned on, so we shouldn't care about the missing member
-            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask);
-            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+                  IL_0012:  brtrue.s   IL_001a
+                  IL_0014:  ldloc.0
+                  IL_0015:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_001a:  ldloca.s   V_0
+                  IL_001c:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8941,18 +9015,45 @@ class Test1
                 await System.Threading.Tasks.Task.FromResult(0);
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(code);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T);
-            comp.VerifyDiagnostics(
-                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
-                // await System.Threading.Tasks.Task.FromResult(0);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "System.Threading.Tasks.Task.FromResult(0)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
-            );
+            var runtimeAsyncHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
 
-            // Runtime async not turned on, so we shouldn't care about the missing member
-            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T);
-            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<int> V_0)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+                  IL_0006:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+                  IL_0013:  brtrue.s   IL_001b
+                  IL_0015:  ldloc.0
+                  IL_0016:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter<int>>(System.Runtime.CompilerServices.TaskAwaiter<int>)"
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+                  IL_0022:  pop
+                  IL_0023:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8962,18 +9063,46 @@ class Test1
                 await default(System.Threading.Tasks.ValueTask);
                 """;
 
-            var comp = CreateRuntimeAsyncCompilation(code);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask);
-            comp.VerifyDiagnostics(
-                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
-                // await default(System.Threading.Tasks.ValueTask);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "default(System.Threading.Tasks.ValueTask)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
-            );
+            var runtimeAsyncHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
 
-            // Runtime async not turned on, so we shouldn't care about the missing member
-            comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask);
-            CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  2
+                  .locals init (System.Runtime.CompilerServices.ValueTaskAwaiter V_0,
+                                System.Threading.Tasks.ValueTask V_1)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "System.Threading.Tasks.ValueTask"
+                  IL_0009:  call       "System.Runtime.CompilerServices.ValueTaskAwaiter System.Threading.Tasks.ValueTask.GetAwaiter()"
+                  IL_000e:  stloc.0
+                  IL_000f:  ldloca.s   V_0
+                  IL_0011:  call       "bool System.Runtime.CompilerServices.ValueTaskAwaiter.IsCompleted.get"
+                  IL_0016:  brtrue.s   IL_001e
+                  IL_0018:  ldloc.0
+                  IL_0019:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.ValueTaskAwaiter>(System.Runtime.CompilerServices.ValueTaskAwaiter)"
+                  IL_001e:  ldloca.s   V_0
+                  IL_0020:  call       "void System.Runtime.CompilerServices.ValueTaskAwaiter.GetResult()"
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -8983,17 +9112,67 @@ class Test1
                 await default(System.Threading.Tasks.ValueTask<int>);
                 """;
 
+            var runtimeAsyncHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
+
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncHelpers);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  2
+                  .locals init (System.Runtime.CompilerServices.ValueTaskAwaiter<int> V_0,
+                                System.Threading.Tasks.ValueTask<int> V_1)
+                  IL_0000:  ldloca.s   V_1
+                  IL_0002:  dup
+                  IL_0003:  initobj    "System.Threading.Tasks.ValueTask<int>"
+                  IL_0009:  call       "System.Runtime.CompilerServices.ValueTaskAwaiter<int> System.Threading.Tasks.ValueTask<int>.GetAwaiter()"
+                  IL_000e:  stloc.0
+                  IL_000f:  ldloca.s   V_0
+                  IL_0011:  call       "bool System.Runtime.CompilerServices.ValueTaskAwaiter<int>.IsCompleted.get"
+                  IL_0016:  brtrue.s   IL_001e
+                  IL_0018:  ldloc.0
+                  IL_0019:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.ValueTaskAwaiter<int>>(System.Runtime.CompilerServices.ValueTaskAwaiter<int>)"
+                  IL_001e:  ldloca.s   V_0
+                  IL_0020:  call       "int System.Runtime.CompilerServices.ValueTaskAwaiter<int>.GetResult()"
+                  IL_0025:  pop
+                  IL_0026:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void MissingAsyncHelpers()
+        {
+            var code = """
+                await System.Threading.Tasks.Task.Yield();
+                """;
+
             var comp = CreateRuntimeAsyncCompilation(code);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T);
+            comp.MakeTypeMissing(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers);
             comp.VerifyDiagnostics(
-                // (1,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.AsyncHelpers.Await'
-                // await default(System.Threading.Tasks.ValueTask<int>);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "default(System.Threading.Tasks.ValueTask<int>)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers", "Await").WithLocation(1, 7)
+                // (1,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncHelpers' is not defined or imported
+                // await System.Threading.Tasks.Task.Yield();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "System.Threading.Tasks.Task.Yield()").WithArguments("System.Runtime.CompilerServices.AsyncHelpers").WithLocation(1, 7)
             );
 
             // Runtime async not turned on, so we shouldn't care about the missing member
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
-            comp.MakeMemberMissing(SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T);
+            comp.MakeTypeMissing(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers);
             CompileAndVerify(comp, verify: Verification.FailsPEVerify);
         }
 
@@ -9159,10 +9338,11 @@ class Test1
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            // Note: because of constraints failure, Await is skipped over, and then UnsafeAwaitAwaiter is attempted.
             comp.VerifyDiagnostics(
-                // (1,7): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'AsyncHelpers.Await<T>(Task<T>)'
+                // (1,7): error CS0452: The type 'TaskAwaiter<int>' must be a reference type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'
                 // await System.Threading.Tasks.Task<int>.FromResult(1);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "System.Threading.Tasks.Task<int>.FromResult(1)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.Await<T>(System.Threading.Tasks.Task<T>)", "T", "int").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "System.Threading.Tasks.Task<int>.FromResult(1)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "System.Runtime.CompilerServices.TaskAwaiter<int>").WithLocation(1, 7)
             );
         }
 
@@ -9192,10 +9372,11 @@ class Test1
                 """;
 
             var comp = CreateRuntimeAsyncCompilation(code, runtimeAsyncAwaitHelpers: runtimeAsyncAwaitHelpers);
+            // Note: because of constraints failure, Await is skipped over, and then UnsafeAwaitAwaiter is attempted.
             comp.VerifyDiagnostics(
-                // (1,7): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'AsyncHelpers.Await<T>(ValueTask<T>)'
+                // (1,7): error CS0452: The type 'ValueTaskAwaiter<int>' must be a reference type in order to use it as parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'
                 // await default(System.Threading.Tasks.ValueTask<int>);
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "default(System.Threading.Tasks.ValueTask<int>)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.Await<T>(System.Threading.Tasks.ValueTask<T>)", "T", "int").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "default(System.Threading.Tasks.ValueTask<int>)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "System.Runtime.CompilerServices.ValueTaskAwaiter<int>").WithLocation(1, 7)
             );
         }
 
@@ -9404,6 +9585,186 @@ class Test1
                   }
                   IL_001c:  ldloc.0
                   IL_001d:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TaskDerivedType()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await M();
+
+                DerivedTask M() => new DerivedTask();
+
+                class DerivedTask : Task
+                {
+                    public DerivedTask() : base(() => { }) { }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0xa }
+                    """
+            });
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  call       "DerivedTask Program.<<Main>$>g__M|0_0()"
+                  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000a:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TaskNonReferenceConversion()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await M();
+
+                DerivedTask M() => new DerivedTask();
+
+                class DerivedTask
+                {
+                    public static implicit operator Task(DerivedTask d) => throw null!;
+
+                    private Task task;
+
+                    public DerivedTask()
+                    {
+                        task = Task.CompletedTask;
+                    }
+
+                    public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => task.GetAwaiter();
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x21 }
+                    """
+            });
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+                  IL_0000:  call       "DerivedTask Program.<<Main>$>g__M|0_0()"
+                  IL_0005:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter DerivedTask.GetAwaiter()"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloca.s   V_0
+                  IL_000d:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+                  IL_0012:  brtrue.s   IL_001a
+                  IL_0014:  ldloc.0
+                  IL_0015:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter>(System.Runtime.CompilerServices.TaskAwaiter)"
+                  IL_001a:  ldloca.s   V_0
+                  IL_001c:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+                  IL_0021:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TaskTDerivedType()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await M<string>("1");
+
+                DerivedTask<T> M<T>(T t) => new DerivedTask<T>(t);
+
+                class DerivedTask<T> : Task<T>
+                {
+                    public DerivedTask(T t) : base(() => t) { }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $$"""
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x10 }
+                    """
+            });
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  IL_0000:  ldstr      "1"
+                  IL_0005:  call       "DerivedTask<string> Program.<<Main>$>g__M|0_0<string>(string)"
+                  IL_000a:  call       "string System.Runtime.CompilerServices.AsyncHelpers.Await<string>(System.Threading.Tasks.Task<string>)"
+                  IL_000f:  pop
+                  IL_0010:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TaskTNonReferenceConversion()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                Console.WriteLine(await M("1"));
+
+                DerivedTask<T> M<T>(T t) => new DerivedTask<T>(t);
+
+                class DerivedTask<T>
+                {
+                    public static implicit operator Task<T>(DerivedTask<T> d) => throw null!;
+
+                    private Task<T> task;
+
+                    public DerivedTask(T t)
+                    {
+                        task = Task.FromResult(t);
+                    }
+
+                    public System.Runtime.CompilerServices.TaskAwaiter<T> GetAwaiter() => task.GetAwaiter();
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("1", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x2b }
+                    """
+            });
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  1
+                  .locals init (System.Runtime.CompilerServices.TaskAwaiter<string> V_0)
+                  IL_0000:  ldstr      "1"
+                  IL_0005:  call       "DerivedTask<string> Program.<<Main>$>g__M|0_0<string>(string)"
+                  IL_000a:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<string> DerivedTask<string>.GetAwaiter()"
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<string>.IsCompleted.get"
+                  IL_0017:  brtrue.s   IL_001f
+                  IL_0019:  ldloc.0
+                  IL_001a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.TaskAwaiter<string>>(System.Runtime.CompilerServices.TaskAwaiter<string>)"
+                  IL_001f:  ldloca.s   V_0
+                  IL_0021:  call       "string System.Runtime.CompilerServices.TaskAwaiter<string>.GetResult()"
+                  IL_0026:  call       "void System.Console.WriteLine(string)"
+                  IL_002b:  ret
                 }
                 """);
         }

@@ -135,9 +135,11 @@ For any `await expr` with where `expr` has type `E`, the compiler will attempt t
       2. There is an identity or implicit reference conversion from `E` to the type of `P`.
    4. Otherwise, if `Mi` has a generic arity of 1 with type param `Tm`, all of the following must be true, or `Mi` is removed:
       1. The return type is `Tm`
-      2. There is an identity or implicit reference conversion from `E`'s unsubstituted definition to `P`
-      3. `E`'s type argument, `Te`, is valid to substitute for `Tm`
-6. If only one `Mi` remains, that method is used for the following rewrites. Otherwise, we instead move to [await any other type].
+      2. The generic parameter of `E` is `Te`
+      3. `Ti` satisfies any constraints on `Tm`
+      4. `Mie` is `Mi` with `Te` substituted for `Tm`, and `Pe` is the resulting parameter of `Mie`
+      5. There is an identity or implicit reference conversion from `E` to the type of `Pe`
+5. If only one `Mi` remains, that method is used for the following rewrites. Otherwise, we instead move to [await any other type].
 
 We'll generally rewrite `await expr` into `System.Runtime.CompilerServices.AsyncHelpers.Await(expr)`. A number of different example scenarios for this are covered below. The
 main interesting deviations are when `struct` rvalues need to be hoisted across an `await`, and exception handling rewriting.
