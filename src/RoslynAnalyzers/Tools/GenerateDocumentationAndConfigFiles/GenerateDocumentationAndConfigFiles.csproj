@@ -5,18 +5,18 @@
     <NonShipping>true</NonShipping>
     <UseAppHost>false</UseAppHost>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.CodeAnalysis.Analyzers\Core\MetaAnalyzers\ReleaseTrackingHelper.cs" Link="ReleaseTrackingHelper.cs" />
-    <Compile Include="..\..\Utilities\Compiler\Debug.cs" Link="Debug.cs" />
-    <Compile Include="..\..\Utilities\Compiler\Extensions\PooledHashSetExtensions.cs" Link="PooledHashSetExtensions.cs" />
-    <Compile Include="..\..\Utilities\Compiler\Extensions\WellKnownDiagnosticTagsExtensions.cs" Link="WellKnownDiagnosticTagsExtensions.cs" />
-    <Compile Include="..\..\Utilities\Compiler\FxCopWellKnownDiagnosticTags.cs" Link="FxCopWellKnownDiagnosticTags.cs" />
-    <Compile Include="..\..\Utilities\Compiler\Options\MSBuildItemOptionNames.cs" Link="MSBuildItemOptionNames.cs" />
-    <Compile Include="..\..\Utilities\Compiler\Options\MSBuildPropertyOptionNames.cs" Link="MSBuildPropertyOptionNames.cs" />
   </ItemGroup>
+  <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
   <ItemGroup>
+    <!-- Since this tool will be loading Analyzers built against .NETStandard and the
+         .NETStandard build of Microsoft.CodeAnalysis.Workspaces.Common v4.12.0
+         references Microsoft.BCL.AsyncInterfaces v8.0.0, we need to add it as a dependency. -->
+    <PackageReference Include="Microsoft.BCL.AsyncInterfaces" VersionOverride="8.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzerExecution)" />
@@ -42,4 +42,8 @@
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems" Label="Shared" />
 </Project>

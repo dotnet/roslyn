@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 
 Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic)>

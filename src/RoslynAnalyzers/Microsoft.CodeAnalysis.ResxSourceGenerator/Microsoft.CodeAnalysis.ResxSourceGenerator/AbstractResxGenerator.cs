@@ -19,6 +19,7 @@ using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 #pragma warning disable IDE0010 // Add missing cases (noise)
 #pragma warning disable IDE0057 // Use range operator (incorrectly reported when Range is not defined)
@@ -380,7 +381,8 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     return false;
                 }
 
-                var resourceAccessName = RoslynString.IsNullOrEmpty(ResourceInformation.ResourceClassName) ? ResourceInformation.ResourceName : ResourceInformation.ResourceClassName;
+                var resourceAccessName = string.IsNullOrEmpty(ResourceInformation.ResourceClassName) ? ResourceInformation.ResourceName : ResourceInformation.ResourceClassName;
+                Contract.ThrowIfNull(resourceAccessName);
                 SplitName(resourceAccessName, out var namespaceName, out var className);
 
                 var classIndent = namespaceName == null ? "" : "    ";

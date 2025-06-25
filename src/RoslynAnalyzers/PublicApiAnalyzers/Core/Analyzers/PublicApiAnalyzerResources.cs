@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
+namespace Microsoft.CodeAnalysis
 {
     internal partial class PublicApiAnalyzerResources
     {
