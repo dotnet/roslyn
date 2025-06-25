@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 #if !NETCOREAPP
 using Analyzer.Utilities.Extensions;
