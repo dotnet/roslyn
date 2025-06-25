@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {

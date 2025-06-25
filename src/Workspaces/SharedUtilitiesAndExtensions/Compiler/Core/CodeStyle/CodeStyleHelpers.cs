@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -157,8 +158,8 @@ internal static class CodeStyleHelpers
     private static readonly BidirectionalMap<string, UnusedValuePreference> s_unusedExpressionAssignmentPreferenceMap =
         new(
         [
-            KeyValuePairUtil.Create("discard_variable", UnusedValuePreference.DiscardVariable),
-            KeyValuePairUtil.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
+            KeyValuePair.Create("discard_variable", UnusedValuePreference.DiscardVariable),
+            KeyValuePair.Create("unused_local_variable", UnusedValuePreference.UnusedLocalVariable),
         ]);
 
     internal static EditorConfigValueSerializer<CodeStyleOption2<UnusedValuePreference>> GetUnusedValuePreferenceSerializer(CodeStyleOption2<UnusedValuePreference> defaultValue)

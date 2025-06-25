@@ -1140,7 +1140,7 @@ namespace Microsoft.Cci
 
             signatureBlob = builder.ToImmutableArray();
             result = metadata.GetOrAddBlob(signatureBlob);
-            _signatureIndex.Add(methodReference, KeyValuePairUtil.Create(result, signatureBlob));
+            _signatureIndex.Add(methodReference, KeyValuePair.Create(result, signatureBlob));
             builder.Free();
             return result;
         }
@@ -1286,7 +1286,7 @@ namespace Microsoft.Cci
             var blob = builder.ToImmutableArray();
             var result = metadata.GetOrAddBlob(blob);
 
-            _signatureIndex.Add(propertyDef, KeyValuePairUtil.Create(result, blob));
+            _signatureIndex.Add(propertyDef, KeyValuePair.Create(result, blob));
             builder.Free();
             return result;
         }
