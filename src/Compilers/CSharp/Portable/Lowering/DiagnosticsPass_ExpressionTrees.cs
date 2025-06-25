@@ -758,7 +758,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (binary.GetIsNewExtensionMember())
                 {
-                    // PROTOTYPE: Communicate to LDM
                     // An expression tree factory isn't happy in this case. It throws
                     //            System.ArgumentException : The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
                     // or

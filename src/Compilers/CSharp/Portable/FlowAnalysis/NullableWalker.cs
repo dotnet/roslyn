@@ -5397,7 +5397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     extension,
                     method.OriginalDefinition.ParameterTypesWithAnnotations,
                     method.OriginalDefinition.ParameterRefKinds,
-                    // PROTOTYPE: https://github.com/dotnet/roslyn/pull/79103#discussion_r2162657025
+                    // https://github.com/dotnet/roslyn/issues/78828: https://github.com/dotnet/roslyn/pull/79103#discussion_r2162657025
                     //            In analysis of invocations (`VisitCall`/`VisitArguments`), we use `GetArgumentsForMethodTypeInference` to get inputs to `MethodTypeInferrer.Infer`.
                     //            Do we need the same thing here (it has extra cases to deal with lambda, collection expressions and typeless expressions)?
                     [new BoundExpressionWithNullability(leftOperand.Syntax, leftOperand, leftUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, leftUnderlyingType.Type),
