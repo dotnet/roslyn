@@ -27,6 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 /// </summary>
 internal sealed class FileChangeWatcher : IFileChangeWatcher
 {
+    internal const _VSFILECHANGEFLAGS DefaultFileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
+
     private readonly Task<IVsAsyncFileChangeEx2> _fileChangeService;
 
     /// <summary>
@@ -425,7 +427,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             for (var i = 0; i < cChanges; i++)
             {
                 var fileChangeFlags = (_VSFILECHANGEFLAGS)rggrfChange[i];
-                if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
+                if ((fileChangeFlags & FileChangeWatcher.DefaultFileChangeFlags) == 0)
                     continue;
 
                 FileChanged?.Invoke(this, rgpszFile[i]);
@@ -457,7 +459,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             for (var i = 0; i < cChanges; i++)
             {
                 var fileChangeFlags = (_VSFILECHANGEFLAGS)rggrfChange[i];
-                if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
+                if ((fileChangeFlags & FileChangeWatcher.DefaultFileChangeFlags) == 0)
                     continue;
 
                 FileChanged?.Invoke(this, rgpszFile[i]);
@@ -502,7 +504,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             for (var i = 0; i < cChanges; i++)
             {
                 var fileChangeFlags = (_VSFILECHANGEFLAGS)rggrfChange[i];
-                if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
+                if ((fileChangeFlags & FileChangeWatcher.DefaultFileChangeFlags) == 0)
                     continue;
 
                 FileChanged?.Invoke(this, rgpszFile[i]);

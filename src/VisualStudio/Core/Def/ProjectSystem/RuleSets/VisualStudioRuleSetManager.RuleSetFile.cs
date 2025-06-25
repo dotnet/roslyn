@@ -174,7 +174,7 @@ internal sealed partial class VisualStudioRuleSetManager
         {
             // The file change service is going to notify us of updates on the foreground thread.
             // This is going to cause us to drop our existing subscriptions and create new ones.
-            // However, the FileChangeTracker signs up for subscriptions in a Task on a background thread.
+            // However, the FileChangeWatcher signs up for subscriptions in a Task on a background thread.
             // We can easily end up with the foreground thread waiting on the Task, which is blocked
             // waiting for the foreground thread to release its lock on the file change service.
             // To avoid this, just queue up a Task to do the work on the foreground thread later, after

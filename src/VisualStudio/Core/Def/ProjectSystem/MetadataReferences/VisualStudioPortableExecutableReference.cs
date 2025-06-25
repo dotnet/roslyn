@@ -9,9 +9,9 @@ using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationComments;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -28,11 +28,12 @@ internal partial class VisualStudioMetadataReferenceManager
     /// instance of <see cref="VisualStudioPortableExecutableReference"/> is created for the corresponding reference.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    private sealed class VisualStudioPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage
+    private sealed partial class VisualStudioPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly VisualStudioMetadataReferenceManager _provider;
         private readonly Lazy<DateTime> _timestamp;
-        private readonly FileChangeTracker? _fileChangeTracker;
+        private readonly IFileChangeWatcher _fileChangeWatcher;
+        private readonly Workspace _workspace;
 
         private Exception? _error;
 
@@ -40,20 +41,20 @@ internal partial class VisualStudioMetadataReferenceManager
             VisualStudioMetadataReferenceManager provider,
             MetadataReferenceProperties properties,
             string fullPath,
-            FileChangeTracker? fileChangeTracker)
+            IFileChangeWatcher fileChangeWatcher,
+            Workspace workspace)
             : base(properties, fullPath)
         {
             Debug.Assert(Properties.Kind == MetadataImageKind.Assembly);
             _provider = provider;
-            _fileChangeTracker = fileChangeTracker;
+            _fileChangeWatcher = fileChangeWatcher;
+            _workspace = workspace;
 
             _timestamp = new Lazy<DateTime>(() =>
             {
                 try
                 {
-                    _fileChangeTracker?.EnsureSubscription();
-
-                    return FileUtilities.GetFileTimeStamp(this.FilePath);
+                    return FileTimeStampProvider.GetTimeStamp(fullPath, _fileChangeWatcher, _workspace);
                 }
                 catch (IOException e)
                 {
@@ -102,7 +103,7 @@ internal partial class VisualStudioMetadataReferenceManager
             => new VisualStudioDocumentationProvider(this.FilePath, _provider._xmlMemberIndexService);
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new VisualStudioPortableExecutableReference(_provider, properties, this.FilePath, _fileChangeTracker);
+            => new VisualStudioPortableExecutableReference(_provider, properties, this.FilePath, _fileChangeWatcher, _workspace);
 
         private string GetDebuggerDisplay()
             => "Metadata File: " + FilePath;
