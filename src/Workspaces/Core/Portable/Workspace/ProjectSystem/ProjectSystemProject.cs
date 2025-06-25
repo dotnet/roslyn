@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -82,6 +83,7 @@ internal sealed partial class ProjectSystemProject
     private CompilationOptions? _compilationOptions;
     private ParseOptions? _parseOptions;
     private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
+    private ImmutableArray<MetadataResourceInfo> _manifestResources = [];
     private bool _hasAllInformation = true;
     private string? _compilationOutputAssemblyFilePath;
     private string? _outputFilePath;
@@ -118,10 +120,16 @@ internal sealed partial class ProjectSystemProject
     private readonly Dictionary<DocumentId, IWatchedFile> _documentWatchedFiles = [];
 
     /// <summary>
-    /// A file change context used to watch source files, additional files, and analyzer config files for this project. It's automatically set to watch the user's project
+    /// The file watching tokens for the manifest resources in this project.
+    /// Indexed by resource name (case sensitive).
+    /// </summary>
+    private readonly Dictionary<string, IWatchedFile> _manifestResourceWatchFiles = [];
+
+    /// <summary>
+    /// A file change context used to watch source files, additional files, analyzer config files and resource files for this project. It's automatically set to watch the user's project
     /// directory so we avoid file-by-file watching.
     /// </summary>
-    private readonly IFileChangeContext _documentFileChangeContext;
+    private readonly IFileChangeContext _fileChangeContext;
 
     /// <summary>
     /// The set of dynamic file info providers we have already subscribed to.
@@ -209,8 +217,8 @@ internal sealed partial class ProjectSystemProject
         _parseOptions = parseOptions;
 
         var watchedDirectories = GetWatchedDirectories(language, filePath);
-        _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
-        _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
+        _fileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
+        _fileChangeContext.FileChanged += FileChangeContext_FileChanged;
 
         static ImmutableArray<WatchedDirectory> GetWatchedDirectories(string? language, string? filePath)
         {
@@ -443,6 +451,60 @@ internal sealed partial class ProjectSystemProject
     {
         get => _checksumAlgorithm;
         set => ChangeProjectProperty(ref _checksumAlgorithm, value, s => s.WithProjectChecksumAlgorithm(Id, value));
+    }
+
+    public ImmutableArray<MetadataResourceInfo> ManifestResources
+    {
+        get => _manifestResources;
+        set => ChangeProjectProperty(ref _manifestResources, value, s => UpdateManifestResources_NoLock(s, Id, value));
+    }
+
+    private Solution UpdateManifestResources_NoLock(Solution oldSolution, ProjectId projectId, ImmutableArray<MetadataResourceInfo> newResources)
+    {
+        var project = oldSolution.GetRequiredProject(projectId);
+        var oldResources = project.State.ManifestResources;
+
+        using var _ = ArrayBuilder<MetadataResourceInfo>.GetInstance(newResources.Length, out var newResourcesBuilder);
+
+        foreach (var newResource in newResources)
+        {
+            var oldIndex = oldResources.IndexOf(static (oldResource, newResource) => oldResource.ResourceName == newResource.ResourceName, newResource);
+            if (oldIndex >= 0)
+            {
+                var oldResource = oldResources[oldIndex];
+                var hasChangedPath = !SolutionState.FilePathComparer.Equals(oldResource.FilePath, newResource.FilePath);
+
+                // If the resource content file is the same transfer the content version, otherwise increment it.
+                newResourcesBuilder.Add(newResource.WithContentVersion(oldResource.ContentVersion + (hasChangedPath ? 1 : 0)));
+
+                // update file watcher:
+                if (hasChangedPath)
+                {
+                    _manifestResourceWatchFiles[newResource.ResourceName].Dispose();
+                    _manifestResourceWatchFiles[newResource.ResourceName] = _fileChangeContext.EnqueueWatchingFile(newResource.FilePath);
+                }
+            }
+            else
+            {
+                // resource added:
+                newResourcesBuilder.Add(newResource);
+
+                // add file watcher:
+                _manifestResourceWatchFiles.Add(newResource.ResourceName, _fileChangeContext.EnqueueWatchingFile(newResource.FilePath));
+            }
+        }
+
+        foreach (var oldResource in oldResources)
+        {
+            if (!newResources.Any(static (newResource, oldResource) => oldResource.ResourceName == newResource.ResourceName, oldResource))
+            {
+                // resource removed -- remove file watcher:
+                _manifestResourceWatchFiles[oldResource.ResourceName].Dispose();
+                _manifestResourceWatchFiles.Remove(oldResource.ResourceName);
+            }
+        }
+
+        return oldSolution.WithProjectManifestResources(projectId, newResourcesBuilder.ToImmutable());
     }
 
     // internal to match the visibility of the Workspace-level API -- this is something
@@ -1207,16 +1269,73 @@ internal sealed partial class ProjectSystemProject
 
     #endregion
 
-    private void DocumentFileChangeContext_FileChanged(object? sender, string fullFilePath)
+    private void FileChangeContext_FileChanged(object? sender, string fullFilePath)
     {
         _fileChangesToProcess.AddWork(fullFilePath);
     }
 
     private async ValueTask ProcessFileChangesAsync(ImmutableSegmentedList<string> filePaths, CancellationToken cancellationToken)
     {
-        await _sourceFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
-        await _additionalFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
-        await _analyzerConfigFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            // If our project has already been removed, this is a stale notification, and we can disregard.
+            if (HasBeenRemoved)
+            {
+                return;
+            }
+
+            ArrayBuilder<(DocumentId, TextLoader)>? documentsToChange = null;
+            ArrayBuilder<(DocumentId, TextLoader)>? additionalDocumentsToChange = null;
+            ArrayBuilder<(DocumentId, TextLoader)>? analyzerConfigDocumentsToChange = null;
+
+            foreach (var filePath in filePaths)
+            {
+                if (_sourceFiles.TryGetDocumentChangeNoLock(filePath, out var documentId, out var loader))
+                {
+                    documentsToChange ??= ArrayBuilder<(DocumentId, TextLoader)>.GetInstance();
+                    documentsToChange.Add((documentId, loader));
+                }
+                else if (_additionalFiles.TryGetDocumentChangeNoLock(filePath, out documentId, out loader))
+                {
+                    additionalDocumentsToChange ??= ArrayBuilder<(DocumentId, TextLoader)>.GetInstance();
+                    additionalDocumentsToChange.Add((documentId, loader));
+                }
+                else if (_analyzerConfigFiles.TryGetDocumentChangeNoLock(filePath, out documentId, out loader))
+                {
+                    analyzerConfigDocumentsToChange ??= ArrayBuilder<(DocumentId, TextLoader)>.GetInstance();
+                    analyzerConfigDocumentsToChange.Add((documentId, loader));
+                }
+                else
+                {
+                    ProcessManifestResourceChangeNoLock(filePath);
+                }
+            }
+
+            if (documentsToChange != null)
+            {
+                await _sourceFiles.ProcessDocumentChangesNoLockAsync(documentsToChange).ConfigureAwait(false);
+            }
+
+            if (additionalDocumentsToChange != null)
+            {
+                await _additionalFiles.ProcessDocumentChangesNoLockAsync(additionalDocumentsToChange).ConfigureAwait(false);
+            }
+
+            if (analyzerConfigDocumentsToChange != null)
+            {
+                await _analyzerConfigFiles.ProcessDocumentChangesNoLockAsync(analyzerConfigDocumentsToChange).ConfigureAwait(false);
+            }
+        }
+    }
+
+    private void ProcessManifestResourceChangeNoLock(string filePath)
+    {
+        var index = ManifestResources.IndexOf(static (resource, path) => SolutionState.FilePathComparer.Equals(resource.FilePath, path), filePath);
+        if (index >= 0)
+        {
+            var resource = ManifestResources[index];
+            ManifestResources = ManifestResources.SetItem(index, resource.WithContentVersion(resource.ContentVersion + 1));
+        }
     }
 
     #region Metadata Reference Addition/Removal
@@ -1391,7 +1510,10 @@ internal sealed partial class ProjectSystemProject
             _dynamicFileInfoProvidersSubscribedTo.Clear();
         }
 
-        _documentFileChangeContext.Dispose();
+        _fileChangeContext.Dispose();
+
+        _documentWatchedFiles.Values.Do(static watchedFile => watchedFile.Dispose());
+        _manifestResourceWatchFiles.Values.Do(static watchedFile => watchedFile.Dispose());
 
         IReadOnlyList<MetadataReference>? originalMetadataReferences = null;
         IReadOnlyList<AnalyzerReference>? originalAnalyzerReferences = null;

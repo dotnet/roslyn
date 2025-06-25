@@ -14,4 +14,6 @@ internal enum EditAndContinueErrorCode
     UnableToReadSourceFileOrPdb = 6,
     AddingTypeRuntimeCapabilityRequired = 7,
     UpdatingDocumentInStaleProject = 8,
+    DeletingManifestResource = 9,
+    AddingOrUpdatingManifestResource = 10,
 }

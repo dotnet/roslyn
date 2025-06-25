@@ -448,13 +448,23 @@ public partial class Solution
     }
 
     /// <summary>
-    /// Creates a new solution instance with the project specified updated to have the specified attributes.
+    /// Creates a new solution instance with the project specified updated to have the specified checksum algorithm.
     /// </summary>
     internal Solution WithProjectChecksumAlgorithm(ProjectId projectId, SourceHashAlgorithm checksumAlgorithm)
     {
         CheckContainsProject(projectId);
 
         return WithCompilationState(CompilationState.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm));
+    }
+
+    /// <summary>
+    /// Creates a new solution instance with the project specified updated to have the specified manifest resources.
+    /// </summary>
+    internal Solution WithProjectManifestResources(ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        CheckContainsProject(projectId);
+
+        return WithCompilationState(CompilationState.WithProjectManifestResources(projectId, resources));
     }
 
     /// <summary>
@@ -553,6 +563,17 @@ public partial class Solution
         CheckContainsProject(projectId);
 
         return WithCompilationState(CompilationState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers));
+    }
+
+    /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified manifest resources.
+    /// </summary>
+    internal Solution WithManifestResources(ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        CheckContainsProject(projectId);
+
+        return WithCompilationState(CompilationState.WithManifestResources(projectId, resources));
     }
 
     /// <summary>

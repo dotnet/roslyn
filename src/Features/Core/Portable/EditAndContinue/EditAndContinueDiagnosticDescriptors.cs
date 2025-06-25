@@ -188,6 +188,8 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb));
         AddGeneralDiagnostic(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired, nameof(FeaturesResources.ChangesRequiredSynthesizedType));
         AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning, noEffect: true);
+        AddGeneralDiagnostic(EditAndContinueErrorCode.AddingOrUpdatingManifestResource, nameof(FeaturesResources.Adding_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning, noEffect: true);
+        AddGeneralDiagnostic(EditAndContinueErrorCode.DeletingManifestResource, nameof(FeaturesResources.Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning, noEffect: true);
 
         s_descriptors = builder.ToImmutable();
         s_noEffectDiagnosticIds = noEffectDiagnosticIds.ToImmutable();

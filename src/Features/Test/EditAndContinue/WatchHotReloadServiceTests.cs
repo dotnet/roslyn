@@ -179,7 +179,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
     [Fact]
     public async Task SourceGeneratorFailure()
     {
-        using var workspace = CreateWorkspace(out var solution, out var encService);
+        using var workspace = CreateWorkspace(out var solution, out _);
 
         var generatorExecutionCount = 0;
         var generator = new TestSourceGenerator()
@@ -230,6 +230,52 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         var diagnostic = result.CompilationDiagnostics.Single();
         Assert.Equal("CS8785", diagnostic.Id);
         Assert.Contains("Source generator failed", diagnostic.GetMessage());
+        hotReload.EndSession();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task ManifestResourceUpdateOrDelete(bool isDelete)
+    {
+        using var workspace = CreateWorkspace(out var solution, out _);
+
+        var dir = Temp.CreateDirectory();
+
+        var source = "class C;";
+        var sourceFile = dir.CreateFile("A.cs").WriteAllText(source, Encoding.UTF8);
+        var resourceFile = dir.CreateFile("A.resources").WriteAllBytes(new byte[] { 1, 2, 3 });
+
+        var resourceInfo = new MetadataResourceInfo("resource", resourceFile.Path, linkedResourceFileName: null, isPublic: true, contentVersion: 0);
+
+        solution = solution
+            .AddTestProject("A", out var projectId)
+            .AddTestDocument(source, sourceFile.Path).Project
+            .WithManifestResources(resourceInfo).Solution;
+
+        EmitLibrary(solution.GetRequiredProject(projectId));
+
+        var hotReload = new WatchHotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        solution = WatchHotReloadService.WithManifestResourceChanged(solution, resourceFile.Path, isDelete);
+
+        if (isDelete)
+        {
+            Assert.Empty(solution.GetRequiredProject(projectId).State.Attributes.ManifestResources);
+        }
+        else
+        {
+            Assert.Equal(1, solution.GetRequiredProject(projectId).State.Attributes.ManifestResources.Single().ContentVersion);
+        }
+
+        var runningProjects = ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty
+            .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true });
+
+        var result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
+        Assert.Empty(result.CompilationDiagnostics);
+        AssertEx.SequenceEqual([isDelete ? "ENC1009" : "ENC1010"], result.RudeEdits.Single().diagnostics.Select(d => d.Id));
+        AssertEx.SequenceEqual(["A"], result.ProjectsToRestart.Select(p => p.Key.DebugName));
         hotReload.EndSession();
     }
 }

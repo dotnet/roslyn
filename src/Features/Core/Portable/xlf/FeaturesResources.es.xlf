@@ -175,6 +175,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para agregar o mover {0} de una interfaz COM es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+        <source>Adding or updating manifest resource '{0}' has no effect until the project is rebuit.</source>
+        <target state="new">Adding or updating manifest resource '{0}' has no effect until the project is rebuit.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
         <source>Align wrapped arguments</source>
         <target state="translated">Alinear argumentos ajustados</target>
@@ -693,6 +698,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Para eliminar {0} se requiere reiniciar la aplicación porque no es compatible con el tiempo de ejecución.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+        <source>Deleting manifest resource '{0}' has no effect until the project is rebuit.</source>
+        <target state="new">Deleting manifest resource '{0}' has no effect until the project is rebuit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Directives_from_0">

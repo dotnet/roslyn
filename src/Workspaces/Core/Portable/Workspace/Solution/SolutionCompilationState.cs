@@ -463,6 +463,16 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithProjectManifestResources"/>
+    public SolutionCompilationState WithProjectManifestResources(
+        ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        return ForkProject(
+            this.SolutionState.WithProjectManifestResources(projectId, resources),
+            translate: null,
+            forkTracker: true);
+    }
+
     /// <inheritdoc cref="SolutionState.WithProjectName"/>
     public SolutionCompilationState WithProjectName(
         ProjectId projectId, string name)
@@ -548,6 +558,17 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithManifestResources"/>
+    internal SolutionCompilationState WithManifestResources(
+        ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        return ForkProject(
+            this.SolutionState.WithManifestResources(projectId, resources),
+            translate: null,
+            forkTracker: true);
+    }
+
+
     /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
     public SolutionCompilationState WithProjectDocumentsOrder(
         ProjectId projectId, ImmutableList<DocumentId> documentIds)
@@ -585,7 +606,8 @@ internal sealed partial class SolutionCompilationState
             .WithHasAllInformation(projectId, attributes.HasAllInformation)
             .WithRunAnalyzers(projectId, attributes.RunAnalyzers)
             .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm)
-            .WithHasSdkCodeStyleAnalyzers(projectId, attributes.HasSdkCodeStyleAnalyzers);
+            .WithHasSdkCodeStyleAnalyzers(projectId, attributes.HasSdkCodeStyleAnalyzers)
+            .WithManifestResources(projectId, attributes.ManifestResources);
     }
 
     public SolutionCompilationState WithProjectInfo(ProjectInfo info)

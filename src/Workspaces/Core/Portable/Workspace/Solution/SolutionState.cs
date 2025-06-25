@@ -628,6 +628,22 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
+    /// Creates a new solution instance with the project specified updated to have the specified manifest resources.
+    /// </summary>
+    public StateChange WithProjectManifestResources(ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        var oldProject = GetRequiredProjectState(projectId);
+        var newProject = oldProject.WithManifestResources(resources);
+
+        if (oldProject == newProject)
+        {
+            return new(this, oldProject, newProject);
+        }
+
+        return ForkProject(oldProject, newProject);
+    }
+
+    /// <summary>
     /// Creates a new solution instance with the project specified updated to have the name.
     /// </summary>
     public StateChange WithProjectName(ProjectId projectId, string name)
@@ -737,6 +753,24 @@ internal sealed partial class SolutionState
     {
         var oldProject = GetRequiredProjectState(projectId);
         var newProject = oldProject.WithHasSdkCodeStyleAnalyzers(hasSdkCodeStyleAnalyzers);
+
+        if (oldProject == newProject)
+        {
+            return new(this, oldProject, newProject);
+        }
+
+        // fork without any change on compilation.
+        return ForkProject(oldProject, newProject);
+    }
+
+    /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified manifest resources.
+    /// </summary>
+    internal StateChange WithManifestResources(ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        var oldProject = GetRequiredProjectState(projectId);
+        var newProject = oldProject.WithManifestResources(resources);
 
         if (oldProject == newProject)
         {
