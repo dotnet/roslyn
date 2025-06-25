@@ -704,17 +704,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(expression));
         }
 
+#nullable enable
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            BoundExpression exceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
+            BoundExpression? exceptionSourceOpt = (BoundExpression?)this.Visit(node.ExceptionSourceOpt);
             var locals = node.Locals;
 
             var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
             if (exceptionFilterPrologueOpt is not null)
             {
-                exceptionFilterPrologueOpt = (BoundStatementList)VisitStatementList(exceptionFilterPrologueOpt);
+                exceptionFilterPrologueOpt = (BoundStatementList?)VisitStatementList(exceptionFilterPrologueOpt);
             }
-            BoundSpillSequenceBuilder builder = null;
+            BoundSpillSequenceBuilder? builder = null;
 
             var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt);
             Debug.Assert(exceptionFilterPrologueOpt is null || builder is null,
@@ -729,9 +730,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundBlock body = (BoundBlock)this.Visit(node.Body);
-            TypeSymbol exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+            TypeSymbol? exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
             return node.Update(locals, exceptionSourceOpt, exceptionTypeOpt, exceptionFilterPrologueOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll);
         }
+#nullable disable
 
 #if DEBUG
         public override BoundNode DefaultVisit(BoundNode node)
