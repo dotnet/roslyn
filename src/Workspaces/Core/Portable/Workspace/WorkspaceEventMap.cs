@@ -7,9 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.CodeAnalysis;
