@@ -165,11 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (instanceExtensionResult is not null)
                 {
-                    // PROTOTYPE: If this result is bad, we might want to stick with bad non-extension result as we do for static extensions below.
+                    // https://github.com/dotnet/roslyn/issues/79136: If this result is bad, we might want to stick with bad non-extension result as we do for static extensions below.
                     return instanceExtensionResult;
                 }
 
-                // PROTOTYPE: Add test coverage for the choice between two bad results 
+                // https://github.com/dotnet/roslyn/issues/79136: Add test coverage for the choice between two bad results 
                 if (staticExtensionBest.HasValue && (staticExtensionBest.GetValueOrDefault().HasValue || (originalUserDefinedOperators.IsEmpty && !staticExtensionOriginalUserDefinedOperators.IsEmpty)))
                 {
                     best = staticExtensionBest.GetValueOrDefault();
@@ -1193,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.UnexpectedValue(current.Right.Kind)
                     };
 
-                    // PROTOTYPE: Add test coverage for this code path
+                    // https://github.com/dotnet/roslyn/issues/78965: Add test coverage for this code path
 
                     left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, right, leaveUnconvertedIfInterpolatedString: false);
                 }
@@ -3120,11 +3120,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (instanceExtensionResult is not null)
                 {
-                    // PROTOTYPE: If this result is bad, we might want to stick with bad non-extension result as we do for static extensions below.
+                    // https://github.com/dotnet/roslyn/issues/79136: If this result is bad, we might want to stick with bad non-extension result as we do for static extensions below.
                     return instanceExtensionResult;
                 }
 
-                // PROTOTYPE: Add test coverage for the choice between two bad results 
+                // https://github.com/dotnet/roslyn/issues/79136: Add test coverage for the choice between two bad results 
                 if (staticExtensionBest.HasValue && (staticExtensionBest.GetValueOrDefault().HasValue || (originalUserDefinedOperators.IsEmpty && !staticExtensionOriginalUserDefinedOperators.IsEmpty)))
                 {
                     best = staticExtensionBest.GetValueOrDefault();
@@ -3648,7 +3648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         !((extensionParameter.Type.IsValueType && extensionParameter.RefKind == RefKind.Ref) ||
                           (extensionParameter.Type.IsReferenceType && extensionParameter.RefKind == RefKind.None)))
                     {
-                        continue; // PROTOTYPE: Test this code path for actually interesting scenarios around RefKind which have an observable effect vs. just an optimization.
+                        continue; // https://github.com/dotnet/roslyn/issues/79136: Test this code path for actually interesting scenarios around RefKind which have an observable effect vs. just an optimization.
                     }
 
                     typeOperators ??= ArrayBuilder<MethodSymbol>.GetInstance();
@@ -3660,7 +3660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If we're in error recovery, we might have bad operators. Just ignore them.
                         if (op.IsStatic || !IsViableInstanceOperator(op, parameterCount))
                         {
-                            continue; // PROTOTYPE: Add test coverage for this code path
+                            continue; // https://github.com/dotnet/roslyn/issues/79136: Add test coverage for this code path
                         }
 
                         methods ??= ArrayBuilder<MethodSymbol>.GetInstance();

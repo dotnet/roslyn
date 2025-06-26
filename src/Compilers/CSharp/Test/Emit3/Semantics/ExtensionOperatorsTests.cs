@@ -17,6 +17,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.Extensions)]
     public class ExtensionOperatorsTests : CompilingTestBase
     {
+        [Fact]
+        public void Conversions_001_Declaration()
+        {
+            var src = $$$"""
+static class Extensions
+{
+    extension(S1)
+    {
+        public static implicit operator int(S1 x) => 0;
+    }
+
+    extension(S2)
+    {
+        public static explicit operator int(S2 x) => 0;
+    }
+}
+
+struct S1
+{}
+
+struct S2
+{}
+
+static class C1
+{
+    static void Test()
+    {
+        var s1 = new S1();
+        var i1 = (int)s1;
+
+        var s2 = new S2();
+        var i2 = (int)s2;
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,41): error CS9282: This member is not allowed in an extension block
+                //         public static implicit operator int(S1 x) => 0;
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(5, 41),
+                // (10,41): error CS9282: This member is not allowed in an extension block
+                //         public static explicit operator int(S2 x) => 0;
+                Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "int").WithLocation(10, 41),
+                // (25,18): error CS0030: Cannot convert type 'S1' to 'int'
+                //         var i1 = (int)s1;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)s1").WithArguments("S1", "int").WithLocation(25, 18),
+                // (28,18): error CS0030: Cannot convert type 'S2' to 'int'
+                //         var i2 = (int)s2;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)s2").WithArguments("S2", "int").WithLocation(28, 18)
+                );
+        }
+
         [Theory]
         [CombinatorialData]
         public void Unary_001_Declaration([CombinatorialValues("+", "-", "!", "~")] string op)
@@ -597,14 +649,17 @@ public static class Extensions1
     {
         public static S1 operator +(S1 x)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            return new S1 { F = x.F + 1 };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 """;
 
             var src2 = $$$"""
@@ -612,8 +667,12 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
-        _ = +s1;
+        var s1 = new S1() { F = 101 };
+        var s2 = +s1;
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
+        System.Console.Write(":");
+        System.Console.Write(s2.F);
     }
 }
 """;
@@ -622,7 +681,7 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:101:102").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
@@ -638,13 +697,13 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:101:102").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = +s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+s1").WithArguments("extensions").WithLocation(6, 13)
+                // (6,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+s1").WithArguments("extensions").WithLocation(6, 18)
                 );
 
             var src3 = $$$"""
@@ -658,13 +717,13 @@ class Program
 }
 """;
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             var src4 = $$$"""
 class Program
@@ -918,6 +977,7 @@ class Test2 : I2
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
         public void Unary_015_Consumption_ExtensionAmbiguity()
         {
             var src = $$$"""
@@ -962,7 +1022,7 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // PROTOTYPE: We might want to include more information into the error. Like what methods conflict.
+            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
                 // (34,21): error CS0035: Operator '-' is ambiguous on an operand of type 'I2'
                 //             var y = -x;
@@ -995,29 +1055,34 @@ public static class Extensions1
         public static S1 operator +(S1 x)
         {
             System.Console.Write("operator1");
-            return x;
+            return new S1 { F = x.F + 1 };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 
 class Program
 {
     static void Main()
     {
-        S1? s1 = new S1();
-        _ = +s1;
+        S1? s1 = new S1() { F = 101 };
+        var s2 = +s1;
+        System.Console.Write(":");
+        System.Console.Write(s2.Value.F);
         System.Console.Write(":");
         s1 = null;
-        _ = +s1;
+        s2 = +s1;
+        System.Console.Write(s2?.F ?? -1);
     }
 }
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator1:").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "operator1:102:-1").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2037,14 +2102,16 @@ public static class Extensions1
         public static bool operator true(S1 x)
         {
             System.Console.Write("operator1");
-            return true;
+            return x.F;
         }
         public static bool operator false(S1 x) => throw null;
     }
 }
 
 public struct S1
-{}
+{
+    public bool F;
+}
 """;
 
             var src2 = $$$"""
@@ -2052,9 +2119,19 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
+        var s1 = new S1() { F = true };
+        if (s1)
+        {
+            System.Console.Write(":true:");
+        }
+
+        s1 = new S1() { F = false };
         if (s1)
         {}
+        else
+        {
+            System.Console.Write(":false");
+        }
     }
 }
 """;
@@ -2063,7 +2140,7 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:true:operator1:false").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
@@ -2079,13 +2156,16 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:true:operator1:false").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (s1)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(6, 13),
+                // (12,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         if (s1)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(12, 13)
                 );
 
             var src3 = $$$"""
@@ -3810,8 +3890,32 @@ class S1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-            // PROTOTYPE: Check implementation symbols like in the test above
-            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            void verify(ModuleSymbol m)
+            {
+                var name = CompoundAssignmentOperatorName(op);
+                var method = m.GlobalNamespace.GetMember<MethodSymbol>("Extensions1." + name);
+
+                AssertEx.Equal("Extensions1." + name + "(S1)", method.ToDisplayString());
+                Assert.Equal(MethodKind.Ordinary, method.MethodKind);
+                Assert.True(method.IsStatic);
+                Assert.False(method.IsExtensionMethod);
+                Assert.False(method.HasSpecialName);
+                Assert.False(method.HasRuntimeSpecialName);
+                Assert.False(method.HasUnsupportedMetadata);
+
+                name = op == "++" ? WellKnownMemberNames.IncrementOperatorName : WellKnownMemberNames.DecrementOperatorName;
+                method = m.GlobalNamespace.GetMember<MethodSymbol>("Extensions1." + name);
+
+                AssertEx.Equal("Extensions1." + name + "(S1)", method.ToDisplayString());
+                Assert.Equal(MethodKind.Ordinary, method.MethodKind);
+                Assert.True(method.IsStatic);
+                Assert.False(method.IsExtensionMethod);
+                Assert.False(method.HasSpecialName);
+                Assert.False(method.HasRuntimeSpecialName);
+                Assert.False(method.HasUnsupportedMetadata);
+            }
         }
 
         [Theory]
@@ -3896,14 +4000,17 @@ public static class Extensions1
     {
         public static S1 operator ++(S1 x)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            return new S1 { F = x.F + 1 };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 """;
 
             var src2 = $$$"""
@@ -3911,8 +4018,16 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
+        var s1 = new S1() { F = 101 };
         ++s1;
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
+        System.Console.Write(":");
+        var s2 = ++s1;
+        System.Console.Write(":");
+        System.Console.Write(s2.F);
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
     }
 }
 """;
@@ -3921,7 +4036,7 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
@@ -3937,13 +4052,16 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ++s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++s1").WithArguments("extensions").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++s1").WithArguments("extensions").WithLocation(6, 9),
+                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var s2 = ++s1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++s1").WithArguments("extensions").WithLocation(10, 18)
                 );
 
             var src3 = $$$"""
@@ -3957,13 +4075,13 @@ class Program
 }
 """;
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             var src4 = $$$"""
 class Program
@@ -3998,13 +4116,17 @@ public static class Extensions1
     {
         public void operator ++()
         {
-            System.Console.Write("operator1");
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            x.F++;
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 
 """ + CompilerFeatureRequiredAttribute;
 
@@ -4013,8 +4135,16 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
-        _ = ++s1;
+        var s1 = new S1() { F = 101 };
+        ++s1;
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
+        System.Console.Write(":");
+        var s2 = ++s1;
+        System.Console.Write(":");
+        System.Console.Write(s2.F);
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
     }
 }
 """;
@@ -4023,11 +4153,11 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
-            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().ElementAt(1);
             var symbolInfo = model.GetSymbolInfo(opNode);
 
             Assert.Equal("Extensions1.extension(ref S1).operator ++()", symbolInfo.Symbol.ToDisplayString());
@@ -4039,13 +4169,16 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:103:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
-                //         _ = ++s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(6, 13)
+                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(6, 9),
+                // (10,18): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         var s2 = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(10, 18)
                 );
 
             var src3 = $$$"""
@@ -4059,13 +4192,13 @@ class Program
 }
 """;
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0").VerifyDiagnostics();
 
             var src4 = $$$"""
 class Program
@@ -4087,6 +4220,57 @@ class Program
                 //         S1.op_IncrementAssignment(ref s1);
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "op_IncrementAssignment").WithArguments("S1", "op_IncrementAssignment").WithLocation(7, 12)
                 );
+
+            var src5 = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            x.F++;
+        }
+    }
+}
+
+public class C1
+{
+    public int F;
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var src6 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1() { F = 101 };
+        var c2 = c1;
+        ++c1;
+        System.Console.Write(":");
+        System.Console.Write(c1.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c2) ? "True" : "False");
+        System.Console.Write(":");
+        var c3 = ++c1;
+        System.Console.Write(":");
+        System.Console.Write(c1.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c2) ? "True" : "False");
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c3) ? "True" : "False");
+    }
+}
+""";
+
+            var comp5 = CreateCompilation(src5);
+            var comp5Ref = fromMetadata ? comp5.EmitToImageReference() : comp5.ToMetadataReference();
+
+            var comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp6, expectedOutput: "operator1:101:102:True:operator1:102:103:True:True").VerifyDiagnostics();
         }
 
         [Fact]
@@ -5064,6 +5248,7 @@ class Test2 : I2
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
         public void Increment_024_Consumption_ExtensionAmbiguity()
         {
             var src = $$$"""
@@ -5110,7 +5295,7 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // PROTOTYPE: We might want to include more information into the error. Like what methods conflict.
+            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
                 // (35,21): error CS0035: Operator '--' is ambiguous on an operand of type 'I2'
                 //             var y = --x;
@@ -5286,31 +5471,70 @@ public static class Extensions1
 
         public static S1 operator ++(S1 x)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            return new S1 { F = x.F + 1 };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 
 class Program
 {
     static void Main()
     {
-        S1? s1 = new S1();
-        _ = ++s1;
+        S1? s1 = new S1() { F = 101 };
+        ++s1;
+        System.Console.Write(":");
+        System.Console.Write(s1.Value.F);
+        System.Console.Write(":");
+        var s2 = ++s1;
+        System.Console.Write(":");
+        System.Console.Write(s2.Value.F);
+        System.Console.Write(":");
+        System.Console.Write(s1.Value.F);
         System.Console.Write(":");
         s1 = null;
-        _ = ++s1;
+        ++s1;
+        System.Console.Write(s1?.F ?? -1);
+        System.Console.Write(":");
+        s2 = ++s1;
+        System.Console.Write(s2?.F ?? -1);
+        System.Console.Write(":");
+        System.Console.Write(s1?.F ?? -1);
+
+        System.Console.Write(" | ");
+
+        s1 = new S1() { F = 101 };
+        s1++;
+        System.Console.Write(":");
+        System.Console.Write(s1.Value.F);
+        System.Console.Write(":");
+        s2 = s1++;
+        System.Console.Write(":");
+        System.Console.Write(s2.Value.F);
+        System.Console.Write(":");
+        System.Console.Write(s1.Value.F);
+        System.Console.Write(":");
+        s1 = null;
+        s1++;
+        System.Console.Write(s1?.F ?? -1);
+        System.Console.Write(":");
+        s2 = s1++;
+        System.Console.Write(s2?.F ?? -1);
+        System.Console.Write(":");
+        System.Console.Write(s1?.F ?? -1);
     }
 }
 
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator1:").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "operator1:101:102:operator1:102:103:103:-1:-1:-1 | operator1:101:102:operator1:102:102:103:-1:-1:-1").VerifyDiagnostics();
         }
 
         [Fact]
@@ -5694,32 +5918,58 @@ class Program
             var src = $$$"""
 public static class Extensions1
 {
-    extension(object x)
+    extension(C1Base x)
     {
         public void operator ++()
         {
-            System.Console.Write("operator1");
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            x.F++;
         }
     }
 }
 
-public class C1
+
+public class C1Base
+{
+    public int F;
+}
+
+public class C1 : C1Base
 {}
 
 class Program
 {
     static void Main()
     {
-        var c1 = new C1();
+        var c1 = new C1() { F = 101 };
+        var c2 = c1;
         ++c1;
-        c1 = ++c1;
+        System.Console.Write(":");
+        System.Console.Write(c1.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c2) ? "True" : "False");
+        System.Console.Write(":");
+        var c3 = ++c1;
+        System.Console.Write(":");
+        System.Console.Write(c1.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c2) ? "True" : "False");
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c3) ? "True" : "False");
+        System.Console.Write(":");
+        c1++;
+        System.Console.Write(":");
+        System.Console.Write(c1.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c2) ? "True" : "False");
     }
 }
 
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator1operator1").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "operator1:101:102:True:operator1:102:103:True:True:operator1:103:104:True").VerifyDiagnostics();
         }
 
         [Fact]
@@ -6614,6 +6864,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78968")]
         public void Increment_056_Consumption_Checked()
         {
             var src = $$$"""
@@ -6670,7 +6921,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
                 );
 #else
-            // PROTOTYPE: Understand what is causing DEBUG/RELEASE behavior difference
+            // https://github.com/dotnet/roslyn/issues/78968: Understand what is causing DEBUG/RELEASE behavior difference
             comp.VerifyEmitDiagnostics(
                 // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator --()' and 'Extensions2.extension(C1).operator --()'
                 //         _ = --c1;
@@ -7287,14 +7538,17 @@ public static class Extensions1
     {
         public static S1 operator ++(S1 x)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            return new S1 { F = x.F + 1 };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 """;
 
             var src2 = $$$"""
@@ -7302,8 +7556,16 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
+        var s1 = new S1() { F = 101 };
         s1++;
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
+        System.Console.Write(":");
+        var s2 = s1++;
+        System.Console.Write(":");
+        System.Console.Write(s2.F);
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
     }
 }
 """;
@@ -7312,7 +7574,7 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:102:103").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
@@ -7328,13 +7590,16 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102:operator1:102:102:103").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         s1++;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(6, 9),
+                // (10,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var s2 = s1++;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(10, 18)
                 );
         }
 
@@ -7349,13 +7614,17 @@ public static class Extensions1
     {
         public void operator ++()
         {
-            System.Console.Write("operator1");
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            x.F++;
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 
 """ + CompilerFeatureRequiredAttribute;
 
@@ -7364,8 +7633,10 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
+        var s1 = new S1() { F = 101 };
         s1++;
+        System.Console.Write(":");
+        System.Console.Write(s1.F);
     }
 }
 """;
@@ -7374,7 +7645,7 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
@@ -7390,7 +7661,7 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:102").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
@@ -7414,6 +7685,66 @@ class Program
                 // (6,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
                 //         _ = s1++;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "s1++").WithArguments("++", "S1").WithLocation(6, 13)
+                );
+
+            var src4 = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            x.F++;
+        }
+    }
+}
+
+public class C1
+{
+    public int F;
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var src5 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1() { F = 101 };
+        var c2 = c1;
+        c1++;
+        System.Console.Write(":");
+        System.Console.Write(c1.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c1, c2) ? "True" : "False");
+    }
+}
+""";
+
+            var comp4 = CreateCompilation(src4);
+            var comp4Ref = fromMetadata ? comp4.EmitToImageReference() : comp4.ToMetadataReference();
+
+            var comp5 = CreateCompilation(src5, references: [comp4Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp5, expectedOutput: "operator1:101:102:True").VerifyDiagnostics();
+
+            var src6 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = c1++;
+    }
+}
+""";
+            var comp6 = CreateCompilation(src6, references: [comp4Ref], options: TestOptions.DebugExe);
+            comp6.VerifyDiagnostics(
+                // (6,13): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
+                //         _ = c1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "c1++").WithArguments("++", "C1").WithLocation(6, 13)
                 );
         }
 
@@ -9671,14 +10002,19 @@ public static class Extensions1
     {
         public static S1 operator +(S1 x, S1 y)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F + y.F };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 """;
 
             var src2 = $$$"""
@@ -9686,8 +10022,15 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
-        _ = s1 + s1;
+        var s11 = new S1() { F = 101 };
+        var s12 = new S1() { F = 202 };
+        var s2 = s11 + s12;
+        System.Console.Write(":");
+        System.Console.Write(s11.F);
+        System.Console.Write(":");
+        System.Console.Write(s12.F);
+        System.Console.Write(":");
+        System.Console.Write(s2.F);
     }
 }
 """;
@@ -9696,7 +10039,7 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
@@ -9712,13 +10055,13 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:202:101:202:303").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = s1 + s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 + s1").WithArguments("extensions").WithLocation(6, 13)
+                // (7,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var s2 = s11 + s12;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 + s12").WithArguments("extensions").WithLocation(7, 18)
                 );
 
             var src3 = $$$"""
@@ -9732,13 +10075,13 @@ class Program
 }
 """;
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             var src4 = $$$"""
 class Program
@@ -9992,6 +10335,7 @@ class Test2 : I2
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
         public void Binary_016_Consumption_ExtensionAmbiguity()
         {
             var src = $$$"""
@@ -10036,7 +10380,7 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // PROTOTYPE: We might want to include more information into the error. Like what methods conflict.
+            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
                 // (34,21): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
                 //             var y = x - x;
@@ -10250,48 +10594,86 @@ public static class Extensions1
     {
         public static S1 operator {{{op}}}(S1 x, S2 y)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F * 1000 + y.F };
         }
         public static S1 operator {{{op}}}(S2 x, S1 y)
         {
-            System.Console.Write("operator2");
-            return y;
+            System.Console.Write("operator2:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F * 1000 + y.F };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 
 public struct S2
-{}
+{
+    public int F;
+}
 
 class Program
 {
     static void Main()
     {
-        S1? s11 = new S1();
-        S2 s12 = new S2();
-        S1 s21 = new S1();
-        S2? s22 = new S2();
-        _ = s11 {{{op}}} s12;
-        _ = s12 {{{op}}} s11;
-        _ = s21 {{{op}}} s22;
-        _ = s22 {{{op}}} s21;
-        System.Console.Write(":");
+        S1? s11 = new S1() { F = 101 };
+        S2 s12 = new S2() { F = 202 };
+        S1 s21 = new S1() { F = 303 };
+        S2? s22 = new S2() { F = 404 };
+        Print(s11 {{{op}}} s12);
+        System.Console.WriteLine();
+        Print(s12 {{{op}}} s11);
+        System.Console.WriteLine();
+        Print(s21 {{{op}}} s22);
+        System.Console.WriteLine();
+        Print(s22 {{{op}}} s21);
+        System.Console.WriteLine();
         s11 = null;
         s22 = null;
-        _ = s11 {{{op}}} s12;
-        _ = s12 {{{op}}} s11;
-        _ = s21 {{{op}}} s22;
-        _ = s22 {{{op}}} s21;
+        Print(s11 {{{op}}} s12);
+        System.Console.WriteLine();
+        Print(s12 {{{op}}} s11);
+        System.Console.WriteLine();
+        Print(s21 {{{op}}} s22);
+        System.Console.WriteLine();
+        Print(s22 {{{op}}} s21);
+        System.Console.WriteLine();
+        Print(s11 {{{op}}} s22);
+        System.Console.WriteLine();
+        Print(s22 {{{op}}} s11);
+    }
+
+    static void Print(S1? x)
+    {
+        System.Console.Write(":");
+        System.Console.Write(x?.F ?? -1);
     }
 }
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator1operator2operator1operator2:").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+operator1:101:202:101202
+operator2:202:101:202101
+operator1:303:404:303404
+operator2:404:303:404303
+:-1
+:-1
+:-1
+:-1
+:-1
+:-1
+").VerifyDiagnostics();
         }
 
         [Theory]
@@ -11726,22 +12108,35 @@ public static class Extensions1
     {
         public static S1 operator {{{op[0]}}}(S1 x, S1 y)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F {{{op[0]}}} y.F };
         }
 
-        public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1 x)
+        public static bool operator true(S1 x)
         {
-            System.Console.Write("operator2");
-            return false;
+            System.Console.Write("operator2:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            return x.F;
         }
 
-        public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1 x) => throw null;
+        public static bool operator false(S1 x)
+        {
+            System.Console.Write("operator3:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            return !x.F;
+        }
     }
 }
 
 public struct S1
-{}
+{
+    public bool F;
+}
 """;
 
             var src2 = $$$"""
@@ -11749,17 +12144,46 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
-        s1 = s1 {{{op}}} s1;
+        S1[] s = [new S1() { F = false }, new S1() { F = true }];
+
+        foreach (var s1 in s)
+        {
+            foreach (var s2 in s)
+            {
+                Print(s1 {{{op}}} s2);
+                System.Console.WriteLine();
+            }
+        }
+    }
+
+    static void Print(S1 x)
+    {
+        System.Console.Write(":");
+        System.Console.Write(x.F);
     }
 }
 """;
+
+            string expected = op == "&&" ?
+@"
+operator3:False::False
+operator3:False::False
+operator3:True:operator1:True:False:False
+operator3:True:operator1:True:True:True
+"
+:
+@"
+operator2:False:operator1:False:False:False
+operator2:False:operator1:False:True:True
+operator2:True::True
+operator2:True::True
+";
 
             var comp1 = CreateCompilation(src1);
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator2operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: expected).VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
@@ -11775,13 +12199,13 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator2operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: expected).VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s1 = s1 && s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 " + op + " s1").WithArguments("extensions").WithLocation(6, 14)
+                // (11,23): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //                 Print(s1 && s2);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 " + op + " s2").WithArguments("extensions").WithLocation(11, 23)
                 );
         }
 
@@ -13204,6 +13628,7 @@ class Test2 : I2
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
         public void Binary_071_Consumption_Logical_ExtensionAmbiguity()
         {
             var src = $$$"""
@@ -13254,7 +13679,7 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // PROTOTYPE: We might want to include more information into the error. Like what methods conflict.
+            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
                 // (40,21): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
                 //             var y = x && x;
@@ -13384,45 +13809,89 @@ public static class Extensions1
     {
         public static S1 operator {{{op[0]}}}(S1 x, S1 y)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F {{{op[0]}}} y.F };
         }
     }
     extension(S1?)
     {
-        public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+        public static bool operator true(S1? x)
         {
-            System.Console.Write("operator2");
-            return false;
+            System.Console.Write("operator2:");
+            System.Console.Write(x?.F.ToString() ?? "null");
+            System.Console.Write(":");
+            return x?.F == true;
         }
 
-        public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+        public static bool operator false(S1? x)
+        {
+            System.Console.Write("operator3:");
+            System.Console.Write(x?.F.ToString() ?? "null");
+            System.Console.Write(":");
+            return x?.F == false;
+        }
     }
 }
 
 public struct S1
-{}
+{
+    public bool F;
+}
 
 class Program
 {
     static void Main()
     {
-        S1? s11 = new S1();
-        S1? s12 = new S1();
-        _ = s11 {{{op}}} s12;
+        S1?[] s = [new S1() { F = false }, new S1() { F = true }, null];
+
+        foreach (var s1 in s)
+        {
+            foreach (var s2 in s)
+            {
+                Print(s1 {{{op}}} s2);
+                System.Console.WriteLine();
+            }
+        }
+    }
+
+    static void Print(S1? x)
+    {
         System.Console.Write(":");
-        s11 = null;
-        _ = s11 {{{op}}} s12;
-        System.Console.Write(":");
-        _ = s12 {{{op}}} s11;
-        System.Console.Write(":");
-        _ = s11 {{{op}}} s11;
+        System.Console.Write(x?.F.ToString() ?? "null");
     }
 }
 """;
 
+            string expected = op == "&&" ?
+@"
+operator3:False::False
+operator3:False::False
+operator3:False::False
+operator3:True:operator1:True:False:False
+operator3:True:operator1:True:True:True
+operator3:True::null
+operator3:null::null
+operator3:null::null
+operator3:null::null
+"
+:
+@"
+operator2:False:operator1:False:False:False
+operator2:False:operator1:False:True:True
+operator2:False::null
+operator2:True::True
+operator2:True::True
+operator2:True::True
+operator2:null::null
+operator2:null::null
+operator2:null::null
+";
+
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator2operator1:operator2:operator2:operator2").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Theory]
@@ -13436,45 +13905,105 @@ public static class Extensions1
     {
         public static S1 operator {{{op[0]}}}(S1 x, S1 y)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F {{{op[0]}}} y.F };
         }
     }
     extension(S1?)
     {
-        public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+        public static bool operator true(S1? x)
         {
-            System.Console.Write("operator2");
-            return false;
+            System.Console.Write("operator2:");
+            System.Console.Write(x?.F.ToString() ?? "null");
+            System.Console.Write(":");
+            return x?.F == true;
         }
 
-        public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+        public static bool operator false(S1? x)
+        {
+            System.Console.Write("operator3:");
+            System.Console.Write(x?.F.ToString() ?? "null");
+            System.Console.Write(":");
+            return x?.F == false;
+        }
     }
 }
 
 public struct S1
-{}
+{
+    public bool F;
+}
 
 class Program
 {
     static void Main()
     {
-        S1? s11 = new S1();
-        S1 s12 = new S1();
-        _ = s11 {{{op}}} s12;
+        S1?[] s1 = [new S1() { F = false }, new S1() { F = true }, null];
+        S1[] s2 = [new S1() { F = false }, new S1() { F = true }];
+
+        foreach (var s11 in s1)
+        {
+            foreach (var s12 in s2)
+            {
+                Print(s11 {{{op}}} s12);
+                System.Console.WriteLine();
+            }
+        }
+
+        foreach (var s11 in s2)
+        {
+            foreach (var s12 in s1)
+            {
+                Print(s11 {{{op}}} s12);
+                System.Console.WriteLine();
+            }
+        }
+    }
+
+    static void Print(S1? x)
+    {
         System.Console.Write(":");
-        _ = s12 {{{op}}} s11;
-        System.Console.Write(":");
-        s11 = null;
-        _ = s11 {{{op}}} s12;
-        System.Console.Write(":");
-        _ = s12 {{{op}}} s11;
+        System.Console.Write(x?.F.ToString() ?? "null");
     }
 }
 """;
 
+            string expected = op == "&&" ?
+@"
+operator3:False::False
+operator3:False::False
+operator3:True:operator1:True:False:False
+operator3:True:operator1:True:True:True
+operator3:null::null
+operator3:null::null
+operator3:False::False
+operator3:False::False
+operator3:False::False
+operator3:True:operator1:True:False:False
+operator3:True:operator1:True:True:True
+operator3:True::null
+"
+:
+@"
+operator2:False:operator1:False:False:False
+operator2:False:operator1:False:True:True
+operator2:True::True
+operator2:True::True
+operator2:null::null
+operator2:null::null
+operator2:False:operator1:False:False:False
+operator2:False:operator1:False:True:True
+operator2:False::null
+operator2:True::True
+operator2:True::True
+operator2:True::True
+";
+
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator2operator1:operator2operator1:operator2:operator2").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
@@ -13525,6 +14054,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
         public void Binary_077_Consumption_Logical_NoLiftedFormForTrueFalse()
         {
             var src = $$$"""
@@ -13553,7 +14083,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: The wording is somewhat confusing because there are operators for S1, what is missing are the true/false operators for S1?.
+            // https://github.com/dotnet/roslyn/issues/78830: The wording is somewhat confusing because there are operators for S1, what is missing are the true/false operators for S1?.
             comp.VerifyEmitDiagnostics(
                 // (19,13): error CS0218: In order for 'Extensions1.extension(S1).operator &(S1, S1)' to be applicable as a short circuit operator, its declaring type 'Extensions1' must define operator true and operator false
                 //         _ = s1 && s1;
@@ -16156,6 +16686,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78828")]
         public void Binary_127_NullableAnalysis_WithLambda()
         {
             var src = $$$"""
@@ -16188,7 +16719,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: Expect to infer T as C2? and get a null dereference warning.
+            // https://github.com/dotnet/roslyn/issues/78828: Expect to infer T as C2? and get a null dereference warning.
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
@@ -16649,14 +17180,19 @@ public static class Extensions1
     {
         public static S1 operator +(S1 x, S1 y)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F + y.F };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 """;
 
             var src2 = $$$"""
@@ -16664,8 +17200,23 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
-        s1 += s1;
+        var s11 = new S1() { F = 101 };
+        var s12 = new S1() { F = 202 };
+
+        s11 += s12;
+        System.Console.Write(":");
+        System.Console.Write(s11.F);
+        System.Console.Write(":");
+        System.Console.Write(s12.F);
+        System.Console.Write(":");
+
+        var s2 = s11 += s12;
+        System.Console.Write(":");
+        System.Console.Write(s11.F);
+        System.Console.Write(":");
+        System.Console.Write(s12.F);
+        System.Console.Write(":");
+        System.Console.Write(s2.F);
     }
 }
 """;
@@ -16674,11 +17225,11 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
-            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(a => a.Kind() == SyntaxKind.AddAssignmentExpression).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
 
             Assert.Equal("Extensions1.extension(S1).operator +(S1, S1)", symbolInfo.Symbol.ToDisplayString());
@@ -16690,13 +17241,16 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         s1 += s1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 += s1").WithArguments("extensions").WithLocation(6, 9)
+                // (8,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         s11 += s12;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 += s12").WithArguments("extensions").WithLocation(8, 9),
+                // (15,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var s2 = s11 += s12;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s11 += s12").WithArguments("extensions").WithLocation(15, 18)
                 );
 
             var src3 = $$$"""
@@ -16710,13 +17264,13 @@ class Program
 }
 """;
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             var src4 = $$$"""
 class Program
@@ -16751,13 +17305,19 @@ public static class Extensions1
     {
         public void operator +=(S1 y)
         {
-            System.Console.Write("operator1");
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            x.F = x.F + y.F;
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 
 """ + CompilerFeatureRequiredAttribute;
 
@@ -16766,8 +17326,23 @@ class Program
 {
     static void Main()
     {
-        var s1 = new S1();
-        s1 += s1;
+        var s11 = new S1() { F = 101 };
+        var s12 = new S1() { F = 202 };
+
+        s11 += s12;
+        System.Console.Write(":");
+        System.Console.Write(s11.F);
+        System.Console.Write(":");
+        System.Console.Write(s12.F);
+        System.Console.Write(":");
+
+        var s2 = s11 += s12;
+        System.Console.Write(":");
+        System.Console.Write(s11.F);
+        System.Console.Write(":");
+        System.Console.Write(s12.F);
+        System.Console.Write(":");
+        System.Console.Write(s2.F);
     }
 }
 """;
@@ -16776,11 +17351,11 @@ class Program
             var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
 
             var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             var tree = comp2.SyntaxTrees.First();
             var model = comp2.GetSemanticModel(tree);
-            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().Where(a => a.Kind() == SyntaxKind.AddAssignmentExpression).First();
             var symbolInfo = model.GetSymbolInfo(opNode);
 
             Assert.Equal("Extensions1.extension(ref S1).operator +=(S1)", symbolInfo.Symbol.ToDisplayString());
@@ -16792,13 +17367,16 @@ class Program
             Assert.Empty(group);
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp2, expectedOutput: "operator1:101:202:303:202:operator1:303:202:505:202:505").VerifyDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S1'
-                //         s1 += s1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 += s1").WithArguments("+=", "S1", "S1").WithLocation(6, 9)
+                // (8,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S1'
+                //         s11 += s12;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s11 += s12").WithArguments("+=", "S1", "S1").WithLocation(8, 9),
+                // (15,18): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S1'
+                //         var s2 = s11 += s12;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s11 += s12").WithArguments("+=", "S1", "S1").WithLocation(15, 18)
                 );
 
             var src3 = $$$"""
@@ -16812,13 +17390,13 @@ class Program
 }
 """;
             var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
-            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+            CompileAndVerify(comp3, expectedOutput: "operator1:0:0").VerifyDiagnostics();
 
             var src4 = $$$"""
 class Program
@@ -16840,6 +17418,66 @@ class Program
                 //         S1.op_AdditionAssignment(ref s1, s1);
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "op_AdditionAssignment").WithArguments("S1", "op_AdditionAssignment").WithLocation(7, 12)
                 );
+
+            var src5 = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator +=(C1 y)
+        {
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            x.F = x.F + y.F;
+        }
+    }
+}
+
+public class C1
+{
+    public int F;
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var src6 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var c11 = new C1() { F = 101 };
+        var c1 = c11;
+        var c12 = new C1() { F = 202 };
+
+        c11 += c12;
+        System.Console.Write(":");
+        System.Console.Write(c11.F);
+        System.Console.Write(":");
+        System.Console.Write(c12.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c11, c1) ? "True" : "False");
+        System.Console.Write(":");
+
+        var c2 = c11 += c12;
+        System.Console.Write(":");
+        System.Console.Write(c11.F);
+        System.Console.Write(":");
+        System.Console.Write(c12.F);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c11, c1) ? "True" : "False");
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c11, c2) ? "True" : "False");
+    }
+}
+""";
+
+            var comp5 = CreateCompilation(src5);
+            var comp5Ref = fromMetadata ? comp5.EmitToImageReference() : comp5.ToMetadataReference();
+
+            var comp6 = CreateCompilation(src6, references: [comp5Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp6, expectedOutput: "operator1:101:202:303:202:True:operator1:303:202:505:202:True:True").VerifyDiagnostics();
         }
 
         [Fact]
@@ -17817,6 +18455,7 @@ class Test2 : I2
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78830")]
         public void CompoundAssignment_024_Consumption_ExtensionAmbiguity()
         {
             var src = $$$"""
@@ -17863,7 +18502,7 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // PROTOTYPE: We might want to include more information into the error. Like what methods conflict.
+            // https://github.com/dotnet/roslyn/issues/78830: We might want to include more information into the error. Like what methods conflict.
             comp.VerifyEmitDiagnostics(
                 // (35,21): error CS0034: Operator '-=' is ambiguous on operands of type 'I2' and 'I2'
                 //             var y = x -= x;
@@ -18240,48 +18879,93 @@ public static class Extensions1
     {
         public static S1 operator {{{op}}}(S1 x, S2 y)
         {
-            System.Console.Write("operator1");
-            return x;
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S1 { F = x.F * 1000 + y.F };
         }
         public static S2 operator {{{op}}}(S2 x, S1 y)
         {
-            System.Console.Write("operator2");
-            return x;
+            System.Console.Write("operator2:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y.F);
+            return new S2 { F = x.F * 1000 + y.F };
         }
     }
 }
 
 public struct S1
-{}
+{
+    public int F;
+}
 
 public struct S2
-{}
+{
+    public int F;
+}
 
 class Program
 {
     static void Main()
     {
-        S1? s1 = new S1();
-        S2? s2 = new S2();
-        _ = s1 {{{op}}}= s2;
-        _ = s2 {{{op}}}= s1;
+        S1?[] s1 = [new S1() { F = 101 }, null];
+        S2?[] s2 = [new S2() { F = 202 }, null];
+
+        foreach (var s11 in s1)
+        {
+            foreach (var s12 in s2)
+            {
+                var s21 = s11;
+                var s22 = s12;
+
+                Print(s21 {{{op}}}= s22, s21, s22);
+                System.Console.WriteLine();
+
+                s21 = s11;
+                s22 = s12;
+
+                Print(s22 {{{op}}}= s21, s22, s21);
+                System.Console.WriteLine();
+            }
+        }
+    }
+
+    static void Print(S1? x, S1? y, S2? z)
+    {
         System.Console.Write(":");
-        s1 = null;
-        _ = s1 {{{op}}}= s2;
-        _ = s2 {{{op}}}= s1;
-        s1 = new S1();
-        s2 = null;
-        _ = s1 {{{op}}}= s2;
-        _ = s2 {{{op}}}= s1;
-        s1 = null;
-        _ = s1 {{{op}}}= s2;
-        _ = s2 {{{op}}}= s1;
+        System.Console.Write(x?.F.ToString() ?? "null");
+        System.Console.Write(":");
+        System.Console.Write(y?.F.ToString() ?? "null");
+        System.Console.Write(":");
+        System.Console.Write(z?.F.ToString() ?? "null");
+    }
+
+    static void Print(S2? x, S2? y, S1? z)
+    {
+        System.Console.Write(":");
+        System.Console.Write(x?.F.ToString() ?? "null");
+        System.Console.Write(":");
+        System.Console.Write(y?.F.ToString() ?? "null");
+        System.Console.Write(":");
+        System.Console.Write(z?.F.ToString() ?? "null");
     }
 }
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator1operator2:").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"
+operator1:101:202:101202:101202:202
+operator2:202:101:202101:202101:101
+:null:null:null
+:null:null:101
+:null:null:202
+:null:null:null
+:null:null:null
+:null:null:null
+").VerifyDiagnostics();
         }
 
         [Theory]
@@ -18778,32 +19462,60 @@ class Program
             var src = $$$"""
 public static class Extensions1
 {
-    extension(object x)
+    extension(C1Base x)
     {
         public void operator +=(int y)
         {
-            System.Console.Write("operator1");
+            System.Console.Write("operator1:");
+            System.Console.Write(x.F);
+            System.Console.Write(":");
+            System.Console.Write(y);
+            x.F += y;
         }
     }
 }
 
-public class C1
+public class C1Base
+{
+    public int F;
+}
+
+public class C1 : C1Base
 {}
 
 class Program
 {
     static void Main()
     {
-        var c1 = new C1();
-        c1 += 1;
-        c1 = c1 += 1;
+        var c11 = new C1() { F = 101 };
+        var c1 = c11;
+        var c12 = 202;
+
+        c11 += c12;
+        System.Console.Write(":");
+        System.Console.Write(c11.F);
+        System.Console.Write(":");
+        System.Console.Write(c12);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c11, c1) ? "True" : "False");
+        System.Console.Write(":");
+
+        var c2 = c11 += c12;
+        System.Console.Write(":");
+        System.Console.Write(c11.F);
+        System.Console.Write(":");
+        System.Console.Write(c12);
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c11, c1) ? "True" : "False");
+        System.Console.Write(":");
+        System.Console.Write(ReferenceEquals(c11, c2) ? "True" : "False");
     }
 }
 
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator1operator1").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "operator1:101:202:303:202:True:operator1:303:202:505:202:True:True").VerifyDiagnostics();
         }
 
         [Fact]
@@ -19880,6 +20592,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78968")]
         public void CompoundAssignment_064_Consumption_Checked()
         {
             var src = $$$"""
@@ -19936,7 +20649,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions1.extension(C1).operator checked -=(C1)", "Extensions2.extension(C1).operator -=(C1)").WithLocation(39, 20)
                 );
 #else
-            // PROTOTYPE: Understand what is causing DEBUG/RELEASE behavior difference
+            // https://github.com/dotnet/roslyn/issues/78968: Understand what is causing DEBUG/RELEASE behavior difference
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator -=(C1)' and 'Extensions2.extension(C1).operator -=(C1)'
                 //         _ = c1 -= c1;
@@ -22669,12 +23382,3 @@ class Program
         }
     }
 }
-
-// PROTOTYPE: Test unsafe and partial
-//            Assert result of operator for basic consumption scenarios
-//            Cover ErrorCode.ERR_ExtensionDisallowsMember for conversion operators
-//            CRef binding
-//            'extern' modifier
-//            Nullability suppression
-//            Nullable analysis with interesting target-typed expressions as operands (null, lambda, collection expression) 
-//            Cover null-conditional compound assignment (including nullable analysis)?
