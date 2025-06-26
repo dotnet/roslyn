@@ -3012,10 +3012,10 @@ public static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (5,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+            // (5,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
             //         public void operator +=(T t) { }
             Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, "+=").WithLocation(5, 30),
-            // (6,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+            // (6,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
             //         public void operator -=(int j) { }
             Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, "-=").WithLocation(6, 30),
             // (6,30): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member

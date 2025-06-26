@@ -138,10 +138,10 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (6,36): error CS9551: The parameter of a unary operator must be the extended type.
+                // (6,36): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static S1? operator +(S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, op).WithLocation(6, 36),
-                // (15,35): error CS9551: The parameter of a unary operator must be the extended type.
+                // (15,35): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static S1 operator +(S2 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, op).WithLocation(15, 35),
                 // (23,37): error CS0590: User-defined operators cannot return void
@@ -153,13 +153,13 @@ static class C1
                 // (36,28): error CS0558: User-defined operator 'Extensions4.extension(S2).operator +(S2)' must be declared static and public
                 //         public S2 operator +(S2 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("Extensions4.extension(S2).operator " + op + "(S2)").WithLocation(36, 28),
-                // (41,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (41,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator +(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(41, 35),
                 // (41,37): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator +(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(41, 37),
-                // (49,35): error CS9551: The parameter of a unary operator must be the extended type.
+                // (49,35): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static S1 operator +(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, op).WithLocation(49, 35)
                 );
@@ -234,13 +234,13 @@ static class C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (6,36): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                // (6,36): error CS9318: The parameter type for ++ or -- operator must be the extended type.
                 //         public static S1? operator ++(S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, op).WithLocation(6, 36),
                 // (14,35): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                 //         public static S2 operator ++(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(14, 35),
-                // (15,35): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                // (15,35): error CS9318: The parameter type for ++ or -- operator must be the extended type.
                 //         public static S1 operator ++(S2 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, op).WithLocation(15, 35),
                 // (23,28): error CS0558: User-defined operator 'Extensions3.extension(S1).operator ++(S1)' must be declared static and public
@@ -252,13 +252,13 @@ static class C1
                 // (33,23): error CS0722: 'C1': static types cannot be used as return types
                 //         public static C1 operator ++(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C1").WithArguments("C1").WithLocation(33, 23),
-                // (33,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (33,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static C1 operator ++(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(33, 35),
                 // (33,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static C1 operator ++(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(33, 38),
-                // (41,35): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                // (41,35): error CS9318: The parameter type for ++ or -- operator must be the extended type.
                 //         public static S1 operator ++(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, op).WithLocation(41, 35),
                 // (42,35): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
@@ -371,10 +371,10 @@ static class C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
-                // (102,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (102,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator true(S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(102, 37),
-                // (103,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (103,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator false(S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(103, 37),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator true(S1)' requires a matching operator 'false' to also be defined
@@ -389,10 +389,10 @@ static class C1
                 // (500,35): error CS0216: The operator 'Extensions4.extension(S1).operator true(S1)' requires a matching operator 'false' to also be defined
                 //         public static S1 operator true(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("Extensions4.extension(S1).operator true(S1)", "false").WithLocation(500, 35),
-                // (600,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (600,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator true(S2 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(600, 37),
-                // (601,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (601,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator false(S2 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(601, 37),
                 // (700,30): error CS0558: User-defined operator 'Extensions6.extension(S1).operator true(S1)' must be declared static and public
@@ -401,22 +401,22 @@ static class C1
                 // (701,30): error CS0558: User-defined operator 'Extensions6.extension(S1).operator false(S1)' must be declared static and public
                 //         public bool operator false(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "false").WithArguments("Extensions6.extension(S1).operator false(S1)").WithLocation(701, 30),
-                // (800,37): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (800,37): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static bool operator true(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "true").WithLocation(800, 37),
                 // (800,42): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static bool operator true(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(800, 42),
-                // (801,37): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (801,37): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static bool operator false(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "false").WithLocation(801, 37),
                 // (801,43): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static bool operator false(C1 x) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 43),
-                // (900,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (900,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator true(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(900, 37),
-                // (901,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (901,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator false(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(901, 37)
                 );
@@ -1880,7 +1880,7 @@ public struct S2
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
-                // (5,36): error CS9551: The parameter of a unary operator must be the extended type.
+                // (5,36): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static S1? operator +(S1? x)
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "+").WithLocation(5, 36),
                 // (21,13): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
@@ -2036,7 +2036,7 @@ class Program
                 // (3,15): error CS1669: __arglist is not valid in this context
                 //     extension(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
-                // (5,39): error CS9551: The parameter of a unary operator must be the extended type.
+                // (5,39): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static object operator +(object x)
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "+").WithLocation(5, 39),
                 // (17,13): error CS0023: Operator '+' cannot be applied to operand of type 'object'
@@ -2581,10 +2581,10 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
-                // (5,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (5,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator true(S1? x)
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(5, 37),
-                // (10,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (10,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator false(S1? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(10, 37),
                 // (22,13): error CS0029: Cannot implicitly convert type 'S1?' to 'bool'
@@ -3780,31 +3780,31 @@ class C2
                 // (21,23): error CS9501: User-defined operator 'Extensions3.extension(ref S1).operator ++()' must be declared public
                 //         void operator ++() {}
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("Extensions3.extension(ref S1).operator " + op + "()").WithLocation(21, 23),
-                // (25,30): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (25,30): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public void operator ++() {}
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(25, 30),
-                // (600,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (600,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator ++() {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(600, 30),
                 // (700,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
                 //     extension(ref C2 c2)
                 Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "C2").WithLocation(700, 19),
-                // (800,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (800,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator ++() {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(800, 30),
                 // (900,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
                 //     extension(in C2 c2)
                 Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(900, 18),
-                // (1000,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (1000,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator ++() {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1000, 30),
                 // (1100,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
                 //     extension(ref readonly C2 c2)
                 Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(1100, 28),
-                // (1200,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (1200,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator ++() {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1200, 30),
-                // (1300,30): error CS9557: Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class
+                // (1300,30): error CS9323: Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class
                 //         public void operator ++() {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType, op).WithLocation(1300, 30),
                 // (1400,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
@@ -7191,7 +7191,7 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
-                // (5,36): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                // (5,36): error CS9318: The parameter type for ++ or -- operator must be the extended type.
                 //         public static S1? operator ++(S1? x)
                 Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, "++").WithLocation(5, 36),
                 // (21,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
@@ -7429,7 +7429,7 @@ class Program
                 // (3,15): error CS1669: __arglist is not valid in this context
                 //     extension(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
-                // (5,39): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                // (5,39): error CS9318: The parameter type for ++ or -- operator must be the extended type.
                 //         public static object operator ++(object x)
                 Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, "++").WithLocation(5, 39),
                 // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
@@ -9128,13 +9128,13 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (6,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (6,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator +(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(6, 36),
-                // (8,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (8,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator +(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(8, 36),
-                // (16,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (16,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S1 operator -(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(16, 35),
                 // (24,37): error CS0590: User-defined operators cannot return void
@@ -9146,13 +9146,13 @@ static class C1
                 // (37,28): error CS0558: User-defined operator 'Extensions4.extension(S2).operator +(S2, S2)' must be declared static and public
                 //         public S2 operator +(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("Extensions4.extension(S2).operator " + op + "(S2, S2)").WithLocation(37, 28),
-                // (42,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (42,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator +(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(42, 35),
                 // (42,37): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator +(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(42, 37),
-                // (50,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (50,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2 operator +(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(50, 35)
                 );
@@ -9225,10 +9225,10 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (6,36): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
+                // (6,36): error CS9320: The first operand of an overloaded shift operator must have the same type as the extended type
                 //         public static S2? operator <<(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(6, 36),
-                // (14,35): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
+                // (14,35): error CS9320: The first operand of an overloaded shift operator must have the same type as the extended type
                 //         public static S1 operator <<(S2 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(14, 35),
                 // (22,37): error CS0590: User-defined operators cannot return void
@@ -9240,16 +9240,16 @@ static class C1
                 // (34,28): error CS0558: User-defined operator 'Extensions4.extension(S2).operator <<(S2, S2)' must be declared static and public
                 //         public S2 operator <<(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, op).WithArguments("Extensions4.extension(S2).operator " + op + "(S2, S2)").WithLocation(34, 28),
-                // (38,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (38,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator >>>(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(38, 35),
                 // (38,39): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator >>>(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(38, 39 - (op == ">>>" ? 0 : 1)),
-                // (46,35): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
+                // (46,35): error CS9320: The first operand of an overloaded shift operator must have the same type as the extended type
                 //         public static S2 operator <<(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(46, 35),
-                // (48,35): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
+                // (48,35): error CS9320: The first operand of an overloaded shift operator must have the same type as the extended type
                 //         public static S2 operator <<(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(48, 35)
                 );
@@ -9366,16 +9366,16 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (102,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (102,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator !=(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "!=").WithLocation(102, 36),
-                // (103,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (103,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator ==(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "==").WithLocation(103, 36),
-                // (106,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (106,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator !=(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "!=").WithLocation(106, 36),
-                // (107,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (107,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator ==(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "==").WithLocation(107, 36),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator !=(S1, S2)' requires a matching operator '==' to also be defined
@@ -9384,10 +9384,10 @@ static class C1
                 // (405,37): error CS0216: The operator 'Extensions3.extension(S2).operator ==(S2, S1)' requires a matching operator '!=' to also be defined
                 //         public static bool operator ==(S2 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "==").WithArguments("Extensions3.extension(S2).operator ==(S2, S1)", "!=").WithLocation(405, 37),
-                // (500,37): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (500,37): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static bool operator !=(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "!=").WithLocation(500, 37),
-                // (501,37): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (501,37): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static bool operator ==(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "==").WithLocation(501, 37),
                 // (600,37): error CS0590: User-defined operators cannot return void
@@ -9402,22 +9402,22 @@ static class C1
                 // (701,28): error CS0558: User-defined operator 'Extensions6.extension(S1).operator ==(S1, S1)' must be declared static and public
                 //         public S1 operator ==(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "==").WithArguments("Extensions6.extension(S1).operator ==(S1, S1)").WithLocation(701, 28),
-                // (800,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (800,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator !=(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "!=").WithLocation(800, 35),
                 // (800,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator !=(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(800, 38),
-                // (801,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (801,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator ==(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "==").WithLocation(801, 35),
                 // (801,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator ==(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 38),
-                // (900,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (900,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2 operator !=(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "!=").WithLocation(900, 35),
-                // (904,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (904,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2 operator ==(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "==").WithLocation(904, 35)
                 );
@@ -9534,16 +9534,16 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (102,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (102,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator >=(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">=").WithLocation(102, 36),
-                // (103,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (103,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator <=(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<=").WithLocation(103, 36),
-                // (106,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (106,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator >=(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">=").WithLocation(106, 36),
-                // (107,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (107,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator <=(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<=").WithLocation(107, 36),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator >=(S1, S2)' requires a matching operator '<=' to also be defined
@@ -9552,10 +9552,10 @@ static class C1
                 // (405,37): error CS0216: The operator 'Extensions3.extension(S2).operator <=(S2, S1)' requires a matching operator '>=' to also be defined
                 //         public static bool operator <=(S2 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "<=").WithArguments("Extensions3.extension(S2).operator <=(S2, S1)", ">=").WithLocation(405, 37),
-                // (500,37): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (500,37): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static bool operator >=(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">=").WithLocation(500, 37),
-                // (501,37): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (501,37): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static bool operator <=(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<=").WithLocation(501, 37),
                 // (600,37): error CS0590: User-defined operators cannot return void
@@ -9570,22 +9570,22 @@ static class C1
                 // (701,28): error CS0558: User-defined operator 'Extensions6.extension(S1).operator <=(S1, S1)' must be declared static and public
                 //         public S1 operator <=(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "<=").WithArguments("Extensions6.extension(S1).operator <=(S1, S1)").WithLocation(701, 28),
-                // (800,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (800,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator >=(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, ">=").WithLocation(800, 35),
                 // (800,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator >=(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(800, 38),
-                // (801,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (801,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator <=(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "<=").WithLocation(801, 35),
                 // (801,38): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator <=(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 38),
-                // (900,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (900,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2 operator >=(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">=").WithLocation(900, 35),
-                // (904,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (904,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2 operator <=(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<=").WithLocation(904, 35)
                 );
@@ -9702,16 +9702,16 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (102,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (102,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator >(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">").WithLocation(102, 36),
-                // (103,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (103,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator <(S1? x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<").WithLocation(103, 36),
-                // (106,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (106,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator >(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">").WithLocation(106, 36),
-                // (107,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (107,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator <(S2 y, S1? x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<").WithLocation(107, 36),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator >(S1, S2)' requires a matching operator '<' to also be defined
@@ -9720,10 +9720,10 @@ static class C1
                 // (405,37): error CS0216: The operator 'Extensions3.extension(S2).operator <(S2, S1)' requires a matching operator '>' to also be defined
                 //         public static bool operator <(S2 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "<").WithArguments("Extensions3.extension(S2).operator <(S2, S1)", ">").WithLocation(405, 37),
-                // (500,37): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (500,37): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static bool operator >(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">").WithLocation(500, 37),
-                // (501,37): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (501,37): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static bool operator <(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<").WithLocation(501, 37),
                 // (600,37): error CS0590: User-defined operators cannot return void
@@ -9738,22 +9738,22 @@ static class C1
                 // (701,28): error CS0558: User-defined operator 'Extensions6.extension(S1).operator <(S1, S1)' must be declared static and public
                 //         public S1 operator <(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "<").WithArguments("Extensions6.extension(S1).operator <(S1, S1)").WithLocation(701, 28),
-                // (800,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (800,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator >(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, ">").WithLocation(800, 35),
                 // (800,37): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator >(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(800, 37),
-                // (801,35): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (801,35): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public static S1 operator <(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, "<").WithLocation(801, 35),
                 // (801,37): error CS0721: 'C1': static types cannot be used as parameters
                 //         public static S1 operator <(C1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C1").WithArguments("C1").WithLocation(801, 37),
-                // (900,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (900,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2 operator >(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">").WithLocation(900, 35),
-                // (904,35): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (904,35): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2 operator <(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<").WithLocation(904, 35)
                 );
@@ -10981,7 +10981,7 @@ class Program
 
             var comp3 = CreateCompilation(src3, options: TestOptions.DebugExe);
             comp3.VerifyEmitDiagnostics(
-                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator +(S2? x, S1? y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 36),
                 // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
@@ -11034,7 +11034,7 @@ class Program
 
             var comp4 = CreateCompilation(src4, options: TestOptions.DebugExe);
             comp4.VerifyEmitDiagnostics(
-                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S2? operator +(S1? x, S2? y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 36),
                 // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
@@ -11818,7 +11818,7 @@ public struct S2
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
             comp.VerifyEmitDiagnostics(
-                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S1? operator +(S1? x, S1? y)
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 36),
                 // (21,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1?' and 'S1?'
@@ -12043,7 +12043,7 @@ class Program
                 // (3,15): error CS1669: __arglist is not valid in this context
                 //     extension(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
-                // (5,39): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,39): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static object operator +(object x, object y)
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 39),
                 // (17,13): error CS0019: Operator '+' cannot be applied to operands of type 'object' and 'object'
@@ -12893,10 +12893,10 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (11,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (11,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator true(S1? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(11, 37),
-                // (13,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (13,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator false(S1? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(13, 37)
                 );
@@ -12998,13 +12998,13 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S1? operator &(S1? x, S1? y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op[..1]).WithLocation(5, 36),
-                // (9,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (9,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator true(S1? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(9, 37),
-                // (11,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (11,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator false(S1? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(11, 37),
                 // (33,14): error CS0019: Operator '&&' cannot be applied to operands of type 'S1' and 'S1'
@@ -13058,7 +13058,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,36): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static S1? operator &(S1? x, S1? y)
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op[..1]).WithLocation(5, 36),
                 // (31,15): error CS0019: Operator '&&' cannot be applied to operands of type 'S1' and 'S1'
@@ -14417,13 +14417,13 @@ class Program
                 // (3,15): error CS1669: __arglist is not valid in this context
                 //     extension(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
-                // (5,39): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,39): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static object operator &(object x, object y)
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "&").WithLocation(5, 39),
-                // (9,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (9,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator false(object x)
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(9, 37),
-                // (15,37): error CS9551: The parameter of a unary operator must be the extended type.
+                // (15,37): error CS9317: The parameter of a unary operator must be the extended type.
                 //         public static bool operator true(object x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(15, 37),
                 // (24,13): error CS0019: Operator '&&' cannot be applied to operands of type 'object' and 'object'
@@ -14753,7 +14753,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (30,54): error CS9558: An expression tree may not contain '&&' or '||' operators that use extension user defined operators.
+                // (30,54): error CS9324: An expression tree may not contain '&&' or '||' operators that use extension user defined operators.
                 //         Expression<System.Func<S1, S1>> ex = (s1) => s1 && s1;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator, "s1 " + op + " s1").WithLocation(30, 54)
                 );
@@ -14803,7 +14803,7 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (33,56): error CS9558: An expression tree may not contain '&&' or '||' operators that use extension user defined operators.
+                // (33,56): error CS9324: An expression tree may not contain '&&' or '||' operators that use extension user defined operators.
                 //         Expression<System.Func<S1?, S1?>> ex = (s1) => s1 && s1;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator, "s1 " + op + " s1").WithLocation(33, 56)
                 );
@@ -17007,31 +17007,31 @@ class C2
                 // (21,23): error CS9501: User-defined operator 'Extensions3.extension(ref S1).operator +=(int)' must be declared public
                 //         void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_OperatorsMustBePublic, op).WithArguments("Extensions3.extension(ref S1).operator " + op + "(int)").WithLocation(21, 23),
-                // (25,30): error CS9555: An extension block extending a static class cannot contain user-defined operators
+                // (25,30): error CS9321: An extension block extending a static class cannot contain user-defined operators
                 //         public void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_OperatorInExtensionOfStaticClass, op).WithLocation(25, 30),
-                // (600,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (600,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(600, 30),
                 // (700,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
                 //     extension(ref C2 c2)
                 Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "C2").WithLocation(700, 19),
-                // (800,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (800,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(800, 30),
                 // (900,18): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
                 //     extension(in C2 c2)
                 Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(900, 18),
-                // (1000,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (1000,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1000, 30),
                 // (1100,28): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
                 //     extension(ref readonly C2 c2)
                 Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "C2").WithLocation(1100, 28),
-                // (1200,30): error CS9556: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                // (1200,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
                 //         public void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, op).WithLocation(1200, 30),
-                // (1300,30): error CS9557: Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class
+                // (1300,30): error CS9323: Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class
                 //         public void operator +=(int x) {}
                 Diagnostic(ErrorCode.ERR_InstanceOperatorExtensionWrongReceiverType, op).WithLocation(1300, 30),
                 // (1400,22): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
@@ -21195,7 +21195,7 @@ class Program
                 // (3,15): error CS1669: __arglist is not valid in this context
                 //     extension(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
-                // (5,39): error CS9553: One of the parameters of a binary operator must be the extended type.
+                // (5,39): error CS9319: One of the parameters of a binary operator must be the extended type.
                 //         public static object operator +(object x, object y)
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 39),
                 // (20,13): error CS0019: Operator '+=' cannot be applied to operands of type 'object' and 'object'
