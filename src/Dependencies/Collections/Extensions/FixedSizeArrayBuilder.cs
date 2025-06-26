@@ -55,23 +55,13 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
 #if MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT
         if (condition)
         {
-            Fail("Unexpected true", lineNumber, filePath);
+            var fileName = filePath is null ? null : Path.GetFileName(filePath);
+            throw new InvalidOperationException($"Unexpected true - file {fileName} line {lineNumber}");
         }
 #else
         Contract.ThrowIfTrue(condition, lineNumber, filePath);
 #endif
     }
-
-#if MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT
-    [DebuggerHidden]
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Fail(string message = "Unexpected", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
-    {
-        var fileName = filePath is null ? null : Path.GetFileName(filePath);
-        throw new InvalidOperationException($"{message} - file {fileName} line {lineNumber}");
-    }
-#endif
 
     #region AddRange overloads.  These allow us to add these collections directly, without allocating an enumerator.
 
