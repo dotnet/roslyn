@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis
             "System.Type",
             "System.Reflection.MethodBase",
             "System.Reflection.MethodInfo",
+            "System.Runtime.InteropServices.ExtendedLayoutAttribute",
+            "System.Runtime.InteropServices.ExtendedLayoutKind",
         };
 
         private static readonly Dictionary<string, ExtendedSpecialType> s_nameToTypeIdMap;

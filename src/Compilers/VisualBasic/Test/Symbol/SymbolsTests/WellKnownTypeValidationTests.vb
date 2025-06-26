@@ -497,7 +497,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
-                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference Then
+                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
+                   special = SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -570,7 +571,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
-                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -653,7 +656,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_RequiresLocationAttribute,
                          WellKnownType.System_Runtime_InteropServices_CollectionsMarshal,
                          WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal,
-                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute
+                         WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                         WellKnownType.System_Runtime_InteropServices_ExtendedLayoutKind
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
