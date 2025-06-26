@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.ErrorReporting;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 internal static class DiagnosticDataExtensions

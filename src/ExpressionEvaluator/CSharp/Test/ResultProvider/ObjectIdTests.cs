@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests

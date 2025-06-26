@@ -8,8 +8,8 @@ using System;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {

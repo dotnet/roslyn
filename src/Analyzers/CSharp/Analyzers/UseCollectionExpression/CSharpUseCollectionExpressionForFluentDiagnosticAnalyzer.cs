@@ -20,8 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-using static UseCollectionExpressionHelpers;
 using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
 using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]

@@ -4,10 +4,10 @@
 
 using System;
 using System.IO;
-using Microsoft.CodeAnalysis.VisualBasic.Scripting;
-using Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.VisualBasic.Scripting;
+using Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting.TestUtilities;
 

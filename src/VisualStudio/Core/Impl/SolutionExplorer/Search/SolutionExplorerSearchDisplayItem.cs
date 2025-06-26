@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;

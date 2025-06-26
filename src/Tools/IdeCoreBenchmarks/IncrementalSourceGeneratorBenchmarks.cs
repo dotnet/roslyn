@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,12 +15,12 @@ using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace IdeCoreBenchmarks
 {
