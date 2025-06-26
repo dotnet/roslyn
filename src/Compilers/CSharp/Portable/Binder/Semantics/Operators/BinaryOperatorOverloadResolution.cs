@@ -8,11 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-<<<<<<< extensions_55
 using System.Linq;
-=======
 using Microsoft.CodeAnalysis.Collections;
->>>>>>> main
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
