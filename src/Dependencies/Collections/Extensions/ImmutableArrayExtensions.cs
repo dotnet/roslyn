@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>If the sequence is null, this will throw <see cref="ArgumentNullException"/></remarks>
         public static ImmutableArray<T> AsImmutable<T>(this IEnumerable<T> items)
         {
-            return [.. items];
+            return ImmutableArray.CreateRange<T>(items);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
                 return [];
             }
 
-            return [.. items];
+            return ImmutableArray.CreateRange<T>(items);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
-            return [.. items];
+            return ImmutableArray.CreateRange<T>(items);
         }
 
         /// <summary>
