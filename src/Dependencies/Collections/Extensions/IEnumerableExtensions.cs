@@ -77,7 +77,7 @@ namespace Roslyn.Utilities
                 return array.NullToEmpty();
             }
 
-            return [.. items];
+            return ImmutableArray.CreateRange<T>(items);
         }
 
         public static IReadOnlyList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
