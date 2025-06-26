@@ -405,13 +405,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitInstanceIncrementOperator(BoundIncrementOperator node, bool used)
         {
             Debug.Assert(node.MethodOpt is { });
+            Debug.Assert(node.OperandConversion is null || (node.Operand.Type!.IsReferenceType && node.MethodOpt.GetIsNewExtensionMember()));
 
             SyntaxNode syntax = node.Syntax;
 
             if (!used)
             {
                 Debug.Assert(node.Type.IsVoidType());
-                return BoundCall.Synthesized(syntax, VisitExpression(node.Operand), initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.MethodOpt);
+                return BoundCall.Synthesized(syntax,
+                                             ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, VisitExpression(node.Operand)),
+                                             initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                             node.MethodOpt);
             }
 
             TypeSymbol? operandType = node.Operand.Type; //type of the variable being incremented
@@ -432,10 +436,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundSequence(
                     syntax: syntax,
                     locals: [boundTemp.LocalSymbol],
-                    sideEffects: [tempAssignment, BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.MethodOpt)],
+                    sideEffects:
+                        [
+                            tempAssignment,
+                            BoundCall.Synthesized(syntax,
+                                                  ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, boundTemp),
+                                                  initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                                  node.MethodOpt)
+                        ],
                     value: boundTemp,
                     type: operandType);
             }
+
+            Debug.Assert(node.OperandConversion is null);
 
             return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Operand, rightOpt: null, node.MethodOpt, node.OperatorKind.IsChecked());
         }
