@@ -8095,6 +8095,43 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     }
 
     [Fact]
+    public async Task NullableParameterThatIsOblivious()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            class X
+            {
+                void N(string s)
+                {
+            #nullable enable
+                    string s2 = $$s;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
+    }
+
+    [Fact]
+    public async Task NullableParameterThatIsOblivious_Propagated()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            class X
+            {
+                void N(string s)
+                {
+            #nullable enable
+                    string s2 = s;
+                    string s3 = $$s2;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) string s2"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s2")));
+    }
+
+    [Fact]
     public async Task NullableFieldThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
@@ -8137,6 +8174,27 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
     }
 
+    [Fact]
+    public async Task NullableFieldThatIsOblivious()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            class X
+            {
+                string s = null;
+
+                void N()
+                {
+                    s = "";
+            #nullable enable
+                    string s2 = $$s;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string X.s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
     public async Task NullableBackingFieldThatIsMaybeNull()
     {
@@ -8173,6 +8231,24 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription($"({FeaturesResources.field}) string X.P.field"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "P.field")));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77219")]
+    public async Task NullableBackingFieldThatIsOblivious()
+    {
+        await TestWithOptionsAsync(TestOptions.RegularPreview,
+            """
+            class X
+            {
+                string P
+                {
+            #nullable enable
+                    get => $$field;
+                } = "a";
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string X.P.field"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "P.field")));
     }
 
     [Fact]
@@ -8216,6 +8292,30 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription("string? X.S { get; set; }"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "S")));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("S = null;")]
+    [InlineData("S = string.Empty;")]
+    public async Task NullablePropertyThatIsOblivious(string code)
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            $$"""
+            class X
+            {
+                string S { get; set; }
+
+                void N()
+                {
+                    {{code}}
+            #nullable enable
+                    string s2 = $$S;
+                }
+            }
+            """,
+            MainDescription("string X.S { get; set; }"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "S")));
     }
 
     [Fact]
@@ -8271,6 +8371,29 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     }
 
     [Fact]
+    public async Task NullableRangeVariableThatIsOblivious()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            using System.Collections.Generic;
+            class X
+            {
+                void N()
+                {
+                    IEnumerable<string> enumerable;
+                    foreach (string s in enumerable)
+                    {
+            #nullable enable
+                        string s2 = $$s;
+                    }
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) string s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
+    }
+
+    [Fact]
     public async Task NullableLocalThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
@@ -8312,6 +8435,141 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription($"({FeaturesResources.local_variable}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
+    }
+
+    [Fact]
+    public async Task NullableLocalThatIsOblivious()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            class X
+            {
+                void N()
+                {
+                    string s = null;
+            #nullable enable
+                    string s2 = $$s;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) string s"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
+    }
+
+    [Theory]
+    [InlineData("#nullable enable warnings")]
+    [InlineData("#nullable enable annotations")]
+    public async Task NullableLocalThatIsOblivious_NotFullyNullableEnabled(string directive)
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            $$"""
+            class X
+            {
+                void N()
+                {
+                    string s = null;
+            {{directive}}
+                    string s2 = $$s;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) string s"),
+            NullabilityAnalysis(""));
+    }
+
+    [Fact]
+    public async Task NullableMethodThatIsMaybeNull()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            #nullable enable
+            class X
+            {
+                string? M() => null;
+                void N()
+                {
+                    string? s = $$M();
+                }
+            }
+            """,
+            MainDescription("string? X.M()"),
+            NullabilityAnalysis(""));
+    }
+
+    [Fact]
+    public async Task NullableMethodThatIsNotNull()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            #nullable enable
+            class X
+            {
+                string M() => "";
+                void N()
+                {
+                    string s = $$M();
+                }
+            }
+            """,
+            MainDescription("string X.M()"),
+            NullabilityAnalysis(""));
+    }
+
+    [Fact]
+    public async Task NullableMethodThatIsOblivious()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            class X
+            {
+                string M() => "";
+                void N()
+                {
+            #nullable enable
+                    string s = $$M();
+                }
+            }
+            """,
+            MainDescription("string X.M()"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "M")));
+    }
+
+    [Fact]
+    public async Task NullableMethodThatIsVoid()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            #nullable enable
+            class X
+            {
+                void M() { }
+                void N()
+                {
+                    string s = $$M();
+                }
+            }
+            """,
+            MainDescription("void X.M()"),
+            NullabilityAnalysis(""));
+    }
+
+    [Fact]
+    public async Task NullableMethodThatIsVoidAndOblivious()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            class X
+            {
+                void M() { }
+                void N()
+                {
+            #nullable enable
+                    string s = $$M();
+                }
+            }
+            """,
+            MainDescription("void X.M()"),
+            NullabilityAnalysis(""));
     }
 
     [Fact]
