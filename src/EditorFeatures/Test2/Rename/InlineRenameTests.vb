@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 textBuffer.Insert(caretPosition, "renamed")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -132,7 +132,7 @@ class [|Test1$$|]
                 ' User could use copy & paste to enter invalid character
                 textBuffer.Insert(selectedSpan, "<>")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "Test1")
             End Using
@@ -226,7 +226,7 @@ class Deconstructable
 
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
@@ -259,7 +259,7 @@ class Deconstructable
 
             Await VerifyTagsAreCorrect(workspace)
 
-            Await session.CommitAsync(previewChanges:=False)
+            Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
             Await VerifyTagsAreCorrect(workspace)
 
@@ -782,7 +782,7 @@ End Class
 
                 textBuffer.Insert(caretPosition, "goo")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -915,7 +915,7 @@ End Class
                 Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
             End Using
@@ -949,7 +949,7 @@ End Class
                 Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
                 VerifyFileName(workspace, "BarTest1")
             End Using
@@ -986,7 +986,7 @@ End Class
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
                 VerifyFileName(workspace, "BarTest1")
@@ -1061,7 +1061,7 @@ End Class
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
                 VerifyFileName(workspace, "BarTest1")
@@ -1100,7 +1100,7 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=True)
+                Await session.CommitAsync(previewChanges:=True, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
                 Assert.True(previewService.Called)
@@ -1134,7 +1134,7 @@ End Class
 
                 Dim session = StartSession(workspace)
                 session.ApplyReplacementText("BarGoo", propagateEditImmediately:=True)
-                Await session.CommitAsync(previewChanges:=True)
+                Await session.CommitAsync(previewChanges:=True, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
                 Assert.True(previewService.Called)
@@ -1144,7 +1144,7 @@ End Class
 
                 previewService.ReturnsNull = False
                 previewService.Called = False
-                Await session.CommitAsync(previewChanges:=True)
+                Await session.CommitAsync(previewChanges:=True, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
                 Assert.True(previewService.Called)
             End Using
@@ -1191,7 +1191,7 @@ End Class
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
@@ -1236,7 +1236,7 @@ End Class
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
@@ -1349,7 +1349,7 @@ class C
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
@@ -1381,7 +1381,7 @@ class C
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
@@ -1415,7 +1415,7 @@ class C
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
@@ -1449,7 +1449,7 @@ class C
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
             End Using
         End Function
@@ -1508,7 +1508,7 @@ End Module
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "q")
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -1538,7 +1538,7 @@ End Module
                 textBuffer.Delete(New Span(caretPosition, 1))
                 textBuffer.Insert(caretPosition, "x")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -1582,7 +1582,7 @@ End Class
                 textBuffer.Delete(New Span(caretPosition, 1))
                 textBuffer.Insert(caretPosition, "x")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -1625,7 +1625,7 @@ End Class
 
                 ' Ensure the rename doesn't crash
                 textBuffer.Insert(caretPosition, "e")
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
             End Using
         End Function
 
@@ -1850,7 +1850,7 @@ class [|$$Test1|]
                 textBuffer.Delete(New Span(caretPosition, 1))
                 textBuffer.Insert(caretPosition, "t")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Await VerifyTagsAreCorrect(workspace)
 
                 VerifyFileName(workspace, "test1")
@@ -1884,7 +1884,7 @@ class [|$$Test1|]
                 textBuffer.Insert(caretPosition, "Bar")
                 textBuffer.Delete(New Span(caretPosition, "Bar".Length))
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -1968,7 +1968,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -1998,7 +1998,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2028,7 +2028,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2058,7 +2058,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2088,7 +2088,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2118,7 +2118,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2148,7 +2148,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2178,7 +2178,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2208,7 +2208,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2238,7 +2238,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2268,7 +2268,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2303,7 +2303,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2334,7 +2334,7 @@ class [|C|]
                 session.ApplyReplacementText("Example", True)
                 session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions(RenameInComments:=True))
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
@@ -2375,7 +2375,7 @@ class [|C|]
 
                 textBuffer.Insert(caretPosition, "Example")
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using

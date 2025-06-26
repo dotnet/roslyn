@@ -1238,7 +1238,7 @@ class [|C$$|]
 
                 executeCommand(commandHandler, view, Sub() editorOperations.InsertText(commandInvokedString))
 
-                ' Verify rename session was not committed because the scenarios are not supported in async rename.
+                ' If a user cuts/pastes outside the identifier then that cancels the rename operation as it is not supported in async rename.
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
                 Assert.Contains("C f", view.TextBuffer.CurrentSnapshot.GetText())
                 Assert.Contains(commandInvokedString, view.TextBuffer.CurrentSnapshot.GetText())

@@ -32,6 +32,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
     protected virtual void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
     {
         var token = listener.BeginAsyncOperation(nameof(ExecuteCommand));
+
+        // CommitAsync will display UI to the user while this asynchronous work is being done.
         activeSession.CommitAsync(previewChanges: false, operationContext)
             .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
         SetFocusToTextView(textView);

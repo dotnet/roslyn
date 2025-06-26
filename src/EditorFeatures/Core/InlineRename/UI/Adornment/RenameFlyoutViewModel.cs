@@ -234,6 +234,8 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         SmartRenameViewModel?.Commit(IdentifierText);
 
         var token = _asyncListener.BeginAsyncOperation(nameof(Submit));
+
+        // CommitAsync will display UI to the user while this asynchronous work is being done.
         Session.CommitAsync(previewChanges: false, editorOperationContext: null)
             .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
         return true;

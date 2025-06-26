@@ -3,12 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.ObjectModel
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -90,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     session.Cancel()
                     VerifyBufferContentsInWorkspace(actualWorkspace, actualWorkspace)
                 ElseIf sessionCommit Then
-                    Await session.CommitAsync(previewChanges:=False)
+                    Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                     VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
                 End If
             End If
@@ -468,7 +466,7 @@ public class Class1
                     VerifyBufferContentsInWorkspace(workspace, resolvedConflictWorkspace)
                 End Using
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -1175,7 +1173,7 @@ End Class
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "f"c), Sub() editorOperations.InsertText("f"), Utilities.TestCommandExecutionContext.Create())
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "g"c), Sub() editorOperations.InsertText("g"), Utilities.TestCommandExecutionContext.Create())
 
-                Await session.CommitAsync(previewChanges:=False)
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
                 Dim selectionLength = view.Selection.End.Position - view.Selection.Start.Position
                 Assert.Equal(0, selectionLength)
             End Using
