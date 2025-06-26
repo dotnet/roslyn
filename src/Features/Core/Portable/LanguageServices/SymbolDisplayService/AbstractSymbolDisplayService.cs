@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 

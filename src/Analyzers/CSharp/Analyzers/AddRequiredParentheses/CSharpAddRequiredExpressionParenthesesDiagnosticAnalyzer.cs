@@ -13,15 +13,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer :
+internal sealed class CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer() :
     AbstractAddRequiredParenthesesDiagnosticAnalyzer<
-        ExpressionSyntax, ExpressionSyntax, SyntaxKind>
+        ExpressionSyntax, ExpressionSyntax, SyntaxKind>(CSharpExpressionPrecedenceService.Instance)
 {
-    public CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer()
-        : base(CSharpExpressionPrecedenceService.Instance)
-    {
-    }
-
     private static readonly ImmutableArray<SyntaxKind> s_kinds =
     [
         SyntaxKind.AddExpression,

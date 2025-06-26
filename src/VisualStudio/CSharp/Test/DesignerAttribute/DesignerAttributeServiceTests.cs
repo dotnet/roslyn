@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.DesignerAttributes;
