@@ -2411,14 +2411,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TooManyUserStrings_RestartRequired = 9315,
         ERR_NameofExtensionMember = 9316,
 
-        ERR_BadExtensionUnaryOperatorSignature = 9551, // PROTOTYPE: Pack numbers
-        ERR_BadExtensionIncDecSignature = 9552,
-        ERR_BadExtensionBinaryOperatorSignature = 9553,
-        ERR_BadExtensionShiftOperatorSignature = 9554,
-        ERR_OperatorInExtensionOfStaticClass = 9555,
-        ERR_InstanceOperatorStructExtensionWrongReceiverRefKind = 9556,
-        ERR_InstanceOperatorExtensionWrongReceiverType = 9557,
-        ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator = 9558,
+        ERR_BadExtensionUnaryOperatorSignature = 9317,
+        ERR_BadExtensionIncDecSignature = 9318,
+        ERR_BadExtensionBinaryOperatorSignature = 9319,
+        ERR_BadExtensionShiftOperatorSignature = 9320,
+        ERR_OperatorInExtensionOfStaticClass = 9321,
+        ERR_InstanceOperatorStructExtensionWrongReceiverRefKind = 9322,
+        ERR_InstanceOperatorExtensionWrongReceiverType = 9323,
+        ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator = 9324,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
