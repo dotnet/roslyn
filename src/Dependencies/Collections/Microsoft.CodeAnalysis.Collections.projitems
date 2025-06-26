@@ -10,6 +10,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Collections</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\FixedSizeArrayBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Segmented\ImmutableSegmentedDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Segmented\ImmutableSegmentedDictionary`2+Builder+KeyCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Segmented\ImmutableSegmentedDictionary`2+Builder+PrivateMarshal.cs" />
