@@ -5,7 +5,6 @@
 #nullable disable
 
 extern alias PortableTestUtils;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,14 +17,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
-using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
-using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
