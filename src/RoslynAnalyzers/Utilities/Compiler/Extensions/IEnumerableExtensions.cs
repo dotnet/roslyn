@@ -13,26 +13,6 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class IEnumerableExtensions
     {
-        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, T value)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            return ConcatImpl(source, value);
-
-            static IEnumerable<T> ConcatImpl(IEnumerable<T> source, T value)
-            {
-                foreach (T v in source)
-                {
-                    yield return v;
-                }
-
-                yield return value;
-            }
-        }
-
         public static ISet<T> ToSet<T>(this IEnumerable<T> source)
         {
             if (source == null)
@@ -41,56 +21,6 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return source as ISet<T> ?? new HashSet<T>(source);
-        }
-
-        public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> source, IComparer<T> comparer)
-        {
-            return source.OrderBy(t => t, comparer);
-        }
-
-        public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
-        {
-            return source.OrderBy(new ComparisonComparer<T>(compare));
-        }
-
-        public static IEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
-        {
-            return source.OrderBy((t1, t2) => t1.CompareTo(t2));
-        }
-
-        private static readonly Func<object?, bool> s_notNullTest = x => x != null;
-
-        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source) where T : class
-        {
-            if (source == null)
-            {
-                return ImmutableArray<T>.Empty;
-            }
-
-            return source.Where((Func<T?, bool>)s_notNullTest)!;
-        }
-
-        public static ImmutableArray<TSource> WhereAsArray<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> selector)
-        {
-            var builder = ImmutableArray.CreateBuilder<TSource>();
-            bool any = false;
-            foreach (var element in source)
-            {
-                if (selector(element))
-                {
-                    any = true;
-                    builder.Add(element);
-                }
-            }
-
-            if (any)
-            {
-                return builder.ToImmutable();
-            }
-            else
-            {
-                return ImmutableArray<TSource>.Empty;
-            }
         }
 
         public static void Dispose<T>(this IEnumerable<T?> collection)
@@ -208,26 +138,6 @@ namespace Analyzer.Utilities.Extensions
             }
 
             return count > 0;
-        }
-
-        private sealed class ComparisonComparer<T> : Comparer<T>
-        {
-            private readonly Comparison<T> _compare;
-
-            public ComparisonComparer(Comparison<T> compare)
-            {
-                _compare = compare;
-            }
-
-            public override int Compare([AllowNull] T x, [AllowNull] T y)
-            {
-                if (x is null)
-                    return y is null ? 0 : -1;
-                else if (y is null)
-                    return 1;
-
-                return _compare(x, y);
-            }
         }
     }
 }

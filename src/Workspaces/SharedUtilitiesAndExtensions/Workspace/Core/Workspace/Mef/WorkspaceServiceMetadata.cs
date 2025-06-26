@@ -15,7 +15,7 @@ internal sealed class WorkspaceServiceMetadata(IDictionary<string, object> data)
     public string Layer { get; } = (string)data[nameof(ExportWorkspaceServiceAttribute.Layer)];
 
     public IReadOnlyList<string> WorkspaceKinds { get; } = (IReadOnlyList<string>)data[
-#if CODE_STYLE
+#if !WORKSPACE
             "WorkspaceKinds"
 #else
             nameof(ExportLanguageServiceAttribute.WorkspaceKinds)

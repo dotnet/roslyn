@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -390,10 +388,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Internal helper for <see cref="CSharpSyntaxNode"/> class to create a new syntax tree rooted at the given root node.
         /// This method does not create a clone of the given root, but instead preserves it's reference identity.
         /// </para>
-        /// <para>NOTE: This method is only intended to be used from <see cref="CSharpSyntaxNode.SyntaxTree"/> property.</para>
+        /// <para>NOTE: This method is only intended to be used from <see cref="CSharpSyntaxNode.SyntaxTree"/> property and <c>SyntaxFactory.Parse*</c> methods.</para>
         /// <para>NOTE: Do not use this method elsewhere, instead use <see cref="Create(CSharpSyntaxNode, CSharpParseOptions, string, Encoding)"/> method for creating a syntax tree.</para>
         /// </summary>
-        internal static SyntaxTree CreateWithoutClone(CSharpSyntaxNode root)
+        internal static SyntaxTree CreateWithoutClone(CSharpSyntaxNode root, CSharpParseOptions options)
         {
             Debug.Assert(root != null);
 
@@ -402,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 encodingOpt: null,
                 checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 path: "",
-                options: CSharpParseOptions.Default,
+                options: options,
                 root: root,
                 directives: default,
                 diagnosticOptions: null,

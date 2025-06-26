@@ -127,12 +127,35 @@ internal static class SemanticTokensHelpers
         var spans = await ClassifierHelper.GetClassifiedSpansAsync(
             document, textSpans, options, includeAdditiveSpans: true, cancellationToken).ConfigureAwait(false);
 
-        // The spans returned to us may include some empty spans, which we don't care about. We also don't care
-        // about the 'text' classification.  It's added for everything between real classifications (including
+        // Some classified spans may not be relevant and should be filtered out before we convert to tokens.
+        var filteredSpans = spans.Where(s => !ShouldFilterClassification(s));
+
+        classifiedSpans.AddRange(filteredSpans);
+    }
+
+    private static bool ShouldFilterClassification(ClassifiedSpan s)
+    {
+        // The spans returned to us may include some empty spans, which we don't care about.
+        if (s.TextSpan.IsEmpty)
+        {
+            return true;
+        }
+
+        // We also don't care about the 'text' classification.  It's added for everything between real classifications (including
         // whitespace), and just means 'don't classify this'.  No need for us to actually include that in
         // semantic tokens as it just wastes space in the result.
-        var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty && s.ClassificationType != ClassificationTypeNames.Text);
-        classifiedSpans.AddRange(nonEmptySpans);
+        if (s.ClassificationType == ClassificationTypeNames.Text)
+        {
+            return true;
+        }
+
+        // Additive classification types that are mapped to TokenModifiers.None are not rendered by the client and do not need to be included.
+        if (SemanticTokensSchema.AdditiveClassificationTypeToTokenModifier.TryGetValue(s.ClassificationType, out var modifier) && modifier == TokenModifiers.None)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static void ConvertMultiLineToSingleLineSpans(SourceText text, SegmentedList<ClassifiedSpan> classifiedSpans, SegmentedList<ClassifiedSpan> updatedClassifiedSpans)
@@ -288,8 +311,6 @@ internal static class SemanticTokensHelpers
         var tokenLength = originalTextSpan.Length;
         Contract.ThrowIfFalse(tokenLength > 0);
 
-        // We currently only have one modifier (static). The logic below will need to change in the future if other
-        // modifiers are added in the future.
         var modifierBits = TokenModifiers.None;
         var tokenTypeIndex = 0;
 
@@ -297,28 +318,14 @@ internal static class SemanticTokensHelpers
         while (classifiedSpans[currentClassifiedSpanIndex].TextSpan == originalTextSpan)
         {
             var classificationType = classifiedSpans[currentClassifiedSpanIndex].ClassificationType;
-            if (classificationType == ClassificationTypeNames.StaticSymbol)
+
+            if (SemanticTokensSchema.AdditiveClassificationTypeToTokenModifier.TryGetValue(classificationType, out var modifier))
             {
-                // 4. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                modifierBits |= TokenModifiers.Static;
-            }
-            else if (classificationType == ClassificationTypeNames.ReassignedVariable)
-            {
-                // 5. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                modifierBits |= TokenModifiers.ReassignedVariable;
-            }
-            else if (classificationType == ClassificationTypeNames.ObsoleteSymbol)
-            {
-                // 6. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
-                modifierBits |= TokenModifiers.Deprecated;
-            }
-            else if (classificationType == ClassificationTypeNames.TestCode)
-            {
-                // Skip additive types that are not being converted to token modifiers.
+                modifierBits |= modifier;
             }
             else
             {
-                // 7. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
+                // 5. Token type - looked up in SemanticTokensLegend.tokenTypes (language server defined mapping
                 // from integer to LSP token types).
                 tokenTypeIndex = GetTokenTypeIndex(classificationType);
             }

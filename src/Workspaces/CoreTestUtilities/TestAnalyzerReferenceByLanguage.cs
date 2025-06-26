@@ -51,7 +51,7 @@ internal sealed class TestAnalyzerReferenceByLanguage :
     public TestAnalyzerReferenceByLanguage WithAdditionalAnalyzers(string language, IEnumerable<DiagnosticAnalyzer> analyzers)
     {
         var newAnalyzersMap = ImmutableDictionary.CreateRange(
-            _analyzersMap.Select(kvp => KeyValuePairUtil.Create(
+            _analyzersMap.Select(kvp => KeyValuePair.Create(
                 kvp.Key, kvp.Key == language ? kvp.Value.AddRange(analyzers) : kvp.Value)));
         return new(newAnalyzersMap);
     }

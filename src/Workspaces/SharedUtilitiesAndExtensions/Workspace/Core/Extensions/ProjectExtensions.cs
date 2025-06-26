@@ -33,7 +33,7 @@ internal static partial class ProjectExtensions
     /// Gets extended host language services, which includes language services from <see cref="Project.LanguageServices"/>.
     /// </summary>
     public static HostLanguageServices GetExtendedLanguageServices(this Project project)
-#if CODE_STYLE
+#if !WORKSPACE
         => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
 #else
         => project.Solution.Services.GetExtendedLanguageServices(project.Language);

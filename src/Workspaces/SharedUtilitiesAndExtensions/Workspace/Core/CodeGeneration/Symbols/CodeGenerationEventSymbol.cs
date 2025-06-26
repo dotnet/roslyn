@@ -55,11 +55,13 @@ internal sealed class CodeGenerationEventSymbol(
 
     public IEventSymbol? OverriddenEvent => null;
 
+#if !ROSLYN_4_12_OR_LOWER
     public IEventSymbol? PartialImplementationPart => null;
 
     public IEventSymbol? PartialDefinitionPart => null;
 
     public bool IsPartialDefinition => false;
+#endif
 
     public static ImmutableArray<CustomModifier> TypeCustomModifiers => [];
 }

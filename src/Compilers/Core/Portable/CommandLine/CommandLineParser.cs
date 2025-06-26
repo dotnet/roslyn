@@ -509,22 +509,22 @@ namespace Microsoft.CodeAnalysis
             bool sourceFileSeen = false;
             bool optionsEnded = false;
 
-            var args = ArrayBuilder<string>.GetInstance();
-            args.AddRange(rawArguments);
-            args.ReverseContents();
-            var argsIndex = args.Count - 1;
-            while (argsIndex >= 0)
+            foreach (string arg in rawArguments)
+            {
+                processArg(arg);
+            }
+
+            void processArg(string arg)
             {
                 // EDMAURER trim off whitespace. Otherwise behavioral differences arise
                 // when the strings which represent args are constructed by cmd or users.
                 // cmd won't produce args with whitespace at the end.
-                string arg = args[argsIndex].TrimEnd();
-                argsIndex--;
+                arg = arg.TrimEnd();
 
                 if (parsingScriptArgs)
                 {
                     scriptArgsOpt!.Add(arg);
-                    continue;
+                    return;
                 }
 
                 if (scriptArgsOpt != null)
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis
                         // csi/vbi: at most one script can be specified on command line, anything else is a script arg:
                         parsingScriptArgs = true;
                         scriptArgsOpt.Add(arg);
-                        continue;
+                        return;
                     }
 
                     if (!optionsEnded && arg == "--")
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis
                         // csi/vbi: no argument past "--" should be treated as an option/response file
                         optionsEnded = true;
                         processedArgs.Add(arg);
-                        continue;
+                        return;
                     }
                 }
 
@@ -586,7 +586,6 @@ namespace Microsoft.CodeAnalysis
                     sourceFileSeen |= optionsEnded || !IsOption(arg);
                 }
             }
-            args.Free();
 
             void parseResponseFile(string fullPath)
             {
@@ -653,21 +652,12 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                for (var i = splitList.Count - 1; i >= 0; i--)
+                foreach (var newArg in splitList)
                 {
-                    var newArg = splitList[i];
                     // Ignores /noconfig option specified in a response file
                     if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
                     {
-                        argsIndex++;
-                        if (argsIndex < args.Count)
-                        {
-                            args[argsIndex] = newArg;
-                        }
-                        else
-                        {
-                            args.Add(newArg);
-                        }
+                        processArg(newArg);
                     }
                     else
                     {

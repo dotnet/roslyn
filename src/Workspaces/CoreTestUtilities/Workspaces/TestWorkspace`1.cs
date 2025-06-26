@@ -118,7 +118,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
             s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(language,
                 StructuredAnalyzerConfigOptions.Create(
                     new DictionaryAnalyzerConfigOptions(
-                        options.Select(static o => KeyValuePairUtil.Create(o.name, o.value)).ToImmutableDictionary())))),
+                        options.Select(static o => KeyValuePair.Create(o.name, o.value)).ToImmutableDictionary())))),
             changeKind: WorkspaceChangeKind.SolutionChanged);
     }
 

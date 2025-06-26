@@ -67,7 +67,7 @@
     <SystemThreadingTasksDataflowVersion>9.0.0</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>9.0.0</SystemWindowsExtensionsVersion>
     <MicrosoftBclAsyncInterfacesVersion>9.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>5.0.0-1.25277.114</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftDiaSymReaderVersion>2.0.0</MicrosoftDiaSymReaderVersion>
     <MicrosoftExtensionsConfigurationVersion>9.0.0</MicrosoftExtensionsConfigurationVersion>
@@ -119,18 +119,17 @@
       <PropertyGroup>
         <!-- Microsoft.CodeAnalysis versions for different purposes. -->
         <!-- Surface area that various projects compile against. These should have source-build reference packages -->
-        <MicrosoftCodeAnalysisVersionForAnalyzers>4.0.1</MicrosoftCodeAnalysisVersionForAnalyzers>
-
+        <MicrosoftCodeAnalysisVersionForAnalyzers>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzers>
         <!-- Versions for tests and general utility execution. -->
         <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
             area versions. -->
-        <MicrosoftCodeAnalysisVersionForAnalyzerTests>4.9.0-3.final</MicrosoftCodeAnalysisVersionForAnalyzerTests>
-        <MicrosoftCodeAnalysisVersionForAnalyzerExecution>4.6.0-1.final</MicrosoftCodeAnalysisVersionForAnalyzerExecution>
+        <MicrosoftCodeAnalysisVersionForAnalyzerTests>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzerTests>
+        <MicrosoftCodeAnalysisVersionForAnalyzerExecution>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzerExecution>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
-        <MicrosoftCodeAnalysisVersionFromSbrp>4.0.1</MicrosoftCodeAnalysisVersionFromSbrp>
+        <MicrosoftCodeAnalysisVersionFromSbrp>4.12.0</MicrosoftCodeAnalysisVersionFromSbrp>
         <MicrosoftCodeAnalysisVersionForAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForAnalyzers>
         <MicrosoftCodeAnalysisVersionForAnalyzerTests>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForAnalyzerTests>
       </PropertyGroup>

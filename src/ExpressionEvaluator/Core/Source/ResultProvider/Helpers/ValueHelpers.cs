@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System.Diagnostics;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

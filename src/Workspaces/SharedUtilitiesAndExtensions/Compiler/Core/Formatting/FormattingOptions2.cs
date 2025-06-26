@@ -8,8 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.CodeStyle;
 
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#if !WORKSPACE
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentStyle;
 #else
 using PublicIndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;

@@ -142,7 +142,6 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     {
         lock (_gate)
         {
-            var disposalLocation = callerFilePath + ", line " + callerLineNumber;
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
             {
                 if (referenceToTrack != null)
@@ -167,6 +166,8 @@ internal sealed class FileWatchedReferenceFactory<TReference>
 
                 if (referenceToTrack != null)
                 {
+                    var disposalLocation = callerFilePath + ", line " + callerLineNumber;
+
                     _previousDisposalLocations.Remove(referenceToTrack);
                     _previousDisposalLocations.Add(referenceToTrack, disposalLocation);
                 }

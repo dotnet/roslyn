@@ -4,8 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 

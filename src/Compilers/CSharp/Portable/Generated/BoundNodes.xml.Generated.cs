@@ -1731,7 +1731,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstrainedToTypeOpt = constrainedToTypeOpt;
             this.ResultKind = resultKind;
             this.OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BinaryOperatorKind OperatorKind { get; }
         public MethodSymbol LogicalOperator { get; }
@@ -12924,29 +12928,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(left, right, node.OperatorKind, node.Operators, node.Type);
-            }
-            return updatedNode;
-        }
-
-        public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
-        {
-            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt = GetUpdatedArray(node, node.OriginalUserDefinedOperatorsOpt);
-            BoundExpression left = (BoundExpression)this.Visit(node.Left);
-            BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
-            BoundExpression? leftConversion = node.LeftConversion;
-            BoundValuePlaceholder? finalPlaceholder = node.FinalPlaceholder;
-            BoundExpression? finalConversion = node.FinalConversion;
-            BoundCompoundAssignmentOperator updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                updatedNode = node.Update(node.Operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, infoAndType.Type!);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(node.Operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, node.ResultKind, node.OriginalUserDefinedOperatorsOpt, node.Type);
             }
             return updatedNode;
         }

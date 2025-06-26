@@ -4,15 +4,15 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Threading.Tasks;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
 

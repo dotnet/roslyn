@@ -3260,6 +3260,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Здесь "{0}" имеет значение, отличное от NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_is_not_nullable_aware">
+        <source>'{0}' is not nullable aware.</source>
+        <target state="new">'{0}' is not nullable aware.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_items_in_cache">
         <source>'{0}' items in cache</source>
         <target state="translated">Элементов в кэше: "{0}"</target>

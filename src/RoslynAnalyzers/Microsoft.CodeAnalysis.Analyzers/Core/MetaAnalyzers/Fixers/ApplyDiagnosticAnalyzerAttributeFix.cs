@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             }
 
             SyntaxGenerator generator = SyntaxGenerator.GetGenerator(context.Document);
-            SyntaxNode classDecl = generator.GetDeclaration(token.Parent);
+            SyntaxNode? classDecl = generator.GetDeclaration(token.Parent);
             if (classDecl == null)
             {
                 return;

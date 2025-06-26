@@ -4,10 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {

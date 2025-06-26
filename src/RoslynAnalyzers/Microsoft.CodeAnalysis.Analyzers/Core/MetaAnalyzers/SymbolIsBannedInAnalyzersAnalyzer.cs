@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
             if (propertyValue != "true")
                 return null;
 
-            const string fileName = "Microsoft.CodeAnalysis.Analyzers.AnalyzerBannedSymbols.txt";
+            const string fileName = "Microsoft.CodeAnalysis.AnalyzerBannedSymbols.txt";
             using var stream = typeof(SymbolIsBannedInAnalyzersAnalyzer<>).Assembly.GetManifestResourceStream(fileName);
             var source = SourceText.From(stream);
 

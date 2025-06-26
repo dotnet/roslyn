@@ -4,7 +4,6 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
-Imports System.Runtime.Serialization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -1633,7 +1632,7 @@ End Namespace
                           </compilation>
 
             Dim defines = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication)
-            defines = defines.Add(KeyValuePairUtil.Create("_MyType", CObj("WindowsForms")))
+            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("WindowsForms")))
 
             Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
             Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)

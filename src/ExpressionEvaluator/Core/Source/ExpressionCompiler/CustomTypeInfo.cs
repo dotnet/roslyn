@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

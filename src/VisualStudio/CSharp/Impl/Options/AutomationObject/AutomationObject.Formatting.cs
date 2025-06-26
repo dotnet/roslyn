@@ -42,13 +42,13 @@ public partial class AutomationObject
     public int Indent_FlushLabelsLeft
     {
         get { return (int)GetOption(CSharpFormattingOptions2.LabelPositioning); }
-        set { SetOption(CSharpFormattingOptions2.LabelPositioning, (LabelPositionOptions)value); }
+        set { SetOption(CSharpFormattingOptions2.LabelPositioning, (LabelPositionOptionsInternal)value); }
     }
 
     public int Indent_UnindentLabels
     {
         get { return (int)GetOption(CSharpFormattingOptions2.LabelPositioning); }
-        set { SetOption(CSharpFormattingOptions2.LabelPositioning, (LabelPositionOptions)value); }
+        set { SetOption(CSharpFormattingOptions2.LabelPositioning, (LabelPositionOptionsInternal)value); }
     }
 
     public int NewLines_AnonymousTypeInitializer_EachMember
@@ -186,7 +186,7 @@ public partial class AutomationObject
     public int Space_AroundBinaryOperator
     {
         get { return (int)GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator); }
-        set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, (BinaryOperatorSpacingOptions)value); }
+        set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, (BinaryOperatorSpacingOptionsInternal)value); }
     }
 
     public int Space_BeforeBasesColon
@@ -282,7 +282,7 @@ public partial class AutomationObject
     public int Wrapping_IgnoreSpacesAroundBinaryOperators
     {
         get { return (int)GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator); }
-        set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, (BinaryOperatorSpacingOptions)value); }
+        set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, (BinaryOperatorSpacingOptionsInternal)value); }
     }
 
     public int Wrapping_IgnoreSpacesAroundVariableDeclaration

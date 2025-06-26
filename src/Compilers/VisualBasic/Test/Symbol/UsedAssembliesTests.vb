@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -3661,7 +3662,7 @@ public class C3
 End Class
 ",
                         TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse({"C2.C1"})).
-                            WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC40057", ReportDiagnostic.Suppress)}),
+                            WithSpecificDiagnosticOptions({KeyValuePair.Create("BC40057", ReportDiagnostic.Suppress)}),
                         comp0Ref, comp1Ref)
             Assert.DoesNotContain(comp0Ref, used)
             Assert.DoesNotContain(comp1Ref, used)
@@ -3673,7 +3674,7 @@ public class C3
 End Class
 ",
                        TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse({"alias1 = C2.C1"})).
-                            WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC40057", ReportDiagnostic.Suppress)}),
+                            WithSpecificDiagnosticOptions({KeyValuePair.Create("BC40057", ReportDiagnostic.Suppress)}),
                        comp0Ref, comp1Ref)
             Assert.DoesNotContain(comp0Ref, used)
             Assert.DoesNotContain(comp1Ref, used)

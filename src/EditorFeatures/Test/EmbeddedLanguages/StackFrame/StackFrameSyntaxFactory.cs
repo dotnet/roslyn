@@ -12,9 +12,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame;
 
+using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
 using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
-using StackFrameNodeOrToken = EmbeddedSyntaxNodeOrToken<StackFrameKind, StackFrameNode>;
 
 internal static class StackFrameSyntaxFactory
 {

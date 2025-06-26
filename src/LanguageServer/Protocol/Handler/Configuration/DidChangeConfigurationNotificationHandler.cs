@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,7 +105,7 @@ internal sealed partial class DidChangeConfigurationNotificationHandler : ILspSe
             {
                 if (option.Definition.Serializer.TryParse(valueFromClient, out var parsedValue))
                 {
-                    optionsToUpdate.Add(KeyValuePairUtil.Create(new OptionKey2(option, language: languageName), parsedValue));
+                    optionsToUpdate.Add(KeyValuePair.Create(new OptionKey2(option, language: languageName), parsedValue));
                 }
                 else
                 {

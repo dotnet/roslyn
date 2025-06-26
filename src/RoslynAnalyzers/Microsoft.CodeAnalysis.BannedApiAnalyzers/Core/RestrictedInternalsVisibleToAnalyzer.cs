@@ -11,7 +11,8 @@ using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             if (symbol != null &&
                 IsBannedSymbol(symbol, restrictedInternalsVisibleToMap, namespaceToIsBannedMap))
             {
-                var bannedSymbolDisplayString = symbol.ToDisplayString(SymbolDisplayFormats.QualifiedTypeAndNamespaceSymbolDisplayFormat);
+                var bannedSymbolDisplayString = symbol.ToDisplayString(Analyzer.Utilities.SymbolDisplayFormats.QualifiedTypeAndNamespaceSymbolDisplayFormat);
                 var assemblyName = symbol.ContainingAssembly.Name;
                 var restrictedNamespaces = string.Join(", ", restrictedInternalsVisibleToMap[symbol.ContainingAssembly]);
                 var diagnostic = node.CreateDiagnostic(Rule, bannedSymbolDisplayString, assemblyName, restrictedNamespaces);

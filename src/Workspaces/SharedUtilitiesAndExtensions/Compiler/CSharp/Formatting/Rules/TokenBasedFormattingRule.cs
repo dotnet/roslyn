@@ -338,9 +338,11 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                     or SyntaxKind.DefaultKeyword
                     or SyntaxKind.BaseKeyword
                     or SyntaxKind.ThisKeyword
-                    or SyntaxKind.ExtensionKeyword ||
-                previousToken.IsGenericGreaterThanToken() ||
-                currentToken.IsParenInArgumentList())
+#if !ROSLYN_4_12_OR_LOWER
+                    or SyntaxKind.ExtensionKeyword
+#endif
+                || previousToken.IsGenericGreaterThanToken()
+                || currentToken.IsParenInArgumentList())
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

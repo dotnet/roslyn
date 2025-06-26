@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using System.Collections.Immutable;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Microsoft.CodeAnalysis.Host;
 #endif
 
@@ -33,7 +33,7 @@ internal static class NamingStyleOptions
 }
 
 internal interface NamingStylePreferencesProvider
-#if !CODE_STYLE
+#if WORKSPACE
     : OptionsProvider<NamingStylePreferences>
 #endif
 {

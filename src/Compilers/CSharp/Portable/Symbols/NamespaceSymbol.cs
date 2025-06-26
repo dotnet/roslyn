@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void AddExtensionContainersInType(NamedTypeSymbol type, ArrayBuilder<NamedTypeSymbol> extensions)
+        internal static void AddExtensionContainersInType(NamedTypeSymbol type, ArrayBuilder<NamedTypeSymbol> extensions)
         {
             // Consider whether IsClassType could be used instead. Tracked by https://github.com/dotnet/roslyn/issues/78275
             if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) return;

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Differencing.UnitTests;
@@ -22,13 +22,13 @@ public sealed class MatchTests
             x2 = new TestNode(1, 2));
 
         var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
-            [KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, x2)]);
+            [KeyValuePair.Create(x1, x2), KeyValuePair.Create(x1, x2)]);
         Assert.True(m.TryGetNewNode(x1, out var n));
         Assert.Equal(n, x2);
 
-        Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, [KeyValuePairUtil.Create(x1, x1)]));
+        Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, [KeyValuePair.Create(x1, x1)]));
 
-        Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, [KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, new TestNode(0, 0))]));
+        Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, [KeyValuePair.Create(x1, x2), KeyValuePair.Create(x1, new TestNode(0, 0))]));
     }
 
     [Fact]
@@ -46,8 +46,8 @@ public sealed class MatchTests
 
         var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
         [
-            KeyValuePairUtil.Create(x1, x2),
-            KeyValuePairUtil.Create(y1, x2),
+            KeyValuePair.Create(x1, x2),
+            KeyValuePair.Create(y1, x2),
         ]);
 
         // the first one wins:
@@ -72,7 +72,7 @@ public sealed class MatchTests
 
         var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
         [
-            KeyValuePairUtil.Create(x1, newRoot),
+            KeyValuePair.Create(x1, newRoot),
         ]);
 
         // the root wins:

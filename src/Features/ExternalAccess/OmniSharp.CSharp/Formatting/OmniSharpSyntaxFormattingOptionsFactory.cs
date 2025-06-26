@@ -108,7 +108,7 @@ internal static class OmniSharpSyntaxFormattingOptionsFactory
                 (spaceBeforeComma ? SpacePlacement.BeforeComma : 0) |
                 (spaceAfterDot ? SpacePlacement.AfterDot : 0) |
                 (spaceBeforeDot ? SpacePlacement.BeforeDot : 0),
-            SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptions)spacingAroundBinaryOperator,
+            SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptionsInternal)spacingAroundBinaryOperator,
             NewLines =
                 (newLineForMembersInObjectInit ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
                 (newLineForMembersInAnonymousTypes ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
@@ -125,7 +125,7 @@ internal static class OmniSharpSyntaxFormattingOptionsFactory
                 (newLinesForBracesInLambdaExpressionBody ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
                 (newLinesForBracesInControlBlocks ? NewLinePlacement.BeforeOpenBraceInControlBlocks : 0) |
                 (newLineForClausesInQuery ? NewLinePlacement.BetweenQueryExpressionClauses : 0),
-            LabelPositioning = (LabelPositionOptions)labelPositioning,
+            LabelPositioning = (LabelPositionOptionsInternal)labelPositioning,
             Indentation =
                 (indentBraces ? IndentationPlacement.Braces : 0) |
                 (indentBlock ? IndentationPlacement.BlockContents : 0) |

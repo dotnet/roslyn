@@ -35,7 +35,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         return new ParsedDocument(document.Id, text, root, document.Project.GetExtendedLanguageServices());
     }
 
-#if !CODE_STYLE
+#if WORKSPACE
     public static ParsedDocument CreateSynchronously(Document document, CancellationToken cancellationToken)
     {
         var text = document.GetTextSynchronously(cancellationToken);

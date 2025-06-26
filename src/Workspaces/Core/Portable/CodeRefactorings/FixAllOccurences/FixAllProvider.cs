@@ -24,15 +24,10 @@ internal abstract class FixAllProvider : IFixAllProvider
     private protected static ImmutableArray<FixAllScope> DefaultSupportedFixAllScopes
         = [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution];
 
-    /// <summary>
-    /// Gets the supported scopes for applying multiple occurrences of a code refactoring.
-    /// By default, it returns the following scopes:
-    /// (a) <see cref="FixAllScope.Document"/>
-    /// (b) <see cref="FixAllScope.Project"/> and
-    /// (c) <see cref="FixAllScope.Solution"/>
-    /// </summary>
     public virtual IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => DefaultSupportedFixAllScopes;
+
+    public virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
 
     /// <summary>
     /// Gets fix all occurrences fix for the given fixAllContext.
@@ -78,6 +73,14 @@ internal abstract class FixAllProvider : IFixAllProvider
         Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
+        return Create(fixAllAsync, supportedFixAllScopes, CodeActionCleanup.Default);
+    }
+
+    internal static FixAllProvider Create(
+        Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        CodeActionCleanup cleanup)
+    {
         if (fixAllAsync is null)
             throw new ArgumentNullException(nameof(fixAllAsync));
 
@@ -87,13 +90,16 @@ internal abstract class FixAllProvider : IFixAllProvider
         if (supportedFixAllScopes.Contains(FixAllScope.Custom))
             throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
-        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
+        return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes, cleanup);
     }
 
     private sealed class CallbackDocumentBasedFixAllProvider(
         Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
-        ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
+        ImmutableArray<FixAllScope> supportedFixAllScopes,
+        CodeActionCleanup cleanup) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
+        public override CodeActionCleanup Cleanup { get; } = cleanup;
+
         protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans)
             => fixAllAsync(context, document, fixAllSpans);
     }

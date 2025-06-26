@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if HAS_IOPERATION
-
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -37,5 +35,3 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             => _semanticModelMap.GetOrAdd(node.SyntaxTree, _getSemanticModel);
     }
 }
-
-#endif

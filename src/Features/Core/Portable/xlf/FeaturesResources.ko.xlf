@@ -3260,6 +3260,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'{0}'은(는) 여기에서 null이 아닙니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_is_not_nullable_aware">
+        <source>'{0}' is not nullable aware.</source>
+        <target state="new">'{0}' is not nullable aware.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_items_in_cache">
         <source>'{0}' items in cache</source>
         <target state="translated">캐시의 '{0}'개 항목</target>
