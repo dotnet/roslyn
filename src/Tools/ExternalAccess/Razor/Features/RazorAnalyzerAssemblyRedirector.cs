@@ -17,7 +17,7 @@ internal sealed class RazorAnalyzerAssemblyRedirector([Import(AllowDefault = tru
     public string? RedirectPath(string fullPath)
     {
         // Simple heuristic so we don't load razor unnecessarily.
-        if (fullPath.Contains("razor", StringComparison.OrdinalIgnoreCase))
+        if (fullPath.IndexOf("razor", StringComparison.OrdinalIgnoreCase) >= 0)
         {
             return razorRedirector?.Value.RedirectPath(fullPath);
         }
