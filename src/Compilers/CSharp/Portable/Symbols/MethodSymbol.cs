@@ -96,6 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
+        internal abstract bool HasSpecialNameAttribute { get; }
+
         /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
         /// listed in those attributes.

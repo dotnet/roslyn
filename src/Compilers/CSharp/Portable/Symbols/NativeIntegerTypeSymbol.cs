@@ -374,6 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => UnderlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         public override Symbol? AssociatedSymbol => _associatedSymbol;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
