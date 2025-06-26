@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.GoOrFind;

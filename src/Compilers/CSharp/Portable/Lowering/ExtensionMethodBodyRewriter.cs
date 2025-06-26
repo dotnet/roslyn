@@ -198,5 +198,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(symbol?.GetIsNewExtensionMember() != true);
             return base.VisitPropertySymbol(symbol);
         }
+
+        public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
+        {
+            return ExtensionMethodReferenceRewriter.VisitUnaryOperator(this, node);
+        }
+
+        protected override BoundBinaryOperator.UncommonData? VisitBinaryOperatorData(BoundBinaryOperator node)
+        {
+            return ExtensionMethodReferenceRewriter.VisitBinaryOperatorData(this, node);
+        }
     }
 }

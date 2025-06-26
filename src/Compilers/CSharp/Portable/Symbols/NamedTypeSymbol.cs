@@ -211,6 +211,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (candidates.IsEmpty)
                 return;
 
+            AddOperators(operators, candidates);
+        }
+
+        internal static void AddOperators(ArrayBuilder<MethodSymbol> operators, ImmutableArray<Symbol> candidates)
+        {
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)

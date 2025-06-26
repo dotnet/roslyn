@@ -9,7 +9,6 @@
 
 #endregion
 
-using System;
 using Microsoft.VisualStudio.Debugger.CallStack;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
