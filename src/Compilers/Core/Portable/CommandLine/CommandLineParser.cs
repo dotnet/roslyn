@@ -509,18 +509,22 @@ namespace Microsoft.CodeAnalysis
             bool sourceFileSeen = false;
             bool optionsEnded = false;
 
-            var argsEnumerator = rawArguments.GetEnumerator();
-            while (argsEnumerator.MoveNext())
+            foreach (string arg in rawArguments)
+            {
+                processArg(arg);
+            }
+
+            void processArg(string arg)
             {
                 // EDMAURER trim off whitespace. Otherwise behavioral differences arise
                 // when the strings which represent args are constructed by cmd or users.
                 // cmd won't produce args with whitespace at the end.
-                string arg = argsEnumerator.Current.TrimEnd();
+                arg = arg.TrimEnd();
 
                 if (parsingScriptArgs)
                 {
                     scriptArgsOpt!.Add(arg);
-                    continue;
+                    return;
                 }
 
                 if (scriptArgsOpt != null)
@@ -537,7 +541,7 @@ namespace Microsoft.CodeAnalysis
                         // csi/vbi: at most one script can be specified on command line, anything else is a script arg:
                         parsingScriptArgs = true;
                         scriptArgsOpt.Add(arg);
-                        continue;
+                        return;
                     }
 
                     if (!optionsEnded && arg == "--")
@@ -545,7 +549,7 @@ namespace Microsoft.CodeAnalysis
                         // csi/vbi: no argument past "--" should be treated as an option/response file
                         optionsEnded = true;
                         processedArgs.Add(arg);
-                        continue;
+                        return;
                     }
                 }
 
@@ -648,27 +652,17 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                List<string>? notProcessedSplitList = null;
                 foreach (var newArg in splitList)
                 {
                     // Ignores /noconfig option specified in a response file
-                    if (string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) || string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
                     {
-                        diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
+                        processArg(newArg);
                     }
                     else
                     {
-                        notProcessedSplitList ??= new List<string>();
-                        notProcessedSplitList.Add(newArg);
+                        diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
                     }
-                }
-
-                if (notProcessedSplitList != null)
-                {
-                    while (argsEnumerator.MoveNext())
-                        notProcessedSplitList.Add(argsEnumerator.Current);
-
-                    argsEnumerator = notProcessedSplitList.GetEnumerator();
                 }
 
                 stringBuilder.Free();
