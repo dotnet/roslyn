@@ -229,7 +229,7 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         }
 
         SmartRenameViewModel?.Commit(IdentifierText);
-        Session.Commit();
+        Session.BeginAsyncCommitOperation();
         return true;
     }
 
