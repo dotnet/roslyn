@@ -25,7 +25,7 @@ namespace Roslyn.Utilities
     [DebuggerTypeProxy(typeof(OneOrMany<>.DebuggerProxy))]
     internal readonly struct OneOrMany<T>
     {
-        public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
+        public static readonly OneOrMany<T> Empty = new OneOrMany<T>([]);
 
         private readonly T? _one;
         private readonly ImmutableArray<T> _many;
@@ -183,7 +183,7 @@ namespace Roslyn.Utilities
             => HasOneItem ? predicate(_one, arg) : _many.Any(predicate, arg);
 
         public ImmutableArray<T> ToImmutable()
-            => HasOneItem ? ImmutableArray.Create(_one) : _many;
+            => HasOneItem ? [_one] : _many;
 
         public T[] ToArray()
             => HasOneItem ? new[] { _one } : _many.ToArray();
@@ -270,7 +270,7 @@ namespace Roslyn.Utilities
             => new OneOrMany<T>(one);
 
         public static OneOrMany<T> Create<T>(T one, T two)
-            => new OneOrMany<T>(ImmutableArray.Create(one, two));
+            => new OneOrMany<T>([one, two]);
 
         public static OneOrMany<T> OneOrNone<T>(T? one)
             => one is null ? OneOrMany<T>.Empty : new OneOrMany<T>(one);

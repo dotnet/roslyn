@@ -309,10 +309,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 var result = _count switch
                 {
                     0 => ImmutableArray<T>.Empty,
-                    1 => ImmutableArray.Create(_item0),
-                    2 => ImmutableArray.Create(_item0, _item1),
-                    3 => ImmutableArray.Create(_item0, _item1, _item2),
-                    4 => ImmutableArray.Create(_item0, _item1, _item2, _item3),
+                    1 => [_item0],
+                    2 => [_item0, _item1],
+                    3 => [_item0, _item1, _item2],
+                    4 => [_item0, _item1, _item2, _item3],
                     _ => throw ExceptionUtilities.Unreachable(),
                 };
 
