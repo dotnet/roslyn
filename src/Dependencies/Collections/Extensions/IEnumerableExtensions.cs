@@ -61,7 +61,7 @@ namespace Roslyn.Utilities
         {
             if (items == null)
             {
-                return ImmutableArray.Create<T>();
+                return [];
             }
 
             if (items is ImmutableArray<T> array)
@@ -351,7 +351,7 @@ namespace Roslyn.Utilities
         {
             if (source == null)
             {
-                return ImmutableArray<TResult>.Empty;
+                return [];
             }
 
             var builder = ArrayBuilder<TResult>.GetInstance();
@@ -363,7 +363,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, int, TResult> selector)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
 
@@ -380,7 +380,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, TResult> selector)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = new TResult[source.Count];
             var index = 0;
@@ -396,7 +396,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectAsArray<TSource, TResult, TArg>(this IReadOnlyCollection<TSource>? source, Func<TSource, TArg, TResult> selector, TArg arg)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = new TResult[source.Count];
             var index = 0;
@@ -412,7 +412,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
@@ -424,7 +424,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)
@@ -436,7 +436,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, IEnumerable<TResult>> selector)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
@@ -449,7 +449,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
@@ -462,7 +462,7 @@ namespace Roslyn.Utilities
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, OneOrMany<TResult>> selector)
         {
             if (source == null)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in source)

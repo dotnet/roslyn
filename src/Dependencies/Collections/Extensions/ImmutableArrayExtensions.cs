@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (items == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return ImmutableArray.CreateRange<T>(items);
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (items == null)
             {
-                return ImmutableArray<T>.Empty;
+                return [];
             }
 
             return ImmutableArray.Create<T>(items);
@@ -170,28 +170,28 @@ namespace Microsoft.CodeAnalysis
             switch (items.Length)
             {
                 case 0:
-                    return ImmutableArray<TResult>.Empty;
+                    return [];
 
                 case 1:
-                    return ImmutableArray.Create(map(items[0], 0, arg));
+                    return [map(items[0], 0, arg)];
 
                 case 2:
-                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg));
+                    return [map(items[0], 0, arg), map(items[1], 1, arg)];
 
                 case 3:
-                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg));
+                    return [map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg)];
 
                 case 4:
-                    return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg));
+                    return [map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg)];
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
+                    var builder = new FixedSizeArrayBuilder<TResult>(items.Length);
                     for (int i = 0; i < items.Length; i++)
                     {
                         builder.Add(map(items[i], i, arg));
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return builder.MoveToImmutable();
             }
         }
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (array.Length == 0)
             {
-                return ImmutableArray<TResult>.Empty;
+                return [];
             }
 
             var builder = ArrayBuilder<TResult>.GetInstance();
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (array.Length == 0)
             {
-                return ImmutableArray<TResult>.Empty;
+                return [];
             }
 
             var builder = ArrayBuilder<TResult>.GetInstance();
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, IEnumerable<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, ImmutableArray<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, OneOrMany<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, IEnumerable<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, ImmutableArray<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, bool> predicate, Func<TItem, OneOrMany<TResult>> selector)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, bool> predicate, Func<TItem, TArg, OneOrMany<TResult>> selector, TArg arg)
         {
             if (array.Length == 0)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = ArrayBuilder<TResult>.GetInstance();
             foreach (var item in array)
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
             if (array.IsEmpty)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = new TResult[array.Length];
 
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis
         public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> array, Func<TItem, TArg, CancellationToken, ValueTask<TResult>> selector, TArg arg, CancellationToken cancellationToken)
         {
             if (array.IsEmpty)
-                return ImmutableArray<TResult>.Empty;
+                return [];
 
             var builder = new TResult[array.Length];
 
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (source.Length == 0)
             {
-                return new ValueTask<ImmutableArray<TResult>>(ImmutableArray<TResult>.Empty);
+                return new ValueTask<ImmutableArray<TResult>>([]);
             }
 
             if (source.Length == 1)
@@ -485,19 +485,19 @@ namespace Microsoft.CodeAnalysis
             switch (self.Length)
             {
                 case 0:
-                    return ImmutableArray<TResult>.Empty;
+                    return [];
 
                 case 1:
-                    return ImmutableArray.Create(map(self[0], other[0]));
+                    return [map(self[0], other[0])];
 
                 case 2:
-                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]));
+                    return [map(self[0], other[0]), map(self[1], other[1])];
 
                 case 3:
-                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]));
+                    return [map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2])];
 
                 case 4:
-                    return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]), map(self[3], other[3]));
+                    return [map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]), map(self[3], other[3])];
 
                 default:
                     var builder = new TResult[self.Length];
@@ -515,15 +515,15 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(self.Length == other.Length);
             if (self.IsEmpty)
             {
-                return ImmutableArray<TResult>.Empty;
+                return [];
             }
 
-            var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
+            var builder = new FixedSizeArrayBuilder<TResult>(self.Length);
             for (int i = 0; i < self.Length; i++)
             {
                 builder.Add(map(self[i], other[i], i, arg));
             }
-            return builder.ToImmutableAndFree();
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 Debug.Assert(none);
-                return ImmutableArray<T>.Empty;
+                return [];
             }
         }
 
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T> array)
         {
-            return array.IsDefault ? ImmutableArray<T>.Empty : array;
+            return array.IsDefault ? [] : array;
         }
 
         /// <summary>
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T>? array)
             => array switch
             {
-                null or { IsDefault: true } => ImmutableArray<T>.Empty,
+                null or { IsDefault: true } => [],
                 { } underlying => underlying
             };
 
@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (dictionary.Count == 0)
             {
-                return ImmutableArray<TValue>.Empty;
+                return [];
             }
 
             var builder = ArrayBuilder<TValue>.GetInstance();
@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     TNamespaceOrTypeSymbol symbol = (TNamespaceOrTypeSymbol)value;
                     return symbol is TNamespaceSymbol
-                        ? ImmutableArray.Create(symbol)
+                        ? [symbol]
                         : ImmutableArray<TNamespaceOrTypeSymbol>.CastUp(ImmutableArray.Create((TNamedTypeSymbol)symbol));
                 }
             }
@@ -958,7 +958,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(count < members.Length);
 
                 if (count == 0)
-                    return ImmutableArray<TNamedTypeSymbol>.Empty;
+                    return [];
 
                 var builder = ArrayBuilder<TNamedTypeSymbol>.GetInstance(count);
                 foreach (var member in members)

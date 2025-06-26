@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if (_size == 0)
             {
-                return Array.Empty<T>();
+                return [];
             }
 
             var array = new T[_size];

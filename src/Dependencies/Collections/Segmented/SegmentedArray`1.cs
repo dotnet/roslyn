@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (length == 0)
             {
-                _items = Array.Empty<T[]>();
+                _items = [];
                 _length = 0;
             }
             else

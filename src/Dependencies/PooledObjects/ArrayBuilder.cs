@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             ImmutableArray<T> result;
             if (Count == 0)
             {
-                result = ImmutableArray<T>.Empty;
+                result = [];
             }
             else if (_builder.Capacity == Count)
             {
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             if (Count == 0)
             {
-                return ImmutableArray<U>.Empty;
+                return [];
             }
 
             var tmp = ArrayBuilder<U>.GetInstance(Count);
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             ImmutableArray<T> result;
             if (Count == 0)
             {
-                result = ImmutableArray<T>.Empty;
+                result = [];
             }
             else if (_builder.Capacity == Count)
             {
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             {
                 var dictionary1 = new Dictionary<K, ImmutableArray<T>>(1, comparer);
                 var value = this[0];
-                dictionary1.Add(keySelector(value), ImmutableArray.Create(value));
+                dictionary1.Add(keySelector(value), [value]);
                 return dictionary1;
             }
 
