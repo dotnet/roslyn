@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
@@ -32,6 +33,7 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
 {
     private readonly bool _registerOleComponent;
     private readonly IGlobalOptionService _globalOptionService;
+    private readonly IAsynchronousOperationListener _asyncListener;
     private OleComponent? _oleComponent;
     private bool _disposedValue;
     private bool _isReplacementTextValid = true;
@@ -51,6 +53,7 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         Session = session;
         _registerOleComponent = registerOleComponent;
         _globalOptionService = globalOptionService;
+        _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
         Session.ReplacementTextChanged += OnReplacementTextChanged;
         Session.ReplacementsComputed += OnReplacementsComputed;
         Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
@@ -229,7 +232,10 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
         }
 
         SmartRenameViewModel?.Commit(IdentifierText);
-        Session.BeginAsyncCommitOperation();
+
+        var token = _asyncListener.BeginAsyncOperation(nameof(Submit));
+        Session.CommitAsync(previewChanges: false, editorOperationContext: null)
+            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
         return true;
     }
 

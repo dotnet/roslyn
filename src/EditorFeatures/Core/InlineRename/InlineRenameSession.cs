@@ -725,19 +725,10 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     }
 
     /// <remarks>
-    /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
+    /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up its own context correctly.
+    /// When the editorOperationContext is not null it will take ownership of the UI thread and try to create a BackgroundWorkIndicator 
     /// </remarks>
-    public void BeginAsyncCommitOperation(bool previewChanges = false, IUIThreadOperationContext editorOperationContext = null)
-    {
-        var token = _asyncListener.BeginAsyncOperation(nameof(BeginAsyncCommitOperation));
-        CommitAsync(previewChanges, editorOperationContext)
-            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
-    }
-
-    /// <remarks>
-    /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
-    /// </remarks>
-    public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null)
+    public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext)
     {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         VerifyNotDismissed();
