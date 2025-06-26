@@ -20,6 +20,97 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class SyntaxBinderTests : CompilingTestBase
     {
+        [Fact, WorkItem(79098, "https://github.com/dotnet/roslyn/issues/79098")]
+        public void TestBoolOpWithNullableEnableAndTypeParameters()
+        {
+            var source = """
+                #nullable enable
+                public class C1<T> where T : notnull
+                {
+                    public T F => throw null!;
+
+                    public static C1<T> operator &(C1<T> x, C1<T> y)
+                    {
+                        return x;
+                    }
+
+                    public static bool operator true(C1<T> x) => true;
+                    public static bool operator false(C1<T> x) => false;
+                }
+
+                public class C2
+                { }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = Get(new C2());
+                        var y = Get(new C2());
+                        (x && y).F.ToString();
+                        (y && x).F.ToString();
+                        (y && y).F.ToString();
+                    }
+
+                    static C1<T> Get<T>(T x)
+                    {
+                        throw null!;
+                    }
+                }
+                """;
+            CompileAndVerify(source).VerifyDiagnostics(
+                // (29,18): warning CS8714: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'C1<T>'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //     static C1<T> Get<T>(T x)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Get").WithArguments("C1<T>", "T", "T").WithLocation(29, 18)
+            );
+        }
+
+        [Fact, WorkItem(79098, "https://github.com/dotnet/roslyn/issues/79098")]
+        public void TestBoolOpWithNullableEnableAndTypeParametersAndActualNullabilityDiff()
+        {
+            var source = """
+                #nullable enable
+                public class C1<T> where T : notnull
+                {
+                    public T F => throw null!;
+
+                    public static C1<T> operator &(C1<T> x, C1<T> y)
+                    {
+                        return x;
+                    }
+
+                    public static bool operator true(C1<T> x) => true;
+                    public static bool operator false(C1<T> x) => false;
+                }
+
+                public class C2
+                { }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = Get(new C2());
+                        var y = Get((C2?)null);
+                        (x && y).F.ToString();
+                    }
+
+                    static C1<T> Get<T>(T something)
+                    {
+                        throw null!;
+                    }
+                }
+                """;
+            CompileAndVerify(source).VerifyDiagnostics(
+                // (24,15): warning CS8620: Argument of type 'C1<C2?>' cannot be used for parameter 'y' of type 'C1<C2>' in 'C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)' due to differences in the nullability of reference types.
+                //         (x && y).F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C1<C2?>", "C1<C2>", "y", "C1<C2> C1<C2>.operator &(C1<C2> x, C1<C2> y)").WithLocation(24, 15),
+                // (27,18): warning CS8714: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'C1<T>'. Nullability of type argument 'T' doesn't match 'notnull' constraint.
+                //     static C1<T> Get<T>(T something)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "Get").WithArguments("C1<T>", "T", "T").WithLocation(27, 18)
+            );
+        }
+
         [Fact, WorkItem(5419, "https://github.com/dotnet/roslyn/issues/5419")]
         public void EnumBinaryOps()
         {
