@@ -4,10 +4,10 @@
 
 #nullable disable
 
+using System;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

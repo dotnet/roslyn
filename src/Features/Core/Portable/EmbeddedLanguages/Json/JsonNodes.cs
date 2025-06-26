@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 
 using JsonNodeOrToken = EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode>;
-using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 using JsonSeparatedList = EmbeddedSeparatedSyntaxNodeList<JsonKind, JsonNode, JsonValueNode>;
+using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 
 internal sealed class JsonCompilationUnit : JsonNode
 {

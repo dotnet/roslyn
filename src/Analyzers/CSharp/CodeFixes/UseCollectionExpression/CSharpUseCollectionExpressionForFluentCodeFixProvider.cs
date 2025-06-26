@@ -25,8 +25,8 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpCollectionExpressionRewriter;
-using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
 using static CSharpSyntaxTokens;
+using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
