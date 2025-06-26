@@ -116,6 +116,10 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
             case IParameterSymbol:
             case IPropertySymbol:
             case IRangeVariableSymbol:
+                break;
+
+            // Although methods have no nullable flow state,
+            // we still want to show when they are "not nullable aware".
             case IMethodSymbol { ReturnsVoid: false }:
                 break;
 

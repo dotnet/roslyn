@@ -8113,6 +8113,25 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     }
 
     [Fact]
+    public async Task NullableParameterThatIsOblivious_Propagated()
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            """
+            class X
+            {
+                void N(string s)
+                {
+            #nullable enable
+                    string s2 = s;
+                    string s3 = $$s2;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) string s2"),
+            NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s2")));
+    }
+
+    [Fact]
     public async Task NullableFieldThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
@@ -8435,6 +8454,27 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription($"({FeaturesResources.local_variable}) string s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_nullable_aware, "s")));
+    }
+
+    [Theory]
+    [InlineData("#nullable enable warnings")]
+    [InlineData("#nullable enable annotations")]
+    public async Task NullableLocalThatIsOblivious_NotFullyNullableEnabled(string directive)
+    {
+        await TestWithOptionsAsync(TestOptions.Regular8,
+            $$"""
+            class X
+            {
+                void N()
+                {
+                    string s = null;
+            {{directive}}
+                    string s2 = $$s;
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.local_variable}) string s"),
+            NullabilityAnalysis(""));
     }
 
     [Fact]
