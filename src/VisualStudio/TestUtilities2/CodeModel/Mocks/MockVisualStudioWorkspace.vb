@@ -5,15 +5,11 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Composition
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
