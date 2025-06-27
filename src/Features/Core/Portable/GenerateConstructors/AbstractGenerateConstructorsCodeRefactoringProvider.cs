@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -46,7 +45,7 @@ using static GenerateFromMembersHelpers;
 /// For testing purposes only.
 /// </remarks>
 internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvider(IPickMembersService? pickMembersService_forTesting)
-    : CodeRefactoringProvider, IIntentProvider
+    : CodeRefactoringProvider
 {
     public sealed record GenerateConstructorIntentData(Accessibility? Accessibility);
 
@@ -72,80 +71,6 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             actions => context.RegisterRefactorings(actions),
             desiredAccessibility: null,
             context.CancellationToken);
-    }
-
-    public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
-        Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
-    {
-        var accessibility = intentDataProvider.GetIntentData<GenerateConstructorIntentData>()?.Accessibility;
-
-        using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var actions);
-        await ComputeRefactoringsAsync(
-            priorDocument,
-            priorSelection,
-            (singleAction, applicableToSpan) => actions.Add(singleAction),
-            actions.AddRange,
-            desiredAccessibility: accessibility,
-            cancellationToken).ConfigureAwait(false);
-
-        if (actions.IsEmpty)
-        {
-            return [];
-        }
-
-        // The refactorings returned will be in the following order (if available)
-        // FieldDelegatingCodeAction, ConstructorDelegatingCodeAction, GenerateConstructorWithDialogCodeAction
-        using var _2 = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
-        foreach (var action in actions)
-        {
-            // Intents don't current support progress.
-            var intentResult = await GetIntentProcessorResultAsync(
-                priorDocument, action, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
-            results.AddIfNotNull(intentResult);
-        }
-
-        return results.ToImmutableAndClear();
-
-        static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
-            Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
-        {
-            var operations = await GetCodeActionOperationsAsync(
-                priorDocument.Project.Solution, codeAction, progressTracker, cancellationToken).ConfigureAwait(false);
-
-            // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
-            // We can only return edits, so we only care about the ApplyChangesOperation.
-            var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
-            if (applyChangesOperation == null)
-            {
-                return null;
-            }
-
-            var type = codeAction.GetType();
-            return new IntentProcessorResult(applyChangesOperation.ChangedSolution, [priorDocument.Id], codeAction.Title, type.Name);
-        }
-
-        static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
-            Solution originalSolution,
-            CodeAction action,
-            IProgress<CodeAnalysisProgress> progressTracker,
-            CancellationToken cancellationToken)
-        {
-            if (action is GenerateConstructorWithDialogCodeAction dialogAction)
-            {
-                // Usually applying this code action pops up a dialog allowing the user to choose which options.
-                // We can't do that here, so instead we just take the defaults until we have more intent data.
-                var options = new PickMembersResult(
-                    dialogAction.ViableMembers,
-                    dialogAction.PickMembersOptions,
-                    selectedAll: true);
-                var operations = await dialogAction.GetOperationsAsync(originalSolution, options, progressTracker, cancellationToken).ConfigureAwait(false);
-                return operations == null ? [] : [.. operations];
-            }
-            else
-            {
-                return await action.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
-            }
-        }
     }
 
     private async Task ComputeRefactoringsAsync(
