@@ -59,9 +59,9 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     private static ExpressionSyntax AsExpressionSyntax(IOperation operation)
         => operation switch
         {
-            IReturnOperation { ReturnedValue: { } value } => (ExpressionSyntax)value.Syntax,
-            IThrowOperation { Exception: { } exception } => ThrowExpression((ExpressionSyntax)exception.Syntax),
-            IBlockOperation op => AsExpressionSyntax(op.Operations.Single()),
+            IReturnOperation { ReturnedValue.Syntax: ExpressionSyntax value } => value,
+            IThrowOperation { Exception.Syntax: ExpressionSyntax exception } => ThrowExpression(exception),
+            IBlockOperation { Operations: [var op] } => AsExpressionSyntax(op),
             var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
         };
 
