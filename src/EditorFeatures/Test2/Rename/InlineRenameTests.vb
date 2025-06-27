@@ -7,15 +7,12 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename

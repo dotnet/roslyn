@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
