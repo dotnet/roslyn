@@ -550,7 +550,7 @@ internal abstract partial class AbstractInheritanceMarginService
             topLevelDisplayText: null,
             FindUsagesHelpers.GetDisplayParts(memberSymbol),
             memberSymbol.GetGlyph(),
-            nonNullImplementedMemberItems.Concat(nonNullOverriddenMemberItems, nonNullOverridingMemberItems));
+            [.. nonNullImplementedMemberItems, .. nonNullOverriddenMemberItems, .. nonNullOverridingMemberItems]);
     }
 
     private static async ValueTask<InheritanceTargetItem?> CreateInheritanceItemAsync(
