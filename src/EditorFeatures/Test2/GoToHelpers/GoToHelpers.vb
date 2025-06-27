@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
@@ -22,7 +23,7 @@ Friend Class GoToHelpers
             Dim position = documentWithCursor.CursorPosition.Value
 
             Dim solution = workspace.CurrentSolution
-            Dim document = Await solution.GetRequiredDocumentAsync(documentWithCursor.Id, includeSourceGenerated:=True)
+            Dim document = Await solution.GetRequiredDocumentAsync(documentWithCursor.Id, includeSourceGenerated:=True, CancellationToken.None)
 
             Dim context = New SimpleFindUsagesContext()
             Await testingMethod(document, position, context)
