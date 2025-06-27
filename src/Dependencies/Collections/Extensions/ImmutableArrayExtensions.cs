@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis
                     return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg));
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
+                    var builder = new FixedSizeArrayBuilder<TResult>(items.Length);
                     for (int i = 0; i < items.Length; i++)
                     {
                         builder.Add(map(items[i], i, arg));
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return builder.MoveToImmutable();
             }
         }
 
@@ -518,12 +518,13 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<TResult>.Empty;
             }
 
-            var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
+            var builder = new FixedSizeArrayBuilder<TResult>(self.Length);
             for (int i = 0; i < self.Length; i++)
             {
                 builder.Add(map(self[i], other[i], i, arg));
             }
-            return builder.ToImmutableAndFree();
+
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
