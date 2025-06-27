@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 

@@ -4,15 +4,14 @@
 
 #nullable disable
 
+using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using FieldInfo = Microsoft.VisualStudio.Debugger.Metadata.FieldInfo;
-using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
