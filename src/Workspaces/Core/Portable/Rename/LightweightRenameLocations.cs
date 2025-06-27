@@ -70,7 +70,7 @@ internal sealed partial class LightweightRenameLocations
     /// Find the locations that need to be renamed.  Can cross process boundaries efficiently to do this.
     /// </summary>
     public static async Task<LightweightRenameLocations> FindRenameLocationsAsync(
-        ISymbol symbol, Solution solution, SymbolRenameOptions options, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
+        ISymbol symbol, Solution solution, SymbolRenameOptions options, bool includeSourceGenerated, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(solution);
         Contract.ThrowIfNull(symbol);
@@ -86,7 +86,7 @@ internal sealed partial class LightweightRenameLocations
                 {
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, allowRenameInGeneratedDocument, cancellationToken),
+                        (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, includeSourceGenerated, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -106,7 +106,7 @@ internal sealed partial class LightweightRenameLocations
 
         // Couldn't effectively search in OOP. Perform the search in-proc.
         var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
-            symbol, solution, options, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false);
+            symbol, solution, options, includeSourceGenerated, cancellationToken).ConfigureAwait(false);
 
         return new LightweightRenameLocations(
             solution, options, renameLocations.Locations,

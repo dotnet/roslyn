@@ -33,7 +33,7 @@ internal sealed class PrepareRenameHandler() : ILspServiceDocumentRequestHandler
         var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
         var symbolicRenameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(
-            document, position, allowRenameInGeneratedDocument: false, cancellationToken).ConfigureAwait(false);
+            document, position, includeSourceGenerated: false, cancellationToken).ConfigureAwait(false);
         if (symbolicRenameInfo.IsError)
             return null;
 

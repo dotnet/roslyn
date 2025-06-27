@@ -29,15 +29,15 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
     public TextDocumentIdentifier GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 
     public Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetRenameEditAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), request.NewName, allowRenameInGeneratedDocument: false, cancellationToken);
+        => GetRenameEditAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), request.NewName, includeSourceGenerated: false, cancellationToken);
 
-    internal static async Task<WorkspaceEdit?> GetRenameEditAsync(Document document, LinePosition linePosition, string newName, bool allowRenameInGeneratedDocument, CancellationToken cancellationToken)
+    internal static async Task<WorkspaceEdit?> GetRenameEditAsync(Document document, LinePosition linePosition, string newName, bool includeSourceGenerated, CancellationToken cancellationToken)
     {
         var oldSolution = document.Project.Solution;
         var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
         var symbolicRenameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(
-            document, position, allowRenameInGeneratedDocument, cancellationToken).ConfigureAwait(false);
+            document, position, includeSourceGenerated, cancellationToken).ConfigureAwait(false);
         if (symbolicRenameInfo.IsError)
             return null;
 
@@ -51,7 +51,7 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
             oldSolution,
             symbolicRenameInfo.Symbol,
             options,
-            allowRenameInGeneratedDocument,
+            includeSourceGenerated,
             cancellationToken).ConfigureAwait(false);
 
         var renameReplacementInfo = await renameLocationSet.ResolveConflictsAsync(
@@ -73,7 +73,7 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
         renamedSolution = await renamedSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: cancellationToken).ConfigureAwait(false);
         solutionChanges = renamedSolution.GetChanges(oldSolution);
 
-        Contract.ThrowIfTrue(!allowRenameInGeneratedDocument && !renamedSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty, "Renaming in generated documents is not allowed, but there are changes in source generated documents.");
+        Contract.ThrowIfTrue(!includeSourceGenerated && !renamedSolution.CompilationState.FrozenSourceGeneratedDocumentStates.IsEmpty, "Renaming in generated documents is not allowed, but there are changes in source generated documents.");
 
         var changedDocuments = solutionChanges
             .GetProjectChanges()

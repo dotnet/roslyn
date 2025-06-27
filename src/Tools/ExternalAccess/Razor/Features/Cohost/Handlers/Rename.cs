@@ -16,5 +16,5 @@ internal static class Rename
         => PrepareRenameHandler.GetRenameRangeAsync(document, linePosition, cancellationToken);
 
     public static Task<WorkspaceEdit?> GetRenameEditAsync(Document document, LinePosition linePosition, string newName, CancellationToken cancellationToken)
-        => RenameHandler.GetRenameEditAsync(document, linePosition, newName, allowRenameInGeneratedDocument: true, cancellationToken);
+        => RenameHandler.GetRenameEditAsync(document, linePosition, newName, includeSourceGenerated: true, cancellationToken);
 }
