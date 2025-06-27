@@ -200,7 +200,8 @@ internal static partial class ConflictResolver
                     }
 
                     // Step 3: Simplify the project
-                    conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.CurrentSolution, documentsByProject, _replacementTextValid, _renameAnnotations, _cancellationToken).ConfigureAwait(false));
+                    conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(
+                        conflictResolution.CurrentSolution, documentsByProject, _replacementTextValid, _renameAnnotations, this.RenameOptions, _cancellationToken).ConfigureAwait(false));
                     intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
                         intermediateSolution, documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
                     conflictResolution.UpdateCurrentSolution(intermediateSolution);

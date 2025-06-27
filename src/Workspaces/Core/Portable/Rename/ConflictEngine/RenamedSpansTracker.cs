@@ -143,7 +143,13 @@ internal sealed class RenamedSpansTracker
         }
     }
 
-    internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CancellationToken cancellationToken)
+    internal async Task<Solution> SimplifyAsync(
+        Solution solution,
+        IEnumerable<DocumentId> documentIds,
+        bool replacementTextValid,
+        AnnotationTable<RenameAnnotation> renameAnnotations,
+        SymbolRenameOptions options,
+        CancellationToken cancellationToken)
     {
         foreach (var documentId in documentIds)
         {
@@ -151,7 +157,8 @@ internal sealed class RenamedSpansTracker
             {
                 // It's possible that rename will have found locations in generated documents, so we have to make sure to allow that. We assume that the
                 // entry point to rename will only process source generated documents if it needed to.
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetRequiredDocumentAsync(
+                    documentId, options.RenameInSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
                 if (replacementTextValid)
                 {
