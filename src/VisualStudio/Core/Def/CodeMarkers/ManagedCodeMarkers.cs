@@ -9,8 +9,8 @@
 // but is copied here because Roslyn needs to build outside DevDiv sources for now.
 
 using System;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 

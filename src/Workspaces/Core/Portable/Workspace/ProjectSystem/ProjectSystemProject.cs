@@ -716,7 +716,7 @@ internal sealed partial class ProjectSystemProject
                 foreach (var (path, properties) in metadataReferencesAddedInBatch)
                 {
                     projectUpdateState = TryCreateConvertedProjectReference_NoLock(
-                        projectId, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
+                        projectBeforeMutation.State, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
 
                     if (projectReference != null)
                     {

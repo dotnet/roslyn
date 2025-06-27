@@ -2992,18 +2992,6 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,36): error CS0563: One of the parameters of a binary operator must be the containing type
-            //         public static int operator +(int i, T t) => 0;
-            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 36),
-            // (5,36): error CS9282: Extension declarations can include only methods or properties
-            //         public static int operator +(int i, T t) => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+").WithLocation(5, 36),
-            // (6,36): error CS0563: One of the parameters of a binary operator must be the containing type
-            //         public static int operator -(int i, int j) => 0;
-            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "-").WithLocation(6, 36),
-            // (6,36): error CS9282: Extension declarations can include only methods or properties
-            //         public static int operator -(int i, int j) => 0;
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "-").WithLocation(6, 36),
             // (6,36): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public static int operator -(int i, int j) => 0;
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "-").WithArguments("T").WithLocation(6, 36));
@@ -3024,12 +3012,12 @@ public static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
-            // (5,30): error CS9282: Extension declarations can include only methods or properties
+            // (5,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
             //         public void operator +=(T t) { }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+=").WithLocation(5, 30),
-            // (6,30): error CS9282: Extension declarations can include only methods or properties
+            Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, "+=").WithLocation(5, 30),
+            // (6,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
             //         public void operator -=(int j) { }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "-=").WithLocation(6, 30),
+            Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, "-=").WithLocation(6, 30),
             // (6,30): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public void operator -=(int j) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "-=").WithArguments("T").WithLocation(6, 30));
