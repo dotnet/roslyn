@@ -11,6 +11,7 @@ using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+
 internal static class StarredCompletionAssemblyHelper
 {
     private const string CompletionsDllName = "Microsoft.VisualStudio.IntelliCode.CSharp.dll";

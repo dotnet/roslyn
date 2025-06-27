@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute;
 
 internal partial interface IDesignerAttributeDiscoveryService : IWorkspaceService
 {
-    public interface ICallback
+    interface ICallback
     {
         ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
     }
