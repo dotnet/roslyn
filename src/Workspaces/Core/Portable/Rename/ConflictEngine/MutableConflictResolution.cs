@@ -22,9 +22,9 @@ internal sealed class MutableConflictResolution(
     Solution oldSolution,
     RenamedSpansTracker renamedSpansTracker,
     string replacementText,
-    bool replacementTextValid)
+    bool replacementTextValid,
+    SymbolRenameOptions options)
 {
-
     // List of All the Locations that were renamed and conflict-complexified
     public readonly List<RelatedLocation> RelatedLocations = [];
 
@@ -49,6 +49,8 @@ internal sealed class MutableConflictResolution(
     /// </summary>
     public Solution CurrentSolution { get; private set; } = oldSolution;
 
+    private readonly SymbolRenameOptions _options = options;
+
     private (DocumentId documentId, string newName) _renamedDocument;
 
     internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)
@@ -70,7 +72,8 @@ internal sealed class MutableConflictResolution(
         {
             if (renamedSpansTracker.IsDocumentChanged(documentId))
             {
-                var document = await CurrentSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var document = await CurrentSolution.GetRequiredDocumentAsync(
+                    documentId, _options.RenameInSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // For the computeReplacementToken and computeReplacementNode functions, use 
