@@ -17,10 +17,21 @@
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
     <PackageReference Include="System.Threading.Channels" />
-
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
   </ItemGroup>
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersionForAnalyzers)" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+        <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <EmbeddedResource Update="RoslynDiagnosticsAnalyzersResources.resx" GenerateSource="true" />
   </ItemGroup>

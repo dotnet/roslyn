@@ -4,12 +4,10 @@
 
 using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Copilot;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;

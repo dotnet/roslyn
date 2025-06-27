@@ -4,11 +4,10 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {

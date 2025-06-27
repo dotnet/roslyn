@@ -8338,12 +8338,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType ?? CreateErrorType();
         }
 
+#nullable enable 
+
         /// <summary>
         /// Combine the receiver and arguments of an extension method
         /// invocation into a single argument list to allow overload resolution
         /// to treat the invocation as a static method invocation with no receiver.
         /// </summary>
-        private static void CombineExtensionMethodArguments(BoundExpression receiver, AnalyzedArguments originalArguments, AnalyzedArguments extensionMethodArguments)
+        private static void CombineExtensionMethodArguments(BoundExpression receiver, AnalyzedArguments? originalArguments, AnalyzedArguments extensionMethodArguments)
         {
             Debug.Assert(receiver != null);
             Debug.Assert(extensionMethodArguments.Arguments.Count == 0);
@@ -8352,20 +8354,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             extensionMethodArguments.IncludesReceiverAsArgument = true;
             extensionMethodArguments.Arguments.Add(receiver);
-            extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
 
-            if (originalArguments.Names.Count > 0)
+            if (originalArguments is not null)
+            {
+                extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
+            }
+
+            if (originalArguments?.Names.Count > 0)
             {
                 extensionMethodArguments.Names.Add(null);
                 extensionMethodArguments.Names.AddRange(originalArguments.Names);
             }
 
-            if (originalArguments.RefKinds.Count > 0)
+            if (originalArguments?.RefKinds.Count > 0)
             {
                 extensionMethodArguments.RefKinds.Add(RefKind.None);
                 extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
             }
         }
+
+#nullable disable
 
         private static void InitializeExtensionPropertyArguments(BoundExpression receiver, AnalyzedArguments extensionPropertyArguments)
         {

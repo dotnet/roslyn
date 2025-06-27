@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;

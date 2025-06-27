@@ -7,10 +7,8 @@
 //#define RoslynTestRunApi
 
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
