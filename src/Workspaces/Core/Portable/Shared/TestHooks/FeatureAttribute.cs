@@ -20,6 +20,7 @@ internal static class FeatureAttribute
     public const string CompletionSet = nameof(CompletionSet);
     public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
+    public const string CopilotChangeAnalysis = nameof(CopilotChangeAnalysis);
     public const string DesignerAttributes = nameof(DesignerAttributes);
     public const string DiagnosticService = nameof(DiagnosticService);
     public const string DocumentOutline = nameof(DocumentOutline);

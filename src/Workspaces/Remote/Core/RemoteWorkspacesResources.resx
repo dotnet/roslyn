@@ -234,4 +234,7 @@
   <data name="FeatureName_RelatedDocuments" xml:space="preserve">
     <value>Related documents</value>
   </data>
+  <data name="FeatureName_CopilotChangeAnalysis" xml:space="preserve">
+    <value>Copilot change analysis</value>
+  </data>
 </root>

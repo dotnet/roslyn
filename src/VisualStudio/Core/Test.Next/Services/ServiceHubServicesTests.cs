@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,10 +15,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
@@ -28,6 +31,8 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.UnitTests.Logging;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -38,10 +43,22 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public sealed class ServiceHubServicesTests
+    public sealed partial class ServiceHubServicesTests
     {
-        private static TestWorkspace CreateWorkspace(Type[] additionalParts = null)
-             => new(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
+        private static TestWorkspace CreateWorkspace(
+            Type[] additionalParts = null,
+            Type[] additionalRemoteParts = null)
+        {
+            var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess).AddParts(additionalParts));
+
+            if (additionalRemoteParts != null)
+            {
+                var clientProvider = (InProcRemoteHostClientProvider)workspace.Services.GetService<IRemoteHostClientProvider>();
+                clientProvider.AdditionalRemoteParts = additionalRemoteParts;
+            }
+
+            return workspace;
+        }
 
         [Fact]
         public async Task TestRemoteHostSynchronize()
@@ -200,7 +217,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 CancellationToken.None);
         }
 
-        private class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
+        private sealed class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
         {
             private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
 
@@ -354,11 +371,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 SolutionId.CreateNewId(), VersionStamp.Create(), "",
                 [
                     ProjectInfo.Create(
-                        p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
-                        projectReferences: [new ProjectReference(p2)]),
-                    ProjectInfo.Create(
-                        p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
-                        metadataReferences: [MetadataReference.CreateFromFile(file.Path)])
+                    p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
+                    projectReferences: [new ProjectReference(p2)]),
+                ProjectInfo.Create(
+                    p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
+                    metadataReferences: [MetadataReference.CreateFromFile(file.Path)])
                 ]);
 
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
@@ -1569,6 +1586,98 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.NotEqual(initialExecutionMap[noCompilationProject.Id], finalExecutionMap[noCompilationProject.Id]);
         }
 
+        [Fact]
+        internal async Task TestCopilotChangeAnalysis()
+        {
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+
+            var code = """
+            class C
+            {
+                void M()
+                {
+            X
+                }
+            }
+            """;
+            workspace.InitializeDocuments(LanguageNames.CSharp, files: [code]);
+
+            var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
+
+            var service = workspace.Services.GetRequiredService<ICopilotChangeAnalysisService>();
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            var text = await document.GetTextAsync();
+            var listIndex = text.ToString().IndexOf("X");
+
+            var result = await service.AnalyzeChangeAsync(
+                document, [new TextChange(new TextSpan(listIndex, 1), """
+            <<<<<<<
+            Goo
+            =======
+            Bar
+            >>>>>>>
+            """)], CancellationToken.None);
+
+            Assert.True(result.Succeeded);
+
+            var diagnosticAnalysis = result.DiagnosticAnalyses.Single(d => d.Kind == DiagnosticKind.CompilerSyntax);
+            Assert.Equal(1, diagnosticAnalysis.IdToCount["CS8300"]);
+
+            Assert.Equal(1, result.CodeFixAnalysis.DiagnosticIdToCount["CS8300"]);
+            Assert.Equal("CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider", result.CodeFixAnalysis.DiagnosticIdToProviderName["CS8300"].Single());
+
+            var logger = new TestTelemetryLogger();
+            Logger.SetLogger(logger);
+            TestTelemetryLogger.TestScope scope;
+            using (CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis("TestCode", accepted: true, "TestProposalId", result, CancellationToken.None))
+            {
+                scope = logger.OpenedScopes.Single();
+            }
+            Logger.SetLogger(null);
+
+            var endEvent = scope.EndEvent;
+            Assert.Equal("vs/ide/vbcs/copilot/analyzechange", endEvent.Name);
+
+            var properties = endEvent.Properties;
+
+            Assert.Equal(true, properties["vs.ide.vbcs.copilot.analyzechange.succeeded"]);
+            Assert.Equal(true, properties["vs.ide.vbcs.copilot.analyzechange.accepted"]);
+            Assert.Equal("TestProposalId", properties["vs.ide.vbcs.copilot.analyzechange.proposalid"]);
+
+            Assert.Equal(44, properties["vs.ide.vbcs.copilot.analyzechange.olddocumentlength"]);
+            Assert.Equal(78, properties["vs.ide.vbcs.copilot.analyzechange.newdocumentlength"]);
+            Assert.Equal(34, properties["vs.ide.vbcs.copilot.analyzechange.textchangedelta"]);
+
+            Assert.Equal(1, properties["vs.ide.vbcs.copilot.analyzechange.projectdocumentcount"]);
+            Assert.Equal(0, properties["vs.ide.vbcs.copilot.analyzechange.projectsourcegenerateddocumentcount"]);
+            Assert.Equal(1, properties["vs.ide.vbcs.copilot.analyzechange.projectconecount"]);
+
+            // No analyzer diagnostics in this scenario.
+
+            Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_idtocount"]);
+            Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_categorytocount"]);
+            Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersyntax_severitytocount"]);
+
+            Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_idtocount"]);
+            Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_categorytocount"]);
+            Assert.Equal("", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_analyzersemantic_severitytocount"]);
+
+            // CS1002_1 means we got one CS1002 diagnostic. Whereas CS1525_3 means we got 3 CS1525 diagnostics.
+            Assert.Equal("CS1002_1,CS1513_1,CS1525_3,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_idtocount"]);
+            Assert.Equal("Compiler_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_categorytocount"]);
+            Assert.Equal("Error_6", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersyntax_severitytocount"]);
+
+            Assert.Equal("CS0103_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_idtocount"]);
+            Assert.Equal("Compiler_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_categorytocount"]);
+            Assert.Equal("Error_1", properties["vs.ide.vbcs.copilot.analyzechange.diagnosticanalysis_compilersemantic_severitytocount"]);
+
+            Assert.Equal("CS0103_1,CS8300_1", properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtocount"]);
+            Assert.Equal("CS0103_CSharp.GenerateVariable.CSharpGenerateVariableCodeFixProvider,CS8300_CSharp.ConflictMarkerResolution.CSharpResolveConflictMarkerCodeFixProvider",
+                properties["vs.ide.vbcs.copilot.analyzechange.codefixanalysis_diagnosticidtoprovidername"]);
+        }
+
         private static void VerifyStates(Solution solution1, Solution solution2, string projectName, ImmutableArray<string> documentNames)
         {
             Assert.Equal(WorkspaceKind.RemoteWorkspace, solution1.WorkspaceKind);
@@ -1661,7 +1770,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = AddProject(solution, LanguageNames.CSharp,
             [
                 "class CS { }",
-                "class CS2 { }"
+            "class CS2 { }"
             ],
             [
                 "cs additional file content"
@@ -1670,11 +1779,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = AddProject(solution, LanguageNames.VisualBasic,
             [
                 "Class VB\r\nEnd Class",
-                "Class VB2\r\nEnd Class"
+            "Class VB2\r\nEnd Class"
             ],
             [
                 "vb additional file content"
-            ], [solution.ProjectIds.First()]);
+            ], [solution.ProjectIds[0]]);
 
             solution = AddProject(solution, LanguageNames.CSharp,
             [
@@ -1687,21 +1796,21 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = AddProject(solution, LanguageNames.CSharp,
             [
                 "class OrphanCS { }",
-                "class OrphanCS2 { }"
+            "class OrphanCS2 { }"
             ],
             [
                 "cs additional file content",
-                "cs additional file content2"
+            "cs additional file content2"
             ], []);
 
             solution = AddProject(solution, LanguageNames.CSharp,
             [
                 "class CS { }",
-                "class CS2 { }",
-                "class CS3 { }",
-                "class CS4 { }",
-                "class CS5 { }",
-            ],
+            "class CS2 { }",
+            "class CS3 { }",
+            "class CS4 { }",
+            "class CS5 { }",
+        ],
             [
                 "cs additional file content"
             ], []);
@@ -1709,11 +1818,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             solution = AddProject(solution, LanguageNames.VisualBasic,
             [
                 "Class VB\r\nEnd Class",
-                "Class VB2\r\nEnd Class",
-                "Class VB3\r\nEnd Class",
-                "Class VB4\r\nEnd Class",
-                "Class VB5\r\nEnd Class",
-            ],
+            "Class VB2\r\nEnd Class",
+            "Class VB3\r\nEnd Class",
+            "Class VB4\r\nEnd Class",
+            "Class VB5\r\nEnd Class",
+        ],
             [
                 "vb additional file content"
             ], []);
@@ -1721,8 +1830,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             return solution;
         }
 
-        private static Solution AddProject(Solution solution, string language, string[] documents, string[] additionalDocuments, ProjectId[] p2pReferences)
+        private static Solution AddProject(
+            Solution solution,
+            string language,
+            string[] documents,
+            string[] additionalDocuments = null,
+            ProjectId[] p2pReferences = null)
         {
+            additionalDocuments ??= [];
+            p2pReferences ??= [];
+
             var projectName = $"Project{solution.ProjectIds.Count}";
             var project = solution.AddProject(projectName, $"{projectName}.dll", language)
                                   .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
