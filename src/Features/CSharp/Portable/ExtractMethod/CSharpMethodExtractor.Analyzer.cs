@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 

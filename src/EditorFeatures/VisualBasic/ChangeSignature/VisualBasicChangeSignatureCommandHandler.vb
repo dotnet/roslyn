@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Commanding

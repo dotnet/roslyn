@@ -4,9 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Collections.Generic;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
