@@ -137,7 +137,7 @@ public static partial class Renamer
 
     /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
     internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CancellationToken cancellationToken)
-        => FindRenameLocationsAsync(solution, symbol, options, cancellationToken);
+        => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, cancellationToken);
 
     internal static async Task<ConflictResolution> RenameSymbolAsync(
         Solution solution,
