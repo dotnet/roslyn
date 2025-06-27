@@ -1049,22 +1049,13 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
         {
             var builder = new T[first.Length + second.Length + third.Length];
+
             var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
 
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
@@ -1075,27 +1066,15 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
         {
             var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
+
             var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
 
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
@@ -1106,32 +1085,17 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
         {
             var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
+
             var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+            index += fourth.Length;
+            fifth.CopyTo(builder, index);
 
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
@@ -1142,37 +1106,19 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
         {
             var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
+
             var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in sixth)
-            {
-                builder[index++] = item;
-            }
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+            index += fourth.Length;
+            fifth.CopyTo(builder, index);
+            index += fifth.Length;
+            sixth.CopyTo(builder, index);
 
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
