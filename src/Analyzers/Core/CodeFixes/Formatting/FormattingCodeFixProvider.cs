@@ -30,6 +30,14 @@ internal abstract class AbstractFormattingCodeFixProvider : SyntaxEditorBasedCod
 
     protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
+#if WORKSPACE
+    /// <summary>
+    /// This refactoring provider touches syntax only.  So we can speed up fix all by having it only clean syntax
+    /// and not semantics.
+    /// </summary>
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
+#endif
+
     /// <summary>
     /// Fixing formatting is high priority.  It's something the user wants to be able to fix quickly, is driven by
     /// them acting on an error reported in code, and can be computed fast as it only uses syntax not semantics.

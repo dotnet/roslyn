@@ -5,20 +5,18 @@
 #nullable disable
 
 extern alias InteractiveHost;
-
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Roslyn.Test.Utilities;
-using Xunit;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands;
 

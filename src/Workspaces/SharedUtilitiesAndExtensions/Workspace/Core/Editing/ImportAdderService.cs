@@ -179,7 +179,7 @@ internal abstract class ImportAdderService : ILanguageService
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE
+#if !WORKSPACE
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 #else
         var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
