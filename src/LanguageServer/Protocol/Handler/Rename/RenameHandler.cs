@@ -42,16 +42,16 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
             return null;
 
         var options = new SymbolRenameOptions(
-            RenameOverloads: false,
-            RenameInStrings: false,
-            RenameInComments: false,
-            RenameFile: false);
+            renameOverloads: false,
+            renameInStrings: false,
+            renameInComments: false,
+            renameFile: false,
+            renameInSourceGeneratedDocuments: includeSourceGenerated);
 
         var renameLocationSet = await Renamer.FindRenameLocationsAsync(
             oldSolution,
             symbolicRenameInfo.Symbol,
             options,
-            includeSourceGenerated,
             cancellationToken).ConfigureAwait(false);
 
         var renameReplacementInfo = await renameLocationSet.ResolveConflictsAsync(

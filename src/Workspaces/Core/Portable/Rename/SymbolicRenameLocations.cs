@@ -55,7 +55,7 @@ internal sealed partial class SymbolicRenameLocations
     /// Attempts to find all the locations to rename.  Will not cross any process boundaries to do this.
     /// </summary>
     public static async Task<SymbolicRenameLocations> FindLocationsInCurrentProcessAsync(
-        ISymbol symbol, Solution solution, SymbolRenameOptions options, bool includeSourceGenerated, CancellationToken cancellationToken)
+        ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(symbol);
         using (Logger.LogBlock(FunctionId.Rename_AllRenameLocations, cancellationToken))
@@ -63,10 +63,10 @@ internal sealed partial class SymbolicRenameLocations
             symbol = await RenameUtilities.FindDefinitionSymbolAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             // First, find the direct references just to the symbol being renamed.
-            var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, includeSourceGenerated, cancellationToken).ConfigureAwait(false);
+            var originalSymbolResult = await AddLocationsReferenceSymbolsAsync(symbol, solution, options.RenameInSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             // Next, find references to overloads, if the user has asked to rename those as well.
-            var overloadsResult = options.RenameOverloads ? await GetOverloadsAsync(symbol, solution, includeSourceGenerated, cancellationToken).ConfigureAwait(false) :
+            var overloadsResult = options.RenameOverloads ? await GetOverloadsAsync(symbol, solution, options.RenameInSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false) :
                 [];
 
             // Finally, include strings/comments if that's what the user wants.
