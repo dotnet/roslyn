@@ -732,8 +732,9 @@ class Program
             End Using
         End Sub
 
-        <Fact>
-        Public Sub RenameReferencingConstreuctorViaAlias()
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58463")>
+        <CombinatorialData>
+        Public Sub RenameReferencingConstreuctorViaAlias(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -746,7 +747,7 @@ namespace N
     {
         static void Main(string[] args)
         {
-            [|ToBeRenamed|] myClass = new [|ToBeRenamed|]("hello");
+            [|ToBeRenamed|] myClass = new [|ToBeRenamed|]("hello");     // references to the constructor via an identically named alias should also be renamed
         }
     }
 }
@@ -767,7 +768,7 @@ namespace N.M
 
                         ]]></Document>
                     </Project>
-                </Workspace>, host:=RenameTestHost.InProcess, renameTo:="ThisIsTheNewName")
+                </Workspace>, host:=host, renameTo:="ThisIsTheNewName")
 
             End Using
         End Sub
