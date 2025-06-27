@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -1048,25 +1049,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
         {
-            var builder = new T[first.Length + second.Length + third.Length];
-            var index = 0;
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length);
 
             foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -1074,30 +1068,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
         {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
-            var index = 0;
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length + fourth.Length);
 
             foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -1105,35 +1090,24 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
         {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
-            var index = 0;
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length + fourth.Length + fifth.Length);
 
             foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -1141,40 +1115,27 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
         {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
-            var index = 0;
+            var builder = new FixedSizeArrayBuilder<T>(first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length);
 
             foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
             foreach (var item in sixth)
-            {
-                builder[index++] = item;
-            }
+                builder.Add(item);
 
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+            return builder.MoveToImmutable();
         }
 
         #endregion
