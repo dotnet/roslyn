@@ -7,6 +7,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,6 +42,9 @@ internal sealed partial class HideBaseCodeFixProvider() : CodeFixProvider
         if (originalNode == null)
             return;
 
-        context.RegisterCodeFix(new AddNewKeywordAction(context.Document, originalNode), context.Diagnostics);
+        context.RegisterCodeFix(CodeAction.Create(
+            CSharpCodeFixesResources.Hide_base_member,
+            cancellationToken => GetChangedDocumentAsync(context.Document, originalNode, cancellationToken),
+            nameof(CSharpCodeFixesResources.Hide_base_member))
     }
 }
