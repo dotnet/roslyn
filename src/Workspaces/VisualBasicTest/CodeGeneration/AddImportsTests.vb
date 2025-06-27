@@ -4,8 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification

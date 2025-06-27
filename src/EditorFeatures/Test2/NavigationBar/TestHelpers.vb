@@ -2,10 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -15,7 +13,6 @@ Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Friend Module TestHelpers
