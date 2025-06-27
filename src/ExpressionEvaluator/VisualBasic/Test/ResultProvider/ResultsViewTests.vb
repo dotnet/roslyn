@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation

@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     <Trait(Traits.Feature, Traits.Features.Simplification)>

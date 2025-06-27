@@ -5,11 +5,9 @@
 Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
 Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessarySuppressions
