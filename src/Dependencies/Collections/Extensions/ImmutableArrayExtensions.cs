@@ -1030,6 +1030,153 @@ namespace Microsoft.CodeAnalysis
             set.Free();
             return true;
         }
+
+        #region Binary Compat
+
+        // These helpers should be in System.Linq namespace below.  However, they are currently
+        // used by partners with IVT access to Roslyn, so they have to stay here for now.
+
+        /// <summary>
+        /// Specialization of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/> for <see cref="ImmutableArray{T}"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+            => first.AddRange(second);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
+        {
+            var builder = new T[first.Length + second.Length + third.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fourth)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fourth)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fifth)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fourth)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fifth)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in sixth)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        #endregion
     }
 }
 
@@ -1169,150 +1316,10 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Specialization of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/> for <see cref="ImmutableArray{T}"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-            => first.AddRange(second);
-
-        /// <summary>
         /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
         /// </summary>
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
             => first.Add(second);
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
-        {
-            var builder = new T[first.Length + second.Length + third.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in sixth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
 
         /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.
