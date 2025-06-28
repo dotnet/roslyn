@@ -74,11 +74,8 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // that, determine the start/end line for the buffer that is in view.
             var visibleSpan = textView.TextViewLines.FormattedSpan;
             var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
-            if (visibleSpansInBuffer.Count == 0)
+            if (visibleSpansInBuffer is not ([{ Start: var visibleStart }, ..] and [.., { End: var visibleEnd }]))
                 return null;
-
-            var visibleStart = visibleSpansInBuffer.First().Start;
-            var visibleEnd = visibleSpansInBuffer.Last().End;
 
             var snapshot = subjectBuffer.CurrentSnapshot;
             var startLine = visibleStart.GetContainingLineNumber();
