@@ -109,7 +109,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         var switchStatement = (SwitchStatementSyntax)node.Parent;
         var lastSection = switchStatement.Sections.Last() == node;
 
-        if (section.Statements.Count == 0)
+        if (section.Statements is not ([var firstStatement, ..] and [.., var lastStatement]))
         {
             // even if there is no statement under section, we still want indent operation
             var lastTokenOfLabel = section.Labels.Last().GetLastToken(includeZeroWidth: true);
@@ -121,8 +121,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             return;
         }
 
-        var startToken = section.Statements.First().GetFirstToken(includeZeroWidth: true);
-        var endToken = section.Statements.Last().GetLastToken(includeZeroWidth: true);
+        var startToken = firstStatement.GetFirstToken(includeZeroWidth: true);
+        var endToken = lastStatement.GetLastToken(includeZeroWidth: true);
 
         // see whether we are the last statement
         var span = CommonFormattingHelpers.GetSpanIncludingTrailingAndLeadingTriviaOfAdjacentTokens(startToken, endToken);

@@ -171,13 +171,11 @@ internal sealed partial class CSharpIndentationService : AbstractIndentationServ
 
         private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            if (node is not SwitchSectionSyntax section || section.Statements.Count == 0)
-            {
+            if (node is not SwitchSectionSyntax { Statements: [var firstStatement, ..] and [.., var lastStatement] })
                 return;
-            }
 
-            var startToken = section.Statements.First().GetFirstToken(includeZeroWidth: true);
-            var endToken = section.Statements.Last().GetLastToken(includeZeroWidth: true);
+            var startToken = firstStatement.GetFirstToken(includeZeroWidth: true);
+            var endToken = lastStatement.GetLastToken(includeZeroWidth: true);
 
             for (var i = 0; i < list.Count; i++)
             {
