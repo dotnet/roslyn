@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             string workingDirectory,
             string? tempDirectory,
             string? keepAlive,
-            string? libDirectory)
+            string? libDirectory,
+            string? compilerHash = null)
         {
             Debug.Assert(workingDirectory is object);
 
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 arguments,
                 workingDirectory: workingDirectory,
                 tempDirectory: tempDirectory,
-                compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                compilerHash: compilerHash ?? BuildProtocolConstants.GetCommitHash() ?? "",
                 requestId: requestId,
                 keepAlive: keepAlive,
                 libDirectory: libDirectory);
@@ -177,12 +180,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             CancellationToken cancellationToken)
         {
             Debug.Assert(pipeName is object);
-
-            // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
-            if (string.IsNullOrWhiteSpace(BuildProtocolConstants.GetCommitHash()))
-            {
-                return new IncorrectHashBuildResponse();
-            }
 
             using var pipe = await tryConnectToServerAsync(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
             if (pipe is null)
