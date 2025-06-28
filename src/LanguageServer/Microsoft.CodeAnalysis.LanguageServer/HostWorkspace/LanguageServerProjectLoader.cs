@@ -281,6 +281,10 @@ internal abstract class LanguageServerProjectLoader
                     await primordialProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId), cancellationToken);
                 }
 
+                // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
+                // this is a Debug.Assert() because if this expectation fails, the user's probably still in a state where things will work just fine;
+                // throwing here would mean we don't remember the LoadedProjects we created, and the next update will create more and things will get really broken.
+                Debug.Assert(newProjectTargets.All(target => target.ProjectFactory == projectFactory));
                 _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(newProjectTargets);
             }
 
