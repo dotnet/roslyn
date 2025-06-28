@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
@@ -22,6 +23,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
 {
     private readonly ILogger _logger;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
+    private readonly ProjectSystemProjectFactory _hostProjectFactory;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,7 +37,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider)
             : base(
-                workspaceFactory.HostProjectFactory,
                 workspaceFactory.TargetFrameworkManager,
                 workspaceFactory.ProjectSystemHostInfo,
                 fileChangeWatcher,
@@ -47,14 +48,15 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
                 binLogPathProvider)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
-        var workspace = ProjectFactory.Workspace;
+        _hostProjectFactory = workspaceFactory.HostProjectFactory;
+        var workspace = workspaceFactory.HostWorkspace;
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(workspace.CurrentSolution.Services, new DiagnosticReporter(workspace));
     }
 
     public async Task OpenSolutionAsync(string solutionFilePath)
     {
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
-        ProjectFactory.SolutionPath = solutionFilePath;
+        _hostProjectFactory.SolutionPath = solutionFilePath;
 
         var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
         foreach (var (path, guid) in projects)
@@ -88,6 +90,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return new RemoteProjectLoadResult(loadedFile, HasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
+        return new RemoteProjectLoadResult(loadedFile, _hostProjectFactory, HasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
     }
 }
