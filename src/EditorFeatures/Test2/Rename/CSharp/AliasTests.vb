@@ -730,5 +730,46 @@ class Program
                 result.AssertLabeledSpansAre("resolved", "var y = (x as int?) + 1;", RelatedLocationType.ResolvedNonReferenceConflict)
             End Using
         End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58463")>
+        <CombinatorialData>
+        Public Sub RenameReferencingConstreuctorViaAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document><![CDATA[
+using [|ToBeRenamed|] = N.M.[|ToBeRenamed|];
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|ToBeRenamed|] myClass = new [|ToBeRenamed|]("hello");     // references to the constructor via an identically named alias should also be renamed
+        }
+    }
+}
+
+                        ]]></Document>
+                        <Document><![CDATA[
+namespace N.M
+{
+    internal class [|$$ToBeRenamed|] 
+    {
+        private string myVar2;
+        internal [|ToBeRenamed|](string var1)
+        {
+            myVar2 = var1;
+        }
+    }
+}
+
+                        ]]></Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="ThisIsTheNewName")
+
+            End Using
+        End Sub
     End Class
 End Namespace

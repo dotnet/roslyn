@@ -93,7 +93,7 @@ internal abstract partial class AbstractImplementInterfaceService
                         autoInsertionLocation: groupMembers,
                         sortMembers: groupMembers)),
                 State.ClassOrStructType,
-                memberDefinitions.Concat(extraMembers),
+                [.. memberDefinitions, .. extraMembers],
                 cancellationToken).ConfigureAwait(false);
         }
 

@@ -232,7 +232,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, preMatches, allowSemanticsChange, cancellationToken, out var changesSemantics2))
                 return null;
 
-            return (preMatches.Concat(postMatches), shouldUseCollectionExpression: true, changesSemantics1 || changesSemantics2);
+            return ([.. preMatches, .. postMatches], shouldUseCollectionExpression: true, changesSemantics1 || changesSemantics2);
         }
     }
 
