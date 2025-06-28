@@ -231,7 +231,7 @@ internal sealed partial class InlineRenameSession
                 var spansTouchedInEdit = new NormalizedSpanCollection(args.Changes.Select(c => c.NewSpan));
 
                 var intersectionSpans = NormalizedSpanCollection.Intersection(trackingSpansAfterEdit, spansTouchedInEdit);
-                if (intersectionSpans.Count == 0)
+                if (intersectionSpans is not ([var firstIntersection, ..] and [.., var lastIntersection]))
                 {
                     // In Razor we sometimes get formatting changes during inline rename that
                     // do not intersect with any of our spans. Ideally this shouldn't happen at
@@ -243,7 +243,7 @@ internal sealed partial class InlineRenameSession
                 // spans, but they should still all map to a single tracked rename span (e.g.
                 // renaming "two" to "one two three" may be interpreted as two distinct
                 // additions of "one" and "three").
-                var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
+                var boundingIntersectionSpan = Span.FromBounds(firstIntersection.Start, lastIntersection.End);
                 var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
                 Debug.Assert(trackingSpansTouched.Count() == 1);
 
