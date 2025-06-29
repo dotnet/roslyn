@@ -110,10 +110,16 @@ internal abstract partial class AbstractInProcLanguageClient(
 
     public event AsyncEventHandler<EventArgs>? StartAsync;
 
+    public event AsyncEventHandler<EventArgs>? StopAsync;
+
     /// <summary>
-    /// Unused, implementing <see cref="ILanguageClient"/>
+    /// Stops the server if it has been started.
     /// </summary>
-    public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
+    /// <remarks>
+    /// Per the documentation on <see cref="ILanguageClient.StopAsync"/>, the event is ignored if the server has not been started.
+    /// </remarks>
+    public Task StopServerAsync()
+        => StopAsync?.InvokeAsync(this, EventArgs.Empty) ?? Task.CompletedTask;
 
     public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
     {
