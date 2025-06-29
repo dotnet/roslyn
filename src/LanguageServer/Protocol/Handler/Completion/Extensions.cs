@@ -37,7 +37,7 @@ internal static class Extensions
             var updateImportCompletionCacheInBackground = options.ShowItemsFromUnimportedNamespaces is true;
             options = options with
             {
-                ShowNewSnippetExperienceUserOption = false,
+                ShowNewSnippetExperience = false,
                 UpdateImportCompletionCacheInBackground = updateImportCompletionCacheInBackground
             };
         }
