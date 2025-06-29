@@ -13857,12 +13857,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -13900,12 +13899,11 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -19153,12 +19151,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -19199,9 +19196,11 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         _ = Color.P1;
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 13));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19242,12 +19241,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -19256,6 +19254,853 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
         Assert.Equal("void Color.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_01()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color { }
+
+static class E1
+{
+    extension(Color c)
+    {
+        public System.Action Member => null;
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("System.Action E1.<>E__0.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_02()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+    public static int Member => 0;
+}
+
+static class E1
+{
+    public static void Member(this Color c) { }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void Color.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_03()
+    {
+        // Non-invocable candidate is out of the picture, so we're left with only the instance candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_04()
+    {
+        // Non-invocable candidate is out of the picture, so we're left with only the static candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_05()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static System.Action Member => null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9),
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_06()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static void Member(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9),
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_07()
+    {
+        // instance extension method in inner scope, static extension method in outer scope
+        var source = """
+namespace N
+{
+    struct S1(Color Color)
+    {
+        public void Test()
+        {
+            Color.Member();
+            M(this);
+        }
+
+        public static void M<T>(T x) where T : unmanaged { }
+    }
+
+    static class E1
+    {
+        extension(Color c)
+        {
+            public void Member() { }
+        }
+    }
+}
+
+class Color
+{
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //             Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 13),
+            // (8,13): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //             M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("N.S1.M<T>(T)", "T", "N.S1").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void N.E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_08()
+    {
+        // static extension method in inner scope, instance extension method in outer scope
+        var source = """
+namespace N
+{
+    struct S1(Color Color)
+    {
+        public void Test()
+        {
+            Color.Member();
+            M(this);
+        }
+
+        public static void M<T>(T x) where T : unmanaged { }
+    }
+
+    static class E1
+    {
+        extension(Color)
+        {
+            public static void Member() { }
+        }
+    }
+}
+
+class Color
+{
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //             Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 13),
+            // (8,13): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //             M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("N.S1.M<T>(T)", "T", "N.S1").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_09()
+    {
+        // static extension property in inner scope, instance extension method in outer scope
+        var source = """
+namespace N
+{
+    struct S1(Color Color)
+    {
+        public void Test()
+        {
+            Color.Member();
+            M(this);
+        }
+
+        public static void M<T>(T x) where T : unmanaged { }
+    }
+
+    static class E1
+    {
+        extension(Color)
+        {
+            public static System.Action Member => throw null;
+        }
+    }
+}
+
+class Color
+{
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //             Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 13),
+            // (8,13): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //             M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("N.S1.M<T>(T)", "T", "N.S1").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_10()
+    {
+        // inapplicable candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension<T>(T t) where T : struct
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_11()
+    {
+        // inapplicable candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension<T>(T) where T : struct
+    {
+        public static void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_12()
+    {
+        // only static candidate method
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_13()
+    {
+        // only static candidate property, invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static System.Action Member => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("System.Action E.<>E__0.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_14()
+    {
+        // only static candidate property, non-invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17),
+            // (5,15): error CS1061: 'Color' does not contain a definition for 'Member' and no accessible extension method 'Member' accepting a first argument of type 'Color' could be found (are you missing a using directive or an assembly reference?)
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Member").WithArguments("Color", "Member").WithLocation(5, 15));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_15()
+    {
+        // only instance candidate property, invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public System.Action Member => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("System.Action E.<>E__0.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_16()
+    {
+        // only instance candidate property, non-invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17),
+            // (5,15): error CS1061: 'Color' does not contain a definition for 'Member' and no accessible extension method 'Member' accepting a first argument of type 'Color' could be found (are you missing a using directive or an assembly reference?)
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Member").WithArguments("Color", "Member").WithLocation(5, 15));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_17()
+    {
+        // non-extension method not applicable due to arity
+        var source = """
+new S1(new Color()).Test();
+
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member<int>(0);
+    }
+}
+
+class Color
+{
+    public static void Member(int x) => throw null;
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public void Member<T>(T x) { System.Console.WriteLine("extension"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+
+        CompileAndVerify(comp, expectedOutput: "extension").VerifyDiagnostics();
+
+        Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_18()
+    {
+        // non-extension method not applicable due to arity, and non-extension method applicable, and instance extension method
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member<int>(0);
+    }
+}
+
+class Color
+{
+    public static void Member(int x) => throw null;
+    public static void Member<T>(T x) => throw null;
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public void Member<T>(T x) { System.Console.WriteLine("extension"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.Member<int>(0);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_19()
+    {
+        // non-extension method not applicable due to arity, and non-extension method applicable, and static extension method
+        var source = """
+new S1(new Color()).Test();
+
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member<int>(0);
+    }
+}
+
+class Color
+{
+    public static void Member(int x) => throw null;
+    public static void Member<T>(T x) => throw null;
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static void Member<T>(T x) { System.Console.WriteLine("extension"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (3,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(3, 17));
     }
 
     [Fact]

@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected abstract bool CheckAndClearLookupResult(Binder enclosingBinder, IdentifierNameSyntax id, LookupResult lookupResult);
 
-            protected static bool isTypeOrValueReceiver(
+            protected static bool IsTypeOrValueReceiver(
                 Binder enclosingBinder,
                 IdentifierNameSyntax id,
                 TypeSymbol type,
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         bool haveInstanceCandidates;
                         lookupResult.Clear();
-                        enclosingBinder.CheckWhatCandidatesWeHave(members, type, memberName, targetMemberArity,
+                        enclosingBinder.CheckWhatCandidatesWeHave(members, type, memberName, targetMemberArity, invoked,
                                                                   ref lookupResult, ref useSiteInfo,
                                                                   out haveInstanceCandidates, out _);
 
@@ -286,7 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // methods are special because of extension methods.
                         Debug.Assert(symbol.Kind != SymbolKind.Method);
                         treatAsInstanceMemberAccess = !(symbol.IsStatic || symbol.Kind == SymbolKind.NamedType);
                     }
@@ -295,8 +294,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    // At this point this could only be an extension method access or an error
-                    treatAsInstanceMemberAccess = true;
+                    // At this point this could only be an extension member access or an error
+                    bool haveInstanceCandidates;
+                    lookupResult.Clear();
+                    var members = ArrayBuilder<Symbol>.GetInstance();
+
+                    enclosingBinder.CheckWhatCandidatesWeHave(members, type, memberName, targetMemberArity, invoked,
+                                                              ref lookupResult, ref useSiteInfo,
+                                                              out haveInstanceCandidates, out _);
+
+                    members.Free();
+                    treatAsInstanceMemberAccess = haveInstanceCandidates;
                 }
 
                 lookupResult.Clear();
