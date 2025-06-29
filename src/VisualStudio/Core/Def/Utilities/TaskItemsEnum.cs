@@ -29,10 +29,7 @@ internal sealed class TaskItemsEnum<T> : IVsEnumTaskItems where T : IVsTaskItem
 
             _next += i;
 
-            if (pceltFetched != null)
-            {
-                pceltFetched[0] = (uint)i;
-            }
+            pceltFetched?[0] = (uint)i;
 
             return (i == celt) ? VSConstants.S_OK : VSConstants.S_FALSE;
         }
