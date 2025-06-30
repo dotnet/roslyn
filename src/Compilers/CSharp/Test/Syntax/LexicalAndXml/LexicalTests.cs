@@ -4579,13 +4579,7 @@ class C
         {
             // This test depends on the line endings for the file being \r\n to ensure the right contents lines up at
             // the right locations.
-            //
-            // It specifically validates what happens when we see `.0` at the start of the
-            // sliding text window, where the lexer tries to peek back one char to see if this
-            // is actually `..0` (a range expr) or `.0` (a floating point number).
-            var code = Resources.DotPrefixedNumberStartingAtStartOfSlidingTextWindow;
-            if (!code.Contains("\r\n"))
-                code = code.Replace("\n", "\r\n");
+            var code = new string('/', 2048 - 7) + "\r\n;\r\n.." + "0;";
 
             var sourceText = SourceText.From(code);
 
@@ -4615,47 +4609,26 @@ class C
                 lexer.TextWindow.GetTestAccessor().SetDefaultCharacterWindow();
 
                 var mode = LexerMode.Syntax;
-                for (var i = 0; i < 1326; i++)
-                    lexer.Lex(ref mode);
+                var token1 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.SemicolonToken, token1.Kind);
+                Assert.Equal(2046, token1.FullWidth);
 
-                // Lexer will read from index 0 in the arrray.
-                Assert.Equal(0, lexer.TextWindow.Offset);
+                Assert.Equal(2046, lexer.TextWindow.Offset);
+                var token2 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token2.Kind);
 
-                // We have 205 real chars in the window
-                Assert.Equal(205, lexer.TextWindow.CharacterWindowCount);
+                // We'll be at the end of the window so the next lex will read from the start of the window.
+                // This will be a dot token, which will demonstrate that we can look backwards one token to
+                // see that we're preceded by another dot, making this a `..` not the start of a number.
+                Assert.Equal(2047, lexer.TextWindow.Offset);
+                var token3 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.DotToken, token3.Kind);
 
-                // The lexer is at position 10199 in the file.
-                Assert.Equal(10199, lexer.TextWindow.Position);
-
-                /// The 205 characters represent the final part of the doc
-                Assert.Equal(lexer.TextWindow.Text.Length, lexer.TextWindow.Position + lexer.TextWindow.CharacterWindowCount);
-
-                // We're at the start of a token.
-                Assert.Equal(lexer.GetTestAccessor().LexemeStartPosition, lexer.TextWindow.Position);
-
-                // Ensure that the lexer's window is starting with the next FP number (".03") right at
-                // the start of the window.
-                Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");
-
-                var token = lexer.Lex(ref mode);
-                Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind);
-                Assert.Equal(3, token.FullWidth);
-                Assert.Equal(".03", token.ToString());
-
-                // But we moved 3 characters forward.
-                Assert.Equal(3, lexer.TextWindow.Offset);
-
-                // We still have 205 real chars in the window
-                Assert.Equal(205, lexer.TextWindow.CharacterWindowCount);
-
-                // The lexer position has moved 3 characters forward as well.
-                Assert.Equal(10202, lexer.TextWindow.Position);
-
-                // We're at the start of a token.
-                Assert.Equal(lexer.GetTestAccessor().LexemeStartPosition, lexer.TextWindow.Position);
-
-                // Character window didn't changee.
-                Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");
+                // Prior token will have read from offset 0, so we will now be at offset 1.
+                Assert.Equal(1, lexer.TextWindow.Offset);
+                var token4 = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.NumericLiteralToken, token4.Kind);
+                Assert.Equal("0", token4.ValueText);
             }
         }
     }

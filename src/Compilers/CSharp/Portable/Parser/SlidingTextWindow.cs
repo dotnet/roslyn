@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -40,8 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _basis;                                // Offset of the window relative to the SourceText start.
         private int _offset;                               // Offset from the start of the window.
         private readonly int _textEnd;                     // Absolute end position
-        private char[] _characterWindow;                   // Moveable window of chars from source text
+        private readonly char[] _characterWindow;          // Moveable window of chars from source text
         private int _characterWindowCount;                 // # of valid characters in chars buffer
+        private bool _disposed;
 
         // Example for the above variables:
         // The text starts at 0.
@@ -61,17 +63,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _offset = 0;
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
-            _characterWindow =  s_windowPool.Allocate();
+            _characterWindow = s_windowPool.Allocate();
         }
 
         public void Dispose()
         {
-            if (_characterWindow != null)
-            {
-                s_windowPool.Free(_characterWindow);
-                _characterWindow = null!;
-                _strings.Free();
-            }
+            Debug.Assert(!_disposed);
+            _disposed = true;
+
+            s_windowPool.Free(_characterWindow);
+            _strings.Free();
         }
 
         public SourceText Text => _text;
@@ -168,24 +169,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
-                if (_characterWindowCount >= _characterWindow.Length)
-                {
-                    // grow char array, since we need more contiguous space
-                    char[] oldWindow = _characterWindow;
-                    char[] newWindow = new char[_characterWindow.Length * 2];
-                    Array.Copy(oldWindow, 0, newWindow, 0, _characterWindowCount);
-                    s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
-                    _characterWindow = newWindow;
-                }
+                // var array = CharacterWindow.Array!;
+                var amountToRead = Math.Min(_text.Length - this.Position, _characterWindow.Length);
+                Debug.Assert(amountToRead >= 0, "amountToRead should be positive");
+                _text.CopyTo(this.Position, _characterWindow, 0, amountToRead);
 
-                int amountToRead = Math.Min(_textEnd - (_basis + _characterWindowCount),
-                    _characterWindow.Length - _characterWindowCount);
-                _text.CopyTo(_basis + _characterWindowCount,
-                    _characterWindow,
-                    _characterWindowCount,
-                    amountToRead);
-                _characterWindowCount += amountToRead;
-                return amountToRead > 0;
+                _characterWindowCount = amountToRead;
+                _basis = this.Position;
+                _offset = 0;
+                return true;
+
+                ////if (_characterWindowCount >= _characterWindow.Length)
+                ////{
+                ////    // grow char array, since we need more contiguous space
+                ////    char[] oldWindow = _characterWindow;
+                ////    char[] newWindow = new char[_characterWindow.Length * 2];
+                ////    Array.Copy(oldWindow, 0, newWindow, 0, _characterWindowCount);
+                ////    s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
+                ////    _characterWindow = newWindow;
+                ////}
+
+                //int amountToRead = Math.Min(_textEnd - (_basis + _characterWindowCount),
+                //    _characterWindow.Length - _characterWindowCount);
+                //_text.CopyTo(_basis + _characterWindowCount,
+                //    _characterWindow,
+                //    _characterWindowCount,
+                //    amountToRead);
+                //_characterWindowCount += amountToRead;
+                //return amountToRead > 0;
             }
 
             return true;
@@ -380,6 +391,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string GetText(int position, int length, bool intern)
         {
+            var textStart = position;
+            var textEnd = textStart + length;
+            if (position < this.CharacterWindowStartPositionInText || position > this.CharacterWindowEndPositionInText)
+                return _text.ToString(new TextSpan(position, length));
+
             int offset = position - _basis;
 
             // PERF: Whether interning or not, there are some frequently occurring
@@ -453,7 +469,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private readonly SlidingTextWindow _window = window;
 
             internal void SetDefaultCharacterWindow()
-                => _window._characterWindow = new char[DefaultWindowLength];
+            {
+                //_window._characterWindow = new char[DefaultWindowLength];
+            }
         }
     }
 }
