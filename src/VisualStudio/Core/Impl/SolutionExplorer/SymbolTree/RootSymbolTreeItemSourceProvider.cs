@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.Util;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,6 +24,7 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -44,7 +45,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     /// of that file through that project.
     /// </summary>
     /// <remarks>Lock this instance when reading/writing as it is used over different threads.</remarks>
-    private readonly MultiDictionary<string, RootSymbolTreeItemCollectionSource> _filePathToCollectionSources = new(
+    private readonly Dictionary<string, List<RootSymbolTreeItemCollectionSource>> _filePathToCollectionSources = new(
         StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -116,7 +117,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         lock (_filePathToCollectionSources)
         {
             foreach (var filePath in updatedFilePaths)
-                sources.AddRange(_filePathToCollectionSources[filePath]);
+            {
+                if (_filePathToCollectionSources.TryGetValue(filePath, out var pathSources))
+                    sources.AddRange(pathSources);
+            }
         }
 
         // Update all the affected documents in parallel.
@@ -166,7 +170,9 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         lock (_filePathToCollectionSources)
-            _filePathToCollectionSources.Add(currentFilePath, source);
+        {
+            _filePathToCollectionSources.MultiAdd(currentFilePath, source);
+        }
 
         // Register to hear about if this hierarchy is disposed. We'll stop watching it if so.
         item.PropertyChanged += OnItemPropertyChanged;
@@ -181,7 +187,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 // event for the IsDisposed property. When this fires, we remove the filePath->sourcce mapping we're holding.
                 lock (_filePathToCollectionSources)
                 {
-                    _filePathToCollectionSources.Remove(currentFilePath, source);
+                    _filePathToCollectionSources.MultiRemove(currentFilePath, source);
                 }
 
                 item.PropertyChanged -= OnItemPropertyChanged;
@@ -195,8 +201,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     {
 
                         // Unlink the oldPath->source mapping, and add a new line for the newPath->source.
-                        _filePathToCollectionSources.Remove(currentFilePath, source);
-                        _filePathToCollectionSources.Add(newPath, source);
+                        _filePathToCollectionSources.MultiRemove(currentFilePath, source);
+                        _filePathToCollectionSources.MultiAdd(newPath, source);
 
                         // Keep track of the 'newPath'.
                         currentFilePath = newPath;

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-#if !CODE_STYLE
+#if WORKSPACE
 using Humanizer;
 #endif
 
@@ -204,7 +204,7 @@ internal static partial class SemanticModelExtensions
 
     public static string Pluralize(string word)
     {
-#if CODE_STYLE
+#if !WORKSPACE
         return word;
 #else
         return word.Pluralize();

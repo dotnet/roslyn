@@ -95,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
+            // https://github.com/dotnet/roslyn/issues/76130: Add test coverage for this code path
+
             BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, leaveUnconvertedIfInterpolatedString: false);
             switch (comparison)
             {

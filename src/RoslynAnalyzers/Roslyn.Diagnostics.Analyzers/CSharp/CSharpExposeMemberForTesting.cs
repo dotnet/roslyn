@@ -10,6 +10,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Diagnostics.Analyzers;
 

@@ -25,7 +25,7 @@ internal static partial class SyntaxGeneratorExtensions
         return CodeGenerationSymbolFactory.CreateConstructorSymbol(
             attributes: default,
             accessibility: Accessibility.Public,
-            modifiers: new DeclarationModifiers(),
+            modifiers: DeclarationModifiers.None,
             typeName: typeName,
             parameters: constructor.Parameters,
             statements: default,

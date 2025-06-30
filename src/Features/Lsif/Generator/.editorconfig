@@ -1,8 +1,0 @@
-﻿# This .editorconfig customizes some diagnostic rules that are specific to this project.
-
-[*.cs]
-dotnet_diagnostic.CA2007.severity = none # Disable warnings about ConfigureAwait, since this is a console app
-dotnet_diagnostic.VSTHRD111.severity = none # Disable warnings about ConfigureAwait, since this is a console app
-
-# CA2016: Forward the 'CancellationToken' parameter to methods
-dotnet_diagnostic.CA2016.severity = warning

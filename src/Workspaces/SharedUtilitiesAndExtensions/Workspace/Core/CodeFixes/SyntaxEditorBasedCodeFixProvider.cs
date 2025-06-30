@@ -21,6 +21,10 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
 
     private readonly bool _supportsFixAll = supportsFixAll;
 
+#if WORKSPACE
+    protected virtual CodeActionCleanup Cleanup => CodeActionCleanup.Default;
+#endif
+
     public sealed override FixAllProvider? GetFixAllProvider()
     {
         if (!_supportsFixAll)
@@ -43,7 +47,11 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
 
                 return await FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
             },
-            s_defaultSupportedFixAllScopes);
+            s_defaultSupportedFixAllScopes
+#if WORKSPACE
+            , this.Cleanup
+#endif
+            );
     }
 
     protected void RegisterCodeFix(CodeFixContext context, string title, string equivalenceKey, Diagnostic? diagnostic = null)

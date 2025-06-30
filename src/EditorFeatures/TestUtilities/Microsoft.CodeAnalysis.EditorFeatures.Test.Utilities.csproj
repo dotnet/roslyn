@@ -22,9 +22,7 @@
   <ItemGroup>
     <PackageReference Include="Moq" />
     <PackageReference Include="BasicUndo" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="IdeBenchmarks" />

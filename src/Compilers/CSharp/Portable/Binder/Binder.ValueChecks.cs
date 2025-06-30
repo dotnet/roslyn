@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test with indexers (ie. "method") and in compound assignment (ie. "setMethod")
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test in compound assignment (ie. "setMethod")
                 return new MethodInfo(symbol, method, setMethod);
 
                 static MethodSymbol? replace(MethodSymbol? method)
@@ -3030,13 +3030,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            inferDeclarationExpressionValEscape();
+            inferDeclarationExpressionValEscape(argsOpt, localScopeDepth, escapeValues);
 
             mixableArguments.Free();
             escapeValues.Free();
             return valid;
 
-            void inferDeclarationExpressionValEscape()
+            void inferDeclarationExpressionValEscape(ImmutableArray<BoundExpression> argsOpt, SafeContext localScopeDepth, ArrayBuilder<EscapeValue> escapeValues)
             {
                 // find the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.

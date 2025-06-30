@@ -1214,7 +1214,7 @@ internal sealed partial class SolutionState
         IReadOnlyList<ProjectId> projectIds,
         ImmutableArray<ProjectState> sortedNewProjectStates)
     {
-        var map = sortedNewProjectStates.Select(state => KeyValuePairUtil.Create(
+        var map = sortedNewProjectStates.Select(state => KeyValuePair.Create(
                 state.Id,
                 state.ProjectReferences.Where(pr => GetProjectState(sortedNewProjectStates, pr.ProjectId) != null).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                 .ToImmutableDictionary();

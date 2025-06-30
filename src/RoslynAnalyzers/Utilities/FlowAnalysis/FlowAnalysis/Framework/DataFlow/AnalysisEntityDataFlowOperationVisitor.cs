@@ -9,12 +9,12 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
-using Analyzer.Utilities.PooledObjects;
-using Analyzer.Utilities.PooledObjects.Extensions;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             base.ProcessOutOfScopeLocalsAndFlowCaptures(locals, flowCaptures);
 
-            using var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var allEntities);
             AddTrackedEntities(allEntities);
 
             // Stop tracking entities for locals and capture Ids that are now out of scope.
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
             if (!parameterEntities.IsEmpty)
             {
-                using var allEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var allEntities);
                 AddTrackedEntities(allEntities);
 
                 foreach (var (parameter, parameterEntity) in parameterEntities)
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected override TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData? existingData, IOperation operation)
         {
             // Get tracked entities.
-            using var entitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var entitiesBuilder);
             AddTrackedEntities(entitiesBuilder);
 
             // Only non-child entities are tracked for now.
@@ -487,12 +487,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     isLambdaOrLocalFunction, hasParameterWithDelegateType);
             }
 
-            using var candidateEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            using var interproceduralEntitiesToRetainBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-            using var worklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
-            using var worklistPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
-            using var processedPointsToValues = PooledHashSet<PointsToAbstractValue>.GetInstance();
-            using var childWorklistEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+            using var _1 = PooledHashSet<AnalysisEntity>.GetInstance(out var candidateEntitiesBuilder);
+            using var _2 = PooledHashSet<AnalysisEntity>.GetInstance(out var interproceduralEntitiesToRetainBuilder);
+            using var _3 = PooledHashSet<AnalysisEntity>.GetInstance(out var worklistEntities);
+            using var _4 = PooledHashSet<PointsToAbstractValue>.GetInstance(out var worklistPointsToValues);
+            using var _5 = PooledHashSet<PointsToAbstractValue>.GetInstance(out var processedPointsToValues);
+            using var _6 = PooledHashSet<AnalysisEntity>.GetInstance(out var childWorklistEntities);
 
             // All tracked entities are candidates to be retained for initial interprocedural
             // analysis data.
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 AnalysisDataForUnhandledThrowOperations != null &&
                 AnalysisDataForUnhandledThrowOperations.Values.Any(HasAnyAbstractValue))
             {
-                using var allAnalysisEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                using var _ = PooledHashSet<AnalysisEntity>.GetInstance(out var allAnalysisEntities);
 
                 foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
                 {

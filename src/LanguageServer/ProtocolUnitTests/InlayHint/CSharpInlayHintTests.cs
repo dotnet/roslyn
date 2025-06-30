@@ -3,17 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
-using Roslyn.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
-using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint;
 

@@ -76,7 +76,7 @@ internal sealed partial class PartialTypeCompletionProvider : AbstractPartialTyp
         => syntax is BaseTypeDeclarationSyntax declarationSyntax && declarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword);
 
     protected override ImmutableArray<KeyValuePair<string, string>> GetProperties(INamedTypeSymbol symbol, CSharpSyntaxContext context)
-        => [KeyValuePairUtil.Create(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier())];
+        => [KeyValuePair.Create(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier())];
 
     public override async Task<TextChange?> GetTextChangeAsync(
         Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)

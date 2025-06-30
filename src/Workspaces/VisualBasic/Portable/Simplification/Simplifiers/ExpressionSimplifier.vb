@@ -6,7 +6,6 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -21,12 +20,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         Private Sub New()
         End Sub
 
-        Public Overrides Function TrySimplify(expression As ExpressionSyntax,
-                                              semanticModel As SemanticModel,
-                                              options As VisualBasicSimplifierOptions,
-                                              ByRef replacementNode As ExpressionSyntax,
-                                              ByRef issueSpan As TextSpan,
-                                              cancellationToken As CancellationToken) As Boolean
+        Public Overrides Function TrySimplify(
+                expression As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                options As VisualBasicSimplifierOptions,
+                ByRef replacementNode As ExpressionSyntax,
+                ByRef issueSpan As TextSpan,
+                cancellationToken As CancellationToken) As Boolean
 
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
             If memberAccessExpression?.Expression?.Kind() = SyntaxKind.MeExpression Then

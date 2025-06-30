@@ -44,7 +44,7 @@ internal static class CommonCompletionItem
 
         if (!description.IsDefault && description.Length > 0)
         {
-            properties = properties.NullToEmpty().Add(KeyValuePairUtil.Create(DescriptionProperty, EncodeDescription(description.ToTaggedText())));
+            properties = properties.NullToEmpty().Add(KeyValuePair.Create(DescriptionProperty, EncodeDescription(description.ToTaggedText())));
         }
 
         return CompletionItem.CreateInternal(

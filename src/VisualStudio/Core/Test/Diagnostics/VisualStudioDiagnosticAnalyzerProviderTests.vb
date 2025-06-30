@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
@@ -62,20 +61,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
-        Public Sub GetRazorReferencesInExtensions()
-            Dim extensionManager = New VisualStudioDiagnosticAnalyzerProvider(
-                New MockExtensionManager({({"razorPath1", "razorPath2"}, "RazorVsix")}, contentType:="Microsoft.VisualStudio.RazorAssembly"),
-                GetType(MockExtensionManager.MockContent))
-
-            Dim references = extensionManager.GetRazorAssembliesInExtensions()
-
-            AssertEx.SetEqual(
-            {
-                Path.Combine(TempRoot.Root, "InstallPath\razorPath1"),
-                Path.Combine(TempRoot.Root, "InstallPath\razorPath2")
-            },
-            references.Select(Function(pathAndId) pathAndId.path))
-        End Sub
     End Class
 End Namespace

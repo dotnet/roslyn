@@ -10,9 +10,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -67,53 +67,6 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     public readonly struct RunningProjectInfo
     {
         public required bool RestartWhenChangesHaveNoEffect { get; init; }
-    }
-
-    [Obsolete("Use Updates2")]
-    public readonly struct Updates(
-        ModuleUpdateStatus status,
-        ImmutableArray<Diagnostic> diagnostics,
-        ImmutableArray<Update> projectUpdates,
-        IReadOnlySet<Project> projectsToRestart,
-        IReadOnlySet<Project> projectsToRebuild)
-    {
-        /// <summary>
-        /// Status of the updates.
-        /// </summary>
-        public readonly ModuleUpdateStatus Status { get; } = status;
-
-        /// <summary>
-        /// Hot Reload specific diagnostics to be reported (includes rude edits and emit errors).
-        /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
-
-        /// <summary>
-        /// Updates to be applied to modules. Empty if there are blocking rude edits.
-        /// Only updates to projects that are not included in <see cref="ProjectsToRebuild"/> are listed.
-        /// </summary>
-        public ImmutableArray<Update> ProjectUpdates { get; } = projectUpdates;
-
-        /// <summary>
-        /// Running projects that need to be restarted due to rude edits in order to apply changes.
-        /// </summary>
-        [Obsolete("Use ProjectIdsToRestart")]
-        public IReadOnlySet<Project> ProjectsToRestart { get; } = projectsToRestart;
-
-        /// <summary>
-        /// Projects with changes that need to be rebuilt in order to apply changes.
-        /// </summary>
-        [Obsolete("Use ProjectIdsToRebuild")]
-        public IReadOnlySet<Project> ProjectsToRebuild { get; } = projectsToRebuild;
-
-        /// <summary>
-        /// Running projects that need to be restarted due to rude edits in order to apply changes.
-        /// </summary>
-        public ImmutableArray<ProjectId> ProjectIdsToRestart { get; } = projectsToRestart.SelectAsArray(p => p.Id);
-
-        /// <summary>
-        /// Projects with changes that need to be rebuilt in order to apply changes.
-        /// </summary>
-        public ImmutableArray<ProjectId> ProjectIdsToRebuild { get; } = projectsToRebuild.SelectAsArray(p => p.Id);
     }
 
     public enum Status
@@ -233,48 +186,8 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     public static string? GetTargetFramework(Project project)
         => project.State.NameAndFlavor.flavor;
 
-    [Obsolete]
-    public async Task<Updates> GetUpdatesAsync(Solution solution, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken)
-    {
-        var sessionId = GetDebuggingSession();
-
-        var runningProjectsImpl = runningProjects.ToImmutableDictionary(keySelector: p => p, elementSelector: _ => new EditAndContinue.RunningProjectInfo()
-        {
-            RestartWhenChangesHaveNoEffect = false,
-            AllowPartialUpdate = false
-        });
-
-        var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjectsImpl, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-        // If the changes fail to apply dotnet-watch fails.
-        // We don't support discarding the changes and letting the user retry.
-        if (!results.ModuleUpdates.Updates.IsEmpty)
-        {
-            _encService.CommitSolutionUpdate(sessionId);
-        }
-
-        var diagnostics = results.GetAllDiagnostics();
-
-        var projectUpdates =
-            from update in results.ModuleUpdates.Updates
-            let project = solution.GetRequiredProject(update.ProjectId)
-            where !results.ProjectsToRestart.ContainsKey(project.Id)
-            select new Update(
-                update.Module,
-                project.Id,
-                update.ILDelta,
-                update.MetadataDelta,
-                update.PdbDelta,
-                update.UpdatedTypes,
-                update.RequiredCapabilities);
-
-        return new Updates(
-            results.ModuleUpdates.Status,
-            diagnostics,
-            [.. projectUpdates],
-            results.ProjectsToRestart.Keys.Select(solution.GetRequiredProject).ToImmutableHashSet(),
-            results.ProjectsToRebuild.Select(solution.GetRequiredProject).ToImmutableHashSet());
-    }
+    // TODO: remove, for backwards compat only
+    public static bool RequireCommit { get; set; }
 
     /// <summary>
     /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or
@@ -296,14 +209,14 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             static e => new EditAndContinue.RunningProjectInfo()
             {
                 RestartWhenChangesHaveNoEffect = e.Value.RestartWhenChangesHaveNoEffect,
-                AllowPartialUpdate = true
+                AllowPartialUpdate = RequireCommit
             });
 
         var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjectsImpl, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         // If the changes fail to apply dotnet-watch fails.
         // We don't support discarding the changes and letting the user retry.
-        if (!results.ModuleUpdates.Updates.IsEmpty)
+        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready && results.ProjectsToRebuild.IsEmpty)
         {
             _encService.CommitSolutionUpdate(sessionId);
         }
@@ -313,7 +226,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             Status = results.ModuleUpdates.Status switch
             {
                 ModuleUpdateStatus.None => Status.NoChangesToApply,
-                ModuleUpdateStatus.Ready or ModuleUpdateStatus.RestartRequired => Status.ReadyToApply,
+                ModuleUpdateStatus.Ready => Status.ReadyToApply,
                 ModuleUpdateStatus.Blocked => Status.Blocked,
                 _ => throw ExceptionUtilities.UnexpectedValue(results.ModuleUpdates.Status)
             },
@@ -330,6 +243,18 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             ProjectsToRestart = results.ProjectsToRestart,
             ProjectsToRebuild = results.ProjectsToRebuild
         };
+    }
+
+    public void CommitUpdate()
+    {
+        var sessionId = GetDebuggingSession();
+        _encService.CommitSolutionUpdate(sessionId);
+    }
+
+    public void DiscardUpdate()
+    {
+        var sessionId = GetDebuggingSession();
+        _encService.DiscardSolutionUpdate(sessionId);
     }
 
     public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> projectIds)

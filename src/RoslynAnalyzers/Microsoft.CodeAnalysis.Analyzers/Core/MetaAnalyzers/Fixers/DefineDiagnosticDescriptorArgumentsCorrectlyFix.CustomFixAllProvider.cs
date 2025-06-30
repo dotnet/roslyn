@@ -9,10 +9,11 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
@@ -128,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                         var fixInfos = kvp.Value;
 
                         var text = await additionalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        using var textChanges = ArrayBuilder<TextChange>.GetInstance(fixInfos.Count);
-                        using var seenInputSpansToFix = PooledHashSet<TextSpan>.GetInstance();
+                        using var _1 = ArrayBuilder<TextChange>.GetInstance(fixInfos.Count, out var textChanges);
+                        using var _2 = PooledHashSet<TextSpan>.GetInstance(out var seenInputSpansToFix);
                         foreach (var fixInfo in fixInfos)
                         {
                             var inputSpanToFix = fixInfo.AdditionalDocumentSpanToFix!.Value;

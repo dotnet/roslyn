@@ -73,8 +73,6 @@ public partial class FixAllContext : IFixAllContext
     #region IFixAllContext implementation
     IFixAllState IFixAllContext.State => this.State;
 
-    IFixAllProvider IFixAllContext.FixAllProvider => this.FixAllProvider;
-
     object IFixAllContext.Provider => this.CodeFixProvider;
 
     string IFixAllContext.GetDefaultFixAllTitle()

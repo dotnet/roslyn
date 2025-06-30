@@ -4,8 +4,6 @@
 
 #nullable disable warnings
 
-#if HAS_IOPERATION
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,8 +11,8 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Lightup;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #if LEGACY_CODE_METRICS_MODE
 using Analyzer.Utilities.Extensions;
@@ -201,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             ComputationalComplexityMetrics computationalComplexityMetrics = ComputationalComplexityMetrics.Default;
 
             var nodesToProcess = new Queue<SyntaxNode>();
-            using var applicableAttributeNodes = PooledHashSet<SyntaxNode>.GetInstance();
+            using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var applicableAttributeNodes);
 
             foreach (var declaration in declarations)
             {
@@ -268,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                                 cyclomaticComplexity += 1;
                                 break;
 
-                            case OperationKindEx.Attribute:
+                            case OperationKind.Attribute:
                             case OperationKind.None:
                                 // Skip non-applicable attributes.
                                 if (!applicableAttributeNodes.Contains(node))
@@ -392,9 +390,9 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                     or SpecialType.System_ValueType
                     or SpecialType.System_Void => true,
                     _ => namedType.IsAnonymousType
-                        || namedType.GetAttributes().Any(static (a, wellKnownTypeProvider) =>
+                        || namedType.GetAttributes().Any((a) =>
                             a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeCompilerServicesCompilerGeneratedAttribute)) ||
-                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute)), wellKnownTypeProvider),
+                            a.AttributeClass.Equals(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemCodeDomCompilerGeneratedCodeAttribute))),
                 };
             }
         }
@@ -420,5 +418,3 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
     }
 }
-
-#endif

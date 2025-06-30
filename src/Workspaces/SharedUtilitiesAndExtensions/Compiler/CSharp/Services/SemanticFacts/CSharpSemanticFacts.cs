@@ -406,7 +406,11 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         };
 
     private static IPreprocessingSymbol? CreatePreprocessingSymbol(SemanticModel model, SyntaxToken identifier)
+#if !ROSLYN_4_12_OR_LOWER
         => model.Compilation.CreatePreprocessingSymbol(identifier.ValueText);
+#else
+        => null;
+#endif
 
     private static bool IsInPreprocessingSymbolContext(SyntaxNode node)
         => node.Ancestors().Any(n => n.Kind() is
@@ -418,7 +422,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         => typeSymbol.TryGetPrimaryConstructor(out primaryConstructor);
 
-#if !CODE_STYLE
+#if CSHARP_WORKSPACE
 
     public async Task<ISymbol?> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)
     {

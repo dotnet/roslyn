@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis
                     return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg));
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
+                    var builder = new FixedSizeArrayBuilder<TResult>(items.Length);
                     for (int i = 0; i < items.Length; i++)
                     {
                         builder.Add(map(items[i], i, arg));
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return builder.MoveToImmutable();
             }
         }
 
@@ -518,12 +518,13 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<TResult>.Empty;
             }
 
-            var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
+            var builder = new FixedSizeArrayBuilder<TResult>(self.Length);
             for (int i = 0; i < self.Length; i++)
             {
                 builder.Add(map(self[i], other[i], i, arg));
             }
-            return builder.ToImmutableAndFree();
+
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -806,12 +807,25 @@ namespace Microsoft.CodeAnalysis
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+            => array.HasDuplicates(EqualityComparer<T>.Default);
+
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
+            => array.HasDuplicates(static x => x, comparer);
+
+        public static bool HasDuplicates<TItem, TValue>(this ImmutableArray<TItem> array, Func<TItem, TValue> selector)
+            => array.HasDuplicates(selector, EqualityComparer<TValue>.Default);
+
         /// <summary>
-        /// Determines whether duplicates exist using default equality comparer.
+        /// Determines whether duplicates exist using given equality comparer.
         /// </summary>
         /// <param name="array">Array to search for duplicates</param>
         /// <returns>Whether duplicates were found</returns>
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+        /// <remarks>
+        /// API proposal: https://github.com/dotnet/runtime/issues/30582.
+        /// <seealso cref="Roslyn.Utilities.EnumerableExtensions.HasDuplicates{TItem, TValue}(IEnumerable{TItem}, Func{TItem, TValue}, IEqualityComparer{TValue})"/>
+        /// </remarks>
+        internal static bool HasDuplicates<TItem, TValue>(this ImmutableArray<TItem> array, Func<TItem, TValue> selector, IEqualityComparer<TValue> comparer)
         {
             switch (array.Length)
             {
@@ -820,56 +834,23 @@ namespace Microsoft.CodeAnalysis
                     return false;
 
                 case 2:
-                    return EqualityComparer<T>.Default.Equals(array[0], array[1]);
+                    return comparer.Equals(selector(array[0]), selector(array[1]));
 
                 default:
-                    var set = PooledHashSet<T>.GetInstance();
-                    var foundDuplicate = false;
+                    var set = comparer == EqualityComparer<TValue>.Default ? PooledHashSet<TValue>.GetInstance() : new HashSet<TValue>(comparer);
+                    var result = false;
 
                     foreach (var element in array)
                     {
-                        if (!set.Add(element))
+                        if (!set.Add(selector(element)))
                         {
-                            foundDuplicate = true;
+                            result = true;
                             break;
                         }
                     }
 
-                    set.Free();
-                    return foundDuplicate;
-            }
-        }
-
-        /// <summary>
-        /// Determines whether duplicates exist using <paramref name="comparer"/>. Use other override
-        /// if you don't need a custom comparer.
-        /// </summary>
-        /// <param name="array">Array to search for duplicates</param>
-        /// <param name="comparer">Comparer to use in search</param>
-        /// <returns>Whether duplicates were found</returns>
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
-        {
-            switch (array.Length)
-            {
-                case 0:
-                case 1:
-                    return false;
-
-                case 2:
-                    comparer ??= EqualityComparer<T>.Default;
-                    return comparer.Equals(array[0], array[1]);
-
-                default:
-                    var set = new HashSet<T>(comparer);
-                    foreach (var element in array)
-                    {
-                        if (!set.Add(element))
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
+                    (set as PooledHashSet<TValue>)?.Free();
+                    return result;
             }
         }
 
@@ -1050,6 +1031,99 @@ namespace Microsoft.CodeAnalysis
             set.Free();
             return true;
         }
+
+        #region Binary Compat
+
+        // These helpers should be in System.Linq namespace below.  However, they are currently
+        // used by partners with IVT access to Roslyn, so they have to stay here for now.
+
+        /// <summary>
+        /// Specialization of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/> for <see cref="ImmutableArray{T}"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+            => first.AddRange(second);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
+        {
+            var builder = new T[first.Length + second.Length + third.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+            index += fourth.Length;
+            fifth.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+            index += fourth.Length;
+            fifth.CopyTo(builder, index);
+            index += fifth.Length;
+            sixth.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        #endregion
     }
 }
 
@@ -1189,150 +1263,10 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Specialization of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/> for <see cref="ImmutableArray{T}"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-            => first.AddRange(second);
-
-        /// <summary>
         /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
         /// </summary>
         public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
             => first.Add(second);
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
-        {
-            var builder = new T[first.Length + second.Length + third.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        /// <summary>
-        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
-        /// </summary>
-        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in sixth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
 
         /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.
