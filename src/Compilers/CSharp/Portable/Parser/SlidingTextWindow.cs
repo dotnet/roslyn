@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Advance the current position by n. No guarantee that this position
-        /// is valid.
+        /// Advance the current position by n. No guarantee that this position is valid.  This will <em>not</em> change the character window
+        /// in any way.  Specifically, it will not create a new character window, nor will it change the contents of the current window.
         /// </summary>
         public void AdvanceChar(int n)
         {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -193,19 +194,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             this.Start();
             var state = QuickScanState.Initial;
-            int i = TextWindow.Offset;
-            int n = TextWindow.CharacterWindowCount;
-            n = Math.Min(n, i + MaxCachedTokenSize);
+
+            var charWindow = TextWindow.CharacterWindow;
+            var startIndex = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
+            var currentIndex = startIndex;
+            var n = charWindow.Length;
+
+            n = Math.Min(n, currentIndex + MaxCachedTokenSize);
 
             int hashCode = Hash.FnvOffsetBias;
 
             //localize frequently accessed fields
-            var charWindow = TextWindow.CharacterWindow;
             var charPropLength = CharProperties.Length;
 
-            for (; i < n; i++)
+            for (; currentIndex < n; currentIndex++)
             {
-                char c = charWindow[i];
+                char c = charWindow[currentIndex];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -228,16 +232,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             state = QuickScanState.Bad; // ran out of characters in window
 exitWhile:
 
-            TextWindow.AdvanceChar(i - TextWindow.Offset);
+// Note: it is fine to change this position here and then read from charWindow below.  AdvanceChar guarantees
+// that it will not actually mutate that state.
+            TextWindow.AdvanceChar(currentIndex - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
                 var token = _cache.LookupToken(
-                    TextWindow.CharacterWindow,
-                    TextWindow.LexemeRelativeStart,
-                    i - TextWindow.LexemeRelativeStart,
+                    charWindow,
+                    keyStart: startIndex,
+                    keyLength: currentIndex - startIndex,
                     hashCode,
                     CreateQuickToken,
                     this);

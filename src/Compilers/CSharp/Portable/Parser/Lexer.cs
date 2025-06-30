@@ -2336,13 +2336,10 @@ top:
 
                 if (width < MaxCachedTokenSize)
                 {
-                    return _cache.LookupTrivia(
-                        TextWindow.CharacterWindow,
-                        TextWindow.LexemeRelativeStart,
-                        width,
-                        hashCode,
-                        CreateWhitespaceTrivia,
-                        TextWindow);
+                    return _cache.LookupWhitespaceTrivia(
+                        TextWindow,
+                        this.LexemeStartPosition,
+                        hashCode);
                 }
                 else
                 {
