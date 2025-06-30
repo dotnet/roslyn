@@ -340,12 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public char PreviousChar()
         {
             Debug.Assert(this.Position > 0);
-            if (_offset > 0)
+            var readPosition = this.Position - 1;
+            if (readPosition >= this.CharacterWindowStartPositionInText &&
+                readPosition < this.CharacterWindowEndPositionInText)
             {
-                // The allowed region of the window that can be read is from 0 to _characterWindowCount (which _offset
-                // is in between).  So as long as _offset is greater than 0, we can read the previous character directly
-                // from the current chunk of characters in the window.
-                return this.CharacterWindow[_offset - 1];
+                return this.CharacterWindow[readPosition - _basis];
             }
 
             // The prior character isn't in the window (trying to read the current character caused us to
@@ -353,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Just go back to the source text to find this character.  While more expensive, this should
             // be rare given that most of the time we won't be calling this right after loading a new text
             // chunk.
-            return this.Text[this.Position - 1];
+            return this.Text[readPosition];
         }
 
         /// <summary>
