@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
@@ -27,7 +28,7 @@ internal interface IIntentSourceProvider
 internal readonly struct IntentRequestContext(string intentName, SnapshotSpan currentSnapshotSpan, ImmutableArray<TextChange> textEditsToPrior, TextSpan priorSelection, string? intentData)
 {
     /// <summary>
-    /// The intent name.  WellKnownIntents contains all intents roslyn knows how to handle.
+    /// The intent name.  <see cref="WellKnownIntents"/> contains all intents roslyn knows how to handle.
     /// </summary>
     public string IntentName { get; } = intentName ?? throw new ArgumentNullException(nameof(intentName));
 
