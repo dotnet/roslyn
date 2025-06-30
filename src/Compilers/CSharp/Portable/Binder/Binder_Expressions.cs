@@ -1646,6 +1646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(members.Count > 0);
 
                     var receiver = SynthesizeMethodGroupReceiver(node, members);
+                    Debug.Assert(GetValueExpressionIfTypeOrValueReceiver(receiver) is null);
+
                     expression = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                         node,
                         typeArgumentList,
@@ -8103,7 +8105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (searchExtensionsIfNecessary)
                 {
                     var members = ArrayBuilder<Symbol>.GetInstance();
-                    boundLeft = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(boundLeft, rightName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
+                    boundLeft = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(boundLeft, right, rightName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
                     members.Free();
 
                     if (!invoked)
@@ -8415,7 +8417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the receiver of the method group, even though the spec notes that there is
                 // no associated instance expression.)
 
-                left = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(left, plainName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
+                left = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(left, right, plainName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
 
                 result = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                     node,

@@ -1469,7 +1469,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(BoundExpression receiver, string plainName, ImmutableArray<TypeWithAnnotations> typeArguments, bool invoked, ArrayBuilder<Symbol> members, BindingDiagnosticBag diagnostics)
+        private BoundExpression CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(BoundExpression receiver, SyntaxNode right, string plainName,
+            ImmutableArray<TypeWithAnnotations> typeArguments, bool invoked, ArrayBuilder<Symbol> members, BindingDiagnosticBag diagnostics)
         {
             if (!isPossiblyCapturingPrimaryConstructorParameterReference(receiver, out ParameterSymbol parameter))
             {
@@ -1509,6 +1510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (haveStaticCandidates)
             {
                 receiver = ReplaceTypeOrValueReceiver(receiver, useType: true, diagnostics);
+            }
+            else
+            {
+                Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, right, receiver.Type, plainName);
+                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [receiver], receiver.Type, hasErrors: true).MakeCompilerGenerated();
             }
 
             return receiver;
