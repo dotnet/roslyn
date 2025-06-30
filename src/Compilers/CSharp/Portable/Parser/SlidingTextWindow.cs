@@ -393,8 +393,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var textStart = position;
             var textEnd = textStart + length;
-            if (position < this.CharacterWindowStartPositionInText || position > this.CharacterWindowEndPositionInText)
-                return _text.ToString(new TextSpan(position, length));
+            if (textStart < this.CharacterWindowStartPositionInText || textEnd > this.CharacterWindowEndPositionInText)
+                return _text.ToString(TextSpan.FromBounds(textStart, textEnd));
 
             int offset = position - _basis;
 
