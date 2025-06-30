@@ -429,6 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case ' ': return " ";
                         case '\n': return "\n";
                     }
+
                     break;
 
                 case 2:
@@ -437,6 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         case ('\r', '\n'): return "\r\n";
                         case ('/', '/'): return "//";
                     }
+
                     break;
 
                 case 3:
