@@ -478,18 +478,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return (char)((codepoint - 0x00010000) / 0x0400 + 0xD800);
             }
         }
-
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        internal readonly struct TestAccessor(SlidingTextWindow window)
-        {
-            private readonly SlidingTextWindow _window = window;
-
-            internal void SetDefaultCharacterWindow()
-            {
-                //_window._characterWindow = new char[DefaultWindowLength];
-            }
-        }
     }
 }
