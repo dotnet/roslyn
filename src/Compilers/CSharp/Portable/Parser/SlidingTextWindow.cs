@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Advance the current position by one. No guarantee that this
-        /// position is valid.
+        /// Advance the current position by one. No guarantee that this position is valid.  This will <em>not</em> change the character window
+        /// in any way.  Specifically, it will not create a new character window, nor will it change the contents of the current window.
         /// </summary>
         public void AdvanceChar()
         {
@@ -398,6 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Interlocked.Add(ref TotalTextSize, length);
 #endif
 
+            // If the chunk being grabbed is not within the bounds of what is in the character window,
+            // then grab it from the source text.  See docs at top of file for details on how common
+            // this is.
             if (textStart < this.CharacterWindowStartPositionInText || textEnd > this.CharacterWindowEndPositionInText)
             {
 #if TRACING
@@ -418,29 +421,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // easy cases we can pick off easily.
             switch (length)
             {
-                case 0:
-                    return string.Empty;
+                case 0: return string.Empty;
 
                 case 1:
-                    if (_characterWindow[offset] == ' ')
+                    switch (_characterWindow[offset])
                     {
-                        return " ";
-                    }
-                    if (_characterWindow[offset] == '\n')
-                    {
-                        return "\n";
+                        case ' ': return " ";
+                        case '\n': return "\n";
                     }
                     break;
 
                 case 2:
-                    char firstChar = _characterWindow[offset];
-                    if (firstChar == '\r' && _characterWindow[offset + 1] == '\n')
+                    switch (_characterWindow[offset], _characterWindow[offset + 1])
                     {
-                        return "\r\n";
-                    }
-                    if (firstChar == '/' && _characterWindow[offset + 1] == '/')
-                    {
-                        return "//";
+                        case ('\r', '\n'): return "\r\n";
+                        case ('/', '/'): return "//";
                     }
                     break;
 
@@ -452,14 +447,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
             }
 
-            if (intern)
-            {
-                return this.Intern(_characterWindow, offset, length);
-            }
-            else
-            {
-                return new string(_characterWindow, offset, length);
-            }
+            return intern
+                ? this.Intern(_characterWindow, offset, length)
+                : new string(_characterWindow, offset, length);
         }
 
         internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
