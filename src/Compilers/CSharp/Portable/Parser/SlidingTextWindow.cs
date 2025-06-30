@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if DEBUG
+// #define TRACE
+#endif
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -22,9 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     internal sealed class SlidingTextWindow : IDisposable
     {
-#if DEBUG
+#if TRACE
         public static int GetTextInsideWindowCount = 0;
         public static int GetTextOutsideWindowCount = 0;
+        public static long TotalTextSize = 0;
 #endif
 
         /// <summary>
@@ -41,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public const char InvalidCharacter = char.MaxValue;
 
-        private const int DefaultWindowLength = 2048;
+        private const int DefaultWindowLength = 4096;
 
         private readonly SourceText _text;                 // Source of text to parse.
         private int _basis;                                // Offset of the window relative to the SourceText start.
@@ -380,16 +385,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var textStart = position;
             var textEnd = textStart + length;
+#if TRACE
+            Interlocked.Add(ref TotalTextSize, length);
+#endif
+
             if (textStart < this.CharacterWindowStartPositionInText || textEnd > this.CharacterWindowEndPositionInText)
             {
-#if DEBUG
+#if TRACE
                 Interlocked.Increment(ref GetTextOutsideWindowCount);
 #endif
                 return _text.ToString(TextSpan.FromBounds(textStart, textEnd));
             }
             else
             {
-#if DEBUG
+#if TRACE
                 Interlocked.Increment(ref GetTextInsideWindowCount);
 #endif
             }
