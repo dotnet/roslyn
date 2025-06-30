@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -25,10 +26,11 @@ using static GenerateFromMembersHelpers;
     Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                 Before = PredefinedCodeRefactoringProviderNames.GenerateOverrides)]
+[IntentProvider(WellKnownIntents.AddConstructorParameter, LanguageNames.CSharp)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider()
-    : CodeRefactoringProvider
+        : CodeRefactoringProvider, IIntentProvider
 {
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -154,5 +156,38 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             return new AddConstructorParametersCodeAction(
                 document, info, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
         }
+    }
+
+    public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
+        Document priorDocument,
+        TextSpan priorSelection,
+        Document currentDocument,
+        IntentDataProvider intentDataProvider,
+        CancellationToken cancellationToken)
+    {
+        var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
+        if (addConstructorParametersResult == null)
+        {
+            return [];
+        }
+
+        var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
+        if (actions.IsEmpty)
+        {
+            return [];
+        }
+
+        var results = new FixedSizeArrayBuilder<IntentProcessorResult>(actions.Length);
+        foreach (var action in actions)
+        {
+            // Intents currently have no way to report progress.
+            var changedSolution = await action.GetChangedSolutionInternalAsync(
+                priorDocument.Project.Solution, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(changedSolution);
+            var intent = new IntentProcessorResult(changedSolution, [priorDocument.Id], action.Title, action.ActionName);
+            results.Add(intent);
+        }
+
+        return results.MoveToImmutable();
     }
 }
