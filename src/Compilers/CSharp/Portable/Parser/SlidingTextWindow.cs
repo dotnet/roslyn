@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// grab in the next chunk of characters from the source text, as only one in every 65 lexemes
         /// will need to go back to the source-text to read the full lexeme.
         /// </summary>
-        private const int DefaultWindowLength = 4096;
+        public const int DefaultWindowLength = 4096;
 
         private readonly SourceText _text;                 // Source of text to parse.
         private int _basis;                                // Offset of the window relative to the SourceText start.

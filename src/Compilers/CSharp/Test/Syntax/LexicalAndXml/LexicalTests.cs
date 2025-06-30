@@ -4577,9 +4577,16 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
         public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
         {
-            // This test depends on the line endings for the file being \r\n to ensure the right contents lines up at
-            // the right locations.
-            var code = new string('/', 2048 - 7) + "\r\n;\r\n.." + "0;";
+            // Make a file that looks effectively like:
+            //
+            //      ////// <long stream of slashes>
+            //      ;
+            //      ..0
+            //
+            // the first dot needs to be at the end of the window to ensure we look backwards across the window
+            // boundary when starting to consume the .0
+            var windowEnd = "\r\n;\r\n..";
+            var code = new string('/', SlidingTextWindow.DefaultWindowLength - windowEnd.Length) + windowEnd + "0;";
 
             var sourceText = SourceText.From(code);
 
@@ -4587,10 +4594,6 @@ class C
                 // Run a full parse, and validate the tree returned).
 
                 using var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
-
-                // Ensure we have a normal window size, not some larger array that another test created and cached in
-                // the window pool
-                lexer.TextWindow.GetTestAccessor().SetDefaultCharacterWindow();
 
                 using var parser = new LanguageParser(lexer, oldTree: null, changes: null);
 
@@ -4604,23 +4607,19 @@ class C
                 // (a dot token starting a number, right at the start of the character window).
                 var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
 
-                // Ensure we have a normal window size, not some larger array that another test created and cached in
-                // the window pool
-                lexer.TextWindow.GetTestAccessor().SetDefaultCharacterWindow();
-
                 var mode = LexerMode.Syntax;
                 var token1 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.SemicolonToken, token1.Kind);
-                Assert.Equal(2046, token1.FullWidth);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, token1.FullWidth);
 
-                Assert.Equal(2046, lexer.TextWindow.Offset);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, lexer.TextWindow.Offset);
                 var token2 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.DotToken, token2.Kind);
 
                 // We'll be at the end of the window so the next lex will read from the start of the window.
                 // This will be a dot token, which will demonstrate that we can look backwards one token to
                 // see that we're preceded by another dot, making this a `..` not the start of a number.
-                Assert.Equal(2047, lexer.TextWindow.Offset);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, lexer.TextWindow.Offset);
                 var token3 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.DotToken, token3.Kind);
 
