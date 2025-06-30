@@ -183,26 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia LookupTrivia<TArg>(
-            char[] textBuffer,
-            int keyStart,
-            int keyLength,
-            int hashCode,
-            Func<TArg, SyntaxTrivia> createTriviaFunction,
-            TArg data)
-        {
-            var value = TriviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
-
-            if (value == null)
-            {
-                value = createTriviaFunction(data);
-                TriviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
-            }
-
-            return value;
-        }
-
-
         internal SyntaxTrivia LookupWhitespaceTrivia(
             SlidingTextWindow textWindow,
             int lexemeStartPosition,
