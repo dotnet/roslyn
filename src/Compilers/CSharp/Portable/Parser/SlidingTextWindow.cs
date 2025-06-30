@@ -211,10 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// 
         /// Comments and string literals are allowed to contain any Unicode character.
         /// </summary>
-        /// <returns></returns>
         internal bool IsReallyAtEnd()
         {
-            return _offset >= _characterWindowCount && Position >= _textEnd;
+            return Position >= _textEnd;
         }
 
         /// <summary>
