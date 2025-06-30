@@ -7,12 +7,12 @@
 // define TRACE_LEAKS to get additional diagnostics that can lead to the leak sources. note: it will
 // make everything about 2-3x slower
 // 
-// #define TRACE_LEAKS
+#define TRACE_LEAKS
 
 // define DETECT_LEAKS to detect possible leaks
-// #if DEBUG
-// #define DETECT_LEAKS  //for now always enable DETECT_LEAKS in debug.
-// #endif
+#if DEBUG
+#define DETECT_LEAKS  //for now always enable DETECT_LEAKS in debug.
+#endif
 
 using System;
 using System.Diagnostics;

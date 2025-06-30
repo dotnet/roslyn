@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // The max index in charWindow that we will quick scan to.  This is either the end of the window
             // or the position of the largest token we'd be willing to quick scan and cache.
-            var maxIndexInWindow = Math.Min(charWindow.Length, startIndexInWindow + MaxCachedTokenSize);
+            var maxIndexInWindow = Math.Min(TextWindow.CharacterWindowCount, startIndexInWindow + MaxCachedTokenSize);
 
             int hashCode = Hash.FnvOffsetBias;
 
