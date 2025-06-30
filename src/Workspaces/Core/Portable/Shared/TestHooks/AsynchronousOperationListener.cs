@@ -22,7 +22,6 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
 
     private List<DiagnosticAsyncToken> _diagnosticTokenList = [];
     private int _counter;
-    private bool _trackActiveTokens;
 
     public AsynchronousOperationListener()
         : this(featureName: "noname", enableDiagnosticTokens: false)
@@ -94,7 +93,7 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
         using (_gate.DisposableWait(CancellationToken.None))
         {
             IAsyncToken asyncToken;
-            if (_trackActiveTokens)
+            if (TrackActiveTokens)
             {
                 var token = new DiagnosticAsyncToken(this, name, tag, filePath, lineNumber);
                 _diagnosticTokenList.Add(token);
@@ -134,7 +133,7 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
             oldSource.Dispose();
         }
 
-        if (_trackActiveTokens)
+        if (TrackActiveTokens)
         {
             var i = 0;
             var removed = false;
@@ -197,17 +196,17 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
 
     public bool TrackActiveTokens
     {
-        get { return _trackActiveTokens; }
+        get;
         set
         {
             using (_gate.DisposableWait(CancellationToken.None))
             {
-                if (_trackActiveTokens == value)
+                if (field == value)
                 {
                     return;
                 }
 
-                _trackActiveTokens = value;
+                field = value;
                 _diagnosticTokenList = [];
             }
         }

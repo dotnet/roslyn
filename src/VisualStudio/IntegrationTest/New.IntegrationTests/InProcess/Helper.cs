@@ -12,18 +12,16 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 internal static class Helper
 {
-    private static IUIAutomation2? _automation;
-
     public static IUIAutomation2 Automation
     {
         get
         {
-            if (_automation == null)
+            if (field == null)
             {
-                Interlocked.CompareExchange(ref _automation, new CUIAutomation8(), null);
+                Interlocked.CompareExchange(ref field, new CUIAutomation8(), null);
             }
 
-            return _automation;
+            return field;
         }
     }
 
