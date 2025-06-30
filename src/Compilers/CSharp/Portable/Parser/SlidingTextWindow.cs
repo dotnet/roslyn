@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -21,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     internal sealed class SlidingTextWindow : IDisposable
     {
+#if DEBUG
+        public static int GetTextInsideWindowCount = 0;
+        public static int GetTextOutsideWindowCount = 0;
+#endif
+
         /// <summary>
         /// In many cases, e.g. PeekChar, we need the ability to indicate that there are
         /// no characters left and we have reached the end of the stream, or some other
@@ -178,25 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _basis = this.Position;
                 _offset = 0;
                 return true;
-
-                ////if (_characterWindowCount >= _characterWindow.Length)
-                ////{
-                ////    // grow char array, since we need more contiguous space
-                ////    char[] oldWindow = _characterWindow;
-                ////    char[] newWindow = new char[_characterWindow.Length * 2];
-                ////    Array.Copy(oldWindow, 0, newWindow, 0, _characterWindowCount);
-                ////    s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
-                ////    _characterWindow = newWindow;
-                ////}
-
-                //int amountToRead = Math.Min(_textEnd - (_basis + _characterWindowCount),
-                //    _characterWindow.Length - _characterWindowCount);
-                //_text.CopyTo(_basis + _characterWindowCount,
-                //    _characterWindow,
-                //    _characterWindowCount,
-                //    amountToRead);
-                //_characterWindowCount += amountToRead;
-                //return amountToRead > 0;
             }
 
             return true;
@@ -394,7 +381,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var textStart = position;
             var textEnd = textStart + length;
             if (textStart < this.CharacterWindowStartPositionInText || textEnd > this.CharacterWindowEndPositionInText)
+            {
+#if DEBUG
+                Interlocked.Increment(ref GetTextOutsideWindowCount);
+#endif
                 return _text.ToString(TextSpan.FromBounds(textStart, textEnd));
+            }
+            else
+            {
+#if DEBUG
+                Interlocked.Increment(ref GetTextInsideWindowCount);
+#endif
+            }
 
             int offset = position - _basis;
 
