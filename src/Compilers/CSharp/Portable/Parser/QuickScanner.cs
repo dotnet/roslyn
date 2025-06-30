@@ -236,18 +236,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             state = QuickScanState.Bad; // ran out of characters in window
 exitWhile:
 
-// Note: it is fine to change this position here and then read from charWindow below.  AdvanceChar guarantees
-// that it will not actually mutate that state.
-            TextWindow.AdvanceChar(currentIndexInWindow - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
+                var tokenLength = currentIndexInWindow - startIndexInWindow;
+
+                // It is fine to advance text window here.  AdvanceChar is doc'ed to not change charWindow in any way.
+                // Note: we need to advance here, instead of after LookupToken as LookupToken can call into CreateQuickToken
+                // as a callback, which expects the text window to be in the position after lexing has occurred.
+                TextWindow.AdvanceChar(tokenLength);
+
                 var token = _cache.LookupToken(
                     charWindow,
                     keyStart: startIndexInWindow,
-                    keyLength: currentIndexInWindow - startIndexInWindow,
+                    keyLength: tokenLength,
                     hashCode,
                     CreateQuickToken,
                     this);
@@ -255,7 +259,6 @@ exitWhile:
             }
             else
             {
-                TextWindow.Reset(this.LexemeStartPosition);
                 return null;
             }
         }

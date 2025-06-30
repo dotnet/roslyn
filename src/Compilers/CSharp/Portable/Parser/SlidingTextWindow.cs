@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _offset = 0;
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
-            _characterWindow = s_windowPool.Allocate();
+            _characterWindow = new char[DefaultWindowLength];// s_windowPool.Allocate();
         }
 
         public void Dispose()
         {
             if (_characterWindow != null)
             {
-                s_windowPool.Free(_characterWindow);
+                // s_windowPool.Free(_characterWindow);
                 _characterWindow = null!;
                 _strings.Free();
             }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     char[] oldWindow = _characterWindow;
                     char[] newWindow = new char[_characterWindow.Length * 2];
                     Array.Copy(oldWindow, 0, newWindow, 0, _characterWindowCount);
-                    s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
+                    // s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
                     _characterWindow = newWindow;
                 }
 
