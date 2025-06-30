@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #if DEBUG
-// #define TRACE
+// #define TRACING
 #endif
 
 using System;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// </summary>
     internal sealed class SlidingTextWindow : IDisposable
     {
-#if TRACE
+#if TRACING
         public static int GetTextInsideWindowCount = 0;
         public static int GetTextOutsideWindowCount = 0;
         public static long TotalTextSize = 0;
@@ -385,20 +385,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var textStart = position;
             var textEnd = textStart + length;
-#if TRACE
+#if TRACING
             Interlocked.Add(ref TotalTextSize, length);
 #endif
 
             if (textStart < this.CharacterWindowStartPositionInText || textEnd > this.CharacterWindowEndPositionInText)
             {
-#if TRACE
+#if TRACING
                 Interlocked.Increment(ref GetTextOutsideWindowCount);
 #endif
                 return _text.ToString(TextSpan.FromBounds(textStart, textEnd));
             }
             else
             {
-#if TRACE
+#if TRACING
                 Interlocked.Increment(ref GetTextInsideWindowCount);
 #endif
             }
