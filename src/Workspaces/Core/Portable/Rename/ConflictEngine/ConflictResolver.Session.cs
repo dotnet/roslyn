@@ -134,7 +134,7 @@ internal static partial class ConflictResolver
                         // 3. Through the whole process we maintain a map of the oldspan to newspan. In case of expansion & rename, we map the expanded node and the renamed token
                         conflictResolution.UpdateCurrentSolution(await AnnotateAndRename_WorkerAsync(
                             baseSolution,
-                            conflictResolution.CurrentSolution,
+                            conflictResolution,
                             documentIdsThatGetsAnnotatedAndRenamed,
                             _renameLocationSet.Locations,
                             renamedSpansTracker,
@@ -784,7 +784,7 @@ internal static partial class ConflictResolver
         // The rename process and annotation for the bookkeeping is performed in one-step
         private async Task<Solution> AnnotateAndRename_WorkerAsync(
             Solution originalSolution,
-            Solution partiallyRenamedSolution,
+            MutableConflictResolution conflictResolution,
             HashSet<DocumentId> documentIdsToRename,
             ImmutableArray<RenameLocation> renameLocations,
             RenamedSpansTracker renameSpansTracker,
@@ -794,6 +794,8 @@ internal static partial class ConflictResolver
         {
             try
             {
+                var partiallyRenamedSolution = conflictResolution.CurrentSolution;
+
                 foreach (var documentId in documentIdsToRename.ToList())
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
@@ -854,15 +856,7 @@ internal static partial class ConflictResolver
                     }
                     else
                     {
-                        // In a source generated document, we have to ensure we've realized the "old" tree in the modified solution or WithDocumentSyntaxRoot
-                        // won't work. Performing a rename in a source generated document is opt-in, so we can assume that we only hit this condition in
-                        // scenarios that wanted it.
-                        if (documentId.IsSourceGenerated)
-                        {
-                            _ = await partiallyRenamedSolution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, _cancellationToken).ConfigureAwait(false);
-                        }
-
-                        partiallyRenamedSolution = partiallyRenamedSolution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
+                        partiallyRenamedSolution = await conflictResolution.WithDocumentSyntaxRootAsync(partiallyRenamedSolution, documentId, newRoot, _cancellationToken).ConfigureAwait(false);
                     }
                 }
 
