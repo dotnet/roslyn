@@ -17777,6 +17777,12 @@ public static class Extensions1
             return x.F != y.F;
         }
     }
+
+    extension((S1, int))
+    {
+        public static bool operator ==((S1, int) x, (S1, int) y) => throw null;
+        public static bool operator !=((S1, int) x, (S1, int) y) => throw null;
+    }
 }
 
 public struct S1
@@ -17849,6 +17855,41 @@ class Program
                 // (33,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if ((s1, 1) != (s2, 1))
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) != (s2, 1)").WithArguments("extensions").WithLocation(33, 13)
+                );
+
+            var src3 = $$$"""
+public static class Extensions1
+{
+    extension((S1, int))
+    {
+        public static bool operator ==((S1, int) x, (S1, int) y) => throw null;
+        public static bool operator !=((S1, int) x, (S1, int) y) => throw null;
+    }
+}
+
+public struct S1
+{
+    public int F;
+}
+""";
+
+            var comp3 = CreateCompilation(src3);
+            var comp3Ref = fromMetadata ? comp3.EmitToImageReference() : comp3.ToMetadataReference();
+
+            var comp4 = CreateCompilation(src2, references: [comp3Ref], options: TestOptions.DebugExe);
+            comp4.VerifyDiagnostics(
+                // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'S1' and 'S1'
+                //         if ((s1, 1) == (s1, 1))
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s1, 1) == (s1, 1)").WithArguments("==", "S1", "S1").WithLocation(8, 13),
+                // (15,13): error CS0019: Operator '==' cannot be applied to operands of type 'S1' and 'S1'
+                //         if ((s1, 1) == (s2, 1))
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s1, 1) == (s2, 1)").WithArguments("==", "S1", "S1").WithLocation(15, 13),
+                // (24,13): error CS0019: Operator '!=' cannot be applied to operands of type 'S1' and 'S1'
+                //         if ((s1, 1) != (s1, 1))
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s1, 1) != (s1, 1)").WithArguments("!=", "S1", "S1").WithLocation(24, 13),
+                // (33,13): error CS0019: Operator '!=' cannot be applied to operands of type 'S1' and 'S1'
+                //         if ((s1, 1) != (s2, 1))
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s1, 1) != (s2, 1)").WithArguments("!=", "S1", "S1").WithLocation(33, 13)
                 );
         }
 
