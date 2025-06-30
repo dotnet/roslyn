@@ -453,20 +453,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? this.Intern(_characterWindow, offset, length)
                 : new string(_characterWindow, offset, length);
         }
-
-        internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
-        {
-            if (codepoint < (uint)0x00010000)
-            {
-                lowSurrogate = InvalidCharacter;
-                return (char)codepoint;
-            }
-            else
-            {
-                Debug.Assert(codepoint > 0x0000FFFF && codepoint <= 0x0010FFFF);
-                lowSurrogate = (char)((codepoint - 0x00010000) % 0x0400 + 0xDC00);
-                return (char)((codepoint - 0x00010000) / 0x0400 + 0xD800);
-            }
-        }
     }
 }

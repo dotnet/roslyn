@@ -3049,7 +3049,7 @@ top:
                 if (MatchesProductionForXmlChar(charValue))
                 {
                     char lowSurrogate;
-                    char highSurrogate = SlidingTextWindow.GetCharsFromUtf32(charValue, out lowSurrogate);
+                    char highSurrogate = GetCharsFromUtf32(charValue, out lowSurrogate);
 
                     _builder.Append(highSurrogate);
                     if (lowSurrogate != SlidingTextWindow.InvalidCharacter)
@@ -4858,7 +4858,7 @@ top:
                 ErrorCode.ERR_IllegalEscape);
         }
 
-        internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
+        private static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
         {
             if (codepoint < (uint)0x00010000)
             {
