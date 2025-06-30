@@ -4631,7 +4631,7 @@ class C
                 Assert.Equal(lexer.TextWindow.Text.Length, lexer.TextWindow.Position + lexer.TextWindow.CharacterWindowCount);
 
                 // We're at the start of a token.
-                Assert.Equal(lexer.TextWindow.LexemeStartPosition, lexer.TextWindow.Position);
+                Assert.Equal(lexer.GetTestAccessor().LexemeStartPosition, lexer.TextWindow.Position);
 
                 // Ensure that the lexer's window is starting with the next FP number (".03") right at
                 // the start of the window.
@@ -4652,7 +4652,7 @@ class C
                 Assert.Equal(10202, lexer.TextWindow.Position);
 
                 // We're at the start of a token.
-                Assert.Equal(lexer.TextWindow.LexemeStartPosition, lexer.TextWindow.Position);
+                Assert.Equal(lexer.GetTestAccessor().LexemeStartPosition, lexer.TextWindow.Position);
 
                 // Character window didn't changee.
                 Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");

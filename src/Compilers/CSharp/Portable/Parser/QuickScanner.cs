@@ -196,20 +196,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var state = QuickScanState.Initial;
 
             var charWindow = TextWindow.CharacterWindow;
-            var startIndex = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
-            var currentIndex = startIndex;
-            var n = charWindow.Length;
 
-            n = Math.Min(n, currentIndex + MaxCachedTokenSize);
+            // The starting point we are pointing at within charWindow
+            var startIndexInWindow = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
+
+            // The max index in charWindow that we will quick scan to.  This is either the end of the window
+            // or the position of the largest token we'd be willing to quick scan and cache.
+            var maxIndexInWindow = Math.Min(charWindow.Length, startIndexInWindow + MaxCachedTokenSize);
 
             int hashCode = Hash.FnvOffsetBias;
 
             //localize frequently accessed fields
             var charPropLength = CharProperties.Length;
 
-            for (; currentIndex < n; currentIndex++)
+            // Where we are currently pointing in the charWindow as we read in a character at a time.
+            var currentIndexInWindow = startIndexInWindow;
+            for (; currentIndexInWindow < maxIndexInWindow; currentIndexInWindow++)
             {
-                char c = charWindow[currentIndex];
+                char c = charWindow[currentIndexInWindow];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -234,7 +238,7 @@ exitWhile:
 
 // Note: it is fine to change this position here and then read from charWindow below.  AdvanceChar guarantees
 // that it will not actually mutate that state.
-            TextWindow.AdvanceChar(currentIndex - TextWindow.Offset);
+            TextWindow.AdvanceChar(currentIndexInWindow - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
@@ -242,8 +246,8 @@ exitWhile:
                 // this is a good token!
                 var token = _cache.LookupToken(
                     charWindow,
-                    keyStart: startIndex,
-                    keyLength: currentIndex - startIndex,
+                    keyStart: startIndexInWindow,
+                    keyLength: currentIndexInWindow - startIndexInWindow,
                     hashCode,
                     CreateQuickToken,
                     this);

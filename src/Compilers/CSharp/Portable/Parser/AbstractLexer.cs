@@ -161,5 +161,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return new XmlSyntaxDiagnosticInfo(0, 0, code, args);
         }
+
+        public TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor();
+        }
+
+        public readonly struct TestAccessor(AbstractLexer lexer)
+        {
+            private readonly AbstractLexer _lexer = lexer;
+
+            public int LexemeStartPosition => _lexer.LexemeStartPosition;
+        }
     }
 }
