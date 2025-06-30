@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string mdName = type.GetMetadataName();
                 var warnings = DiagnosticBag.GetInstance();
                 NamedTypeSymbol? result;
-                (AssemblySymbol, AssemblySymbol)? conflicts = null;
+                (AssemblySymbol, AssemblySymbol) conflicts = default;
 
                 if (IsTypeMissing(type))
                 {
@@ -156,17 +156,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
 
                     CSDiagnosticInfo? errorInfo;
-                    if (conflicts is var (conflict1, conflict2))
+                    if (conflicts is ({ } conflict1, { } conflict2))
                     {
                         errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeAmbiguous, emittedName.FullName, conflict1, conflict2);
                     }
-                    else if (type.IsValueTupleType())
-                    {
-                        errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName);
-                    }
                     else
                     {
-                        errorInfo = null;
+                        Debug.Assert(conflicts is (null, null));
+
+                        if (type.IsValueTupleType())
+                        {
+                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName);
+                        }
+                        else
+                        {
+                            errorInfo = null;
+                        }
                     }
 
                     result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
