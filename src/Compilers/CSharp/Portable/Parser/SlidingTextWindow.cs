@@ -120,6 +120,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        /// <summary>
+        /// Offset of the <see cref="_characterWindow"/> within <see cref="_text"/>.  In other words, if this is 2048, then that means
+        /// it represents the chunk of characters starting at position 2048 in the source text.  <see cref="CharacterWindowCount"/> represents
+        /// how large the chunk is.  Characters <c>[0, CharacterWindowCount)</c> are valid characters within the window, and represents
+        /// the chunk <c>[CharacterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="_text"/>.
+        /// </summary>
+        public int CharacterWindowStartPositionInText => _basis;
+
+        /// <summary>
+        /// Similar to <see cref="CharacterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
+        /// that <see cref="_characterWindow"/> encompases in <see cref="_text"/>.  This is equal to <see cref="CharacterWindowStartPositionInText"/>
+        /// + <see cref="CharacterWindowCount"/>.
+        /// </summary>
+        public int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindowCount;
+
         public void Reset(int position)
         {
             // if position is within already read character range then just use what we have

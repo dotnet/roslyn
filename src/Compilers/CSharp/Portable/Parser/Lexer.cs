@@ -2346,14 +2346,9 @@ top:
                 }
                 else
                 {
-                    return CreateWhitespaceTrivia(TextWindow);
+                    return SyntaxFactory.Whitespace(this.GetInternedLexemeText());
                 }
             }
-        }
-
-        private static SyntaxTrivia CreateWhitespaceTrivia(SlidingTextWindow textWindow)
-        {
-            return SyntaxFactory.Whitespace(this.GetInternedLexemeText());
         }
 
         private void LexDirectiveAndExcludedTrivia(
