@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #if DEBUG
-// #define TRACING
+#define TRACING
 #endif
 
 using System;
@@ -46,6 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public const char InvalidCharacter = char.MaxValue;
 
+        /// <summary>
+        /// This number was picked based on the roslyn codebase.  If we look at parsing all files,
+        /// this window ensures that 97.4% of all characters grabbed are within the window.  Note
+        /// that this is lower than expected, but heavily influenced by how heavily roslyn uses
+        /// large strings in its codebase to represent test content.  With all these files, lexemes
+        /// average around 60 characters.  If tests are excluded, then average lexeme length drops
+        /// to 25 characters, and the hit rate goes up to 98.4%.  Because this hitrate is so high,
+        /// we don't bother to dynamically resize the window.  Instead, when we hit the end, we just
+        /// grab in the next chunk of characters from the source text, as only one in every 65 lexemes
+        /// will need to go back to the source-text to read the full lexeme.
+        /// </summary>
         private const int DefaultWindowLength = 4096;
 
         private readonly SourceText _text;                 // Source of text to parse.
