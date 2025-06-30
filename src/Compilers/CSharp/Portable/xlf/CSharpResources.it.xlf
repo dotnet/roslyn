@@ -2017,11 +2017,6 @@
         <target state="translated">Il corpo di un metodo di iteratore asincrono deve contenere un'istruzione 'yield'. Provare a rimuovere 'async' dalla dichiarazione del metodo o ad aggiungere un'istruzione 'yield'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedTypeAmbiguous">
-        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Con un criterio secondario di proprietà è richiesto un riferimento alla proprietà o al campo da abbinare, ad esempio '{{ Name: {0} }}'</target>
@@ -7650,6 +7645,11 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       <trans-unit id="ERR_PredefinedValueTupleTypeNotFound">
         <source>Predefined type '{0}' is not defined or imported</source>
         <target state="translated">Il tipo predefinito '{0}' non è definito né importato</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
+        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
+        <target state="translated">Il tipo predefinito '{0}' è dichiarato in più assembly di riferimento: '{1}' e '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">

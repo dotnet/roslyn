@@ -2017,11 +2017,6 @@
         <target state="translated">非同期反復子メソッドの本体には 'yield' ステートメントを含める必要があります。メソッド宣言から 'async' を削除するか、'yield' ステートメントを追加することをご検討ください。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedTypeAmbiguous">
-        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">プロパティ サブパターンには、一致させるプロパティまたはフィールドへの参照が必要です。例: '{{ Name: {0} }}'</target>
@@ -7650,6 +7645,11 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PredefinedValueTupleTypeNotFound">
         <source>Predefined type '{0}' is not defined or imported</source>
         <target state="translated">定義済みの型 '{0}' は定義、またはインポートされていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
+        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
+        <target state="translated">定義済みの型 '{0}' が複数の参照先アセンブリで宣言されています: '{1}' と '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">

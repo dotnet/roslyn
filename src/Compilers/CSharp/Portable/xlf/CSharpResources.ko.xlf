@@ -2017,11 +2017,6 @@
         <target state="translated">비동기 반복기 메서드의 본문에는 'yield' 문이 포함되어야 합니다. 메서드 선언에서 'async'를 제거하거나 'yield' 문을 추가하세요.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedTypeAmbiguous">
-        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">속성 하위 패턴은 일치시킬 속성 또는 필드에 대한 참조가 필요합니다(예: '{{ Name: {0} }}')</target>
@@ -7650,6 +7645,11 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PredefinedValueTupleTypeNotFound">
         <source>Predefined type '{0}' is not defined or imported</source>
         <target state="translated">미리 정의된 형식 '{0}'을(를) 정의하지 않았거나 가져오지 않았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
+        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
+        <target state="translated">미리 정의된 형식 '{0}'이(가) 여러 참조된 어셈블리('{1}' 및 '{2}')에서 선언되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">
