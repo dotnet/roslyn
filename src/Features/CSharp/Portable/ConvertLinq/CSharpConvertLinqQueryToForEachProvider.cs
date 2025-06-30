@@ -760,8 +760,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
                 // }
                 //
                 // yield break;
-                var statements = GenerateStatements((ExpressionSyntax expression)
-                    => YieldStatement(SyntaxKind.YieldReturnStatement, expression), queryExpressionProcessingInfo);
+                var statements = GenerateStatements(expression => YieldStatement(SyntaxKind.YieldReturnStatement, expression), queryExpressionProcessingInfo);
 
                 // add an yield break to avoid throws after the return.
                 var yieldBreakStatement = YieldStatement(SyntaxKind.YieldBreakStatement);
