@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             info.Kind = SyntaxKind.NumericLiteralToken;
-            info.Text = TextWindow.GetText(true);
+            info.Text = this.GetInternedLexemeText();
             Debug.Assert(info.Text != null);
             var valueText = TextWindow.Intern(_builder);
             ulong val;
@@ -2678,7 +2678,7 @@ top:
                 case '9':
                     this.ScanInteger();
                     info.Kind = SyntaxKind.NumericLiteralToken;
-                    info.Text = TextWindow.GetText(true);
+                    info.Text = this.GetInternedLexemeText();
                     info.ValueKind = SpecialType.System_Int32;
                     info.IntValue = this.GetValueInt32(info.Text, false);
                     break;
@@ -2726,7 +2726,7 @@ top:
                         }
 
                         info.Kind = SyntaxKind.None;
-                        info.Text = TextWindow.GetText(true);
+                        info.Text = this.GetInternedLexemeText();
                     }
 
                     break;
@@ -3111,7 +3111,7 @@ top:
             // If we don't have a value computed from above, then we don't recognize the entity, in which
             // case we will simply use the text.
 
-            info.Text = TextWindow.GetText(true);
+            info.Text = this.GetInternedLexemeText();
             if (info.StringValue == null)
             {
                 info.StringValue = info.Text;
@@ -4403,7 +4403,7 @@ top:
                     && TextWindow.PeekChar(3) != '*')
                 {
                     TextWindow.AdvanceChar(3);
-                    var text = TextWindow.GetText(true);
+                    var text = this.GetInternedLexemeText();
                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                     this.MutateLocation(XmlDocCommentLocation.Interior);
                     return;
@@ -4432,7 +4432,7 @@ top:
                             if (this.StyleIs(XmlDocCommentStyle.SingleLine) && TextWindow.PeekChar(1) == '/' && TextWindow.PeekChar(2) == '/' && TextWindow.PeekChar(3) != '/')
                             {
                                 TextWindow.AdvanceChar(3);
-                                var text = TextWindow.GetText(true);
+                                var text = this.GetInternedLexemeText();
                                 this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                                 this.MutateLocation(XmlDocCommentLocation.Interior);
                                 return;
@@ -4448,7 +4448,7 @@ top:
                                     TextWindow.AdvanceChar();
                                 }
 
-                                var text = TextWindow.GetText(true);
+                                var text = this.GetInternedLexemeText();
                                 if (!String.IsNullOrEmpty(text))
                                 {
                                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
@@ -4494,7 +4494,7 @@ top:
                             {
                                 Debug.Assert(this.StyleIs(XmlDocCommentStyle.Delimited));
 
-                                var text = TextWindow.GetText(true);
+                                var text = this.GetInternedLexemeText();
                                 if (!String.IsNullOrEmpty(text))
                                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                                 this.MutateLocation(XmlDocCommentLocation.Interior);
@@ -4509,7 +4509,7 @@ top:
                 if (TextWindow.PeekChar() == '*' && TextWindow.PeekChar(1) == '/')
                 {
                     TextWindow.AdvanceChar(2);
-                    var text = TextWindow.GetText(true);
+                    var text = this.GetInternedLexemeText();
                     this.AddTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia(text), ref trivia);
                     this.MutateLocation(XmlDocCommentLocation.End);
                 }
