@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -15,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly SlidingTextWindow TextWindow;
         private List<SyntaxDiagnosticInfo>? _errors;
+        protected int LexemeStartPosition;
 
         protected AbstractLexer(SourceText text)
         {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void Start()
         {
-            TextWindow.Start();
+            LexemeStartPosition = this.TextWindow.Position;
             _errors = null;
         }
 
@@ -131,8 +130,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private int GetLexemeOffsetFromPosition(int position)
         {
-            return position >= TextWindow.LexemeStartPosition ? position - TextWindow.LexemeStartPosition : position;
+            return position >= LexemeStartPosition ? position - LexemeStartPosition : position;
         }
+
+        protected string GetNonInternedLexemeText()
+            => TextWindow.GetText(LexemeStartPosition, intern: false);
+
+        protected string GetInternedLexemeText()
+            => TextWindow.GetText(LexemeStartPosition, intern: true);
+
+        protected int CurrentLexemeWidth
+            => this.TextWindow.Position - LexemeStartPosition;
 
         protected static SyntaxDiagnosticInfo MakeError(ErrorCode code)
         {

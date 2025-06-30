@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private char[] _characterWindow;                   // Moveable window of chars from source text
         private int _characterWindowCount;                 // # of valid characters in chars buffer
 
-        private int _lexemeStart;                          // Start of current lexeme relative to the window start.
-
         // Example for the above variables:
         // The text starts at 0.
         // The window onto the text starts at basis.
@@ -64,7 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
             _characterWindow = s_windowPool.Allocate();
-            _lexemeStart = 0;
         }
 
         public void Dispose()
@@ -113,17 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Returns the start of the current lexeme relative to the window start.
-        /// </summary>
-        public int LexemeRelativeStart
-        {
-            get
-            {
-                return _lexemeStart;
-            }
-        }
-
-        /// <summary>
         /// Number of characters in the character window.
         /// </summary>
         public int CharacterWindowCount
@@ -132,37 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return _characterWindowCount;
             }
-        }
-
-        /// <summary>
-        /// The absolute position of the start of the current lexeme in the given
-        /// SourceText.
-        /// </summary>
-        public int LexemeStartPosition
-        {
-            get
-            {
-                return _basis + _lexemeStart;
-            }
-        }
-
-        /// <summary>
-        /// The number of characters in the current lexeme.
-        /// </summary>
-        public int Width
-        {
-            get
-            {
-                return _offset - _lexemeStart;
-            }
-        }
-
-        /// <summary>
-        /// Start parsing a new lexeme.
-        /// </summary>
-        public void Start()
-        {
-            _lexemeStart = _offset;
         }
 
         public void Reset(int position)
@@ -183,7 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     _text.CopyTo(position, _characterWindow, 0, amountToRead);
                 }
 
-                _lexemeStart = 0;
                 _offset = 0;
                 _basis = position;
                 _characterWindowCount = amountToRead;
@@ -197,21 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (this.Position >= _textEnd)
                 {
                     return false;
-                }
-
-                // if lexeme scanning is sufficiently into the char buffer, 
-                // then refocus the window onto the lexeme
-                if (_lexemeStart > (_characterWindowCount / 4))
-                {
-                    Array.Copy(_characterWindow,
-                        _lexemeStart,
-                        _characterWindow,
-                        0,
-                        _characterWindowCount - _lexemeStart);
-                    _characterWindowCount -= _lexemeStart;
-                    _offset -= _lexemeStart;
-                    _basis += _lexemeStart;
-                    _lexemeStart = 0;
                 }
 
                 if (_characterWindowCount >= _characterWindow.Length)
@@ -419,14 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _strings.Add(array, start, length);
         }
 
-        public string GetInternedText()
+        public string GetText(int startPosition, bool intern)
         {
-            return this.Intern(_characterWindow, _lexemeStart, this.Width);
-        }
-
-        public string GetText(bool intern)
-        {
-            return this.GetText(this.LexemeStartPosition, this.Width, intern);
+            return this.GetText(startPosition, this.Position - startPosition, intern);
         }
 
         public string GetText(int position, int length, bool intern)
