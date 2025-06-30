@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string metadataName,
             bool includeReferences,
             bool isWellKnownType,
-            out (AssemblySymbol, AssemblySymbol) conflicts,
+            out (AssemblySymbol, AssemblySymbol)? conflicts,
             bool useCLSCompliantNameArityEncoding = false,
             DiagnosticBag? warnings = null,
             bool ignoreCorLibraryDuplicatedTypes = false)
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AssemblyIdentity? assemblyOpt,
             bool includeReferences,
             bool isWellKnownType,
-            out (AssemblySymbol, AssemblySymbol) conflicts,
+            out (AssemblySymbol, AssemblySymbol)? conflicts,
             DiagnosticBag? warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(warnings is null || isWellKnownType);
 
-            conflicts = default;
+            conflicts = null;
             NamedTypeSymbol? result;
 
             // First try this assembly

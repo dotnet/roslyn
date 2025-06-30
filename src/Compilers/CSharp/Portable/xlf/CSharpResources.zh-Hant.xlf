@@ -2017,6 +2017,11 @@
         <target state="translated">async-iterator 方法的主體必須包含 'yield' 陳述式。建議將 'async' 從方法宣告移除，或新增 'yield' 陳述式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
+        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">屬性子模式需要對屬性或欄位的參考才能比對，例如 '{{ Name: {0} }}'</target>
@@ -7645,11 +7650,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_PredefinedValueTupleTypeNotFound">
         <source>Predefined type '{0}' is not defined or imported</source>
         <target state="translated">未定義或匯入預先定義的類型 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
-        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">在多個參考組件中宣告了預先定義的類型 '{0}': '{1}' 與 '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">

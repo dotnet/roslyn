@@ -2017,6 +2017,11 @@
         <target state="translated">Tělo metody async-iterator musí obsahovat příkaz yield. Zvažte odebrání položky async z deklarace metody nebo přidání příkazu yield.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
+        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
+        <target state="new">Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Dílčí vzor vlastnosti vyžaduje odkaz na vlastnost nebo pole k přiřazení, např. „{{ Name: {0} }}“.</target>
@@ -7645,11 +7650,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
       <trans-unit id="ERR_PredefinedValueTupleTypeNotFound">
         <source>Predefined type '{0}' is not defined or imported</source>
         <target state="translated">Předdefinovaný typ {0} není definovaný ani importovaný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
-        <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
-        <target state="translated">Předdefinovaný typ {0} je deklarovaný v několika odkazovaných sestaveních: {1} a {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructWithBaseConstructorCall">

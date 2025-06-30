@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string mdName = type.GetMetadataName();
                 var warnings = DiagnosticBag.GetInstance();
                 NamedTypeSymbol? result;
-                (AssemblySymbol, AssemblySymbol) conflicts = default;
+                (AssemblySymbol, AssemblySymbol)? conflicts = null;
 
                 if (IsTypeMissing(type))
                 {
@@ -154,25 +154,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (result is null)
                 {
                     MetadataTypeName emittedName = MetadataTypeName.FromFullName(mdName, useCLSCompliantNameArityEncoding: true);
-                    if (type.IsValueTupleType())
-                    {
-                        CSDiagnosticInfo errorInfo;
-                        if (conflicts.Item1 is null)
-                        {
-                            Debug.Assert(conflicts.Item2 is null);
-                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName);
-                        }
-                        else
-                        {
-                            errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts.Item1, conflicts.Item2);
-                        }
 
-                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
+                    CSDiagnosticInfo? errorInfo;
+                    if (conflicts is var (conflict1, conflict2))
+                    {
+                        errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeAmbiguous, emittedName.FullName, conflict1, conflict2);
+                    }
+                    else if (type.IsValueTupleType())
+                    {
+                        errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, emittedName.FullName);
                     }
                     else
                     {
-                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type);
+                        errorInfo = null;
                     }
+
+                    result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
                 }
 
                 if (Interlocked.CompareExchange(ref _lazyWellKnownTypes[index], result, null) is object)
