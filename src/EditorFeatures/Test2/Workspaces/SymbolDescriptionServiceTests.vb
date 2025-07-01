@@ -3,9 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageService

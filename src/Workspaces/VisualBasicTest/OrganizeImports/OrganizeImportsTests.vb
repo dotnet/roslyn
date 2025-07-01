@@ -3,10 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.OrganizeImports
 Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities

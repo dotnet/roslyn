@@ -3057,7 +3057,7 @@ top:
                 if (MatchesProductionForXmlChar(charValue))
                 {
                     char lowSurrogate;
-                    char highSurrogate = SlidingTextWindow.GetCharsFromUtf32(charValue, out lowSurrogate);
+                    char highSurrogate = GetCharsFromUtf32(charValue, out lowSurrogate);
 
                     _builder.Append(highSurrogate);
                     if (lowSurrogate != SlidingTextWindow.InvalidCharacter)

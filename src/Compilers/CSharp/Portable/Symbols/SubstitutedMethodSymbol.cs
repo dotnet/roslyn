@@ -216,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
             => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         public sealed override Symbol AssociatedSymbol
         {
             get

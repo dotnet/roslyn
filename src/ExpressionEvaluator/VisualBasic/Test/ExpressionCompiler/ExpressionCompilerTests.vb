@@ -7,8 +7,6 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.PooledObjects
