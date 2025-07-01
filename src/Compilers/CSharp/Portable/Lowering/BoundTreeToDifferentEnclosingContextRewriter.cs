@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitType(node.Type));
         }
 
-        public sealed override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
+        public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
         {
             // Cannot replace a MethodDefIndex's Method/Type with a substituted symbol.
             Debug.Assert(node.Type.Equals(VisitType(node.Type), TypeCompareKind.ConsiderEverything));
