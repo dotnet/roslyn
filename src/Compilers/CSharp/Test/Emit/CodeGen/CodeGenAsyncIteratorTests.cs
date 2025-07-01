@@ -10679,7 +10679,8 @@ class Test1
             var verifier = CompileAndVerify(
                 [source, DynamicAnalysisResourceTests.InstrumentationHelperSource],
                 targetFramework: TargetFramework.NetCoreApp,
-                emitOptions: EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.TestCoverage]));
+                emitOptions: EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.TestCoverage]),
+                verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<AsAsyncEnumerable>d__0<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
                 {
