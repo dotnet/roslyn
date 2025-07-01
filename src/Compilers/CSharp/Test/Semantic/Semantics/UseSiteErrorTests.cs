@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// Tests related to use site errors.
     /// </summary>
-    public class UseSiteErrorTests : CSharpTestBase
+    public class UseSiteErrorTests() : CSharpTestBase(TargetFramework.Standard)
     {
         [Fact]
         public void TestFields()
@@ -2275,7 +2275,7 @@ namespace System
         /// First, compile the provided source with all assemblies and confirm that there are no errors.
         /// Then, compile the provided source again without the unavailable assembly and return the result.
         /// </summary>
-        private static CSharpCompilation CompileWithMissingReference(string source)
+        private CSharpCompilation CompileWithMissingReference(string source)
         {
             var unavailableAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
             var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
@@ -2455,13 +2455,13 @@ class C : CSharpErrors.ClassMethods
             }
         }
 
-        private static readonly MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilation(@"
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref1 = CreateCompilationWithStandard(@"
 public struct S1
 {
     public int i;
 }", assemblyName: "libS1").ToMetadataReference();
 
-        private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilation(@"
+        private static readonly MetadataReference UnmanagedUseSiteError_Ref2 = CreateCompilationWithStandard(@"
 public struct S2
 {
     public S1 s1;
@@ -2726,7 +2726,7 @@ class C
     S2 M2() => default;
 }
 ";
-            var comp = CreateCompilation(source, references: new[] { UnmanagedUseSiteError_Ref2 });
+            var comp = CreateCompilationWithNetStandard(source, references: new[] { UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics(
                 // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
@@ -2735,7 +2735,7 @@ class C
                 // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
 
-            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
+            comp = CreateCompilationWithNetStandard(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics();
         }
 

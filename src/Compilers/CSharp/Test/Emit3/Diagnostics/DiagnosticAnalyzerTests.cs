@@ -4416,7 +4416,7 @@ partial class B
                 """;
 
             var tree = CSharpSyntaxTree.ParseText(source);
-            var compilation = CreateCompilationWithCSharp(new[] { tree, CSharpSyntaxTree.ParseText(IsExternalInitTypeDefinition) });
+            var compilation = CreateCompilation(new[] { tree, CSharpSyntaxTree.ParseText(IsExternalInitTypeDefinition) });
             compilation.VerifyDiagnostics(
                 // (1,19): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 // record B(int I) : A(I);

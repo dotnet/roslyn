@@ -240,7 +240,7 @@ class C
             CompileAndCheckInitializers(source, expectedInstanceInitializers, expectedStaticInitializers);
         }
 
-        private static void CompileAndCheckInitializers(string source, IEnumerable<ExpectedInitializer> expectedInstanceInitializers, IEnumerable<ExpectedInitializer> expectedStaticInitializers)
+        private void CompileAndCheckInitializers(string source, IEnumerable<ExpectedInitializer> expectedInstanceInitializers, IEnumerable<ExpectedInitializer> expectedStaticInitializers)
         {
             var compilation = CreateCompilation(source);
             var syntaxTree = compilation.SyntaxTrees.First();

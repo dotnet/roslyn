@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
         private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
 
         [Fact]
-        public static void LastLanguageVersionNotSupportingModuleInitializersIs8()
+        public void LastLanguageVersionNotSupportingModuleInitializersIs8()
         {
             var source =
 @"using System.Runtime.CompilerServices;
@@ -46,7 +46,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
         }
 
         [Fact]
-        public static void FirstLanguageVersionSupportingModuleInitializersIs9()
+        public void FirstLanguageVersionSupportingModuleInitializersIs9()
         {
             var source =
 @"using System.Runtime.CompilerServices;
