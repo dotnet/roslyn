@@ -13,12 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly SlidingTextWindow TextWindow;
         private List<SyntaxDiagnosticInfo>? _errors;
-        protected int LexemeStartPosition;
 
         protected AbstractLexer(SourceText text)
         {
             this.TextWindow = new SlidingTextWindow(text);
         }
+
+        protected int LexemeStartPosition => this.TextWindow.LexemeStartPosition;
 
         public virtual void Dispose()
         {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void Start()
         {
-            LexemeStartPosition = this.TextWindow.Position;
+            TextWindow.Start();
             _errors = null;
         }
 
@@ -160,18 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected static XmlSyntaxDiagnosticInfo MakeError(XmlParseErrorCode code, params object[] args)
         {
             return new XmlSyntaxDiagnosticInfo(0, 0, code, args);
-        }
-
-        public TestAccessor GetTestAccessor()
-        {
-            return new TestAccessor();
-        }
-
-        public readonly struct TestAccessor(AbstractLexer lexer)
-        {
-            private readonly AbstractLexer _lexer = lexer;
-
-            public int LexemeStartPosition => _lexer.LexemeStartPosition;
         }
     }
 }
