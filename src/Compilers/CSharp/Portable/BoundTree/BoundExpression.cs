@@ -739,4 +739,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+    internal partial class BoundMethodDefIndex
+    {
+        private partial void Validate()
+        {
+            Debug.Assert(Method.IsDefinition);
+        }
+    }
 }

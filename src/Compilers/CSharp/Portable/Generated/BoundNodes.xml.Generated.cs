@@ -2284,7 +2284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Method = method;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public BoundMethodDefIndex(SyntaxNode syntax, MethodSymbol method, TypeSymbol type)
             : base(BoundKind.MethodDefIndex, syntax, type)
