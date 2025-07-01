@@ -20,8 +20,8 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService : AbstractAnalyzerAsse
 #if NET
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoteAnalyzerAssemblyLoaderService([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers)
-        : base(assemblyResolvers)
+    public RemoteAnalyzerAssemblyLoaderService([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers, [ImportMany] IEnumerable<IAnalyzerPathResolver> assemblyPathResolvers)
+        : base(assemblyResolvers, assemblyPathResolvers)
     {
     }
 #else
