@@ -70,6 +70,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
+    <InternalsVisibleTo Include="AITools.CodeAnalysis.MSBuild" Key="$(AIToolsKey)" />
   </ItemGroup>
   <!--
     Include certain project reference binaries into this package in lib/ regular library.
