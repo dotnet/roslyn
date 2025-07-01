@@ -135,10 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         protected string GetNonInternedLexemeText()
-            => TextWindow.GetText(LexemeStartPosition, intern: false);
+            => TextWindow.GetText(intern: false);
 
         protected string GetInternedLexemeText()
-            => TextWindow.GetText(LexemeStartPosition, intern: true);
+            => TextWindow.GetText(intern: true);
 
         protected int CurrentLexemeWidth
             => this.TextWindow.Position - LexemeStartPosition;
