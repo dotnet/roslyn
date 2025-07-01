@@ -231,11 +231,11 @@ internal sealed partial class CSharpRemoveUnnecessaryImportsService
             var resultNamespace = namespaceDeclaration.WithUsings(finalUsings);
             if (finalUsings.Count == 0 &&
                 resultNamespace.Externs.Count == 0 &&
-                resultNamespace.Members.Count >= 1)
+                resultNamespace.Members is [var firstMember, ..])
             {
                 // We've removed all the usings and now the first thing in the namespace is a
                 // type.  In this case, remove any newlines preceding the type.
-                var firstToken = resultNamespace.Members.First().GetFirstToken();
+                var firstToken = firstMember.GetFirstToken();
                 var newFirstToken = RemoveUnnecessaryImportsHelpers.StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
                 resultNamespace = resultNamespace.ReplaceToken(firstToken, newFirstToken);
             }
