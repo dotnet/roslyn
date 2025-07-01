@@ -80,22 +80,36 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
     {
         try
         {
-            var (newProposal, adjustmentsProposed) = await AdjustProposalAsync(
+            var newProposal = await AdjustProposalAsync(
                 solution, proposal, cancellationToken).ConfigureAwait(false);
-            var adjustmentsAccepted = newProposal != proposal;
 
             // Report telemetry if we were or were not able to adjust the proposal.
             Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
             {
-                var (providerName, before, adjustmentsProposed, adjustmentsAccepted, elapsedTime) = args;
+                var (providerName, before, proposal, newProposal, elapsedTime) = args;
+
+                // If we (roslyn) were able to come up with *any* edits we wanted to adjust the proposal with or not.
+                var adjustmentsProposed = newProposal != null;
+
+                newProposal ??= proposal;
+
+                // Whether or not the Proposal system accepted the edits we proposed.  It can reject them for a variety of reasons,
+                // for example, if it thinks they would interfere with the caret, or if edits intersect other edits.
+                var adjustmentsAccepted = newProposal != proposal;
+
                 SetDefaultTelemetryProperties(d, providerName, before, elapsedTime);
+
                 d["AdjustmentsProposed"] = adjustmentsProposed;
                 d["AdjustmentsAccepted"] = adjustmentsAccepted;
+
+                // Record how many new edits were made to the proposal.  Expectation is that this is commonly only 1,
+                // but we want to see how that potentially changes over time, especially as we add more adjusters.
+                d["AdjustmentsCount"] = newProposal.Edits.Count - proposal.Edits.Count;
             },
-            args: (providerName, before, adjustmentsProposed, adjustmentsAccepted, stopwatch.Elapsed)),
+            args: (providerName, before, proposal, newProposal, stopwatch.Elapsed)),
             cancellationToken).Dispose();
 
-            return newProposal;
+            return newProposal ?? proposal;
         }
         catch (Exception ex) when (ReportFailureTelemetry(ex))
         {
@@ -133,7 +147,12 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         }
     }
 
-    private async Task<(ProposalBase newProposal, bool adjustmentsProposed)> AdjustProposalAsync(
+    /// <summary>
+    /// Returns <see langword="null"/> if we didn't make any adjustments to the proposal.  Otherwise, returns the attempted
+    /// adjusted proposal based on the edits we tried to make.  Note that this does not guarantee that the edits were successfully
+    /// applied to the original edits.  The <see cref="Proposal"/> system may reject them based on their own criteria.
+    /// </summary>
+    private async Task<ProposalBase?> AdjustProposalAsync(
         Solution solution, ProposalBase proposal, CancellationToken cancellationToken)
     {
         // We're potentially making multiple calls to oop here.  So keep a session alive to avoid
@@ -176,11 +195,12 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
 
         // No adjustments were made.  Don't touch anything.
         if (!adjustmentsProposed)
-            return (proposal, adjustmentsProposed: false);
+            return null;
 
         // We have some changes we want to to make to the proposal.  See if the proposal system allows us merging
-        // those changes in.
-        var newProposal = Proposal.TryCreateProposal(proposal, finalEdits);
-        return (newProposal ?? proposal, adjustmentsProposed: true);
+        // those changes in.  Note: we should generally always be producing edits that are safe to merge in.  However,
+        // as we do not control this code, we cannot guarantee this.  Telemetry will let us know how often this happens
+        // and if there's something we need to look into.
+        return Proposal.TryCreateProposal(proposal, finalEdits);
     }
 }
