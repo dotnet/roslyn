@@ -50,14 +50,14 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
             // Normally VS will load the language client when an editor window is created for one of our content types,
             // but we want to load it as soon as a solution is loaded so workspace diagnostics work, and so 3rd parties
             // like Razor can use dynamic registration.
-            Load();
+            LoadLanguageClient();
         }
         else if (e.Kind is WorkspaceChangeKind.SolutionRemoved)
         {
             // VS will unload the language client when the solution is closed, but sometimes its a little slow to do so,
             // and we can end up trying to load it, above, before it has been asked to unload. We wait for the previous
             // instance to shutdown when we load, but we have to ensure that it at least gets signaled to do so first.
-            Unload();
+            UnloadLanguageClient();
         }
     }
 
@@ -66,9 +66,9 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
         // Nothing to do here.  There's no concept of unloading an ILanguageClient.
     }
 
-    private void Load()
+    private void LoadLanguageClient()
     {
-        using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(Load));
+        using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadLanguageClient));
         LoadAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
 
         async Task LoadAsync()
@@ -87,7 +87,7 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
         }
     }
 
-    private void Unload()
+    private void UnloadLanguageClient()
     {
         // We just want to signal that an unload should happen, in case the above call to Load comes in quick.
         // We don't want to wait for it to complete, not do we care about errors that may occur during the unload.
