@@ -4577,16 +4577,15 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
         public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
         {
-            // Make a file that looks effectively like:
+            // This test depends on the line endings for the file being \r\n to ensure the right contents lines up at
+            // the right locations.
             //
-            //      ////// <long stream of slashes>
-            //      ;
-            //      ..0
-            //
-            // the first dot needs to be at the end of the window to ensure we look backwards across the window
-            // boundary when starting to consume the .0
-            var windowEnd = "\r\n;\r\n..";
-            var code = new string('/', SlidingTextWindow.DefaultWindowLength - windowEnd.Length) + windowEnd + "0;";
+            // It specifically validates what happens when we see `.0` at the start of the
+            // sliding text window, where the lexer tries to peek back one char to see if this
+            // is actually `..0` (a range expr) or `.0` (a floating point number).
+            var code = Resources.DotPrefixedNumberStartingAtStartOfSlidingTextWindow;
+            if (!code.Contains("\r\n"))
+                code = code.Replace("\n", "\r\n");
 
             var sourceText = SourceText.From(code);
 
@@ -4594,6 +4593,10 @@ class C
                 // Run a full parse, and validate the tree returned).
 
                 using var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
+
+                // Ensure we have a normal window size, not some larger array that another test created and cached in
+                // the window pool
+                lexer.TextWindow.GetTestAccessor().SetDefaultCharacterWindow();
 
                 using var parser = new LanguageParser(lexer, oldTree: null, changes: null);
 
@@ -4607,27 +4610,52 @@ class C
                 // (a dot token starting a number, right at the start of the character window).
                 var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
 
+                // Ensure we have a normal window size, not some larger array that another test created and cached in
+                // the window pool
+                lexer.TextWindow.GetTestAccessor().SetDefaultCharacterWindow();
+
                 var mode = LexerMode.Syntax;
-                var token1 = lexer.Lex(ref mode);
-                Assert.Equal(SyntaxKind.SemicolonToken, token1.Kind);
-                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, token1.FullWidth);
+                for (var i = 0; i < 1326; i++)
+                    lexer.Lex(ref mode);
 
-                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, lexer.TextWindow.Offset);
-                var token2 = lexer.Lex(ref mode);
-                Assert.Equal(SyntaxKind.DotToken, token2.Kind);
+                // Lexer will read from index 0 in the arrray.
+                Assert.Equal(0, lexer.TextWindow.Offset);
 
-                // We'll be at the end of the window so the next lex will read from the start of the window.
-                // This will be a dot token, which will demonstrate that we can look backwards one token to
-                // see that we're preceded by another dot, making this a `..` not the start of a number.
-                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, lexer.TextWindow.Offset);
-                var token3 = lexer.Lex(ref mode);
-                Assert.Equal(SyntaxKind.DotToken, token3.Kind);
+                // We have 205 real chars in the window
+                Assert.Equal(205, lexer.TextWindow.CharacterWindowCount);
 
-                // Prior token will have read from offset 0, so we will now be at offset 1.
-                Assert.Equal(1, lexer.TextWindow.Offset);
-                var token4 = lexer.Lex(ref mode);
-                Assert.Equal(SyntaxKind.NumericLiteralToken, token4.Kind);
-                Assert.Equal("0", token4.ValueText);
+                // The lexer is at position 10199 in the file.
+                Assert.Equal(10199, lexer.TextWindow.Position);
+
+                /// The 205 characters represent the final part of the doc
+                Assert.Equal(lexer.TextWindow.Text.Length, lexer.TextWindow.Position + lexer.TextWindow.CharacterWindowCount);
+
+                // We're at the start of a token.
+                Assert.Equal(lexer.TextWindow.LexemeStartPosition, lexer.TextWindow.Position);
+
+                // Ensure that the lexer's window is starting with the next FP number (".03") right at
+                // the start of the window.
+                Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");
+
+                var token = lexer.Lex(ref mode);
+                Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind);
+                Assert.Equal(3, token.FullWidth);
+                Assert.Equal(".03", token.ToString());
+
+                // But we moved 3 characters forward.
+                Assert.Equal(3, lexer.TextWindow.Offset);
+
+                // We still have 205 real chars in the window
+                Assert.Equal(205, lexer.TextWindow.CharacterWindowCount);
+
+                // The lexer position has moved 3 characters forward as well.
+                Assert.Equal(10202, lexer.TextWindow.Position);
+
+                // We're at the start of a token.
+                Assert.Equal(lexer.TextWindow.LexemeStartPosition, lexer.TextWindow.Position);
+
+                // Character window didn't changee.
+                Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");
             }
         }
     }

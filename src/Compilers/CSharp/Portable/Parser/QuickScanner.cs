@@ -193,26 +193,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             this.Start();
             var state = QuickScanState.Initial;
-
-            var charWindow = TextWindow.CharacterWindow;
-
-            // The starting point we are pointing at within charWindow
-            var startIndexInWindow = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
-
-            // The max index in charWindow that we will quick scan to.  This is either the end of the window
-            // or the position of the largest token we'd be willing to quick scan and cache.
-            var maxIndexInWindow = Math.Min(TextWindow.CharacterWindowCount, startIndexInWindow + MaxCachedTokenSize);
+            int i = TextWindow.Offset;
+            int n = TextWindow.CharacterWindowCount;
+            n = Math.Min(n, i + MaxCachedTokenSize);
 
             int hashCode = Hash.FnvOffsetBias;
 
             //localize frequently accessed fields
+            var charWindow = TextWindow.CharacterWindow;
             var charPropLength = CharProperties.Length;
 
-            // Where we are currently pointing in the charWindow as we read in a character at a time.
-            var currentIndexInWindow = startIndexInWindow;
-            for (; currentIndexInWindow < maxIndexInWindow; currentIndexInWindow++)
+            for (; i < n; i++)
             {
-                char c = charWindow[currentIndexInWindow];
+                char c = charWindow[i];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -235,22 +228,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             state = QuickScanState.Bad; // ran out of characters in window
 exitWhile:
 
+            TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
-                var tokenLength = currentIndexInWindow - startIndexInWindow;
-
-                // It is fine to advance text window here.  AdvanceChar is doc'ed to not change charWindow in any way.
-                // Note: we need to advance here, instead of after LookupToken as LookupToken can call into CreateQuickToken
-                // as a callback, which expects the text window to be in the position after lexing has occurred.
-                TextWindow.AdvanceChar(tokenLength);
-
                 var token = _cache.LookupToken(
-                    charWindow,
-                    keyStart: startIndexInWindow,
-                    keyLength: tokenLength,
+                    TextWindow.CharacterWindow,
+                    TextWindow.LexemeRelativeStart,
+                    i - TextWindow.LexemeRelativeStart,
                     hashCode,
                     CreateQuickToken,
                     this);
@@ -258,6 +245,7 @@ exitWhile:
             }
             else
             {
+                TextWindow.Reset(TextWindow.LexemeStartPosition);
                 return null;
             }
         }
@@ -265,9 +253,9 @@ exitWhile:
         private static SyntaxToken CreateQuickToken(Lexer lexer)
         {
 #if DEBUG
-            var quickWidth = lexer.CurrentLexemeWidth;
+            var quickWidth = lexer.TextWindow.Width;
 #endif
-            lexer.TextWindow.Reset(lexer.LexemeStartPosition);
+            lexer.TextWindow.Reset(lexer.TextWindow.LexemeStartPosition);
             var token = lexer.LexSyntaxToken();
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);

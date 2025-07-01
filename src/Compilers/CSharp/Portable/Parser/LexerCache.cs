@@ -5,11 +5,9 @@
 // #define COLLECT_STATS
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.NullableWalker;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -183,32 +181,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia LookupWhitespaceTrivia(
-            SlidingTextWindow textWindow,
-            int lexemeStartPosition,
-            int hashCode)
+        internal SyntaxTrivia LookupTrivia<TArg>(
+            char[] textBuffer,
+            int keyStart,
+            int keyLength,
+            int hashCode,
+            Func<TArg, SyntaxTrivia> createTriviaFunction,
+            TArg data)
         {
-            var lexemeWidth = textWindow.Position - lexemeStartPosition;
-            var textBuffer = textWindow.CharacterWindow;
+            var value = TriviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
-            // If the whitespace is entirely within the character window, grab from that and cache.
-            var lexemeEndPosition = lexemeStartPosition + lexemeWidth;
-            if (lexemeStartPosition >= textWindow.CharacterWindowStartPositionInText && lexemeEndPosition <= textWindow.CharacterWindowEndPositionInText)
+            if (value == null)
             {
-                var keyStart = lexemeStartPosition - textWindow.CharacterWindowStartPositionInText;
-                var value = TriviaMap.FindItem(textBuffer, keyStart, lexemeWidth, hashCode);
-
-                if (value == null)
-                {
-                    value = SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
-                    TriviaMap.AddItem(textBuffer, keyStart, lexemeWidth, hashCode, value);
-                }
-
-                return value;
+                value = createTriviaFunction(data);
+                TriviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
             }
 
-            // Otherwise, if it's outside of the window, just grab from the underlying text.
-            return SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
+            return value;
         }
 
         // TODO: remove this when done tweaking this cache.
