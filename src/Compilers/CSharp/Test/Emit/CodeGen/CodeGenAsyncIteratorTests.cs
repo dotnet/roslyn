@@ -10,9 +10,11 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10645,6 +10647,40 @@ class Test1
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember("Test1.<M2>d__0.<>3__x").GetAttributes().Select(a => a.ToString()));
             }
+        }
+
+        [Fact]
+        public void Repro_78640()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System;
+
+                static class C
+                {
+                    #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+                    public static async IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IEnumerable<T> enumerable, [EnumeratorCancellation] CancellationToken cancellationToken)
+                    #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+                    {
+                        ArgumentNullException.ThrowIfNull(enumerable);
+
+                        cancellationToken.ThrowIfCancellationRequested();
+                        foreach (T item in enumerable)
+                        {
+                            yield return item;
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, DynamicAnalysisResourceTests.InstrumentationHelperSource],
+                targetFramework: TargetFramework.NetCoreApp,
+                emitOptions: EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.TestCoverage]));
+            verifier.VerifyDiagnostics();
         }
     }
 }
