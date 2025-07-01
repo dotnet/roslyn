@@ -2,9 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractCodeVariableTests
         Inherits AbstractCodeElementTests(Of EnvDTE80.CodeVariable2)

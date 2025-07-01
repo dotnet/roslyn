@@ -328,10 +328,9 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
     private static TSyntaxNode RemoveLeadingBlankLinesFromFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
     {
         var members = GetMembers(node);
-        if (members.Count == 0)
+        if (members is not [var firstMember, ..])
             return node;
 
-        var firstMember = members.First();
         var firstMemberTrivia = firstMember.GetLeadingTrivia();
 
         // If there is no leading trivia, then return the node as it is.
@@ -367,10 +366,9 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFi
     private static TSyntaxNode EnsureLeadingBlankLineBeforeFirstMember<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
     {
         var members = GetMembers(node);
-        if (members.Count == 0)
+        if (members is not [var firstMember, ..])
             return node;
 
-        var firstMember = members.First();
         var firstMemberTrivia = firstMember.GetLeadingTrivia();
 
         // If the first member already contains a leading new line then, this will already break up the usings from these members.

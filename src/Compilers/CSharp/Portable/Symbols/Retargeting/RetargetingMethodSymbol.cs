@@ -256,6 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return _lazyUnmanagedAttributeData;
         }
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             if (!_underlyingMethod.TryGetThisParameter(out var underlyingParameter))

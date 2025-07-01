@@ -1682,6 +1682,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
         }
+
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
 #nullable disable
 
         internal override bool GenerateDebugInfo => false;
