@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return _underlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
         }
 
+        internal sealed override bool HasSpecialNameAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool IsNullableAnalysisEnabled()
         {
             return _underlyingMethod.IsNullableAnalysisEnabled();
