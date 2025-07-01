@@ -43,7 +43,7 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
     {
     }
 
-    public static async Task<string?> InitializeAsync(string localSettingsDirectory, CancellationToken cancellationToken)
+    public static async Task<string?> InitializeAsync(string localSettingsDirectory, ImmutableArray<string> oopMefComponentPaths, CancellationToken cancellationToken)
     {
         var assemblyPaths = RemoteHostAssemblyNames
             .Select(static assemblyName => MefHostServicesHelpers.TryFindNearbyAssemblyLocation(assemblyName))
@@ -51,7 +51,7 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
             .AsImmutable();
 
         var builder = new RemoteExportProviderBuilder(
-            assemblyPaths: assemblyPaths,
+            assemblyPaths: [.. assemblyPaths, .. oopMefComponentPaths],
             resolver: new Resolver(SimpleAssemblyLoader.Instance),
             cacheDirectory: Path.Combine(localSettingsDirectory, "Roslyn", "RemoteHost", "Cache"),
             catalogPrefix: "RoslynRemoteHost");
@@ -93,15 +93,20 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
         public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
         {
             var assemblyName = new AssemblyName(assemblyFullName);
-            if (!string.IsNullOrEmpty(codeBasePath))
+            try
             {
-                // Set the codebase path, if known, as a hint for the assembly loader.
-#pragma warning disable SYSLIB0044 // https://github.com/dotnet/roslyn/issues/71510
-                assemblyName.CodeBase = codeBasePath;
-#pragma warning restore SYSLIB0044
+                // Attempt to load the assembly by its name.
+                return LoadAssembly(assemblyName);
             }
-
-            return LoadAssembly(assemblyName);
+#if NET
+            catch when (codeBasePath is not null)
+            {
+                // If that fails, try and load it from the codeBasePath if present
+                var selfAlc = System.Runtime.Loader.AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())!;
+                return selfAlc.LoadFromAssemblyPath(codeBasePath);
+            }
+#endif
+            finally { }
         }
     }
 }

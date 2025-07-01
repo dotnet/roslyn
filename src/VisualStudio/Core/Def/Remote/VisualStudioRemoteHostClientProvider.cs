@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -39,7 +40,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
-
+        private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _analyzerProviderFactory;
         private readonly object _gate = new();
         private VisualStudioRemoteHostClientProvider? _cachedVSInstance;
 
@@ -52,7 +53,8 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
             AsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
-            [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers)
+            [ImportMany] IEnumerable<Lazy<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>> callbackDispatchers,
+            IVisualStudioDiagnosticAnalyzerProviderFactory analyzerProviderFactory)
         {
             _globalOptions = globalOptions;
             _vsWorkspace = vsWorkspace;
@@ -61,6 +63,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
             _listenerProvider = listenerProvider;
             _threadingContext = threadingContext;
             _callbackDispatchers = new RemoteServiceCallbackDispatcherRegistry(callbackDispatchers);
+            _analyzerProviderFactory = analyzerProviderFactory;
         }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
@@ -85,7 +88,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
                 // If we have a cached vs instance, then we can return that instance since we know they have the same host services.
                 // Otherwise, create and cache an instance based on vs workspace for future callers with same services.
                 if (_cachedVSInstance is null)
-                    _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _brokeredServiceContainer, _serviceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                    _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _brokeredServiceContainer, _serviceProvider, _threadingContext, _listenerProvider, _callbackDispatchers, _analyzerProviderFactory);
 
                 return _cachedVSInstance;
             }
@@ -99,6 +102,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
     private readonly IServiceProvider _serviceProvider;
     private readonly AsynchronousOperationListenerProvider _listenerProvider;
     private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
+    private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _analyzerProviderFactory;
     private readonly TaskCompletionSource<bool> _clientCreationSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly IThreadingContext _threadingContext;
 
@@ -109,7 +113,8 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         IServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         AsynchronousOperationListenerProvider listenerProvider,
-        RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
+        RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+        IVisualStudioDiagnosticAnalyzerProviderFactory analyzerProviderFactory)
     {
         Services = services;
         _globalOptions = globalOptions;
@@ -117,6 +122,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         _serviceProvider = serviceProvider;
         _listenerProvider = listenerProvider;
         _callbackDispatchers = callbackDispatchers;
+        _analyzerProviderFactory = analyzerProviderFactory;
         _threadingContext = threadingContext;
 
         // using VS AsyncLazy here since Roslyn's is not compatible with JTF. 
@@ -135,8 +141,11 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
                 _globalOptions.GetOption(RemoteHostOptionsStorage.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0;
             var localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
+            var assemblyProvider = await _analyzerProviderFactory.GetOrCreateProviderAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
+            var oopMefComponentPaths = assemblyProvider.GetOopMefComponentsInExtensions().SelectAsArray(c => c.path);
+
             // VS AsyncLazy does not currently support cancellation:
-            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, _threadingContext.DisposalToken).ConfigureAwait(false);
+            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, oopMefComponentPaths, _threadingContext.DisposalToken).ConfigureAwait(false);
 
             // proffer in-proc brokered services:
             _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new SolutionAssetProvider(Services)));
