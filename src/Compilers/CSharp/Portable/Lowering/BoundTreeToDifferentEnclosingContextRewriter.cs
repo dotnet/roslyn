@@ -139,6 +139,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitType(node.Type));
         }
 
+        public override BoundNode? VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            // Cannot replace a MethodDefIndex's Method/Type with a substituted symbol.
+            return node;
+        }
+
         [return: NotNullIfNotNull(nameof(method))]
         public override MethodSymbol? VisitMethodSymbol(MethodSymbol? method)
         {
