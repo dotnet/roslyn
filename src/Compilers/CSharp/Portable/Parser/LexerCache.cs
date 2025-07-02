@@ -6,12 +6,10 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CSharp.NullableWalker;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
