@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.NullableWalker;
 
@@ -189,17 +190,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int lexemeStartPosition,
             int hashCode)
         {
-            var lexemeWidth = textWindow.Position - lexemeStartPosition;
+            var span = TextSpan.FromBounds(lexemeStartPosition, textWindow.Position);
+            Debug.Assert(span.Length > 0);
 
-            Debug.Assert(lexemeWidth > 0);
-
-            // If the whitespace is entirely within the character window, grab from that and cache.
-            var lexemeEndPosition = lexemeStartPosition + lexemeWidth;
-            if (lexemeStartPosition >= textWindow.CharacterWindowStartPositionInText && lexemeEndPosition <= textWindow.CharacterWindowEndPositionInText)
+            if (textWindow.SpanIsWithinWindow(span))
             {
                 var lexemeSpan = textWindow.CharacterWindow.AsSpan(
                     lexemeStartPosition - textWindow.CharacterWindowStartPositionInText,
-                    lexemeWidth);
+                    span.Length);
                 var value = TriviaMap.FindItem(lexemeSpan, hashCode);
 
                 if (value == null)
