@@ -2645,24 +2645,24 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         // missing implementation method for M
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 }
 """;
         var src = """
@@ -2714,24 +2714,24 @@ object.M();
         // Accessibility of extension marker is not private
         var ilSrc = $$"""
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2763,24 +2763,24 @@ int.M();
         // Accessibility of extension marker is not private, instance extension method
         var ilSrc = $$"""
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig instance void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig instance void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( int32 i ) cil managed 
     {
@@ -2805,24 +2805,24 @@ int.M();
         // Extension marker method is generic
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2847,24 +2847,24 @@ int.M();
         // Extension marker method is not static
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2889,25 +2889,25 @@ int.M();
         // Extension marker doesn't return void
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
             IL_0000: ldc.i4.0
             IL_0001: ret
-		}
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2932,24 +2932,24 @@ int.M();
         // Extension marker lacks its parameter
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' () cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' () cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -2974,24 +2974,24 @@ int.M();
         // Extension marker has an extra parameter
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3050,30 +3050,30 @@ int.M();
         // Two extension markers
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method private hidebysig specialname static void '<Extension>$' ( string '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+        .method private hidebysig specialname static void '<Extension>$' ( string '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3098,24 +3098,24 @@ int.M();
         // Arity mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M<T> () cil managed 
     {
@@ -3140,24 +3140,24 @@ int.M();
         // Accessibility mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method assembly hidebysig static void M () cil managed 
     {
@@ -3182,24 +3182,24 @@ int.M();
         // parameter count mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M (string s) cil managed 
     {
@@ -3224,24 +3224,24 @@ int.M();
         // return type mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static int32 M () cil managed 
     {
@@ -3266,24 +3266,24 @@ int.M();
         // parameter type mismatch, instance method
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig instance void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig instance void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( object i ) cil managed 
     {
@@ -3308,24 +3308,24 @@ int.M();
         // parameter type mismatch, instance method
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig instance void M ( string s ) cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig instance void M ( string s ) cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( int32 i, object s ) cil managed 
     {
@@ -3350,24 +3350,24 @@ int.M();
         // constraint mismatch between skeleton and implementation
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M<T> () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M<T> () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M<class T> () cil managed 
     {
@@ -3392,24 +3392,24 @@ int.M();
         // implementation is not static
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig instance void M () cil managed 
     {
@@ -3434,24 +3434,24 @@ int.M();
         // skeleton type is not sealed
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3480,24 +3480,24 @@ int.M();
         // skeleton type is not public
         var ilSrc = $$"""
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested {{accessibility}} auto ansi specialname beforefieldinit sealed '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested {{accessibility}} auto ansi specialname beforefieldinit sealed '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3524,24 +3524,24 @@ int.M();
         // skeleton type not sealed
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3568,24 +3568,24 @@ int.M();
         // skeleton type has a base that's not object
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
-		extends [mscorlib]System.String
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+        extends [mscorlib]System.String
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3612,25 +3612,25 @@ int.M();
         // skeleton type implements an interface
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
-		extends [mscorlib]System.Object
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi specialname beforefieldinit sealed '<>E__0'
+        extends [mscorlib]System.Object
         implements I
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M () cil managed 
     {
@@ -3661,24 +3661,24 @@ int.M();
         // parameter type mismatch, static method
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M ( string s ) cil managed 
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M ( string s ) cil managed 
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
     .method public hidebysig static void M ( object s ) cil managed 
     {
@@ -5791,6 +5791,31 @@ static class E
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
         AssertEx.Equal("extension<T0>(!T0)", extension.ComputeExtensionGroupingRawName());
+
+        // "0" instead of "T0"
+        var ilSrc = """
+.class private sequential ansi sealed beforefieldinit C
+    extends System.ValueType
+{
+    .method private hidebysig instance void M<0> ( !!0 t ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+
+        try
+        {
+            CompileIL(ilSrc);
+        }
+        catch (ArgumentException ex)
+        {
+            Assert.Contains("The provided IL cannot be compiled.", ex.Message);
+            return;
+        }
+
+        Assert.True(false);
     }
 
     [Fact]
@@ -5994,13 +6019,13 @@ unsafe struct C
         var ilSrc = """
 
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance method System.Void *(int32) M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance method System.Void *(int32) M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 """;
 
@@ -6075,7 +6100,7 @@ static class E
 
         var ilSrc = """
 .class public auto ansi beforefieldinit C`1<valuetype .ctor (class System.ValueType) T>
-	extends System.Object
+    extends System.Object
 {
 }
 """;
@@ -6083,7 +6108,7 @@ static class E
 
         ilSrc = """
 .class public auto ansi beforefieldinit C`1<valuetype .ctor class System.ValueType T>
-	extends System.Object
+    extends System.Object
 {
 }
 """;
@@ -6252,7 +6277,7 @@ interface I { }
 
         var ilSrc = """
 .class public auto ansi beforefieldinit C1`1<valuetype .ctor (class System.ValueType modreq(class System.Runtime.InteropServices.UnmanagedType)) T>
-	extends System.Object
+    extends System.Object
 {
 }
 
@@ -6261,7 +6286,7 @@ interface I { }
 
         ilSrc = """
 .class public auto ansi beforefieldinit C1`1<valuetype .ctor (System.ValueType modreq(class System.Runtime.InteropServices.UnmanagedType)) T>
-	extends System.Object
+    extends System.Object
 {
 }
 
@@ -6386,12 +6411,12 @@ interface I { }
 
         var ilSrc = """
 .class public auto ansi beforefieldinit C1`1<valuetype .ctor (class I, class System.ValueType) T>
-	extends System.Object
+    extends System.Object
 {
 }
 
 .class public auto ansi beforefieldinit C2`1<valuetype .ctor (class System.ValueType, class I) T>
-	extends System.Object
+    extends System.Object
 {
 }
 
@@ -6514,19 +6539,19 @@ struct D { }
 
         var dSrc = """
 .class private sequential ansi sealed beforefieldinit D
-	extends System.ValueType
+    extends System.ValueType
 {
 } 
 """;
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance method valuetype D *(valuetype D)[] M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance method valuetype D *(valuetype D)[] M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 
 """;
@@ -6535,13 +6560,13 @@ struct D { }
         // no "valuetype" on references to D
         ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance method D *(D)[] M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance method D *(D)[] M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 """;
         try
@@ -6581,13 +6606,13 @@ class D { }
 """;
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance method class D *(class D)[] M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance method class D *(class D)[] M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 
 """;
@@ -6596,13 +6621,13 @@ class D { }
         // no "class" on references to D
         ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance method D *(D)[] M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance method D *(D)[] M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 
 """;
@@ -6641,13 +6666,13 @@ unsafe static class E
 """;
         var ilSrc = """
 .class private auto ansi beforefieldinit C`1<T>
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance method !T *(!T)[] M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance method !T *(!T)[] M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 
 """;
@@ -6675,17 +6700,17 @@ struct C<T> { }
 
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance valuetype D`1<valuetype D`1<int32>>[] M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance valuetype D`1<valuetype D`1<int32>>[] M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 
 .class private sequential ansi sealed beforefieldinit D`1<T>
-	extends System.ValueType
+    extends System.ValueType
 {
 } 
 """;
@@ -6713,17 +6738,17 @@ class C<T> { }
 
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.method private hidebysig instance class D`1<class D`1<int32>>[] M () cil managed 
-	{
-		IL_0000: ldnull
-		IL_0001: throw
-	}
+    .method private hidebysig instance class D`1<class D`1<int32>>[] M () cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 }
 
 .class private auto ansi beforefieldinit D`1<T>
-	extends System.Object
+    extends System.Object
 {
 }
 """;
@@ -6772,9 +6797,9 @@ unsafe static class E
 
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.field private method unmanaged stdcall void *() x
+    .field private method unmanaged stdcall void *() x
 }
 """;
 
@@ -6801,9 +6826,9 @@ unsafe static class E
 
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.field private method unmanaged cdecl void *() x
+    .field private method unmanaged cdecl void *() x
 }
 """;
 
@@ -6830,9 +6855,9 @@ unsafe static class E
 
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.field private method unmanaged stdcall void *() x
+    .field private method unmanaged stdcall void *() x
 }
 """;
 
@@ -6860,9 +6885,9 @@ unsafe static class E
 
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.field private method unmanaged thiscall void *() x
+    .field private method unmanaged thiscall void *() x
 }
 """;
 
@@ -6889,9 +6914,9 @@ unsafe static class E
 
         var ilSrc = """
 .class private auto ansi beforefieldinit C
-	extends System.Object
+    extends System.Object
 {
-	.field private method unmanaged fastcall void *() x
+    .field private method unmanaged fastcall void *() x
 }
 """;
 
