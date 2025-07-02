@@ -95,7 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private int _characterWindowStartPositionInText;
 
+#if DEBUG
         private bool _disposed;
+#endif
 
         private readonly StringTable _strings;
 
