@@ -14,17 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
     {
         public static int Main(string[] args)
         {
-            foreach (var file in Directory.EnumerateFiles(@"d:\github\roslyn2", "*.cs", SearchOption.AllDirectories))
-            {
-                SyntaxFactory.ParseSyntaxTree(File.ReadAllText(file), path: file);
-            }
-
-            Console.WriteLine(SlidingTextWindow.GetTextOutsideWindowCount);
-            Console.WriteLine(SlidingTextWindow.GetTextInsideWindowCount);
-            Console.WriteLine(SlidingTextWindow.TotalTextSize);
-
-            Console.ReadLine();
-
             try
             {
                 return MainCore(args);
