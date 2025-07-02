@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.UnitTests.Logging;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Test.Utilities;

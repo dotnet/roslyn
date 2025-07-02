@@ -11,8 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Basic.CompilerLog.Util;
 using Microsoft.CodeAnalysis.CommandLine;
-using Microsoft.CodeAnalysis.Options;
-using Mono.Options;
 
 var options = ParseOptions(args);
 if (Directory.Exists(options.OutputDirectory))

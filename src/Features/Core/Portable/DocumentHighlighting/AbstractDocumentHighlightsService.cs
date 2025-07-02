@@ -53,7 +53,7 @@ internal abstract partial class AbstractDocumentHighlightsService :
                 return [];
             }
 
-            return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
+            return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
         }
 
         return await GetDocumentHighlightsInCurrentProcessAsync(

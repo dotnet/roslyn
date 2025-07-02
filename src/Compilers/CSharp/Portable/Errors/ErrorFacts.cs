@@ -1868,7 +1868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EscapeStackAlloc
                 or ErrorCode.ERR_RefReturnThis
                 or ErrorCode.ERR_OutAttrOnInParam
-                or ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3
+                or ErrorCode.ERR_PredefinedTypeAmbiguous
                 or ErrorCode.ERR_InvalidVersionFormatDeterministic
                 or ErrorCode.ERR_AttributeCtorInParameter
                 or ErrorCode.WRN_FilterIsConstantFalse

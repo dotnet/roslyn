@@ -14183,4 +14183,104 @@ public sealed class RemoveUnnecessaryCastTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
+    public async Task ImplicitNumericConversionCastInTernary1()
+    {
+        await VerifyCS.VerifyAnalyzerAsync("""
+            class C
+            {
+                private const int ConstInt = 1;
+
+                uint M(bool condition)
+                {
+                    return condition ? (uint)ConstInt : 0;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
+    public async Task ImplicitNumericConversionCastInTernary2()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            class C
+            {
+                private const int ConstInt = 1;
+
+                uint M(bool condition)
+                {
+                    return condition ? [|(uint)|]ConstInt : 0u;
+                }
+            }
+            """, """
+            class C
+            {
+                private const int ConstInt = 1;
+            
+                uint M(bool condition)
+                {
+                    return condition ? ConstInt : 0u;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
+    public async Task ImplicitNumericConversionCastInTernary3()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+                class C
+                {
+                    private const int ConstInt = 1;
+
+                    uint M(bool condition)
+                    {
+                        return condition ? [|(uint)|]ConstInt : [|(uint)|]0;
+                    }
+                }
+                """, """
+                class C
+                {
+                    private const int ConstInt = 1;
+            
+                    uint M(bool condition)
+                    {
+                        return condition ? ConstInt : (uint)0;
+                    }
+                }
+                """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
+    public async Task ImplicitNumericConversionCastInTernary4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private const int ConstInt = 1;
+
+                    uint M(bool condition)
+                    {
+                        return condition ? [|(uint)|]ConstInt : [|(uint)|]0;
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    private const int ConstInt = 1;
+            
+                    uint M(bool condition)
+                    {
+                        return condition ? (uint)ConstInt : 0;
+                    }
+                }
+                """,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck,
+            DiagnosticSelector = d => d[1],
+        }.RunAsync();
+    }
 }

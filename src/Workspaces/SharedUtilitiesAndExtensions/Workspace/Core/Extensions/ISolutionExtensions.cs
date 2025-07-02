@@ -86,7 +86,10 @@ internal static partial class ISolutionExtensions
         return sourceGeneratedDocument;
     }
 
-    public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+    public static ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken)
+        => GetRequiredDocumentAsync(solution, documentId, includeSourceGenerated: false, cancellationToken);
+
+    public static async ValueTask<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated, CancellationToken cancellationToken)
         => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw CreateDocumentNotFoundException();
 
     public static async ValueTask<TextDocument> GetRequiredTextDocumentAsync(this Solution solution, DocumentId documentId, CancellationToken cancellationToken = default)

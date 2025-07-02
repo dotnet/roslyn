@@ -241,10 +241,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
             Debug.Assert(node.InterpolatedStringHandlerData is null);
 
+            MethodSymbol? method = VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method);
+            TypeSymbol? constrainedToType = rewriter.VisitType(node.ConstrainedToType);
+
+            if (Symbol.Equals(method, node.Method, TypeCompareKind.AllIgnoreOptions) && TypeSymbol.Equals(constrainedToType, node.ConstrainedToType, TypeCompareKind.AllIgnoreOptions))
+            {
+                return node.Data;
+            }
+
             return BoundBinaryOperator.UncommonData.CreateIfNeeded(
                 node.ConstantValueOpt,
-                VisitMethodSymbolWithExtensionRewrite(rewriter, node.Method),
-                rewriter.VisitType(node.ConstrainedToType),
+                method,
+                constrainedToType,
                 node.OriginalUserDefinedOperatorsOpt);
         }
 

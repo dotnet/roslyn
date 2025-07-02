@@ -4,7 +4,6 @@
 
 extern alias Scripting;
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO.Pipes;

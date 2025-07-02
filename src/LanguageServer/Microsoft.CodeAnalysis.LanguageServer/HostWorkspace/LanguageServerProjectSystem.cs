@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;

@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -194,17 +197,21 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         if (this.HasExistingInvalidInitializerForCollection())
             return false;
 
+        return GetAddMethods(cancellationToken).Any();
+    }
+
+    protected ImmutableArray<IMethodSymbol> GetAddMethods(CancellationToken cancellationToken)
+    {
         var type = this.SemanticModel.GetTypeInfo(_objectCreationExpression, cancellationToken).Type;
         if (type == null)
-            return false;
+            return [];
 
         var addMethods = this.SemanticModel.LookupSymbols(
             _objectCreationExpression.SpanStart,
             container: type,
             name: WellKnownMemberNames.CollectionInitializerAddMethodName,
             includeReducedExtensionMethods: true);
-
-        return addMethods.Any(static m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());
+        return addMethods.SelectAsArray(s => s is IMethodSymbol { Parameters: [_, ..] }, s => (IMethodSymbol)s);
     }
 
     private bool TryAnalyzeIndexAssignment(

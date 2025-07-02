@@ -8,7 +8,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.InlineTemporary
 Imports Microsoft.CodeAnalysis.Simplification

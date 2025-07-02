@@ -7647,7 +7647,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">미리 정의된 형식 '{0}'을(를) 정의하지 않았거나 가져오지 않았습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">미리 정의된 형식 '{0}'이(가) 여러 참조된 어셈블리('{1}' 및 '{2}')에서 선언되었습니다.</target>
         <note />

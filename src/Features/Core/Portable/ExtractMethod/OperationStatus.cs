@@ -32,12 +32,9 @@ internal sealed partial class OperationStatus
     }
 
     public OperationStatus With(OperationStatus operationStatus)
-    {
-        var newSucceeded = Succeeded && operationStatus.Succeeded;
-
-        var reasons = Reasons.Concat(operationStatus.Reasons);
-        return new OperationStatus(newSucceeded, reasons);
-    }
+        => new(
+            Succeeded && operationStatus.Succeeded,
+            [.. Reasons, .. operationStatus.Reasons]);
 
     public OperationStatus MakeFail()
         => new(succeeded: false, Reasons);

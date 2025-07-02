@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Scripting

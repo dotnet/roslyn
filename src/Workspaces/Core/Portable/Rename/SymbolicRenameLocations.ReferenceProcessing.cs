@@ -282,7 +282,11 @@ internal sealed partial class SymbolicRenameLocations
                 // rather than a whole namespace of stuff.
                 if (location.Alias != null)
                 {
-                    if (location.Alias.Name == referencedSymbol.Name)
+                    var referencedSymbolName = referencedSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructorSymbol
+                        ? constructorSymbol.ContainingType.Name
+                        : referencedSymbol.Name;
+
+                    if (location.Alias.Name == referencedSymbolName)
                     {
                         results.Add(new RenameLocation(location.Location, location.Document.Id,
                             candidateReason: location.CandidateReason, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));

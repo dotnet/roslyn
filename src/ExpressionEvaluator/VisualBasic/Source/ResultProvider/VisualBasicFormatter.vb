@@ -4,7 +4,6 @@
 
 Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
-Imports Microsoft.VisualStudio.Debugger.ComponentInterfaces
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Microsoft.VisualStudio.Debugger.Metadata
 

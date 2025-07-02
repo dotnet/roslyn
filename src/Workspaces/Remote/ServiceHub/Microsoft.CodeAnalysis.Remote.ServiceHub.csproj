@@ -57,7 +57,4 @@
     <!-- TODO - This IVT should be removed - https://github.com/dotnet/roslyn/issues/46940 -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\UnusedReferences\ProjectAssets\" />
-  </ItemGroup>
 </Project>

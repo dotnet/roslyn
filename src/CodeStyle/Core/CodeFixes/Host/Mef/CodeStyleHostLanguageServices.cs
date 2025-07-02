@@ -48,8 +48,8 @@ internal sealed partial class CodeStyleHostLanguageServices : HostLanguageServic
                     break;
             }
 
-            return MefHostServices.DefaultAssemblies.Concat(
-                MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames.ToImmutableAndClear()));
+            return [.. MefHostServices.DefaultAssemblies,
+                    .. MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames.ToImmutableAndClear())];
         }
 
         IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()

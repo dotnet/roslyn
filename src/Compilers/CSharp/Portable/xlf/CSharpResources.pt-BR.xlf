@@ -7647,7 +7647,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <target state="translated">O tipo pré-definido "{0}" não foi definido ou importado</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">O tipo predefinido ‘{0}’ é declarado em vários assemblies referenciados: ‘{1}’ e ‘{2}’</target>
         <note />

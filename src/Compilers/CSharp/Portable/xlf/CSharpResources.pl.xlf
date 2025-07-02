@@ -7647,7 +7647,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <target state="translated">Wstępnie zdefiniowany typ „{0}” nie został zdefiniowany ani zaimportowany.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">Wstępnie zdefiniowany typ „{0}” jest zadeklarowany w wielu przywoływanych zestawach: „{1}” i „{2}”</target>
         <note />

@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.InitializeParameter
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

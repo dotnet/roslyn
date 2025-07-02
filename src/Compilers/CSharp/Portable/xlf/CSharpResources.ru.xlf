@@ -7648,7 +7648,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">Предопределенный тип "{0}" не определен или не импортирован</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">Предопределенный тип "{0}" объявлен в нескольких сборках, на которые имеются ссылки: "{1}" и "{2}"</target>
         <note />

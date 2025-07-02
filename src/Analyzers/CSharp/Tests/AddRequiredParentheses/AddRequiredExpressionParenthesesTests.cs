@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -421,16 +422,25 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
             """, RequireRelationalBinaryParenthesesForClarity);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78841")]
     public async Task TestCoalescePrecedence1()
     {
-        await TestMissingAsync(
+        await TestAsync(
             """
             class C
             {
                 void M()
                 {
                     int x = a $$+ b ?? c;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (a + b) ?? c;
                 }
             }
             """, RequireAllParenthesesForClarity);

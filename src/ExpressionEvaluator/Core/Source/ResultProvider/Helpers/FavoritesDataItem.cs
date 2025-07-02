@@ -4,9 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.VisualStudio.Debugger;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator

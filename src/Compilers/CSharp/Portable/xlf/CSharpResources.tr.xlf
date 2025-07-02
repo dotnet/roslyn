@@ -7647,7 +7647,7 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">Önceden tanımlanmış '{0}' türü tanımlanmamış veya içeri aktarılmamış</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">Önceden tanımlı '{0}' türü birden çok başvurulan bütünleştirilmiş kodda bildirildi: '{1}' ve '{2}'</target>
         <note />

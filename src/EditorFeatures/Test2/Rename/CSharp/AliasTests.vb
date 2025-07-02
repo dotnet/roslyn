@@ -2,8 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Xunit.Abstractions
 
@@ -730,6 +728,47 @@ class Program
                 </Workspace>, host:=host, renameTo:="N")
 
                 result.AssertLabeledSpansAre("resolved", "var y = (x as int?) + 1;", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58463")>
+        <CombinatorialData>
+        Public Sub RenameReferencingConstreuctorViaAlias(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document><![CDATA[
+using [|ToBeRenamed|] = N.M.[|ToBeRenamed|];
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|ToBeRenamed|] myClass = new [|ToBeRenamed|]("hello");     // references to the constructor via an identically named alias should also be renamed
+        }
+    }
+}
+
+                        ]]></Document>
+                        <Document><![CDATA[
+namespace N.M
+{
+    internal class [|$$ToBeRenamed|] 
+    {
+        private string myVar2;
+        internal [|ToBeRenamed|](string var1)
+        {
+            myVar2 = var1;
+        }
+    }
+}
+
+                        ]]></Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="ThisIsTheNewName")
+
             End Using
         End Sub
     End Class

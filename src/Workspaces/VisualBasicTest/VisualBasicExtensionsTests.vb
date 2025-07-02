@@ -4,7 +4,6 @@
 
 Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.SyntaxTreeExtensions
 Imports Roslyn.Test.Utilities
 Imports Xunit

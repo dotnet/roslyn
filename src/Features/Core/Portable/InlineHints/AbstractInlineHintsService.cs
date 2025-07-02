@@ -28,6 +28,6 @@ internal abstract class AbstractInlineHintsService : IInlineHintsService
             ? []
             : await inlineTypeService.GetInlineHintsAsync(document, textSpan, options.TypeOptions, options.DisplayOptions, displayAllOverride, cancellationToken).ConfigureAwait(false);
 
-        return parameters.Concat(types);
+        return [.. parameters, .. types];
     }
 }

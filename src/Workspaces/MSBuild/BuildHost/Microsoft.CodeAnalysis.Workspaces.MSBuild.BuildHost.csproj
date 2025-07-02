@@ -68,7 +68,6 @@
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\Extensions.cs" Link="SharedUtilities\Extensions.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\PooledObject.cs" Link="SharedUtilities\PooledObject.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\SharedPools.cs" Link="SharedUtilities\SharedPools.cs" />
-    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\FixedSizeArrayBuilder.cs" Link="SharedUtilities\FixedSizeArrayBuilder.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\SerializableBytes.cs" Link="SharedUtilities\SerializableBytes.cs" />
 
   </ItemGroup>

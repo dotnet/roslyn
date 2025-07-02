@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.IO
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host

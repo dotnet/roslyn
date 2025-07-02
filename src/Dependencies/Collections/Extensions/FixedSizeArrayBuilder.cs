@@ -5,6 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -45,32 +49,46 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     public void Add(T value)
         => _values[_index++] = value;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
+    {
+#if MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT
+        if (condition)
+        {
+            var fileName = filePath is null ? null : Path.GetFileName(filePath);
+            throw new InvalidOperationException($"Unexpected true - file {fileName} line {lineNumber}");
+        }
+#else
+        Contract.ThrowIfTrue(condition, lineNumber, filePath);
+#endif
+    }
+
     #region AddRange overloads.  These allow us to add these collections directly, without allocating an enumerator.
 
     public void AddRange(ImmutableArray<T> values)
     {
-        Contract.ThrowIfTrue(_index + values.Length > _values.Length);
+        ThrowIfTrue(_index + values.Length > _values.Length);
         Array.Copy(ImmutableCollectionsMarshal.AsArray(values)!, 0, _values, _index, values.Length);
         _index += values.Length;
     }
 
     public void AddRange(List<T> values)
     {
-        Contract.ThrowIfTrue(_index + values.Count > _values.Length);
+        ThrowIfTrue(_index + values.Count > _values.Length);
         foreach (var v in values)
             Add(v);
     }
 
     public void AddRange(HashSet<T> values)
     {
-        Contract.ThrowIfTrue(_index + values.Count > _values.Length);
+        ThrowIfTrue(_index + values.Count > _values.Length);
         foreach (var v in values)
             Add(v);
     }
 
     public void AddRange(ArrayBuilder<T> values)
     {
-        Contract.ThrowIfTrue(_index + values.Count > _values.Length);
+        ThrowIfTrue(_index + values.Count > _values.Length);
         foreach (var v in values)
             Add(v);
     }
@@ -104,7 +122,7 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
 
     public T[] MoveToArray()
     {
-        Contract.ThrowIfTrue(_index != _values.Length);
+        ThrowIfTrue(_index != _values.Length);
         var result = _values;
         _values = [];
         _index = 0;

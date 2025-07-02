@@ -91,8 +91,8 @@ internal sealed class CSharpGenerateConstructorsCodeRefactoringProvider
             return GetAccessedMemberName(arrowExpression.Expression);
 
         // { return this.name; }
-        if (body is BlockSyntax { Statements.Count: > 0 } block)
-            return GetAccessedMemberName(block.Statements.First());
+        if (body is BlockSyntax { Statements: [var firstStatement, ..] })
+            return GetAccessedMemberName(firstStatement);
 
         return null;
     }

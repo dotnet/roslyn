@@ -4714,9 +4714,9 @@ public class C
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics(
-                    // (4,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    // (4,32): error CS8356: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is declared in multiple referenced assemblies: 'libWithIsExternalInit, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'libWithIsExternalInit2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                     //     public int Property { get; init; }
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit", "libWithIsExternalInit, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "libWithIsExternalInit2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 32)
                     );
             }
 
@@ -4724,9 +4724,9 @@ public class C
                 // type in two libraries
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
                 comp.VerifyEmitDiagnostics(
-                    // (4,32): error CS018: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    // (4,32): error CS8356: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is declared in multiple referenced assemblies: 'libWithIsExternalInit, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'libWithIsExternalInit2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                     //     public int Property { get; init; }
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit", "libWithIsExternalInit, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "libWithIsExternalInit2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 32)
                     );
             }
 
@@ -4735,9 +4735,9 @@ public class C
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics(
-                    // (4,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
+                    // (4,32): error CS8356: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is declared in multiple referenced assemblies: 'libWithIsExternalInit, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'libWithIsExternalInit2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                     //     public int Property { get; init; }
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit").WithLocation(4, 32)
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeAmbiguous, "init").WithArguments("System.Runtime.CompilerServices.IsExternalInit", "libWithIsExternalInit, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "libWithIsExternalInit2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 32)
                     );
             }
 

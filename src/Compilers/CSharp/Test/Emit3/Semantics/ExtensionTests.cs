@@ -2122,7 +2122,7 @@ public static class Extensions
 
         VerifyTypeIL(verifier, "Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-extends [netstandard]System.Object
+    extends [netstandard]System.Object
 {
     .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
@@ -2132,10 +2132,10 @@ extends [netstandard]System.Object
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -2145,8 +2145,8 @@ extends [netstandard]System.Object
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig specialname static
-            int32 get_Property () cil managed
+        .method private hidebysig specialname static 
+            int32 get_Property () cil managed 
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2154,10 +2154,10 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::get_Property
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void set_Property (
                 int32 'value'
-            ) cil managed
+            ) cil managed 
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2174,7 +2174,7 @@ extends [netstandard]System.Object
     } // end of class <>E__0
     // Methods
     .method private hidebysig static
-        int32 get_Property () cil managed
+        int32 get_Property () cil managed 
     {
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
@@ -2185,7 +2185,7 @@ extends [netstandard]System.Object
     .method private hidebysig static
         void set_Property (
             int32 'value'
-        ) cil managed
+        ) cil managed 
     {
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
@@ -9941,10 +9941,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -9954,8 +9954,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig specialname
-            instance string get_P () cil managed
+        .method public hidebysig specialname 
+            instance string get_P () cil managed 
         {
             // Method begins at RVA 0x2071
             // Code size 2 (0x2)
@@ -9973,7 +9973,7 @@ public static class Extensions
     .method public hidebysig static
         string get_P (
             object o
-        ) cil managed
+        ) cil managed 
     {
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
@@ -42177,6 +42177,81 @@ int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
 
         Assert.False(comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().IsExtension);
+    }
+
+    [Fact]
+    public void SpecialName_04()
+    {
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.SpecialName]
+        public void M() => throw null!;
+
+        public void M2() => throw null!;
+
+        [System.Runtime.CompilerServices.SpecialName]
+        public int P => throw null!;
+
+        public int P2 => throw null!;
+    }
+
+    [System.Runtime.CompilerServices.SpecialName]
+    public static void M3() => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.True(extension.GetMember<MethodSymbol>("M").HasSpecialName);
+        Assert.False(extension.GetMember<MethodSymbol>("M2").HasSpecialName);
+
+        Assert.True(extension.GetMember<PropertySymbol>("P").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("get_P").HasSpecialName);
+
+        Assert.False(extension.GetMember<PropertySymbol>("P2").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("get_P2").HasSpecialName);
+
+        Assert.True(comp.GetMember<MethodSymbol>("E.M").HasSpecialName);
+        Assert.False(comp.GetMember<MethodSymbol>("E.M2").HasSpecialName);
+        Assert.True(comp.GetMember<MethodSymbol>("E.M3").HasSpecialName);
+
+        Assert.False(comp.GetMember<MethodSymbol>("E.get_P").HasSpecialName);
+
+        Assert.False(comp.GetMember<MethodSymbol>("E.get_P2").HasSpecialName);
+    }
+
+    [Fact]
+    public void SpecialName_05()
+    {
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        public int P
+        {
+            [System.Runtime.CompilerServices.SpecialName]
+            get => 0;
+            [System.Runtime.CompilerServices.SpecialName]
+            set { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(extension.GetMember<PropertySymbol>("P").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("get_P").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("set_P").HasSpecialName);
+
+        Assert.True(comp.GetMember<MethodSymbol>("E.get_P").HasSpecialName);
+        Assert.True(comp.GetMember<MethodSymbol>("E.set_P").HasSpecialName);
     }
 
     [Fact]

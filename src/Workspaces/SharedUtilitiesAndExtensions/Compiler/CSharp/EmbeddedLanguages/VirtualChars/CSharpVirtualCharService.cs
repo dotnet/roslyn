@@ -178,7 +178,7 @@ internal class CSharpVirtualCharService : AbstractVirtualCharService
         // they start right after some `{...}` interpolation
         var isFirstChunk =
             parentExpression is LiteralExpressionSyntax ||
-            (parentExpression is InterpolatedStringExpressionSyntax { Contents: var contents } && contents.First() == token.GetRequiredParent());
+            (parentExpression is InterpolatedStringExpressionSyntax { Contents: [var firstContent, ..] } && firstContent == token.GetRequiredParent());
 
         if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
             return default;
