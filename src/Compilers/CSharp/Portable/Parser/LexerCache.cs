@@ -195,13 +195,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (textWindow.SpanIsWithinWindow(span))
             {
-                var lexemeSpan = textWindow.GetTextOfValidSpan(span)
-                var value = TriviaMap.FindItem(lexemeText, hashCode);
+                var lexemeTextSpan = textWindow.GetTextOfValidSpan(span);
+                var value = TriviaMap.FindItem(lexemeTextSpan, hashCode);
 
                 if (value == null)
                 {
                     value = SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
-                    TriviaMap.AddItem(lexemeText, hashCode, value);
+                    TriviaMap.AddItem(lexemeTextSpan, hashCode, value);
                 }
 
                 return value;
