@@ -4610,25 +4610,24 @@ class C
                 // directly.  That ensures that we are actually validating exactly the conditions that led to the bug
                 // (a dot token starting a number, right at the start of the character window).
                 var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
-                var testAccessor = lexer.TextWindow.GetTestAccessor();
 
                 var mode = LexerMode.Syntax;
                 var token1 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.SemicolonToken, token1.Kind);
                 Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, token1.FullWidth);
 
-                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, testAccessor.Offset);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
                 var token2 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.DotToken, token2.Kind);
 
-                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, testAccessor.Offset);
+                Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
                 var token3 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.DotToken, token3.Kind);
 
                 // We will have jumped the window backwards to be able to read the prior dot.
-                Assert.Equal(code.IndexOf('.'), testAccessor.CharacterWindowStartPositionInText);
-                Assert.Equal(2, testAccessor.Offset);
-                Assert.StartsWith("..0;", testAccessor.CharacterWindow.AsSpan().ToString());
+                Assert.Equal(code.IndexOf('.'), SlidingTextWindow.TestAccessor.GetCharacterWindowStartPositionInText(lexer.TextWindow));
+                Assert.Equal(2, SlidingTextWindow.TestAccessor.GetOffset(lexer.TextWindow));
+                Assert.StartsWith("..0;", SlidingTextWindow.TestAccessor.GetCharacterWindow(lexer.TextWindow).AsSpan().ToString());
 
                 var token4 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.NumericLiteralToken, token4.Kind);

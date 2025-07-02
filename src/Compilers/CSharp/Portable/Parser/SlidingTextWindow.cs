@@ -441,16 +441,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : new string(array, offset, length);
         }
 
-        public readonly TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        public readonly ref struct TestAccessor(SlidingTextWindow window)
+        public static class TestAccessor
         {
-            private readonly SlidingTextWindow _window = window;
-
-            public int Offset => _window._positionInText - _window._characterWindowStartPositionInText;
-            public int CharacterWindowStartPositionInText => _window._characterWindowStartPositionInText;
-            public ArraySegment<char> CharacterWindow => _window._characterWindow;
+            public static int GetOffset(in SlidingTextWindow window) => window._positionInText - window._characterWindowStartPositionInText;
+            public static int GetCharacterWindowStartPositionInText(in SlidingTextWindow window) => window._characterWindowStartPositionInText;
+            public static ArraySegment<char> GetCharacterWindow(in SlidingTextWindow window) => window._characterWindow;
         }
     }
 }
