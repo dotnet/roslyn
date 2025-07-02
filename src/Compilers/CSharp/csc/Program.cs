@@ -6,7 +6,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.CommandLine;
-using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
