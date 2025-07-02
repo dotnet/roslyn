@@ -444,5 +444,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ? this.Intern(array, offset, length)
                 : new string(array, offset, length);
         }
+
+        public TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        public readonly ref struct TestAccessor(SlidingTextWindow window)
+        {
+            private readonly SlidingTextWindow _window = window;
+
+            public int Offset => _window._characterWindowStartPositionInText - _window._positionInText;
+            public int CharacterWindowStartPositionInText => _window._characterWindowStartPositionInText;
+            public ArraySegment<char> CharacterWindow => _window._characterWindow;
+        }
     }
 }
