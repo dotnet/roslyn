@@ -1896,7 +1896,6 @@ End Module
         Assert.Equal(SyntaxKind.AwaitExpression, statement.ChildNodes.First.Kind)
     End Sub
 
-
     <Fact>
     Public Sub ParseOneLineStatement()
         Dim str = " Dim x = 3 "
