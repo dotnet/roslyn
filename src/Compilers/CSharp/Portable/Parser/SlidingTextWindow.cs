@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public void Reset(int position)
         {
             // Move us to that position.
-            _positionInText = position;
+            _positionInText = Math.Min(position, _textEnd);
 
             // if position is within already read character range then just use what we have
             if (PositionIsWithinWindow(position))

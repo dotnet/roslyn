@@ -4581,10 +4581,14 @@ class C
             //
             //      ////// <long stream of slashes>
             //      ;
-            //      ..0
+            //      ..0;
             //
-            // the first dot needs to be at the end of the window to ensure we look backwards across the window
-            // boundary when starting to consume the .0
+            // We want both dots at the end of the window.  When we lex the first dot, we'll peek ahead to see if we're
+            // on a number, and we don't want that to move the window forward.  Then when we lex the second dot, we will
+            // peek forward, making the text window point at "0;".
+            //
+            // Because we will have seen `.0` we will attempt to peek backwards to see if the prior token was a dot.
+            // This will involve reading back a chunk that includes that dot.
             var windowEnd = "\r\n;\r\n..";
             var code = new string('/', SlidingTextWindow.DefaultWindowLength - windowEnd.Length) + windowEnd + "0;";
 
@@ -4616,15 +4620,15 @@ class C
                 var token2 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.DotToken, token2.Kind);
 
-                // We'll be at the end of the window so the next lex will read from the start of the window.
-                // This will be a dot token, which will demonstrate that we can look backwards one token to
-                // see that we're preceded by another dot, making this a `..` not the start of a number.
                 Assert.Equal(SlidingTextWindow.DefaultWindowLength - 1, lexer.TextWindow.Offset);
                 var token3 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.DotToken, token3.Kind);
 
-                // Prior token will have read from offset 0, so we will now be at offset 1.
-                Assert.Equal(1, lexer.TextWindow.Offset);
+                // We will have jumped the window backwards to be able to read the prior dot.
+                Assert.Equal(code.IndexOf('.'), lexer.TextWindow.CharacterWindowStartPositionInText);
+                Assert.Equal(2, lexer.TextWindow.Offset);
+                Assert.StartsWith("..0;", lexer.TextWindow.CharacterWindow.AsSpan().ToString());
+
                 var token4 = lexer.Lex(ref mode);
                 Assert.Equal(SyntaxKind.NumericLiteralToken, token4.Kind);
                 Assert.Equal("0", token4.ValueText);
