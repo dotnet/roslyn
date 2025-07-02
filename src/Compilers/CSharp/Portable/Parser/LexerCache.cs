@@ -5,6 +5,7 @@
 // #define COLLECT_STATS
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
@@ -183,43 +184,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-<<<<<<< HEAD
         internal SyntaxTrivia LookupWhitespaceTrivia(
             SlidingTextWindow textWindow,
             int lexemeStartPosition,
             int hashCode)
         {
             var lexemeWidth = textWindow.Position - lexemeStartPosition;
-            var textBuffer = textWindow.CharacterWindow;
-=======
-        internal SyntaxTrivia LookupTrivia<TArg>(
-            ReadOnlySpan<char> textBuffer,
-            int hashCode,
-            Func<TArg, SyntaxTrivia> createTriviaFunction,
-            TArg data)
-        {
-            var value = TriviaMap.FindItem(textBuffer, hashCode);
->>>>>>> useSpan
+
+            Debug.Assert(lexemeWidth > 0);
 
             // If the whitespace is entirely within the character window, grab from that and cache.
             var lexemeEndPosition = lexemeStartPosition + lexemeWidth;
             if (lexemeStartPosition >= textWindow.CharacterWindowStartPositionInText && lexemeEndPosition <= textWindow.CharacterWindowEndPositionInText)
             {
-<<<<<<< HEAD
-                var keyStart = lexemeStartPosition - textWindow.CharacterWindowStartPositionInText;
-                var value = TriviaMap.FindItem(textBuffer, keyStart, lexemeWidth, hashCode);
+                var lexemeSpan = textWindow.CharacterWindow.AsSpan(
+                    lexemeStartPosition - textWindow.CharacterWindowStartPositionInText,
+                    lexemeWidth);
+                var value = TriviaMap.FindItem(lexemeSpan, hashCode);
 
                 if (value == null)
                 {
                     value = SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
-                    TriviaMap.AddItem(textBuffer, keyStart, lexemeWidth, hashCode, value);
+                    TriviaMap.AddItem(lexemeSpan, hashCode, value);
                 }
 
                 return value;
-=======
-                value = createTriviaFunction(data);
-                TriviaMap.AddItem(textBuffer, hashCode, value);
->>>>>>> useSpan
             }
 
             // Otherwise, if it's outside of the window, just grab from the underlying text.

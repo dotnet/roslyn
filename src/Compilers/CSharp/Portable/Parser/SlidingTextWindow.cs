@@ -162,6 +162,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindow.Count;
 
         /// <summary>
+        /// Returns true if <paramref name="position"/> is within the current character window, and thus the character at that position
+        /// can be read from the character window without going back to the underlying <see cref="_text"/>.
+        /// </summary>
+        private bool PositionIsWithinWindow(int position)
+        {
+            return position >= this.CharacterWindowStartPositionInText &&
+                   position < this.CharacterWindowEndPositionInText;
+        }
+
+        /// <summary>
+        /// Returns true if <paramref name="span"/> is within the current character window, and thus the sub-string corresponding to 
+        /// that span can be read can be read from the character window without going back to the underlying <see cref="_text"/>.
+        /// </summary>
+        public bool SpanIsWithinWindow(TextSpan span)
+        {
+            return span.Start >= this.CharacterWindowStartPositionInText &&
+                   span.End <= this.CharacterWindowEndPositionInText;
+        }
+
+        /// <summary>
         /// Moves this window to point at the given position in the text.  This will ensure that reading characters 
         /// (and normally characters after it) will be fast.
         /// </summary>
@@ -171,11 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _positionInText = position;
 
             // if position is within already read character range then just use what we have
-            if (position >= this.CharacterWindowStartPositionInText &&
-                position < this.CharacterWindowEndPositionInText)
-            {
+            if (PositionIsWithinWindow(position))
                 return;
-            }
 
             // Otherwise, ensure that the character window contains this position so we can read characters directly
             // from there.
@@ -283,11 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // If the position is outside of the bounds of the current character window, then update its contents to 
             // contain that position.
-            if (position < this.CharacterWindowStartPositionInText ||
-                position >= this.CharacterWindowEndPositionInText)
-            {
+            if (!PositionIsWithinWindow(position))
                 this.ReadChunkAt(position);
-            }
 
             return _characterWindow.Array![position - _characterWindowStartPositionInText];
         }
@@ -348,8 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string GetText(int position, int length, bool intern)
         {
-            var textStart = position;
-            var textEnd = textStart + length;
+            var span = new TextSpan(position, length);
+
 #if TRACING
             Interlocked.Add(ref TotalTextSize, length);
 #endif
@@ -357,12 +371,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // If the chunk being grabbed is not within the bounds of what is in the character window,
             // then grab it from the source text.  See docs at top of file for details on how common
             // this is.
-            if (textStart < this.CharacterWindowStartPositionInText || textEnd > this.CharacterWindowEndPositionInText)
+            if (!SpanIsWithinWindow(span))
             {
 #if TRACING
                 Interlocked.Increment(ref GetTextOutsideWindowCount);
 #endif
-                return _text.ToString(TextSpan.FromBounds(textStart, textEnd));
+                return _text.ToString(span);
             }
             else
             {

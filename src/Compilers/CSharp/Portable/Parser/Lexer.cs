@@ -2293,6 +2293,8 @@ LoopExit:
         /// <returns>A trivia node with the whitespace text</returns>
         private SyntaxTrivia ScanWhitespace()
         {
+            Debug.Assert(SyntaxFacts.IsWhitespace(TextWindow.PeekChar()));
+
             int hashCode = Hash.FnvOffsetBias;  // FNV base
             bool onlySpaces = true;
 
@@ -2325,6 +2327,8 @@ top:
 
                     break;
             }
+
+            Debug.Assert(this.CurrentLexemeWidth > 0);
 
             if (this.CurrentLexemeWidth == 1 && onlySpaces)
             {
