@@ -70,11 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal string ComputeExtensionGroupingRawName()
         {
+            Debug.Assert(this.IsExtension && this.IsDefinition);
+
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
             builder.Append("extension");
 
-            if (this.IsGenericType)
+            if (this.Arity > 0)
             {
                 builder.Append("<");
 
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         builder.Append(", ");
                     }
 
-                    appendTypeParameter(typeParameter, builder, isDefinition: true);
+                    appendTypeParameterDeclaration(typeParameter, builder);
                 }
 
                 builder.Append(">");
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (type is TypeParameterSymbol typeParameter)
                 {
-                    appendTypeParameter(typeParameter, builder, isDefinition: false);
+                    appendTypeParameterReference(typeParameter, builder);
                 }
                 else if (type is ArrayTypeSymbol array)
                 {
@@ -140,19 +142,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                if (namedType.IsReferenceType)
-                {
-                    builder.Append("class ");
-                }
-                else if (namedType.IsValueType)
-                {
-                    builder.Append("valuetype ");
-                }
-
+                // Note: in valid IL, we need a "class" or "valuetype" keyword in many contexts
                 appendNamespace(namedType.ContainingNamespace, builder);
                 appendContainingType(namedType, builder);
-                builder.Append(namedType.Name);
-                appendArity(namedType, builder);
+                builder.Append(namedType.MetadataName);
                 appendTypeArguments(namedType, builder);
             }
 
@@ -172,18 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (namedType.ContainingType is { } containingType)
                 {
                     appendContainingType(containingType, builder);
-                    builder.Append(containingType.Name);
-                    appendArity(containingType, builder);
+                    builder.Append(containingType.MetadataName);
                     builder.Append('/');
-                }
-            }
-
-            static void appendArity(NamedTypeSymbol namedType, StringBuilder builder)
-            {
-                if (namedType.Arity > 0)
-                {
-                    builder.Append('`');
-                    builder.Append(StringExtensions.GetNumeral(namedType.Arity));
                 }
             }
 
@@ -202,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
 
                         appendType(typeArguments[i].Type, builder);
+                        Debug.Assert(typeArguments[i].CustomModifiers.IsEmpty);
                     }
 
                     builder.Append('>');
@@ -210,41 +194,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeArguments.Free();
             }
 
-            static void appendTypeParameter(TypeParameterSymbol typeParameter, StringBuilder builder, bool isDefinition)
+            static void appendTypeParameterDeclaration(TypeParameterSymbol typeParameter, StringBuilder builder)
             {
-                if (isDefinition)
+                Debug.Assert(typeParameter.Variance == VarianceKind.None);
+
+                if (typeParameter.HasReferenceTypeConstraint)
                 {
-                    var cciTypeParameter = (Cci.IGenericParameter)typeParameter.GetCciAdapter();
-                    Debug.Assert(cciTypeParameter.Variance == Cci.TypeParameterVariance.NonVariant);
+                    builder.Append("class ");
+                }
+                else if (typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
+                {
+                    builder.Append("valuetype ");
+                }
 
-                    if (cciTypeParameter.MustBeReferenceType)
-                    {
-                        builder.Append("class ");
-                    }
-                    else if (cciTypeParameter.MustBeValueType)
-                    {
-                        builder.Append("valuetype ");
-                    }
+                if (typeParameter.AllowsRefLikeType)
+                {
+                    builder.Append("byreflike ");
+                }
 
-                    if (cciTypeParameter.AllowsRefLikeType)
-                    {
-                        builder.Append("byreflike ");
-                    }
+                if (typeParameter.HasConstructorConstraint || typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
+                {
+                    builder.Append(".ctor ");
+                }
 
-                    if (cciTypeParameter.MustHaveDefaultConstructor)
-                    {
-                        builder.Append(".ctor ");
-                    }
+                appendTypeParameterTypeConstraints(typeParameter, builder);
+                // Note: in valid IL, we would need a valid identifier name
+                builder.Append(StringExtensions.GetNumeral(typeParameter.Ordinal));
+            }
 
-                    appendTypeParameterTypeConstraints(typeParameter, builder);
+            static void appendTypeParameterReference(TypeParameterSymbol typeParameter, StringBuilder builder)
+            {
+                if (typeParameter.ContainingType.IsExtension)
+                {
+                    builder.Append("!");
+                    // Note: in valid IL, we would need a valid identifier name
+                    builder.Append(StringExtensions.GetNumeral(typeParameter.Ordinal));
                 }
                 else
                 {
-                    builder.Append('!');
+                    // error scenario
+                    builder.Append("!");
+                    builder.Append(typeParameter.Name);
                 }
-
-                builder.Append('T');
-                builder.Append(StringExtensions.GetNumeral(typeParameter.Ordinal));
             }
 
             static void appendTypeParameterTypeConstraints(TypeParameterSymbol typeParameter, StringBuilder builder)
@@ -265,17 +256,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (typeParameter.HasUnmanagedTypeConstraint)
                 {
-                    typeConstraintStrings.Add("class System.ValueType modreq(class System.Runtime.InteropServices.UnmanagedType)");
+                    typeConstraintStrings.Add("System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)");
                 }
                 else if (typeParameter.HasValueTypeConstraint)
                 {
-                    typeConstraintStrings.Add("class System.ValueType");
+                    typeConstraintStrings.Add("System.ValueType");
                 }
 
                 typeConstraintStrings.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
 
                 builder.Append('(');
-                for (int i = 0; i < typeConstraintStrings.Count(); i++)
+                for (int i = 0; i < typeConstraintStrings.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -345,6 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     ParameterSymbol parameter = parameters[i];
                     appendType(parameter.Type, builder);
+                    Debug.Assert(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
                     if (parameter.RefKind != RefKind.None)
                     {
                         builder.Append('&');
@@ -357,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendModifiers(ImmutableArray<CustomModifier> customModifiers, StringBuilder builder)
             {
+                // Order of modifiers is significant in metadata so we preserve the order.
                 var modifierStrings = ArrayBuilder<string>.GetInstance(customModifiers.Length);
 
                 foreach (CustomModifier modifier in customModifiers)
@@ -364,17 +357,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var modifierBuilder = PooledStringBuilder.GetInstance();
                     modifierBuilder.Builder.Append(modifier.IsOptional ? " modopt(" : " modreq(");
 
-                    appendType(((PublicModel.NamedTypeSymbol)modifier.Modifier).UnderlyingTypeSymbol, modifierBuilder.Builder);
+                    appendType(((CSharpCustomModifier)modifier).ModifierSymbol, modifierBuilder.Builder);
                     modifierBuilder.Builder.Append(')');
 
-                    modifierStrings.Add(modifierBuilder.ToStringAndFree());
-                }
-
-                modifierStrings.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
-
-                foreach (var modifierString in modifierStrings)
-                {
-                    builder.Append(modifierString);
+                    builder.Append(modifierBuilder.ToStringAndFree());
                 }
             }
         }
