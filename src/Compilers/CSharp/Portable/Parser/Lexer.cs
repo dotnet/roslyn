@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // All of the following characters are not valid in an 
                         // identifier.  If we see any of them, then we know we're
                         // done.
-                        var length = currentIndex + 1;
+                        var length = currentIndex;
                         TextWindow.AdvanceChar(length);
                         info.Text = info.StringValue = TextWindow.Intern(textWindowCharSpan[..length]);
                         info.IsVerbatim = false;
