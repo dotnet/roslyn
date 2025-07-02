@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             private readonly SlidingTextWindow _window = window;
 
-            public int Offset => _window._characterWindowStartPositionInText - _window._positionInText;
+            public int Offset => _window._positionInText - _window._characterWindowStartPositionInText;
             public int CharacterWindowStartPositionInText => _window._characterWindowStartPositionInText;
             public ArraySegment<char> CharacterWindow => _window._characterWindow;
         }
