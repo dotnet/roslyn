@@ -143,21 +143,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// The current absolute position in the text file.
         /// </summary>
-        public int Position => _positionInText;
+        public readonly int Position => _positionInText;
 
         /// <summary>
         /// Gets a view over the underlying characters that this window is currently pointing at.
         /// The view starts at <see cref="Position"/> and contains as many legal characters from
         /// <see cref="Text"/> that are available after that.  This span may be empty.
         /// </summary>
-        public ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
+        public readonly ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
 
         /// <summary>
         /// Similar to <see cref="_characterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
         /// that <see cref="_characterWindow"/> encompases in <see cref="Text"/>.  This is equal to <see cref="_characterWindowStartPositionInText"/>
         /// + <see cref="_characterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
         /// </summary>
-        private int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + _characterWindow.Count;
+        private readonly int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + _characterWindow.Count;
 
         /// <summary>
         /// Returns true if <paramref name="position"/> is within the current character window, and thus the character at that position
@@ -354,15 +354,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return true;
         }
 
-        public string Intern(StringBuilder text)
+        public readonly string Intern(StringBuilder text)
         {
             return _strings.Add(text);
         }
 
-        public string Intern(char[] array, int start, int length)
+        public readonly string Intern(char[] array, int start, int length)
             => Intern(array.AsSpan(start, length));
 
-        public string Intern(ReadOnlySpan<char> chars)
+        public readonly string Intern(ReadOnlySpan<char> chars)
             => _strings.Add(chars);
 
         /// <summary>
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : new string(array, offset, length);
         }
 
-        public TestAccessor GetTestAccessor()
+        public readonly TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
         public readonly ref struct TestAccessor(SlidingTextWindow window)
