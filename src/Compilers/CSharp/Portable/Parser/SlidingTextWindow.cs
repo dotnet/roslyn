@@ -144,17 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// The buffer backing the current window.
         /// </summary>
-        public char[] CharacterWindow => _characterWindow.Array!;
-
-        /// <summary>
-        /// Number of characters in the character window.
-        /// </summary>
-        public int CharacterWindowCount => _characterWindow.Count;
+        public ArraySegment<char> CharacterWindow => _characterWindow;
 
         /// <summary>
         /// Offset of the <see cref="_characterWindow"/> within <see cref="_text"/>.  In other words, if this is 2048, then that means
-        /// it represents the chunk of characters starting at position 2048 in the source text.  <see cref="CharacterWindowCount"/> represents
-        /// how large the chunk is.  Characters <c>[0, CharacterWindowCount)</c> are valid characters within the window, and represents
+        /// it represents the chunk of characters starting at position 2048 in the source text. <c>CharacterWindow.Count</c> represents
+        /// how large the chunk is.  Characters <c>[0, CharacterWindow.Count)</c> are valid characters within the window, and represents
         /// the chunk <c>[CharacterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="_text"/>.
         /// </summary>
         public int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
@@ -162,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Similar to <see cref="CharacterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
         /// that <see cref="_characterWindow"/> encompases in <see cref="_text"/>.  This is equal to <see cref="CharacterWindowStartPositionInText"/>
-        /// + <see cref="CharacterWindowCount"/>.
+        /// + <see cref="CharacterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
         /// </summary>
-        public int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindowCount;
+        public int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindow.Count;
 
         /// <summary>
         /// Moves this window to point at the given position in the text.  This will ensure that reading characters 

@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
 
         #endregion // Poolable
 
-        internal T? FindItem(char[] chars, int start, int len, int hashCode)
+        internal T? FindItem(ArraySegment<char> chars, int start, int len, int hashCode)
         {
             // get direct element reference to avoid extra range checks
             ref var localSlot = ref _localTable[LocalIdxFromHash(hashCode)];
@@ -135,7 +135,7 @@ namespace Roslyn.Utilities
             return null!;
         }
 
-        private SharedEntryValue? FindSharedEntry(char[] chars, int start, int len, int hashCode)
+        private SharedEntryValue? FindSharedEntry(ArraySegment<char> chars, int start, int len, int hashCode)
         {
             var arr = _sharedTableInst;
             int idx = SharedIdxFromHash(hashCode);
@@ -171,7 +171,7 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        internal void AddItem(char[] chars, int start, int len, int hashCode, T item)
+        internal void AddItem(ArraySegment<char> chars, int start, int len, int hashCode, T item)
         {
             var text = _strings.Add(chars, start, len);
 

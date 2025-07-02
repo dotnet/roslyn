@@ -111,7 +111,7 @@ namespace Roslyn.Utilities
 
         #endregion // Poolable
 
-        internal string Add(char[] chars, int start, int len)
+        internal string Add(ArraySegment<char> chars, int start, int len)
         {
             var span = chars.AsSpan(start, len);
             var hashCode = Hash.GetFNVHashCode(chars, start, len);
@@ -283,7 +283,7 @@ namespace Roslyn.Utilities
             return chars;
         }
 
-        private static string? FindSharedEntry(char[] chars, int start, int len, int hashCode)
+        private static string? FindSharedEntry(ArraySegment<char> chars, int start, int len, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
@@ -492,9 +492,9 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private string AddItem(char[] chars, int start, int len, int hashCode)
+        private string AddItem(ArraySegment<char> chars, int start, int len, int hashCode)
         {
-            var text = new String(chars, start, len);
+            var text = new String(chars.Array!, start, len);
             AddCore(text, hashCode);
             return text;
         }

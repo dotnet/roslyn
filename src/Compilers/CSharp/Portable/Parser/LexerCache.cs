@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
         internal SyntaxToken LookupToken<TArg>(
-            char[] textBuffer,
+            ArraySegment<char> textBuffer,
             int keyStart,
             int keyLength,
             int hashCode,
