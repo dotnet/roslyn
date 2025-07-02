@@ -698,6 +698,38 @@ public sealed class MSBuildWorkspace : Workspace
 
         this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
     }
+    #endregion
+
+    #region temporarily exposed internal methods for prototyping purpose only
+    internal void OnDocumentRemovedInternal(DocumentId documentId)
+    {
+        this.OnDocumentRemoved(documentId);
+    }
+
+    internal void OnAdditionalDocumentRemovedInternal(DocumentId documentId)
+    {
+        this.OnAdditionalDocumentRemoved(documentId);
+    }
+
+    internal void OnAnalyzerConfigDocumentRemovedInternal(DocumentId documentId)
+    {
+        this.OnAnalyzerConfigDocumentRemoved(documentId);
+    }
+
+    internal void OnDocumentTextChangedInternal(DocumentId documentId, SourceText newText)
+    {
+        this.OnDocumentTextChanged(documentId, newText, PreservationMode.PreserveValue);
+    }
+
+    internal void OnAdditionalDocumentTextChangedInternal(DocumentId documentId, SourceText newText)
+    {
+        this.OnAdditionalDocumentTextChanged(documentId, newText, PreservationMode.PreserveValue);
+    }
+
+    internal void OnAnalyzerConfigDocumentTextChangedInternal(DocumentId documentId, SourceText newText)
+    {
+        this.OnAnalyzerConfigDocumentTextChanged(documentId, newText, PreservationMode.PreserveValue);
+    }
+    #endregion
 }
 
-#endregion
