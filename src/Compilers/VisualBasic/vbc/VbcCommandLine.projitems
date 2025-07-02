@@ -29,8 +29,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\Vbc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
+
     <None Include="$(MSBuildThisFileDirectory)App.config" Condition="'$(TargetFramework)' == 'net472'" />
+
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
+
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" Condition="'$(TargetFramework)' == 'net472'" />

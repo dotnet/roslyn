@@ -27,6 +27,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NativeMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
+
     <Compile Include="$(MSBuildThisFileDirectory)AnalyzerConsistencyChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Assembly.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BuildProtocolUtil.cs" />
@@ -45,14 +46,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)ServerDispatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VBCSCompiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisualBasicCompilerServer.cs" />
+
     <None Include="$(MSBuildThisFileDirectory)App.config" Condition="'$(TargetFramework)' == 'net472'" />
+
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
+    
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" Condition="'$(TargetFramework)' == 'net472'" />
+
     <Reference Include="System.Configuration" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
