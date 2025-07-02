@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// decide to "keep" the lexeme by erasing the marker, or abandon the current
     /// lexeme by moving the offset back to the marker.
     /// </summary>
-    internal sealed class SlidingTextWindow : IDisposable
+    internal struct SlidingTextWindow : IDisposable
     {
 #if TRACING
         public static int GetTextInsideWindowCount = 0;
