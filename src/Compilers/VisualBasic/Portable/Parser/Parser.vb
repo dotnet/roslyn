@@ -526,7 +526,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseExecutableStatementCore() As StatementSyntax
             Dim outerContext As New CompilationUnitContext(Me)
-            Dim fakeBegin = SyntaxFactory.SubStatement(Nothing, Nothing, InternalSyntaxFactory.MissingKeyword(SyntaxKind.SubKeyword),
+            Dim builder As New CoreInternalSyntax.SyntaxListBuilder(1)
+            builder.Add(InternalSyntaxFactory.Token(Nothing, SyntaxKind.AsyncKeyword, Nothing))
+            Dim fakeBegin = SyntaxFactory.SubStatement(Nothing, builder.ToList, InternalSyntaxFactory.MissingKeyword(SyntaxKind.SubKeyword),
                                                   InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing, Nothing, Nothing)
             Dim methodContext = New MethodBlockContext(SyntaxKind.SubBlock, fakeBegin, outerContext)
 

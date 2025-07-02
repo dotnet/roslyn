@@ -1887,6 +1887,17 @@ End Module
     End Sub
 
     <Fact>
+    Public Sub ParseAwaitStatement()
+        Dim str = "Await Task.Delay(1000)"
+
+        Dim statement = SyntaxFactory.ParseExecutableStatement(str)
+        Assert.Equal(False, statement.ContainsDiagnostics)
+        Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind)
+        Assert.Equal(SyntaxKind.AwaitExpression, statement.ChildNodes.First.Kind)
+    End Sub
+
+
+    <Fact>
     Public Sub ParseOneLineStatement()
         Dim str = " Dim x = 3 "
 
