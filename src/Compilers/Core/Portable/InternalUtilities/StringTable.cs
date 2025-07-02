@@ -5,14 +5,10 @@
 using System;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
-using static System.Net.Mime.MediaTypeNames;
-using System.Runtime.InteropServices;
-
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #if DEBUG
-using System.Diagnostics;
 #endif
 
 namespace Roslyn.Utilities
