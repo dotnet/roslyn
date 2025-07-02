@@ -142,11 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
 
         /// <summary>
-        /// The buffer backing the current window.
-        /// </summary>
-        private ArraySegment<char> CharacterWindow => _characterWindow;
-
-        /// <summary>
         /// Offset of the <see cref="_characterWindow"/> within <see cref="Text"/>.  In other words, if this is 2048, then that means
         /// it represents the chunk of characters starting at position 2048 in the source text. <c>CharacterWindow.Count</c> represents
         /// how large the chunk is.  Characters <c>[0, CharacterWindow.Count)</c> are valid characters within the window, and represents
@@ -159,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// that <see cref="_characterWindow"/> encompases in <see cref="Text"/>.  This is equal to <see cref="CharacterWindowStartPositionInText"/>
         /// + <see cref="CharacterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
         /// </summary>
-        private int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindow.Count;
+        private int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this._characterWindow.Count;
 
         /// <summary>
         /// Returns true if <paramref name="position"/> is within the current character window, and thus the character at that position
