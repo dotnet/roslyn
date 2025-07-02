@@ -11,6 +11,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -154,8 +155,6 @@ internal sealed class EditSession
     /// <returns>Non-null diagnostic id if the module blocks EnC operation.</returns>
     public async Task<string?> ReportModuleDiagnosticsAsync(Guid mvid, Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfTrue(documentAnalyses.IsEmpty);
-
         var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
         if (availability.Status is ManagedHotReloadAvailabilityStatus.ModuleNotLoaded or ManagedHotReloadAvailabilityStatus.Available)
         {
@@ -200,7 +199,7 @@ internal sealed class EditSession
         }
 
         // project location:
-        if (hasRemovedOrAddedDocument)
+        if (hasRemovedOrAddedDocument || documentAnalyses.IsEmpty)
         {
             yield return Location.None;
         }
@@ -617,15 +616,9 @@ internal sealed class EditSession
             }
 
             // rude edit detection wasn't completed due to errors that prevent us from analyzing the document:
-            if (analysis.HasChangesAndSyntaxErrors)
+            if (analysis.AnalysisBlocked || analysis.HasBlockingRudeEdits)
             {
-                return ProjectAnalysisSummary.SyntaxErrors;
-            }
-
-            // rude edits detected:
-            if (analysis.HasBlockingRudeEdits)
-            {
-                return ProjectAnalysisSummary.RudeEdits;
+                return ProjectAnalysisSummary.InvalidChanges;
             }
 
             hasChanges = true;
@@ -644,6 +637,64 @@ internal sealed class EditSession
         }
 
         return ProjectAnalysisSummary.ValidChanges;
+    }
+
+    private static bool HasProjectSettingsBlockingRudeEdits(Project oldProject, Project newProject, ArrayBuilder<Diagnostic> diagnostics)
+    {
+        Contract.ThrowIfFalse(oldProject.Language == newProject.Language);
+
+        var analyzer = newProject.GetRequiredLanguageService<IEditAndContinueAnalyzer>();
+
+        var hasBlockingRudeEdit = false;
+
+        foreach (var diagnostic in analyzer.GetProjectSettingRudeEdits(oldProject, newProject))
+        {
+            hasBlockingRudeEdit |= diagnostic.Severity == DiagnosticSeverity.Error;
+            diagnostics.Add(diagnostic);
+        }
+
+        return hasBlockingRudeEdit;
+    }
+
+    private static bool HasReferenceRudeEdits(ImmutableDictionary<string, OneOrMany<AssemblyIdentity>> oldReferencedAssemblies, Compilation newCompilation, ArrayBuilder<Diagnostic> projectDiagnostics)
+    {
+        var hasRudeEdit = false;
+
+        foreach (var newReference in newCompilation.ReferencedAssemblyNames)
+        {
+            if (oldReferencedAssemblies.TryGetValue(newReference.Name, out var oldReferences))
+            {
+                if (oldReferences.Contains(newReference))
+                {
+                    // found exact match
+                    continue;
+                }
+
+                hasRudeEdit = true;
+
+                if (oldReferences.Count > 1)
+                {
+                    // For simplicity we disallow changing references to assembly references that don't have unique simple name.
+                    // This case should be very rare in practice.
+
+                    projectDiagnostics.Add(Diagnostic.Create(
+                        EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangingMultiVersionReferences),
+                        Location.None,
+                        [newReference.Name, string.Join(", ", oldReferences.ToImmutable().Select(static r => $"'{r}'"))]));
+
+                    break;
+                }
+
+                // Reference identity changed.
+
+                projectDiagnostics.Add(Diagnostic.Create(
+                    EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangingReference),
+                    Location.None,
+                    [oldReferences[0].ToString(), newReference.ToString()]));
+            }
+        }
+
+        return hasRudeEdit;
     }
 
     internal static async ValueTask<ProjectChanges> GetProjectChangesAsync(
@@ -670,9 +721,6 @@ internal sealed class EditSession
                 {
                     continue;
                 }
-
-                // we shouldn't be asking for deltas in presence of errors:
-                Contract.ThrowIfTrue(analysis.HasChangesAndErrors);
 
                 // Active statements are calculated if document changed and has no syntax errors:
                 Contract.ThrowIfTrue(analysis.ActiveStatements.IsDefault);
@@ -880,6 +928,7 @@ internal sealed class EditSession
             }
 
             Diagnostic? syntaxError = null;
+            ProjectAnalysisSummary? projectSummaryToReport = null;
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
 
@@ -912,6 +961,14 @@ internal sealed class EditSession
                         continue;
                     }
 
+                    Debug.Assert(oldProject.SupportsEditAndContinue());
+
+                    if (!oldProject.ProjectSettingsSupportEditAndContinue(Log))
+                    {
+                        // reason alrady reported
+                        continue;
+                    }
+
                     projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
 
                     await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, cancellationToken).ConfigureAwait(false);
@@ -938,8 +995,7 @@ internal sealed class EditSession
                         // The MVID is required for emit so we consider the error permanent and report it here.
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
                         projectDiagnostics.Add(mvidReadError);
-
-                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
+                        projectSummaryToReport = ProjectAnalysisSummary.ValidChanges;
                         continue;
                     }
 
@@ -1001,9 +1057,22 @@ internal sealed class EditSession
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
+
+                    if (HasProjectSettingsBlockingRudeEdits(oldProject, newProject, projectDiagnostics))
+                    {
+                        // If the project settings have changed and the change is a rude edit,
+                        // block applying the changes even if there no other changes to the project documents.
+                        // This is to avoid advancing the solution snapshot to an inconsistent state.
+                        projectSummary = ProjectAnalysisSummary.InvalidChanges;
+                    }
+
+                    projectSummaryToReport = projectSummary;
                     Log.Write($"Project summary for {newProject.GetLogDisplay()}: {projectSummary}");
 
-                    if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
+                    // Unsupported changes in referenced assemblies will be reported below.
+                    if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges &&
+                        oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) &&
+                        oldProject.ProjectReferences.SequenceEqual(newProject.ProjectReferences))
                     {
                         continue;
                     }
@@ -1030,34 +1099,47 @@ internal sealed class EditSession
                         }
                     }
 
-                    if (moduleBlockingDiagnosticId != null || projectSummary != ProjectAnalysisSummary.ValidChanges)
+                    if (projectSummary == ProjectAnalysisSummary.InvalidChanges)
                     {
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
-
+                        // Write document changes to log directory so that we can inspect them for rude edits:
                         await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    if (moduleBlockingDiagnosticId != null)
+                    {
                         continue;
                     }
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(oldCompilation);
 
+                    // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
+                    // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
                     var projectBaselines = DebuggingSession.GetOrCreateEmitBaselines(mvid, oldProject, oldCompilation, projectDiagnostics, out var baselineAccessLock);
                     if (projectBaselines.IsEmpty)
                     {
-                        // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
-                        // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
-                        Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
+                        continue;
+                    }
 
-                        await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
+                    var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(newCompilation);
+
+                    // Compare referenced assemblies against the baseline. The runtime does not provide means to replace already loaded assemblies
+                    // and therefore the versions of referenced assemblies in the new compilation can't change from the baseline.
+                    if (projectBaselines.Any(baseline => HasReferenceRudeEdits(baseline.InitiallyReferencedAssemblies, newCompilation, projectDiagnostics)))
+                    {
+                        continue;
+                    }
+
+                    if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
+                    {
                         continue;
                     }
 
                     Log.Write($"Emitting update of {newProject.GetLogDisplay()}");
 
-                    var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    // project must support compilations since it supports EnC
-                    Contract.ThrowIfNull(newCompilation);
+                    await LogDocumentChangesAsync(projectBaselines.First().Generation + 1, cancellationToken).ConfigureAwait(false);
 
                     var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var projectChanges = await GetProjectChangesAsync(oldActiveStatementsMap, oldCompilation, newCompilation, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
@@ -1078,8 +1160,6 @@ internal sealed class EditSession
 
                     foreach (var projectBaseline in projectBaselines)
                     {
-                        await LogDocumentChangesAsync(projectBaseline.Generation + 1, cancellationToken).ConfigureAwait(false);
-
                         using var pdbStream = SerializableBytes.CreateWritableStream();
                         using var metadataStream = SerializableBytes.CreateWritableStream();
                         using var ilStream = SerializableBytes.CreateWritableStream();
@@ -1170,7 +1250,7 @@ internal sealed class EditSession
                         deltas.Add(delta);
 
                         nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
-                        newProjectBaselines.Add(new ProjectBaseline(mvid, projectBaseline.ProjectId, emitResult.Baseline, projectBaseline.Generation + 1));
+                        newProjectBaselines.Add(new ProjectBaseline(mvid, projectBaseline.ProjectId, emitResult.Baseline, projectBaseline.InitiallyReferencedAssemblies, projectBaseline.Generation + 1));
 
                         var fileLog = Log.FileLog;
                         if (fileLog != null)
@@ -1178,8 +1258,6 @@ internal sealed class EditSession
                             await LogDeltaFilesAsync(fileLog, delta, projectBaseline.Generation, oldProject, newProject, cancellationToken).ConfigureAwait(false);
                         }
                     }
-
-                    Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
 
                     async ValueTask LogDocumentChangesAsync(int? generation, CancellationToken cancellationToken)
                     {
@@ -1200,6 +1278,11 @@ internal sealed class EditSession
                 }
                 finally
                 {
+                    if (projectSummaryToReport.HasValue)
+                    {
+                        Telemetry.LogProjectAnalysisSummary(projectSummaryToReport.Value, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
+                    }
+
                     if (!projectDiagnostics.IsEmpty)
                     {
                         diagnosticBuilders.Add(newProject.Id, projectDiagnostics);
@@ -1228,10 +1311,18 @@ internal sealed class EditSession
 
             Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
 
+            if (syntaxError != null)
+            {
+                Telemetry.LogSyntaxError();
+            }
+
             if (hasPersistentErrors)
             {
                 return SolutionUpdate.Empty(diagnostics, syntaxError, ModuleUpdateStatus.Blocked);
             }
+
+            // syntax error is a persistent error
+            Contract.ThrowIfTrue(syntaxError != null);
 
             var updates = deltas.ToImmutable();
 
@@ -1251,7 +1342,7 @@ internal sealed class EditSession
                 nonRemappableRegions.ToImmutable(),
                 newProjectBaselines.ToImmutable(),
                 diagnostics,
-                syntaxError,
+                syntaxError: null,
                 projectsToRestart,
                 projectsToRebuild);
         }
