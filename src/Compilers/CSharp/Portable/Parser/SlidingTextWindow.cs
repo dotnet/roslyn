@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly int _textEnd;
 
         /// <summary>
+        /// The current position in <see cref="Text"/> that we are reading characters from.  This is the absolute position in the source text.
+        /// </summary>
+        private int _positionInText;
+
+        /// <summary>
         /// Current segment of readable characters.  The backing store for this is an array given out by <see cref="s_windowPool"/>.
         /// The length of this will normally be <see cref="DefaultWindowLength"/>, but may be smaller if we are at the end of the file
         /// and there are not enough characters left to fill the window.
@@ -86,11 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Where the current character window starts in the source text.  This is the absolute position in the source text.
         /// </summary>
         private int _characterWindowStartPositionInText;
-
-        /// <summary>
-        /// The current position in <see cref="Text"/> that we are reading characters from.  This is the absolute position in the source text.
-        /// </summary>
-        private int _positionInText;
 
         private bool _disposed;
 
@@ -139,12 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// The view starts at <see cref="Position"/> and contains as many legal characters from
         /// <see cref="Text"/> that are available after that.  This span may be empty.
         /// </summary>
-        public ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(this.Offset, this.CharacterWindow.Count - this.Offset);
-
-        /// <summary>
-        /// The current offset inside the window (relative to the window start).
-        /// </summary>
-        private int Offset => _positionInText - _characterWindowStartPositionInText;
+        public ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
 
         /// <summary>
         /// The buffer backing the current window.
