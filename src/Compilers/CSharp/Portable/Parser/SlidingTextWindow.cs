@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// that <see cref="_characterWindow"/> encompases in <see cref="_text"/>.  This is equal to <see cref="CharacterWindowStartPositionInText"/>
         /// + <see cref="CharacterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
         /// </summary>
-        public int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindow.Count;
+        private int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindow.Count;
 
         /// <summary>
         /// Returns true if <paramref name="position"/> is within the current character window, and thus the character at that position
