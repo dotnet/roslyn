@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly SourceText _text;
 
         /// <summary>
-        /// Absolute end position of <see cref="_text"/>.  Attempts to read at or past this position will 
+        /// Absolute end position of <see cref="Text"/>.  Attempts to read at or past this position will 
         /// produce <see cref="InvalidCharacter"/>.
         /// </summary>
         private readonly int _textEnd;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _characterWindowStartPositionInText;
 
         /// <summary>
-        /// The current position in <see cref="_text"/> that we are reading characters from.  This is the absolute position in the source text.
+        /// The current position in <see cref="Text"/> that we are reading characters from.  This is the absolute position in the source text.
         /// </summary>
         private int _positionInText;
 
@@ -136,6 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public int Position => _positionInText;
 
+        /// <summary>
+        /// Gets a view over the underlying characters that this window is currently pointing at.
+        /// The view starts at <see cref="Position"/> and contains as many legal characters from
+        /// <see cref="Text"/> that are available after that.  This span may be empty.
+        /// </summary>
         public ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(this.Offset, this.CharacterWindow.Count - this.Offset);
 
         /// <summary>
@@ -149,23 +154,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private ArraySegment<char> CharacterWindow => _characterWindow;
 
         /// <summary>
-        /// Offset of the <see cref="_characterWindow"/> within <see cref="_text"/>.  In other words, if this is 2048, then that means
+        /// Offset of the <see cref="_characterWindow"/> within <see cref="Text"/>.  In other words, if this is 2048, then that means
         /// it represents the chunk of characters starting at position 2048 in the source text. <c>CharacterWindow.Count</c> represents
         /// how large the chunk is.  Characters <c>[0, CharacterWindow.Count)</c> are valid characters within the window, and represents
-        /// the chunk <c>[CharacterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="_text"/>.
+        /// the chunk <c>[CharacterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="Text"/>.
         /// </summary>
         private int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
 
         /// <summary>
         /// Similar to <see cref="CharacterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
-        /// that <see cref="_characterWindow"/> encompases in <see cref="_text"/>.  This is equal to <see cref="CharacterWindowStartPositionInText"/>
+        /// that <see cref="_characterWindow"/> encompases in <see cref="Text"/>.  This is equal to <see cref="CharacterWindowStartPositionInText"/>
         /// + <see cref="CharacterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
         /// </summary>
         private int CharacterWindowEndPositionInText => this.CharacterWindowStartPositionInText + this.CharacterWindow.Count;
 
         /// <summary>
         /// Returns true if <paramref name="position"/> is within the current character window, and thus the character at that position
-        /// can be read from the character window without going back to the underlying <see cref="_text"/>.
+        /// can be read from the character window without going back to the underlying <see cref="Text"/>.
         /// </summary>
         private bool PositionIsWithinWindow(int position)
         {
@@ -175,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         /// <summary>
         /// Returns true if <paramref name="span"/> is within the current character window, and thus the sub-string corresponding to 
-        /// that span can be read can be read from the character window without going back to the underlying <see cref="_text"/>.
+        /// that span can be read can be read from the character window without going back to the underlying <see cref="Text"/>.
         /// </summary>
         public bool SpanIsWithinWindow(TextSpan span)
         {
@@ -358,11 +363,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public string Intern(ReadOnlySpan<char> chars)
             => _strings.Add(chars);
 
+        /// <summary>
+        /// Gets the text, in the range <c>[startPosition, this.Position)</c> from <see cref="Text"/>.
+        /// This will grab the text from the character window if it is within the bounds of the current
+        /// chunk, or from the underlying <see cref="Text"/> if it is not.
+        /// </summary>
         public string GetText(int startPosition, bool intern)
         {
             return this.GetText(startPosition, this.Position - startPosition, intern);
         }
 
+        /// <summary>
+        /// Gets the text, in the range <c>[position, position + length)</c> from <see cref="Text"/>.
+        /// This will grab the text from the character window if it is within the bounds of the current
+        /// chunk, or from the underlying <see cref="Text"/> if it is not.
+        /// </summary>
         public string GetText(int position, int length, bool intern)
         {
             var span = new TextSpan(position, length);
