@@ -66,7 +66,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // There are two cases here: if it's a primordial document, it'll be in the MiscellaneousFilesWorkspace and thus we definitely know it's
         // a miscellaneous file. Otherwise, it might be a file-based program that we loaded in the main workspace; in this case, the project's path
         // is also the source file path, and that's what we consider the 'project' path that is loaded.
-        return document.Project.Solution.Workspace == _workspaceFactory.FileBasedProgramsProjectFactory.Workspace ||
+        return document.Project.Solution.Workspace == _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace ||
             document.Project.FilePath is not null && await IsProjectLoadedAsync(document.Project.FilePath, cancellationToken);
     }
 
@@ -88,7 +88,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var doDesignTimeBuild = uri.ParsedUri?.IsFile is true
             && primordialDoc.Project.Language == LanguageNames.CSharp
             && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
-        await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, _workspaceFactory.FileBasedProgramsProjectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
+        await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
 
         return primordialDoc;
 
@@ -100,12 +100,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 Contract.Fail($"Could not find language information for {uri} with absolute path {documentFilePath}");
             }
 
-            var workspace = _workspaceFactory.FileBasedProgramsProjectFactory.Workspace;
+            var workspace = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace;
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
                 workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, []);
 
-            _workspaceFactory.FileBasedProgramsProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
+            _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
 
             // https://github.com/dotnet/roslyn/pull/78267
             // Work around an issue where opening a Razor file in the misc workspace causes a crash.
@@ -153,7 +153,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
         var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
 
-        var loader = _workspaceFactory.FileBasedProgramsProjectFactory.CreateFileTextLoader(documentPath);
+        var loader = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.CreateFileTextLoader(documentPath);
         var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
         var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(documentPath, textAndVersion.Text);
 
@@ -165,7 +165,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             loadedFile,
             // If it's a proper file based program, we'll put it in the main host workspace factory since we want cross-project references to work.
             // Otherwise, we'll keep it in miscellaneous files.
-            ProjectFactory: isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.FileBasedProgramsProjectFactory,
+            ProjectFactory: isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
             HasAllInformation: isFileBasedProgram,
             Preferred: buildHostKind,
             Actual: buildHostKind);
