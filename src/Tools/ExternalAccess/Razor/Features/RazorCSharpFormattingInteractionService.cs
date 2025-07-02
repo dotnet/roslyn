@@ -23,25 +23,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// </summary>
     internal static class RazorCSharpFormattingInteractionService
     {
-        [Obsolete("This overload is for binary compat only. Use GetFormattingChangesAsync with all parameters instead.")]
-        public static Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
-            Document document,
-            char typedChar,
-            int position,
-            RazorIndentationOptions indentationOptions,
-            RazorAutoFormattingOptions autoFormattingOptions,
-            FormattingOptions.IndentStyle indentStyle,
-            CancellationToken cancellationToken)
-            => GetFormattingChangesAsync(
-                document,
-                typedChar,
-                position,
-                indentationOptions,
-                autoFormattingOptions,
-                indentStyle,
-                csharpSyntaxFormattingOptionsOverride: null,
-                cancellationToken);
-
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a 
         /// character.  The position provided is the position of the caret in the document after
@@ -76,21 +57,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, roslynIndentationOptions, cancellationToken);
         }
 
-        [Obsolete("This overload is for binary compat only. Use GetFormattingChangesAsync with all parameters instead.")]
-        public static IList<TextChange> GetFormattedTextChanges(
-            HostWorkspaceServices services,
-            SyntaxNode root,
-            TextSpan span,
-            RazorIndentationOptions indentationOptions,
-            CancellationToken cancellationToken)
-            => GetFormattedTextChanges(
-                services,
-                root,
-                span,
-                indentationOptions,
-                csharpSyntaxFormattingOptionsOverride: null,
-                cancellationToken);
-
         public static IList<TextChange> GetFormattedTextChanges(
             HostWorkspaceServices services,
             SyntaxNode root,
@@ -102,19 +68,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
             return Formatter.GetFormattedTextChanges(root, span, services.SolutionServices, GetFormattingOptions(services.SolutionServices, indentationOptions, csharpSyntaxFormattingOptionsOverride), cancellationToken);
         }
-
-        [Obsolete("This overload is for binary compat only. Use GetFormattingChangesAsync with all parameters instead.")]
-        public static SyntaxNode Format(
-            HostWorkspaceServices services,
-            SyntaxNode root,
-            RazorIndentationOptions indentationOptions,
-            CancellationToken cancellationToken)
-            => Format(
-                services,
-                root,
-                indentationOptions,
-                csharpSyntaxFormattingOptionsOverride: null,
-                cancellationToken);
 
         public static SyntaxNode Format(
             HostWorkspaceServices services,
