@@ -194,12 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Start();
             var state = QuickScanState.Initial;
 
-            var charWindow = TextWindow.CharacterWindow;
-
-            // The starting point we are pointing at within charWindow
-            var startIndexInWindow = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
-
-            var charSpan = charWindow.AsSpan(startIndexInWindow);
+            var charSpan = TextWindow.CurrentWindowSpan;
             charSpan = charSpan[..Math.Min(MaxCachedTokenSize, charSpan.Length)];
 
             int hashCode = Hash.FnvOffsetBias;
