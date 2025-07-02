@@ -195,6 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var state = QuickScanState.Initial;
 
             var textWindowCharSpan = TextWindow.CurrentWindowSpan;
+
+            // Cap how much of the char span we're willing to look at.
             textWindowCharSpan = textWindowCharSpan[..Math.Min(MaxCachedTokenSize, textWindowCharSpan.Length)];
 
             int hashCode = Hash.FnvOffsetBias;
