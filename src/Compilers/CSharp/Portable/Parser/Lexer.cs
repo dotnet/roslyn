@@ -1341,21 +1341,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            var currentOffset = TextWindow.Offset;
-            var characterWindow = TextWindow.CharacterWindow;
-            var characterWindowCount = characterWindow.Count;
-
-            var startOffset = currentOffset;
+            var textWindowCharSpan = this.TextWindow.CurrentWindowSpan;
+            var currentIndex = 0;
 
             while (true)
             {
-                if (currentOffset == characterWindowCount)
+                if (currentIndex == textWindowCharSpan.Length)
                 {
                     // no more contiguous characters.  Fall back to slow path
                     return false;
                 }
 
-                switch (characterWindow.Array![currentOffset])
+                switch (textWindowCharSpan[currentIndex])
                 {
                     case '&':
                         // CONSIDER: This method is performance critical, so
@@ -1405,13 +1402,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // All of the following characters are not valid in an 
                         // identifier.  If we see any of them, then we know we're
                         // done.
-                        var length = currentOffset - startOffset;
+                        var length = currentIndex + 1;
                         TextWindow.AdvanceChar(length);
-                        info.Text = info.StringValue = TextWindow.Intern(characterWindow.Array, startOffset, length);
+                        info.Text = info.StringValue = TextWindow.Intern(textWindowCharSpan[..length]);
                         info.IsVerbatim = false;
                         return true;
                     case >= '0' and <= '9':
-                        if (currentOffset == startOffset)
+                        if (currentIndex == 0)
                         {
                             return false;
                         }
@@ -1423,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case '_':
                         // All of these characters are valid inside an identifier.
                         // consume it and keep processing.
-                        currentOffset++;
+                        currentIndex++;
                         continue;
 
                     // case '@':  verbatim identifiers are handled in the slow path

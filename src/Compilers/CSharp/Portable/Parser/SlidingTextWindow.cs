@@ -136,15 +136,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public int Position => _positionInText;
 
+        public ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(this.Offset, this.CharacterWindow.Count - this.Offset);
+
         /// <summary>
         /// The current offset inside the window (relative to the window start).
         /// </summary>
-        public int Offset => _positionInText - _characterWindowStartPositionInText;
+        private int Offset => _positionInText - _characterWindowStartPositionInText;
 
         /// <summary>
         /// The buffer backing the current window.
         /// </summary>
-        public ArraySegment<char> CharacterWindow => _characterWindow;
+        private ArraySegment<char> CharacterWindow => _characterWindow;
 
         /// <summary>
         /// Offset of the <see cref="_characterWindow"/> within <see cref="_text"/>.  In other words, if this is 2048, then that means
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// how large the chunk is.  Characters <c>[0, CharacterWindow.Count)</c> are valid characters within the window, and represents
         /// the chunk <c>[CharacterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="_text"/>.
         /// </summary>
-        public int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
+        private int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
 
         /// <summary>
         /// Similar to <see cref="CharacterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
@@ -351,9 +353,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         public string Intern(char[] array, int start, int length)
-        {
-            return _strings.Add(array.AsSpan(start, length));
-        }
+            => Intern(array.AsSpan(start, length));
+
+        public string Intern(ReadOnlySpan<char> chars)
+            => _strings.Add(chars);
 
         public string GetText(int startPosition, bool intern)
         {
