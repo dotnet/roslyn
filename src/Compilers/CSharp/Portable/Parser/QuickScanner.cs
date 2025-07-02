@@ -199,9 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // The starting point we are pointing at within charWindow
             var startIndexInWindow = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
 
-            // The max index in charWindow that we will quick scan to.  This is either the end of the window
-            // or the position of the largest token we'd be willing to quick scan and cache.
-            var maxIndexInWindow = Math.Min(TextWindow.CharacterWindowCount, startIndexInWindow + MaxCachedTokenSize);
+            var charSpan = charWindow.AsSpan(startIndexInWindow);
+            charSpan = charSpan[..Math.Min(MaxCachedTokenSize, charSpan.Length)];
 
             int hashCode = Hash.FnvOffsetBias;
 
@@ -209,10 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var charPropLength = CharProperties.Length;
 
             // Where we are currently pointing in the charWindow as we read in a character at a time.
-            var currentIndexInWindow = startIndexInWindow;
-            for (; currentIndexInWindow < maxIndexInWindow; currentIndexInWindow++)
+            var currentIndex = 0;
+            for (; currentIndex < charSpan.Length; currentIndex++)
             {
-                char c = charWindow[currentIndexInWindow];
+                char c = charSpan[currentIndex];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -239,8 +238,10 @@ exitWhile:
 
             if (state == QuickScanState.Done)
             {
+                Debug.Assert(currentIndex > 0);
+
                 // this is a good token!
-                var tokenLength = currentIndexInWindow - startIndexInWindow;
+                var tokenLength = currentIndex;
 
                 // It is fine to advance text window here.  AdvanceChar is doc'ed to not change charWindow in any way.
                 // Note: we need to advance here, instead of after LookupToken as LookupToken can call into CreateQuickToken
@@ -248,13 +249,7 @@ exitWhile:
                 TextWindow.AdvanceChar(tokenLength);
 
                 var token = _cache.LookupToken(
-<<<<<<< HEAD
-                    charWindow,
-                    keyStart: startIndexInWindow,
-                    keyLength: tokenLength,
-=======
-                    TextWindow.CharacterWindow.AsSpan(TextWindow.LexemeRelativeStart, i - TextWindow.LexemeRelativeStart),
->>>>>>> useSpan
+                    charSpan[..tokenLength],
                     hashCode,
                     CreateQuickToken,
                     this);
