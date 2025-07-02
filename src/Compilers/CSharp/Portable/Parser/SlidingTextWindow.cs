@@ -111,6 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.ReadChunkAt(0);
         }
 
+        /// <summary>
+        /// Reads a chunk of characters from the underlying <see cref="Text"/> at the given position and places them
+        /// at the start of the character window.  The character windows length will be set to the number of characters
+        /// read.
+        /// <para/>
+        /// Note: this does NOT set _positionInText.  We are just reading the characters into the window. The actual 
+        /// position in the text is unchanged by this, and callers should set that if necessary.
+        /// </summary>
+        /// <param name="position"></param>
         private void ReadChunkAt(int position)
         {
             position = Math.Min(position, _textEnd);
@@ -119,9 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Text.CopyTo(position, _characterWindow.Array!, 0, amountToRead);
             _characterWindowStartPositionInText = position;
             _characterWindow = new(_characterWindow.Array!, 0, amountToRead);
-
-            // Note: this does NOT set _positionInText.  We are just reading the characters into the window.
-            // The actual position in the text is unchanged by this, and callers should set that if necessary.
         }
 
         public void Dispose()
