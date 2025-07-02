@@ -152,9 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public ReadOnlySpan<char> CurrentWindowSpan => _characterWindow.AsSpan(_positionInText - _characterWindowStartPositionInText);
 
         /// <summary>
-        /// Similar to <see cref="CharacterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
-        /// that <see cref="_characterWindow"/> encompases in <see cref="Text"/>.  This is equal to <see cref="CharacterWindowStartPositionInText"/>
-        /// + <see cref="CharacterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
+        /// Similar to <see cref="_characterWindowStartPositionInText"/>, except this represents the index (exclusive) of the first character
+        /// that <see cref="_characterWindow"/> encompases in <see cref="Text"/>.  This is equal to <see cref="_characterWindowStartPositionInText"/>
+        /// + <see cref="_characterWindow"/>'s <see cref="ArraySegment{T}.Count"/>.
         /// </summary>
         private int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + _characterWindow.Count;
 
