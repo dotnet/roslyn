@@ -1346,11 +1346,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             while (true)
             {
+                // If we do not not have any more contiguous characters within the char span that we can look at,
+                // then fall back to slow path
                 if (currentIndex == textWindowCharSpan.Length)
-                {
-                    // no more contiguous characters.  Fall back to slow path
                     return false;
-                }
 
                 switch (textWindowCharSpan[currentIndex])
                 {

@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Start();
             var state = QuickScanState.Initial;
 
-            var charSpan = TextWindow.CurrentWindowSpan;
-            charSpan = charSpan[..Math.Min(MaxCachedTokenSize, charSpan.Length)];
+            var textWindowCharSpan = TextWindow.CurrentWindowSpan;
+            textWindowCharSpan = textWindowCharSpan[..Math.Min(MaxCachedTokenSize, textWindowCharSpan.Length)];
 
             int hashCode = Hash.FnvOffsetBias;
 
@@ -204,9 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Where we are currently pointing in the charWindow as we read in a character at a time.
             var currentIndex = 0;
-            for (; currentIndex < charSpan.Length; currentIndex++)
+            for (; currentIndex < textWindowCharSpan.Length; currentIndex++)
             {
-                char c = charSpan[currentIndex];
+                char c = textWindowCharSpan[currentIndex];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -233,10 +233,10 @@ exitWhile:
 
             if (state == QuickScanState.Done)
             {
-                Debug.Assert(currentIndex > 0);
-
                 // this is a good token!
                 var tokenLength = currentIndex;
+
+                Debug.Assert(tokenLength > 0);
 
                 // It is fine to advance text window here.  AdvanceChar is doc'ed to not change charWindow in any way.
                 // Note: we need to advance here, instead of after LookupToken as LookupToken can call into CreateQuickToken
@@ -244,7 +244,7 @@ exitWhile:
                 TextWindow.AdvanceChar(tokenLength);
 
                 var token = _cache.LookupToken(
-                    charSpan[..tokenLength],
+                    textWindowCharSpan[..tokenLength],
                     hashCode,
                     CreateQuickToken,
                     this);
