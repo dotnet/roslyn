@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
+using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.InteropServices;
+
 
 #if DEBUG
 using System.Diagnostics;
@@ -310,7 +313,14 @@ namespace Roslyn.Utilities
         }
 
         private string AddItem(string chars, int start, int len, int hashCode)
-            => AddItem(chars.AsSpan(start, len), hashCode);
+        {
+            // Don't defer to ReadOnlySpan<char> here, as it would cause an extra allocation
+            // in the case where start/len exactly match the full span of chars.
+
+            var text = chars.Substring(start, len);
+            AddCore(text, hashCode);
+            return text;
+        }
 
         private unsafe string AddItem(char chars, int hashCode)
             => AddItem(new ReadOnlySpan<char>(&chars, 1), hashCode);
