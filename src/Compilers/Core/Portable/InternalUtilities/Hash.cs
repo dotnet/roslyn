@@ -286,9 +286,7 @@ namespace Roslyn.Utilities
             => GetFNVHashCode(text.AsSpan(start, length));
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
-        {
-            return GetCaseInsensitiveFNVHashCode(text.AsSpan(0, text.Length));
-        }
+            => GetCaseInsensitiveFNVHashCode(text.AsSpan());
 
         internal static int GetCaseInsensitiveFNVHashCode(ReadOnlySpan<char> data)
         {
@@ -300,18 +298,6 @@ namespace Roslyn.Utilities
             }
 
             return hashCode;
-        }
-
-        /// <summary>
-        /// Compute the hashcode of a sub-string using FNV-1a
-        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-        /// </summary>
-        /// <param name="text">The input string</param>
-        /// <param name="start">The start index of the first character to hash</param>
-        /// <returns>The FNV-1a hash code of the substring beginning at <paramref name="start"/> and ending at the end of the string.</returns>
-        internal static int GetFNVHashCode(string text, int start)
-        {
-            return GetFNVHashCode(text, start, length: text.Length - start);
         }
 
         /// <summary>
