@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public ReadOnlySpan<char> GetTextOfValidSpan(TextSpan span)
         {
             Debug.Assert(SpanIsWithinWindow(span));
-            return _characterWindow.AsSpan(span.Start + _characterWindowStartPositionInText, span.Length);
+            return _characterWindow.AsSpan(span.Start - _characterWindowStartPositionInText, span.Length);
         }
 
         /// <summary>
