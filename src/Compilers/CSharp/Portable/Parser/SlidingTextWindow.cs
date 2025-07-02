@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// a portion of the file at a time (as many <see cref="SourceText"/> implementations have logarithmic
         /// access time to characters).
         /// </summary>
-        private readonly SourceText _text;
+        public SourceText Text { get; }
 
         /// <summary>
         /// Absolute end position of <see cref="Text"/>.  Attempts to read at or past this position will 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public SlidingTextWindow(SourceText text)
         {
-            _text = text;
+            this.Text = text;
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
             _characterWindow = new(s_windowPool.Allocate());
@@ -128,8 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             s_windowPool.Free(_characterWindow.Array!);
             _strings.Free();
         }
-
-        public SourceText Text => _text;
 
         /// <summary>
         /// The current absolute position in the text file.
