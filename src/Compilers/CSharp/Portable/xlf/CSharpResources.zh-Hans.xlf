@@ -7647,7 +7647,7 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">预定义类型“{0}”未定义或导入</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PredefinedValueTupleTypeAmbiguous3">
+      <trans-unit id="ERR_PredefinedTypeAmbiguous">
         <source>Predefined type '{0}' is declared in multiple referenced assemblies: '{1}' and '{2}'</source>
         <target state="translated">已在多个引用的程序集(“{1}”和“{2}”)中声明了预定义类型“{0}”</target>
         <note />
