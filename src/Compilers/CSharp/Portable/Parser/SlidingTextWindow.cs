@@ -111,6 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.ReadChunkAt(0);
         }
 
+        public void Dispose()
+        {
+            Debug.Assert(!_disposed);
+            _disposed = true;
+
+            s_windowPool.Free(_characterWindow.Array!);
+            _strings.Free();
+        }
+
         /// <summary>
         /// Reads a chunk of characters from the underlying <see cref="Text"/> at the given position and places them
         /// at the start of the character window.  The character windows length will be set to the number of characters
@@ -128,15 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Text.CopyTo(position, _characterWindow.Array!, 0, amountToRead);
             _characterWindowStartPositionInText = position;
             _characterWindow = new(_characterWindow.Array!, 0, amountToRead);
-        }
-
-        public void Dispose()
-        {
-            Debug.Assert(!_disposed);
-            _disposed = true;
-
-            s_windowPool.Free(_characterWindow.Array!);
-            _strings.Free();
         }
 
         /// <summary>
@@ -176,6 +176,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             return span.Start >= _characterWindowStartPositionInText &&
                    span.End <= this.CharacterWindowEndPositionInText;
+        }
+
+        /// <summary>
+        /// Returns the span of characters corresponding to <paramref name="span"/> from the character window.
+        /// The <paramref name="span"/> must be within the bounds of the current character window (see
+        /// <see cref="SpanIsWithinWindow(TextSpan)"/>).
+        /// </summary>
+        public ReadOnlySpan<char> GetTextOfValidSpan(TextSpan span)
+        {
+            Debug.Assert(SpanIsWithinWindow(span));
+            return _characterWindow.AsSpan(span.Start + _characterWindowStartPositionInText, span.Length);
         }
 
         /// <summary>
