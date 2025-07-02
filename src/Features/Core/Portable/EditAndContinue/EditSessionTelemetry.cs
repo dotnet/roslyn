@@ -141,18 +141,18 @@ internal sealed class EditSessionTelemetry
         {
             foreach (var diagnostic in diagnostics)
             {
-                _rudeEdits.Add(((ushort)diagnostic.Kind, diagnostic.SubjectKind, projectTelemetryId));
+                _rudeEdits.Add(((ushort)diagnostic.Kind, diagnostic.SyntaxKind, projectTelemetryId));
             }
         }
     }
 
-    public void LogRudeEditDiagnostics(in TemporaryArray<RudeProjectEditKind> diagnostics, Guid projectTelemetryId)
+    public void LogRudeEditDiagnostics(in TemporaryArray<RudeProjectEditKind> kinds, Guid projectTelemetryId)
     {
         lock (_guard)
         {
-            foreach (var diagnostic in diagnostics)
+            foreach (var kind in kinds)
             {
-                _rudeEdits.Add(((ushort)RudeEditKind.ChangingProjectSetting, (ushort)diagnostic, projectTelemetryId));
+                _rudeEdits.Add(((ushort)RudeEditKind.ChangingProjectSetting, (ushort)kind, projectTelemetryId));
             }
         }
     }

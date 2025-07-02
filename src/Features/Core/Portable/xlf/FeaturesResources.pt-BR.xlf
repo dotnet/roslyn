@@ -450,9 +450,9 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">A alteração dos tipos de parâmetro de {0} requer o reinício do aplicativo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_project_language_from_0_to_1_requires_restarting_the_application">
-        <source>Changing project langauge from '{0}' to '{1}' requires restarting the application.</source>
-        <target state="new">Changing project langauge from '{0}' to '{1}' requires restarting the application.</target>
+      <trans-unit id="Changing_project_setting_0_requires_restarting_the_application">
+        <source>Changing project setting '{0}' requires restarting the application.</source>
+        <target state="new">Changing project setting '{0}' requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">

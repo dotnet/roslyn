@@ -663,6 +663,13 @@ internal sealed class EditSession
         return rudeEdits.Count > 0;
     }
 
+    private bool HasReferenceRudeEdits(Compilation oldCompilation, Compilation newCompilation, ArrayBuilder<Diagnostic> projectDiagnostics)
+    {
+        using var _ = PooledDictionary<string, AssemblyIdentity>.GetInstance(out var oldReferencesByName);
+
+        oldReferencesByName.AddRange(oldCompilation.ReferencedAssemblyNames.Select(id => KeyValuePair.Create(id.Name, id)));
+    }
+
     internal static async ValueTask<ProjectChanges> GetProjectChangesAsync(
         ActiveStatementsMap baseActiveStatements,
         Compilation oldCompilation,
@@ -1024,6 +1031,26 @@ internal sealed class EditSession
                         projectSummary = ProjectAnalysisSummary.InvalidChanges;
                     }
 
+                    // fast path for projects with no changes:
+                    if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges &&
+                        oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) &&
+                        oldProject.ProjectReferences.SequenceEqual(newProject.ProjectReferences))
+                    {
+                        Log.Write($"Project summary for {newProject.GetLogDisplay()}: {projectSummary}");
+                        continue;
+                    }
+
+                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(oldCompilation);
+
+                    var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(newCompilation);
+
+                    if (HasReferenceRudeEdits(oldCompilation, newCompilation, projectDiagnostics))
+                    {
+                        projectSummary = ProjectAnalysisSummary.InvalidChanges;
+                    }
+
                     Log.Write($"Project summary for {newProject.GetLogDisplay()}: {projectSummary}");
 
                     if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
@@ -1061,9 +1088,6 @@ internal sealed class EditSession
                         continue;
                     }
 
-                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(oldCompilation);
-
                     var projectBaselines = DebuggingSession.GetOrCreateEmitBaselines(mvid, oldProject, oldCompilation, projectDiagnostics, out var baselineAccessLock);
                     if (projectBaselines.IsEmpty)
                     {
@@ -1076,11 +1100,6 @@ internal sealed class EditSession
                     }
 
                     Log.Write($"Emitting update of {newProject.GetLogDisplay()}");
-
-                    var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    // project must support compilations since it supports EnC
-                    Contract.ThrowIfNull(newCompilation);
 
                     var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var projectChanges = await GetProjectChangesAsync(oldActiveStatementsMap, oldCompilation, newCompilation, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);

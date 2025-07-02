@@ -2270,27 +2270,6 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
         }
     }
 
-    protected override bool HasProjectSettingRudeEdit(ParseOptions oldOptions, ParseOptions newOptions, out RudeProjectEditKind kind)
-    {
-        var csOldOptions = (CSharpParseOptions)oldOptions;
-        var csNewOptions = (CSharpParseOptions)newOptions;
-
-        // Compare effective versions:
-        if (csOldOptions.LanguageVersion != csNewOptions.LanguageVersion)
-        {
-            kind = RudeProjectEditKind.LangVersion;
-            return true;
-        }
-
-        if (csOldOptions.PreprocessorSymbolNames.SequenceEqual(csNewOptions.PreprocessorSymbolNames))
-        {
-            kind = RudeProjectEditKind.DefineConstants;
-            return true;
-        }
-
-        return base.HasProjectSettingRudeEdit(oldOptions, newOptions, out kind);
-    }
-
     #endregion
 
     #region Top-Level Syntactic Rude Edits

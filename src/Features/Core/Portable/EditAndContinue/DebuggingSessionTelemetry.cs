@@ -107,6 +107,7 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
                 map["HadValidChanges"] = editSessionData.HadValidChanges;
                 map["HadValidInsignificantChanges"] = editSessionData.HadValidInsignificantChanges;
 
+                // all rude edits (errors and warnings)
                 map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
 
                 // Number of emit errors. These are any errors only produced during emitting deltas and do not include document analysis errors.

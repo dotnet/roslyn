@@ -725,7 +725,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     lineText = null;
                 }
 
-                log.Write($"Rude edit {diagnostic.Kind}:{diagnostic.SubjectKind} '{filePath}' line {lineNumber}: '{lineText}'");
+                log.Write($"Rude edit {diagnostic.Kind}:{diagnostic.SyntaxKind} '{filePath}' line {lineNumber}: '{lineText}'");
             }
         }
     }

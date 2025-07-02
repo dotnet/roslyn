@@ -14,4 +14,5 @@ internal enum EditAndContinueErrorCode
     UnableToReadSourceFileOrPdb = 6,
     AddingTypeRuntimeCapabilityRequired = 7,
     UpdatingDocumentInStaleProject = 8,
+    ChangingProjectSetting = 9,
 }
