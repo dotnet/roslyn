@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
 
         #endregion // Poolable
 
-        internal T? FindItem(char[] chars, int start, int len, int hashCode)
+        internal T? FindItem(ReadOnlySpan<char> chars, int hashCode)
         {
             // get direct element reference to avoid extra range checks
             ref var localSlot = ref _localTable[LocalIdxFromHash(hashCode)];
@@ -114,13 +114,13 @@ namespace Roslyn.Utilities
 
             if (text != null && localSlot.HashCode == hashCode)
             {
-                if (StringTable.TextEquals(text, chars.AsSpan(start, len)))
+                if (StringTable.TextEquals(text, chars))
                 {
                     return localSlot.Item;
                 }
             }
 
-            SharedEntryValue? e = FindSharedEntry(chars, start, len, hashCode);
+            SharedEntryValue? e = FindSharedEntry(chars, hashCode);
             if (e != null)
             {
                 localSlot.HashCode = hashCode;
@@ -135,7 +135,7 @@ namespace Roslyn.Utilities
             return null!;
         }
 
-        private SharedEntryValue? FindSharedEntry(char[] chars, int start, int len, int hashCode)
+        private SharedEntryValue? FindSharedEntry(ReadOnlySpan<char> chars, int hashCode)
         {
             var arr = _sharedTableInst;
             int idx = SharedIdxFromHash(hashCode);
@@ -151,7 +151,7 @@ namespace Roslyn.Utilities
 
                 if (e != null)
                 {
-                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars.AsSpan(start, len)))
+                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars))
                     {
                         break;
                     }
@@ -171,9 +171,9 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        internal void AddItem(char[] chars, int start, int len, int hashCode, T item)
+        internal void AddItem(ReadOnlySpan<char> chars, int hashCode, T item)
         {
-            var text = _strings.Add(chars, start, len);
+            var text = _strings.Add(chars);
 
             // add to the shared table first (in case someone looks for same item)
             var e = new SharedEntryValue(text, item);
