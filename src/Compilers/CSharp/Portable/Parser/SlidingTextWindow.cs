@@ -370,9 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// chunk, or from the underlying <see cref="Text"/> if it is not.
         /// </summary>
         public string GetText(int startPosition, bool intern)
-        {
-            return this.GetText(startPosition, this.Position - startPosition, intern);
-        }
+            => this.GetText(startPosition, this.Position - startPosition, intern);
 
         /// <summary>
         /// Gets the text, in the range <c>[position, position + length)</c> from <see cref="Text"/>.
