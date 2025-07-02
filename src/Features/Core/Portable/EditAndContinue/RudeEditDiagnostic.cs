@@ -19,17 +19,20 @@ internal readonly struct RudeEditDiagnostic
     [DataMember(Order = 1)]
     public readonly TextSpan Span;
 
+    /// <summary>
+    /// The kind of syntax or project setting the rude edit applies to (SyntaxKind or <see cref="RudeProjectEditKind"/>).
+    /// </summary>
     [DataMember(Order = 2)]
-    public readonly ushort SyntaxKind;
+    public readonly ushort SubjectKind;
 
     [DataMember(Order = 3)]
     public readonly string?[] Arguments;
 
-    internal RudeEditDiagnostic(RudeEditKind kind, TextSpan span, ushort syntaxKind, string?[] arguments)
+    internal RudeEditDiagnostic(RudeEditKind kind, TextSpan span, ushort subjectKind, string?[] arguments)
     {
         Kind = kind;
         Span = span;
-        SyntaxKind = syntaxKind;
+        SubjectKind = subjectKind;
         Arguments = arguments;
     }
 

@@ -307,6 +307,41 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Fact]
+    public async Task Project_ParseOptions()
+    {
+        var source1 = "class C { void F() { System.Console.WriteLine(1); } }";
+        var source2 = "class C { void F() { System.Console.WriteLine(2); } }";
+
+        var sourceFile1 = Temp.CreateFile().WriteAllText(source1, Encoding.UTF8);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+            AddTestDocument(source1, sourceFile1.Path, out var documentId).Project.Solution;
+
+        var project = solution.GetRequiredProject(projectId);
+
+        EmitAndLoadLibraryToDebuggee(project);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        solution = project.WithParseOptions(
+            ((CSharpParseOptions)project.ParseOptions).WithPreprocessorSymbols("NEW_SYMBOL")).Solution;
+
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+        Assert.NotEmpty(updates.Updates);
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
     public async Task DesignTimeOnlyDocument()
     {
         var moduleFile = Temp.CreateFile().WriteAllBytes(TestResources.Basic.Members);

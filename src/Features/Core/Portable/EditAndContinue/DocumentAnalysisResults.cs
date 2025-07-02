@@ -92,7 +92,7 @@ internal sealed class DocumentAnalysisResults
     /// <summary>
     /// Document contains errors that block EnC analysis.
     /// </summary>
-    public bool HasSyntaxErrors { get; }
+    public bool AnalysisBlocked { get; }
 
     /// <summary>
     /// Document contains changes.
@@ -116,13 +116,13 @@ internal sealed class DocumentAnalysisResults
         EditAndContinueCapabilities requiredCapabilities,
         TimeSpan elapsedTime,
         bool hasChanges,
-        bool hasSyntaxErrors,
+        bool analysisBlocked,
         bool hasBlockingRudeEdits)
     {
         Debug.Assert(!rudeEdits.IsDefault);
         Debug.Assert(hasBlockingRudeEdits == (!rudeEdits.IsDefault && rudeEdits.HasBlockingRudeEdits()));
 
-        if (hasSyntaxErrors || !hasChanges)
+        if (analysisBlocked || !hasChanges)
         {
             Debug.Assert(activeStatementsOpt.IsDefault);
             Debug.Assert(semanticEditsOpt.IsDefault);
@@ -171,16 +171,10 @@ internal sealed class DocumentAnalysisResults
         LineEdits = lineEditsOpt;
         RequiredCapabilities = requiredCapabilities;
         ElapsedTime = elapsedTime;
-        HasSyntaxErrors = hasSyntaxErrors;
+        AnalysisBlocked = analysisBlocked;
         HasChanges = hasChanges;
         HasBlockingRudeEdits = hasBlockingRudeEdits;
     }
-
-    public bool HasChangesAndErrors
-        => HasChanges && (HasSyntaxErrors || HasBlockingRudeEdits);
-
-    public bool HasChangesAndSyntaxErrors
-        => HasChanges && HasSyntaxErrors;
 
     public bool HasSignificantValidChanges
         => HasChanges && (!SemanticEdits.IsDefaultOrEmpty || !LineEdits.IsDefaultOrEmpty);
@@ -188,7 +182,7 @@ internal sealed class DocumentAnalysisResults
     /// <summary>
     /// Report errors blocking the document analysis.
     /// </summary>
-    public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, string filePath, ImmutableArray<RudeEditDiagnostic> rudeEdits, Diagnostic? syntaxError, TimeSpan elapsedTime, bool hasChanges)
+    public static DocumentAnalysisResults Blocked(DocumentId documentId, string filePath, ImmutableArray<RudeEditDiagnostic> rudeEdits, Diagnostic? syntaxError, TimeSpan elapsedTime, bool hasChanges)
         => new(
             documentId,
             filePath,
@@ -201,7 +195,7 @@ internal sealed class DocumentAnalysisResults
             EditAndContinueCapabilities.None,
             elapsedTime,
             hasChanges,
-            hasSyntaxErrors: true,
+            analysisBlocked: true,
             hasBlockingRudeEdits: !rudeEdits.IsEmpty);
 
     /// <summary>
@@ -220,6 +214,6 @@ internal sealed class DocumentAnalysisResults
             EditAndContinueCapabilities.None,
             elapsedTime,
             hasChanges: false,
-            hasSyntaxErrors: false,
+            analysisBlocked: false,
             hasBlockingRudeEdits: false);
 }

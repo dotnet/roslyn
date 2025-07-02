@@ -1045,6 +1045,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return True
             End Select
         End Function
+
+        Protected Overrides Function HasProjectSettingRudeEdit(oldOptions As ParseOptions, newOptions As ParseOptions, <Out> ByRef kind As ProjectSettingKind) As Boolean
+            Dim vbOldOptions = TryCast(oldOptions, VisualBasicParseOptions)
+            Dim vbNewOptions = TryCast(newOptions, VisualBasicParseOptions)
+
+            ' Compare effective versions
+            If vbOldOptions.LanguageVersion <> vbNewOptions.LanguageVersion Then
+                kind = ProjectSettingKind.LangVersion
+                Return True
+            End If
+
+            If Not vbOldOptions.PreprocessorSymbols.SequenceEqual(vbNewOptions.PreprocessorSymbols) Then
+                kind = ProjectSettingKind.DefineConstants
+                Return True
+            End If
+
+            Return MyBase.HasProjectSettingRudeEdit(oldOptions, newOptions, kind)
+        End Function
 #End Region
 
 #Region "Diagnostic Info"

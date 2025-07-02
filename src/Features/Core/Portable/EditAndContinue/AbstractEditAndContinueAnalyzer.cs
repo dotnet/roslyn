@@ -561,7 +561,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                 // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                 log.Write($"Syntax errors found in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
             }
 
             // Disallow modification of a file with experimental features enabled.
@@ -569,7 +569,22 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             if (ExperimentalFeaturesEnabled(newTree))
             {
                 log.Write($"Experimental features enabled in '{filePath}'");
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, span: default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            }
+
+            // Changes in parse options might change the meaning of the code even if nothing else changed.
+            // If we allowed changing parse options such as preprocessor directives, enabled features, or language version
+            // it would lead to degraded experience for the user since the parts of the source file that haven't changed
+            // since the option changed would have different semantics than the parts that have changed.
+            //
+            // All rude edits related to project-level setting changes will be reported during delta emit.
+            // Here we ship the analysis of the document.
+            if (GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
+            {
+                log.Write($"Parse options differ for '{filePath}'");
+
+                // Rude edits will be reported when emitting deltas.
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
             var capabilities = new EditAndContinueCapabilitiesGrantor(await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
@@ -578,13 +593,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // If the document has changed at all, lets make sure Edit and Continue is supported
             if (!capabilities.Grant(EditAndContinueCapabilities.Baseline))
             {
-                return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+                return DocumentAnalysisResults.Blocked(documentId, filePath, [new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
-
-            // TODO: https://github.com/dotnet/roslyn/issues/78486
-            // Changes in parse options might change the meaning of the code even if nothing else changed.
-            // The IDE should disallow changing the options during debugging session. 
-            Debug.Assert(oldTree.Options.Equals(newTree.Options));
 
             // We are in break state when there are no active statements.
             var inBreakState = !oldActiveStatementMap.IsEmpty;
@@ -681,7 +691,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 hasBlockingRudeEdits ? default : capabilities.GrantedCapabilities,
                 analysisStopwatch.Elapsed,
                 hasChanges: true,
-                hasSyntaxErrors: false,
+                analysisBlocked: false,
                 hasBlockingRudeEdits);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -694,8 +704,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 ? new RudeEditDiagnostic(RudeEditKind.SourceFileTooBig, span: default, arguments: [filePath])
                 : new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: [filePath, e.ToString()]);
 
-            // Report as "syntax error" - we can't analyze the document
-            return DocumentAnalysisResults.SyntaxErrors(documentId, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
+            return DocumentAnalysisResults.Blocked(documentId, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
         }
 
         void LogRudeEdits(ImmutableArray<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
@@ -716,7 +725,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                     lineText = null;
                 }
 
-                log.Write($"Rude edit {diagnostic.Kind}:{diagnostic.SyntaxKind} '{filePath}' line {lineNumber}: '{lineText}'");
+                log.Write($"Rude edit {diagnostic.Kind}:{diagnostic.SubjectKind} '{filePath}' line {lineNumber}: '{lineText}'");
             }
         }
     }
@@ -815,6 +824,76 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         }
 
         return map;
+    }
+
+    protected virtual IEnumerable<RudeProjectEditKind> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        if (!FeaturesEqual(oldOptions.Features, newOptions.Features))
+        {
+            yield return RudeProjectEditKind.Features;
+        }
+
+        static bool FeaturesEqual(IReadOnlyDictionary<string, string> features, IReadOnlyDictionary<string, string> other)
+        {
+            if (ReferenceEquals(features, other))
+            {
+                return true;
+            }
+
+            if (features.Count != other.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in features)
+            {
+                if (!other.TryGetValue(key, out var otherValue) || value != otherValue)
+                {
+                    return false;
+                }
+            }
+
+            foreach (var (key, _) in other)
+            {
+                if (!features.ContainsKey(key))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    protected virtual IEnumerable<RudeProjectEditKind> GetCompilationOptionsRudeEdits(CompilationOptions oldOptions, CompilationOptions newOptions)
+    {
+        if (oldOptions.OutputKind != newOptions.OutputKind)
+        {
+            yield return RudeProjectEditKind.OutputType;
+        }
+
+        if (oldOptions.CheckOverflow != newOptions.CheckOverflow)
+        {
+            yield return RudeProjectEditKind.CheckForOverflowUnderflow;
+        }
+    }
+
+    public IEnumerable<RudeProjectEditKind> GetProjectSettingRudeEdits(Project oldProject, Project newProject)
+    {
+        Contract.ThrowIfNull(oldProject.ParseOptions);
+        Contract.ThrowIfNull(newProject.ParseOptions);
+        Contract.ThrowIfNull(oldProject.CompilationOptions);
+        Contract.ThrowIfNull(newProject.CompilationOptions);
+
+        foreach (var rudeEdit in GetParseOptionsRudeEdits(oldProject.ParseOptions, newProject.ParseOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        foreach (var rudeEdit in GetCompilationOptionsRudeEdits(oldProject.CompilationOptions, newProject.CompilationOptions))
+        {
+            yield return rudeEdit;
+        }
     }
 
     #endregion

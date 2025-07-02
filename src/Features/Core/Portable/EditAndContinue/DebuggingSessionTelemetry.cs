@@ -96,8 +96,11 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
                 map[SessionId] = debugSessionId;
                 map[EditSessionId] = editSessionId;
 
-                map["HadCompilationErrors"] = editSessionData.HadCompilationErrors;
-                map["HadRudeEdits"] = editSessionData.HadRudeEdits;
+                // Syntax errors
+                map["HadCompilationErrors"] = editSessionData.HasSyntaxErrors;
+
+                // Blocking rude edits
+                map["HadRudeEdits"] = editSessionData.HadBlockingRudeEdits;
 
                 // Changes made to source code during the edit session were valid - they were significant and no rude edits were reported.
                 // The changes still might fail to emit (see EmitDeltaErrorIdCount).
@@ -149,7 +152,7 @@ internal sealed class DebuggingSessionTelemetry(Guid solutionSessionId)
 
                     map["RudeEditKind"] = editKind;
                     map["RudeEditSyntaxKind"] = syntaxKind;
-                    map["RudeEditBlocking"] = editSessionData.HadRudeEdits;
+                    map["RudeEditBlocking"] = editSessionData.HadBlockingRudeEdits;
                     map["RudeEditProjectId"] = ProjectIdToPii(projectId);
                 }));
             }

@@ -2270,6 +2270,27 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
         }
     }
 
+    protected override bool HasProjectSettingRudeEdit(ParseOptions oldOptions, ParseOptions newOptions, out RudeProjectEditKind kind)
+    {
+        var csOldOptions = (CSharpParseOptions)oldOptions;
+        var csNewOptions = (CSharpParseOptions)newOptions;
+
+        // Compare effective versions:
+        if (csOldOptions.LanguageVersion != csNewOptions.LanguageVersion)
+        {
+            kind = RudeProjectEditKind.LangVersion;
+            return true;
+        }
+
+        if (csOldOptions.PreprocessorSymbolNames.SequenceEqual(csNewOptions.PreprocessorSymbolNames))
+        {
+            kind = RudeProjectEditKind.DefineConstants;
+            return true;
+        }
+
+        return base.HasProjectSettingRudeEdit(oldOptions, newOptions, out kind);
+    }
+
     #endregion
 
     #region Top-Level Syntactic Rude Edits
@@ -3074,4 +3095,40 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     #endregion
+
+    protected override IEnumerable<RudeProjectEditKind> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        foreach (var rudeEdit in base.GetParseOptionsRudeEdits(oldOptions, newOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        var oldCSharpOptions = (CSharpParseOptions)oldOptions;
+        var newCSharpOptions = (CSharpParseOptions)newOptions;
+
+        if (oldCSharpOptions.LanguageVersion != newCSharpOptions.LanguageVersion)
+        {
+            yield return RudeProjectEditKind.LangVersion;
+        }
+
+        if (oldCSharpOptions.PreprocessorSymbolNames.SequenceEqual(newCSharpOptions.PreprocessorSymbolNames, StringComparer.Ordinal))
+        {
+            yield return RudeProjectEditKind.DefineConstants;
+        }
+    }
+
+    protected override IEnumerable<RudeProjectEditKind> GetCompilationOptionsRudeEdits(CompilationOptions oldOptions, CompilationOptions newOptions)
+    {
+        foreach (var rudeEdit in base.GetCompilationOptionsRudeEdits(oldOptions, newOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        var oldCSharpOptions = (CSharpCompilationOptions)oldOptions;
+        var newCSharpOptions = (CSharpCompilationOptions)newOptions;
+
+        // Change allowed:
+        // AllowUnsafe
+        // TODO ...
+    }
 }

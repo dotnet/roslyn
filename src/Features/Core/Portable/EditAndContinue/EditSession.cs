@@ -617,15 +617,9 @@ internal sealed class EditSession
             }
 
             // rude edit detection wasn't completed due to errors that prevent us from analyzing the document:
-            if (analysis.HasChangesAndSyntaxErrors)
+            if (analysis.AnalysisBlocked || analysis.HasBlockingRudeEdits)
             {
-                return ProjectAnalysisSummary.SyntaxErrors;
-            }
-
-            // rude edits detected:
-            if (analysis.HasBlockingRudeEdits)
-            {
-                return ProjectAnalysisSummary.RudeEdits;
+                return ProjectAnalysisSummary.InvalidChanges;
             }
 
             hasChanges = true;
@@ -644,6 +638,29 @@ internal sealed class EditSession
         }
 
         return ProjectAnalysisSummary.ValidChanges;
+    }
+
+    private bool HasProjectSettingsRudeEdits(Project oldProject, Project newProject, ArrayBuilder<Diagnostic> diagnostics)
+    {
+        Contract.ThrowIfFalse(oldProject.Language == newProject.Language);
+
+        var analyzer = newProject.GetRequiredLanguageService<IEditAndContinueAnalyzer>();
+
+        using var rudeEdits = new TemporaryArray<RudeProjectEditKind>();
+
+        foreach (var rudeEdit in analyzer.GetProjectSettingRudeEdits(oldProject, newProject))
+        {
+            diagnostics.Add(Diagnostic.Create(
+                EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.ChangingProjectSetting),
+                Location.None,
+                [rudeEdit.ToString()]));
+
+            rudeEdits.Add(rudeEdit);
+        }
+
+        Telemetry.LogRudeEditDiagnostics(in rudeEdits, newProject.State.Attributes.TelemetryId);
+
+        return rudeEdits.Count > 0;
     }
 
     internal static async ValueTask<ProjectChanges> GetProjectChangesAsync(
@@ -670,9 +687,6 @@ internal sealed class EditSession
                 {
                     continue;
                 }
-
-                // we shouldn't be asking for deltas in presence of errors:
-                Contract.ThrowIfTrue(analysis.HasChangesAndErrors);
 
                 // Active statements are calculated if document changed and has no syntax errors:
                 Contract.ThrowIfTrue(analysis.ActiveStatements.IsDefault);
@@ -1001,6 +1015,15 @@ internal sealed class EditSession
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
+
+                    if (HasProjectSettingsRudeEdits(oldProject, newProject, projectDiagnostics))
+                    {
+                        // If the project settings have changed and the change is a rude edit,
+                        // block applying the changes even if there no other changes to the project documents.
+                        // This is to avoid advancing the solution snapshot to an inconsistent state.
+                        projectSummary = ProjectAnalysisSummary.InvalidChanges;
+                    }
+
                     Log.Write($"Project summary for {newProject.GetLogDisplay()}: {projectSummary}");
 
                     if (projectSummary is ProjectAnalysisSummary.NoChanges or ProjectAnalysisSummary.ValidInsignificantChanges)
@@ -1228,10 +1251,18 @@ internal sealed class EditSession
 
             Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
 
+            if (syntaxError != null)
+            {
+                Telemetry.LogSyntaxError();
+            }
+
             if (hasPersistentErrors)
             {
                 return SolutionUpdate.Empty(diagnostics, syntaxError, ModuleUpdateStatus.Blocked);
             }
+
+            // syntax error is a persistent error
+            Contract.ThrowIfTrue(syntaxError != null);
 
             var updates = deltas.ToImmutable();
 
@@ -1251,7 +1282,7 @@ internal sealed class EditSession
                 nonRemappableRegions.ToImmutable(),
                 newProjectBaselines.ToImmutable(),
                 diagnostics,
-                syntaxError,
+                syntaxError: null,
                 projectsToRestart,
                 projectsToRebuild);
         }
