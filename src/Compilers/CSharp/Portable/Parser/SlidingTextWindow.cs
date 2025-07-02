@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Returns true if <paramref name="position"/> is within the current character window, and thus the character at that position
         /// can be read from the character window without going back to the underlying <see cref="Text"/>.
         /// </summary>
-        private bool PositionIsWithinWindow(int position)
+        private readonly bool PositionIsWithinWindow(int position)
         {
             return position >= _characterWindowStartPositionInText &&
                    position < this.CharacterWindowEndPositionInText;
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Returns true if <paramref name="span"/> is within the current character window, and thus the sub-string corresponding to 
         /// that span can be read can be read from the character window without going back to the underlying <see cref="Text"/>.
         /// </summary>
-        public bool SpanIsWithinWindow(TextSpan span)
+        public readonly bool SpanIsWithinWindow(TextSpan span)
         {
             return span.Start >= _characterWindowStartPositionInText &&
                    span.End <= this.CharacterWindowEndPositionInText;
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// The <paramref name="span"/> must be within the bounds of the current character window (see
         /// <see cref="SpanIsWithinWindow(TextSpan)"/>).
         /// </summary>
-        public ReadOnlySpan<char> GetTextOfValidSpan(TextSpan span)
+        public readonly ReadOnlySpan<char> GetTextOfValidSpan(TextSpan span)
         {
             Debug.Assert(SpanIsWithinWindow(span));
             return _characterWindow.AsSpan(span.Start - _characterWindowStartPositionInText, span.Length);
@@ -214,10 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// 
         /// Comments and string literals are allowed to contain any Unicode character.
         /// </summary>
-        internal bool IsReallyAtEnd()
-        {
-            return Position >= _textEnd;
-        }
+        public readonly bool IsReallyAtEnd()
+            => Position >= _textEnd;
 
         /// <summary>
         /// Advance the current position by one. No guarantee that this position is valid.  This will <em>not</em> change the character window
@@ -370,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// This will grab the text from the character window if it is within the bounds of the current
         /// chunk, or from the underlying <see cref="Text"/> if it is not.
         /// </summary>
-        public string GetText(int startPosition, bool intern)
+        public readonly string GetText(int startPosition, bool intern)
             => this.GetText(startPosition, this.Position - startPosition, intern);
 
         /// <summary>
@@ -378,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// This will grab the text from the character window if it is within the bounds of the current
         /// chunk, or from the underlying <see cref="Text"/> if it is not.
         /// </summary>
-        public string GetText(int position, int length, bool intern)
+        public readonly string GetText(int position, int length, bool intern)
         {
             var span = new TextSpan(position, length);
 
