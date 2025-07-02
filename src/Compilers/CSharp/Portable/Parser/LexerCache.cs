@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
+<<<<<<< HEAD
         internal SyntaxTrivia LookupWhitespaceTrivia(
             SlidingTextWindow textWindow,
             int lexemeStartPosition,
@@ -190,11 +191,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var lexemeWidth = textWindow.Position - lexemeStartPosition;
             var textBuffer = textWindow.CharacterWindow;
+=======
+        internal SyntaxTrivia LookupTrivia<TArg>(
+            ReadOnlySpan<char> textBuffer,
+            int hashCode,
+            Func<TArg, SyntaxTrivia> createTriviaFunction,
+            TArg data)
+        {
+            var value = TriviaMap.FindItem(textBuffer, hashCode);
+>>>>>>> useSpan
 
             // If the whitespace is entirely within the character window, grab from that and cache.
             var lexemeEndPosition = lexemeStartPosition + lexemeWidth;
             if (lexemeStartPosition >= textWindow.CharacterWindowStartPositionInText && lexemeEndPosition <= textWindow.CharacterWindowEndPositionInText)
             {
+<<<<<<< HEAD
                 var keyStart = lexemeStartPosition - textWindow.CharacterWindowStartPositionInText;
                 var value = TriviaMap.FindItem(textBuffer, keyStart, lexemeWidth, hashCode);
 
@@ -205,6 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 return value;
+=======
+                value = createTriviaFunction(data);
+                TriviaMap.AddItem(textBuffer, hashCode, value);
+>>>>>>> useSpan
             }
 
             // Otherwise, if it's outside of the window, just grab from the underlying text.
@@ -233,14 +248,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
         internal SyntaxToken LookupToken<TArg>(
-            ArraySegment<char> textBuffer,
-            int keyStart,
-            int keyLength,
+            ReadOnlySpan<char> textBuffer,
             int hashCode,
             Func<TArg, SyntaxToken> createTokenFunction,
             TArg data)
         {
-            var value = TokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var value = TokenMap.FindItem(textBuffer, hashCode);
 
             if (value == null)
             {
@@ -248,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Miss();
 #endif
                 value = createTokenFunction(data);
-                TokenMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                TokenMap.AddItem(textBuffer, hashCode, value);
             }
             else
             {

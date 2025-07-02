@@ -248,9 +248,13 @@ exitWhile:
                 TextWindow.AdvanceChar(tokenLength);
 
                 var token = _cache.LookupToken(
+<<<<<<< HEAD
                     charWindow,
                     keyStart: startIndexInWindow,
                     keyLength: tokenLength,
+=======
+                    TextWindow.CharacterWindow.AsSpan(TextWindow.LexemeRelativeStart, i - TextWindow.LexemeRelativeStart),
+>>>>>>> useSpan
                     hashCode,
                     CreateQuickToken,
                     this);
