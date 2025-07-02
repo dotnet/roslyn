@@ -111,10 +111,9 @@ namespace Roslyn.Utilities
 
         #endregion // Poolable
 
-        internal string Add(char[] chars, int start, int len)
+        internal string Add(ReadOnlySpan<char> chars)
         {
-            var span = chars.AsSpan(start, len);
-            var hashCode = Hash.GetFNVHashCode(chars, start, len);
+            var hashCode = Hash.GetFNVHashCode(chars);
 
             // capture array to avoid extra range checks
             var arr = _localTable;
@@ -125,13 +124,13 @@ namespace Roslyn.Utilities
             if (text != null && arr[idx].HashCode == hashCode)
             {
                 var result = arr[idx].Text;
-                if (StringTable.TextEquals(result, span))
+                if (TextEquals(result, chars))
                 {
                     return result;
                 }
             }
 
-            string? shared = FindSharedEntry(chars, start, len, hashCode);
+            string? shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
                 // PERF: the following code does element-wise assignment of a struct
@@ -143,7 +142,7 @@ namespace Roslyn.Utilities
                 return shared;
             }
 
-            return AddItem(chars, start, len, hashCode);
+            return AddItem(chars, hashCode);
         }
 
         internal string Add(string chars, int start, int len)
@@ -283,7 +282,7 @@ namespace Roslyn.Utilities
             return chars;
         }
 
-        private static string? FindSharedEntry(char[] chars, int start, int len, int hashCode)
+        private static string? FindSharedEntry(ReadOnlySpan<char> chars, int hashCode)
         {
             var arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
@@ -298,7 +297,7 @@ namespace Roslyn.Utilities
 
                 if (e != null)
                 {
-                    if (hash == hashCode && TextEquals(e, chars.AsSpan(start, len)))
+                    if (hash == hashCode && TextEquals(e, chars))
                     {
                         break;
                     }
@@ -492,9 +491,9 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private string AddItem(char[] chars, int start, int len, int hashCode)
+        private string AddItem(ReadOnlySpan<char> chars, int hashCode)
         {
-            var text = new String(chars, start, len);
+            var text = chars.ToString();
             AddCore(text, hashCode);
             return text;
         }
@@ -560,19 +559,6 @@ namespace Roslyn.Utilities
 foundIdx:
             arr[idx].HashCode = hashCode;
             Volatile.Write(ref arr[idx].Text, text);
-        }
-
-        internal static string AddShared(StringBuilder chars)
-        {
-            var hashCode = Hash.GetFNVHashCode(chars);
-
-            string? shared = FindSharedEntry(chars, hashCode);
-            if (shared != null)
-            {
-                return shared;
-            }
-
-            return AddSharedSlow(hashCode, chars);
         }
 
         private static string AddSharedSlow(int hashCode, StringBuilder builder)
