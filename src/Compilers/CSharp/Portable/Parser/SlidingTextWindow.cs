@@ -17,12 +17,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     /// <summary>
-    /// Keeps a sliding buffer over the SourceText of a file for the lexer. Also
-    /// provides the lexer with the ability to keep track of a current "lexeme"
-    /// by leaving a marker and advancing ahead the offset. The lexer can then
-    /// decide to "keep" the lexeme by erasing the marker, or abandon the current
-    /// lexeme by moving the offset back to the marker.
+    /// Keeps a sliding buffer over the SourceText of a file for the lexer.  Generally, the sliding buffer will
+    /// almost always move forward a 'chunk' (<see cref="DefaultWindowLength"/>) at a time.  However, the buffer
+    /// also supports moving backward to a previous location if needed.  
     /// </summary>
+    [NonCopyable]
     internal struct SlidingTextWindow : IDisposable
     {
 #if TRACING
