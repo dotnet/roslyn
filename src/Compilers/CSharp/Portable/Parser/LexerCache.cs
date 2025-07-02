@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal SyntaxTrivia LookupWhitespaceTrivia(
-            SlidingTextWindow textWindow,
+            in SlidingTextWindow textWindow,
             int lexemeStartPosition,
             int hashCode)
         {
