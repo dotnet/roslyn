@@ -562,19 +562,6 @@ foundIdx:
             Volatile.Write(ref arr[idx].Text, text);
         }
 
-        internal static string AddShared(StringBuilder chars)
-        {
-            var hashCode = Hash.GetFNVHashCode(chars);
-
-            string? shared = FindSharedEntry(chars, hashCode);
-            if (shared != null)
-            {
-                return shared;
-            }
-
-            return AddSharedSlow(hashCode, chars);
-        }
-
         private static string AddSharedSlow(int hashCode, StringBuilder builder)
         {
             string text = builder.ToString();
