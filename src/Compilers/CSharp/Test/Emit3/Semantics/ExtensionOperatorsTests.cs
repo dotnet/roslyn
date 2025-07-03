@@ -456,9 +456,9 @@ public struct S1
             }
         }
 
-        private static string UnaryOperatorName(string op)
+        private static string UnaryOperatorName(string op, bool isChecked = false)
         {
-            return OperatorFacts.UnaryOperatorNameFromSyntaxKind(SyntaxFactory.ParseToken(op).Kind(), isChecked: false);
+            return OperatorFacts.UnaryOperatorNameFromSyntaxKind(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked);
         }
 
         [Theory]
@@ -3825,6 +3825,352 @@ public class C2
     } // end of method E::op_UnaryNegation
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Unary_067_Consumption_CRef([CombinatorialValues("!", "~")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{op}}}"/>
+/// <see cref="E.extension(S1).operator {{{op}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static S1 operator {{{op}}}(S1 x) => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = UnaryOperatorName(op);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
+                "(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Unary_068_Consumption_CRef([CombinatorialValues("+", "-")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{op}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static S1 operator {{{op}}}(S1 x) => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = UnaryOperatorName(op);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal(["(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Fact]
+        public void Unary_068_Consumption_CRef_Checked()
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator checked -(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static S1 operator -(S1 x) => throw null;
+        ///
+        public static S1 operator checked -(S1 x) => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = UnaryOperatorName("-", isChecked: true);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal(["(E.extension(S1).operator checked -(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Fact]
+        public void Unary_069_Consumption_CRef_TrueFalse()
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator true"/>
+/// <see cref="E.extension(S1).operator true(S1)"/>
+/// <see cref="E.extension(S1).operator false"/>
+/// <see cref="E.extension(S1).operator false(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static bool operator true(S1 x) => throw null;
+        ///
+        public static bool operator false(S1 x) => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var trueName = UnaryOperatorName("true");
+            var falseName = UnaryOperatorName("false");
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{trueName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{trueName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{falseName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{falseName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator true, System.Boolean E.<>E__0." + trueName + "(S1 x))",
+                "(E.extension(S1).operator true(S1), System.Boolean E.<>E__0." + trueName + "(S1 x))",
+                "(E.extension(S1).operator false, System.Boolean E.<>E__0." + falseName + "(S1 x))",
+                "(E.extension(S1).operator false(S1), System.Boolean E.<>E__0." + falseName + "(S1 x))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Unary_070_Consumption_CRef_Error([CombinatorialValues("+", "-", "!", "~")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{op}}}"/>
+/// <see cref="E.extension(S1).operator {{{op}}}()"/>
+/// <see cref="E.extension(S1).operator {{{op}}}(S1)"/>
+/// <see cref="E.extension(S1).operator checked {{{op}}}"/>
+/// <see cref="E.extension(S1).operator checked {{{op}}}()"/>
+/// <see cref="E.extension(S1).operator checked {{{op}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics(
+                // (1,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator !' that could not be resolved
+                // /// <see cref="E.extension(S1).operator !"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + op).WithArguments("extension(S1).operator " + op).WithLocation(1, 16),
+                // (2,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator !()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator !()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + op + "()").WithArguments("extension(S1).operator " + op + "()").WithLocation(2, 16),
+                // (3,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator !(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator !(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + op + "(S1)").WithArguments("extension(S1).operator " + op + "(S1)").WithLocation(3, 16),
+                // (4,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked !' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked !"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + op).WithArguments("extension(S1).operator checked " + op).WithLocation(4, 16),
+                // (5,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked !()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked !()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + op + "()").WithArguments("extension(S1).operator checked " + op + "()").WithLocation(5, 16),
+                // (6,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked !(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked !(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + op + "(S1)").WithArguments("extension(S1).operator checked " + op + "(S1)").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void Unary_071_Consumption_CRef_Error()
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator true"/>
+/// <see cref="E.extension(S1).operator true()"/>
+/// <see cref="E.extension(S1).operator true(S1)"/>
+/// <see cref="E.extension(S1).operator false"/>
+/// <see cref="E.extension(S1).operator false()"/>
+/// <see cref="E.extension(S1).operator false(S1)"/>
+/// <see cref="E.extension(S1).operator checked true"/>
+/// <see cref="E.extension(S1).operator checked true()"/>
+/// <see cref="E.extension(S1).operator checked true(S1)"/>
+/// <see cref="E.extension(S1).operator checked false"/>
+/// <see cref="E.extension(S1).operator checked false()"/>
+/// <see cref="E.extension(S1).operator checked false(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics(
+                // (1,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator true' that could not be resolved
+                // /// <see cref="E.extension(S1).operator true"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator true").WithArguments("extension(S1).operator true").WithLocation(1, 16),
+                // (2,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator true()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator true()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator true()").WithArguments("extension(S1).operator true()").WithLocation(2, 16),
+                // (3,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator true(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator true(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator true(S1)").WithArguments("extension(S1).operator true(S1)").WithLocation(3, 16),
+                // (4,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator false' that could not be resolved
+                // /// <see cref="E.extension(S1).operator false"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator false").WithArguments("extension(S1).operator false").WithLocation(4, 16),
+                // (5,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator false()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator false()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator false()").WithArguments("extension(S1).operator false()").WithLocation(5, 16),
+                // (6,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator false(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator false(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator false(S1)").WithArguments("extension(S1).operator false(S1)").WithLocation(6, 16),
+                // (7,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked true' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked true"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked true").WithArguments("extension(S1).operator checked true").WithLocation(7, 16),
+                // (8,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked true()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked true()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked true()").WithArguments("extension(S1).operator checked true()").WithLocation(8, 16),
+                // (9,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked true(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked true(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked true(S1)").WithArguments("extension(S1).operator checked true(S1)").WithLocation(9, 16),
+                // (10,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked false' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked false"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked false").WithArguments("extension(S1).operator checked false").WithLocation(10, 16),
+                // (11,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked false()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked false()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked false()").WithArguments("extension(S1).operator checked false()").WithLocation(11, 16),
+                // (12,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked false(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked false(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked false(S1)").WithArguments("extension(S1).operator checked false(S1)").WithLocation(12, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Unary_072_ERR_VoidError([CombinatorialValues("+", "-", "!", "~")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(void* x) => x;
+    }
+}
+
+class Program
+{
+    unsafe void* Test(void* x) => {{{op}}}x;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                );
+        }
+
+        [Fact]
+        public void Unary_073_ERR_VoidError_True()
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static bool operator true(void* x) => true;
+        public static bool operator false(void* x) => false;
+    }
+}
+
+class Program
+{
+    unsafe void Test(void* x)
+    {
+        if (x)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                );
         }
 
         [Theory]
@@ -7259,7 +7605,8 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
+
+#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
             comp.VerifyEmitDiagnostics(
                 // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator --()' and 'Extensions1.extension(C1).operator --()'
                 //         _ = --c1;
@@ -9662,6 +10009,280 @@ public class C2
 
         [Theory]
         [CombinatorialData]
+        public void Increment_106_Consumption_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{op}}}"/>
+/// <see cref="E.extension(S1).operator {{{op}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static S1 operator {{{op}}}(S1 x) => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = UnaryOperatorName(op);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
+                "(E.extension(S1).operator " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_107_Consumption_CRef([CombinatorialValues("++", "--")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(ref S1).operator {{{op}}}()"/>
+public static class E
+{
+    ///
+    extension(ref S1 x)
+    {
+        ///
+        public void operator {{{op}}}() => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = CompoundAssignmentOperatorName(op);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal(["(E.extension(ref S1).operator " + op + "(), void E.<>E__0." + opName + "())"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_108_Consumption_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator checked {{{op}}}"/>
+/// <see cref="E.extension(S1).operator checked {{{op}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static S1 operator {{{op}}}(S1 x) => throw null;
+        ///
+        public static S1 operator checked {{{op}}}(S1 x) => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = UnaryOperatorName(op, isChecked: true);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator checked " + op + ", S1 E.<>E__0." + opName + "(S1 x))",
+                "(E.extension(S1).operator checked " + op + "(S1), S1 E.<>E__0." + opName + "(S1 x))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_109_Consumption_CRef_Checked([CombinatorialValues("++", "--")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(ref S1).operator checked {{{op}}}()"/>
+public static class E
+{
+    ///
+    extension(ref S1 x)
+    {
+        ///
+        public void operator {{{op}}}() => throw null;
+        ///
+        public void operator checked {{{op}}}() => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal(["(E.extension(ref S1).operator checked " + op + "(), void E.<>E__0." + opName + "())"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_110_Consumption_CRef_Error([CombinatorialValues("++", "--")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{op}}}"/>
+/// <see cref="E.extension(S1).operator {{{op}}}()"/>
+/// <see cref="E.extension(S1).operator {{{op}}}(S1)"/>
+/// <see cref="E.extension(S1).operator checked {{{op}}}"/>
+/// <see cref="E.extension(S1).operator checked {{{op}}}()"/>
+/// <see cref="E.extension(S1).operator checked {{{op}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics(
+                // (1,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator ++' that could not be resolved
+                // /// <see cref="E.extension(S1).operator ++"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + op).WithArguments("extension(S1).operator " + op).WithLocation(1, 16),
+                // (2,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator ++()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator ++()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + op + "()").WithArguments("extension(S1).operator " + op + "()").WithLocation(2, 16),
+                // (3,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator ++(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator ++(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + op + "(S1)").WithArguments("extension(S1).operator " + op + "(S1)").WithLocation(3, 16),
+                // (4,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked ++' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked ++"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + op).WithArguments("extension(S1).operator checked " + op).WithLocation(4, 16),
+                // (5,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked ++()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked ++()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + op + "()").WithArguments("extension(S1).operator checked " + op + "()").WithLocation(5, 16),
+                // (6,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked ++(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked ++(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + op + "(S1)").WithArguments("extension(S1).operator checked " + op + "(S1)").WithLocation(6, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_111_ERR_VoidError([CombinatorialValues("++", "--")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(void* x) => x;
+    }
+}
+
+class Program
+{
+    unsafe void* Test(void* x) => {{{op}}}x;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15),
+                // (11,35): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x) => ++x;
+                Diagnostic(ErrorCode.ERR_VoidError, op + "x").WithLocation(11, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_112_ERR_VoidError([CombinatorialValues("++", "--")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(ref void* x)
+    {
+        public void operator {{{op}}}() {}
+    }
+}
+
+class Program
+{
+    unsafe void* Test(void* x) => {{{op}}}x;
+}
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,19): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(ref void* x)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19),
+                // (11,35): error CS0242: The operation in question is undefined on void pointers
+                //     unsafe void* Test(void* x) => ++x;
+                Diagnostic(ErrorCode.ERR_VoidError, op + "x").WithLocation(11, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Binary_001_Declaration([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
         {
             var src = $$$"""
@@ -10396,7 +11017,7 @@ public struct S1
             }
         }
 
-        private static string BinaryOperatorName(string op)
+        private static string BinaryOperatorName(string op, bool isChecked = false)
         {
             var kind = op switch
             {
@@ -10404,7 +11025,7 @@ public struct S1
                 ">>>" => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
                 _ => SyntaxFactory.ParseToken(op).Kind(),
             };
-            return OperatorFacts.BinaryOperatorNameFromSyntaxKind(kind, isChecked: false);
+            return OperatorFacts.BinaryOperatorNameFromSyntaxKind(kind, isChecked);
         }
 
         [Fact]
@@ -15260,10 +15881,21 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_087_Consumption_ExpressionTree([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op)
+        public void Binary_087_Consumption_ExpressionTree([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">", "<", ">=", "<=", "==", "!=")] string op)
         {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+        public static S1 operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, S1 y) => throw null;
+""";
+            }
+
             var src = $$$"""
 using System.Linq.Expressions;
+
+#pragma warning disable CS1718 // Comparison made to same variable; did you mean to compare something else?
 
 public static class Extensions1
 {
@@ -15274,6 +15906,7 @@ public static class Extensions1
             System.Console.Write("operator1");
             return x;
         }
+{{{pairedOp}}}
 
         public void Test()
         {
@@ -18390,6 +19023,438 @@ class Program
             var symbolInfo = model.GetSymbolInfo(opNode);
 
             Assert.Equal("S1.operator " + op + "(S1?, S1?)", symbolInfo.Symbol.ToDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_141_Consumption_CRef([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+        ///
+        public static S1 operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, S1 y) => throw null;
+""";
+            }
+
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}(S1, S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static S1 operator {{{op}}}(S1 x, S1 y) => throw null;
+{{{pairedOp}}}
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = BinaryOperatorName(op);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator " + ToCRefOp(op) + ", S1 E.<>E__0." + opName + "(S1 x, S1 y))",
+                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1), S1 E.<>E__0." + opName + "(S1 x, S1 y))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_142_Consumption_CRef_Checked([CombinatorialValues("+", "-", "*", "/")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}(S1, S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+        ///
+        public static S1 operator {{{op}}}(S1 x, S1 y) => throw null;
+        ///
+        public static S1 operator checked {{{op}}}(S1 x, S1 y) => throw null;
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = BinaryOperatorName(op, isChecked: true);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1,S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", S1 E.<>E__0." + opName + "(S1 x, S1 y))",
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1), S1 E.<>E__0." + opName + "(S1 x, S1 y))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_143_Consumption_CRef_Error([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}()"/>
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}(S1)"/>
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}(S1, S1)"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}()"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}(S1)"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}(S1, S1)"/>
+public static class E
+{
+    ///
+    extension(S1)
+    {
+    }
+}
+
+///
+public struct S1;
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics(
+                // (1,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator +' that could not be resolved
+                // /// <see cref="E.extension(S1).operator +"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + ToCRefOp(op)).WithArguments("extension(S1).operator " + ToCRefOp(op)).WithLocation(1, 16),
+                // (2,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator +()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator +()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + ToCRefOp(op) + "()").WithArguments("extension(S1).operator " + ToCRefOp(op) + "()").WithLocation(2, 16),
+                // (3,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator +(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator +(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + ToCRefOp(op) + "(S1)").WithArguments("extension(S1).operator " + ToCRefOp(op) + "(S1)").WithLocation(3, 16),
+                // (4,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator +(S1, S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator +(S1, S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1)").WithArguments("extension(S1).operator " + ToCRefOp(op) + "(S1, S1)").WithLocation(4, 16),
+                // (5,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked +' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked +"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + ToCRefOp(op)).WithArguments("extension(S1).operator checked " + ToCRefOp(op)).WithLocation(5, 16),
+                // (6,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked +()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked +()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + ToCRefOp(op) + "()").WithArguments("extension(S1).operator checked " + ToCRefOp(op) + "()").WithLocation(6, 16),
+                // (7,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked +(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked +(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + ToCRefOp(op) + "(S1)").WithArguments("extension(S1).operator checked " + ToCRefOp(op) + "(S1)").WithLocation(7, 16),
+                // (8,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked +(S1, S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked +(S1, S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1)").WithArguments("extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1)").WithLocation(8, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_144_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
+""";
+            }
+
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(void* x, S1 y) => x;
+{{{pairedOp}}}
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => x {{{op}}} y;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_145_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+        public static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
+""";
+            }
+
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(S1 x, void* y) => y;
+{{{pairedOp}}}
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void* Test(void* x, S1 y) => y {{{op}}} x;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_146_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+        public unsafe static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
+""";
+            }
+
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        unsafe public static void* operator {{{op}}}(void* x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+{{{pairedOp}}}
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        var s2 = s11 {{{op}}} s12;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_147_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+    public unsafe static void* operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(void* x, S1 y) => throw null;
+""";
+            }
+
+            var src = $$$"""
+public struct S1
+{
+    unsafe public static void* operator {{{op}}}(void* x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+{{{pairedOp}}}
+
+    public override bool Equals(object other) => throw null;
+    public override int GetHashCode() => throw null;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        var s2 = s11 {{{op}}} s12;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_148_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+        public unsafe static S1 operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
+""";
+            }
+
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        unsafe public static S1 operator {{{op}}}(S1 x, void* y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+{{{pairedOp}}}
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        var s2 = s12 {{{op}}} s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_149_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", ">", "<", ">=", "<=", "==", "!=")] string op)
+        {
+            string pairedOp = "";
+
+            if (op is ">" or "<" or ">=" or "<=" or "==" or "!=")
+            {
+                pairedOp = $$$"""
+    public unsafe static S1 operator {{{op switch { ">" => "<", ">=" => "<=", "==" => "!=", "<" => ">", "<=" => ">=", "!=" => "==", _ => throw ExceptionUtilities.UnexpectedValue(op) }}}}(S1 x, void* y) => throw null;
+""";
+            }
+
+            var src = $$$"""
+public struct S1
+{
+    unsafe public static S1 operator {{{op}}}(S1 x, void* y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+{{{pairedOp}}}
+
+    public override bool Equals(object other) => throw null;
+    public override int GetHashCode() => throw null;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        var s2 = s12 {{{op}}} s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_150_ERR_VoidError_Logical([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op[0]}}}(void* x, void* y) => x;
+        public static bool operator true(void* x) => true;
+        public static bool operator false(void* x) => false;
+    }
+}
+
+class Program
+{
+    unsafe void* Test(void* x, void* y) => x {{{op}}} y;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                );
         }
 
         [Theory]
@@ -22313,7 +23378,8 @@ class Program
 """;
 
             var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
-#if DEBUG
+
+#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator -=(C1)' and 'Extensions1.extension(C1).operator -=(C1)'
                 //         _ = c1 -= c1;
@@ -25317,6 +26383,417 @@ public class C2
     } // end of method E::op_SubtractionAssignment
 } // end of class E
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_130_Consumption_CRef([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1 x)
+    {
+        ///
+        public void operator {{{op}}}(S1 y) => throw null;
+    }
+}
+
+///
+public class S1;
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = CompoundAssignmentOperatorName(op);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator " + ToCRefOp(op) + ", void E.<>E__0." + opName + "(S1 y))",
+                "(E.extension(S1).operator " + ToCRefOp(op) + "(S1), void E.<>E__0." + opName + "(S1 y))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_131_Consumption_CRef_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1 x)
+    {
+        ///
+        public void operator {{{op}}}(S1 y) => throw null;
+        ///
+        public void operator checked {{{op}}}(S1 y) => throw null;
+    }
+}
+
+///
+public class S1;
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics();
+
+            var opName = CompoundAssignmentOperatorName(op, isChecked: true);
+
+            var e = comp.GetMember<NamedTypeSymbol>("E");
+            AssertEx.Equal($$$"""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+    <see cref="M:E.&lt;&gt;E__0.{{{opName}}}(S1)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal([
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + ", void E.<>E__0." + opName + "(S1 y))",
+                "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1), void E.<>E__0." + opName + "(S1 y))"],
+                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_132_Consumption_CRef_Error([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        {
+            var src = $$$"""
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}()"/>
+/// <see cref="E.extension(S1).operator {{{ToCRefOp(op)}}}(S1)"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}()"/>
+/// <see cref="E.extension(S1).operator checked {{{ToCRefOp(op)}}}(S1)"/>
+public static class E
+{
+    ///
+    extension(S1 x)
+    {
+    }
+}
+
+///
+public class S1;
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+            comp.VerifyEmitDiagnostics(
+                // (1,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator +=' that could not be resolved
+                // /// <see cref="E.extension(S1).operator +="/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + ToCRefOp(op)).WithArguments("extension(S1).operator " + ToCRefOp(op)).WithLocation(1, 16),
+                // (2,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator +=()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator +=()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + ToCRefOp(op) + "()").WithArguments("extension(S1).operator " + ToCRefOp(op) + "()").WithLocation(2, 16),
+                // (3,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator +=(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator +=(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator " + ToCRefOp(op) + "(S1)").WithArguments("extension(S1).operator " + ToCRefOp(op) + "(S1)").WithLocation(3, 16),
+                // (4,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked +=' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked +="/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + ToCRefOp(op)).WithArguments("extension(S1).operator checked " + ToCRefOp(op)).WithLocation(4, 16),
+                // (5,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked +=()' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked +=()"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + ToCRefOp(op) + "()").WithArguments("extension(S1).operator checked " + ToCRefOp(op) + "()").WithLocation(5, 16),
+                // (6,16): warning CS1574: XML comment has cref attribute 'extension(S1).operator checked +=(S1)' that could not be resolved
+                // /// <see cref="E.extension(S1).operator checked +=(S1)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(S1).operator checked " + ToCRefOp(op) + "(S1)").WithArguments("extension(S1).operator checked " + ToCRefOp(op) + "(S1)").WithLocation(6, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_133_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static void* operator {{{op}}}(void* x, S1 y) => x;
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void Test(void* x, S1 y) => x {{{op}}}= y;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_134_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(void*)
+    {
+        public static S1 operator {{{op}}}(S1 x, void* y) => x;
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void Test(void* x, S1 y) => y {{{op}}}= x;
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(void*)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_135_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        unsafe public static void* operator {{{op}}}(void* x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        s11 {{{op}}}= s12;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_136_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    unsafe public static void* operator {{{op}}}(void* x, S1 y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+
+    public override bool Equals(object other) => throw null;
+    public override int GetHashCode() => throw null;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        s11 {{{op}}}= s12;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_137_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        unsafe public static S1 operator {{{op}}}(S1 x, void* y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        s12 {{{op}}}= s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_138_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    unsafe public static S1 operator {{{op}}}(S1 x, void* y)
+    {
+        System.Console.Write("operator1");
+        return x;
+    }
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        s12 {{{op}}}= s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_139_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+unsafe public static class Extensions1
+{
+    extension(ref void* x)
+    {
+        public void operator {{{op}}}=(S1 y) {}
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe void Test(void* x, S1 y) => x {{{op}}}= y;
+}
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            comp.VerifyDiagnostics(
+                // (3,19): error CS1103: The receiver parameter of an extension cannot be of type 'void*'
+                //     extension(ref void* x)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "void*").WithArguments("void*").WithLocation(3, 19)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_140_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        unsafe public void operator {{{op}}}=(void* y)
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1;
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        s12 {{{op}}}= s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CompoundAssignment_141_ERR_VoidError([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public struct S1
+{
+    unsafe public void operator {{{op}}}=(void* y)
+    {
+        System.Console.Write("operator1");
+    }
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        void* s11 = null;
+        var s12 = new S1();
+        s12 {{{op}}}= s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
         }
     }
 }
