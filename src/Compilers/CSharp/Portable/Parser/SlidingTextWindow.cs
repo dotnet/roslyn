@@ -113,8 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void Dispose()
         {
+#if DEBUG
             Debug.Assert(!_disposed);
             _disposed = true;
+#endif
 
             s_windowPool.Free(_characterWindow.Array!);
             _strings.Free();
