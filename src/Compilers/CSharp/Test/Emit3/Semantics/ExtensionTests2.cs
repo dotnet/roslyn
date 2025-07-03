@@ -7025,5 +7025,29 @@ static class E<T>
         var nestedExtension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetTypeMembers().Single();
         AssertEx.Equal("extension<>(!0)", nestedExtension.ComputeExtensionGroupingRawName());
     }
+
+    [Fact]
+    public void GroupingTypeRawName_67()
+    {
+        var src = """
+unsafe static class E
+{
+    extension(delegate*<scoped ref int, scoped ref int>[])
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,25): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+            //     extension(delegate*<scoped ref int, scoped ref int>[])
+            Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(3, 25),
+            // (3,41): error CS8808: 'scoped' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.
+            //     extension(delegate*<scoped ref int, scoped ref int>[])
+            Diagnostic(ErrorCode.ERR_InvalidFuncPointerReturnTypeModifier, "scoped").WithArguments("scoped").WithLocation(3, 41));
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method System.Int32& *(System.Int32&)[])", extension.ComputeExtensionGroupingRawName());
+    }
 }
 
