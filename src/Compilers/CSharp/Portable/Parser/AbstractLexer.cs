@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public virtual void Dispose()
         {
-            this.TextWindow.Dispose();
+            this.TextWindow.Free();
         }
 
         protected void Start()

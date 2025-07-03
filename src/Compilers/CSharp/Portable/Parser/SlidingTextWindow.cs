@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     /// also supports moving backward to a previous location if needed.  
     /// </summary>
     [NonCopyable]
-    internal struct SlidingTextWindow : IDisposable
+    internal struct SlidingTextWindow
     {
 #if TRACING
         public static int GetTextInsideWindowCount = 0;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _characterWindowStartPositionInText;
 
 #if DEBUG
-        private bool _disposed;
+        private bool _freed;
 #endif
 
         private readonly StringTable _strings;
@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.ReadChunkAt(0);
         }
 
-        public void Dispose()
+        public void Free()
         {
 #if DEBUG
-            Debug.Assert(!_disposed);
-            _disposed = true;
+            Debug.Assert(!_freed);
+            _freed = true;
 #endif
 
             s_windowPool.Free(_characterWindow.Array!);
