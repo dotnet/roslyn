@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string Intern(char[] array, int start, int length)
         {
-            return _strings.Add(array.AsSpan(start, length));
+            return _strings.Add(array, start, length);
         }
 
         public string GetInternedText()
