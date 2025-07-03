@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim quickToken = QuickScanToken(allowLeadingMultilineTrivia)
 
             If quickToken.Succeeded Then
-                Dim token = _quickTokenTable.FindItem(quickToken.Chars.AsSpan(quickToken.Start, quickToken.Length), quickToken.HashCode)
+                Dim token = _quickTokenTable.FindItem(quickToken.Chars, quickToken.Start, quickToken.Length, quickToken.HashCode)
                 If token IsNot Nothing Then
                     AdvanceChar(quickToken.Length)
                     If quickToken.TerminatorLength <> 0 Then
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If quickToken.Succeeded Then
                 Debug.Assert(quickToken.Length = scannedToken.FullWidth)
 
-                _quickTokenTable.AddItem(quickToken.Chars.AsSpan(quickToken.Start, quickToken.Length), quickToken.HashCode, scannedToken)
+                _quickTokenTable.AddItem(quickToken.Chars, quickToken.Start, quickToken.Length, quickToken.HashCode, scannedToken)
             End If
 
             Return scannedToken
@@ -399,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return _stringTable.Add(ch)
         End Function
         Friend Function Intern(arr As Char()) As String
-            Return _stringTable.Add(arr.AsSpan())
+            Return _stringTable.Add(arr)
         End Function
 #End Region
 

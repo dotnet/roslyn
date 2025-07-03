@@ -111,6 +111,18 @@ namespace Roslyn.Utilities
 
         #endregion // Poolable
 
+        /// <summary>
+        /// Legacy entrypoint for VB.
+        /// </summary>
+        internal string Add(char[] chars)
+            => Add(chars.AsSpan());
+
+        /// <summary>
+        /// Legacy entrypoint for VB.
+        /// </summary>
+        internal string Add(char[] chars, int start, int len)
+            => Add(chars.AsSpan(start, len));
+
         internal string Add(ReadOnlySpan<char> chars)
         {
             var hashCode = Hash.GetFNVHashCode(chars);
