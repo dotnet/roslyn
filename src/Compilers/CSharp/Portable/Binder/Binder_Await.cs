@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
             // if the return type of GetResult is void, the await-expression is classified as nothing. If it has a
             // non-void return type T, the await-expression is classified as a value of type T.
-            TypeSymbol awaitExpressionType = (info.GetResult ?? info.RuntimeAsyncAwaitMethod)?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
+            TypeSymbol awaitExpressionType = (info.GetResult ?? info.RuntimeAsyncAwaitCall?.Method)?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
 
             return new BoundAwaitExpression(node, expression, info, debugInfo: default, awaitExpressionType, hasErrors);
         }
@@ -49,22 +49,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors |= ReportBadAwaitContext(nodeOrToken, diagnostics);
         }
 
-        internal BoundAwaitableInfo BindAwaitInfo(BoundAwaitableValuePlaceholder placeholder, SyntaxNode node, BindingDiagnosticBag diagnostics, ref bool hasErrors, BoundExpression? expressionOpt = null)
+        internal BoundAwaitableInfo BindAwaitInfo(BoundAwaitableValuePlaceholder getAwaiterPlaceholder, SyntaxNode node, BindingDiagnosticBag diagnostics, ref bool hasErrors, BoundExpression? expressionOpt = null)
         {
             bool hasGetAwaitableErrors = !GetAwaitableExpressionInfo(
-                expressionOpt ?? placeholder,
-                placeholder,
+                expressionOpt ?? getAwaiterPlaceholder,
+                getAwaiterPlaceholder,
                 out bool isDynamic,
                 out BoundExpression? getAwaiter,
                 out PropertySymbol? isCompleted,
                 out MethodSymbol? getResult,
                 getAwaiterGetResultCall: out _,
-                out MethodSymbol? runtimeAsyncAwaitMethod,
+                out BoundCall? runtimeAsyncAwaitCall,
+                out BoundAwaitableValuePlaceholder? runtimeAsyncAwaitPlaceholder,
                 node,
                 diagnostics);
             hasErrors |= hasGetAwaitableErrors;
 
-            return new BoundAwaitableInfo(node, placeholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitMethod, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
+            return new BoundAwaitableInfo(node, getAwaiterPlaceholder, isDynamic: isDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitCall, runtimeAsyncAwaitPlaceholder, hasErrors: hasGetAwaitableErrors) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return GetAwaitableExpressionInfo(expression, getAwaiterGetResultCall: out _, runtimeAsyncAwaitMethod: out _,
+            return GetAwaitableExpressionInfo(expression, getAwaiterGetResultCall: out _, runtimeAsyncAwaitCall: out _,
                 node: syntax, diagnostics: BindingDiagnosticBag.Discarded);
         }
 
@@ -244,11 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool GetAwaitableExpressionInfo(
             BoundExpression expression,
             out BoundExpression? getAwaiterGetResultCall,
-            out MethodSymbol? runtimeAsyncAwaitMethod,
+            out BoundCall? runtimeAsyncAwaitCall,
             SyntaxNode node,
             BindingDiagnosticBag diagnostics)
         {
-            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, out runtimeAsyncAwaitMethod, node, diagnostics);
+            return GetAwaitableExpressionInfo(expression, expression, out _, out _, out _, out _, out getAwaiterGetResultCall, out runtimeAsyncAwaitCall, out _, node, diagnostics);
         }
 
         private bool GetAwaitableExpressionInfo(
@@ -259,7 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out PropertySymbol? isCompleted,
             out MethodSymbol? getResult,
             out BoundExpression? getAwaiterGetResultCall,
-            out MethodSymbol? runtimeAsyncAwaitMethod,
+            out BoundCall? runtimeAsyncAwaitCall,
+            out BoundAwaitableValuePlaceholder? runtimeAsyncAwaitCallPlaceholder,
             SyntaxNode node,
             BindingDiagnosticBag diagnostics)
         {
@@ -270,7 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             isCompleted = null;
             getResult = null;
             getAwaiterGetResultCall = null;
-            runtimeAsyncAwaitMethod = null;
+            runtimeAsyncAwaitCall = null;
+            runtimeAsyncAwaitCallPlaceholder = null;
 
             if (!ValidateAwaitedExpression(expression, node, diagnostics))
             {
@@ -288,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // When RuntimeAsync is enabled, we first check for whether there is an AsyncHelpers.Await method that can handle the expression.
 
-            if (isRuntimeAsyncEnabled && tryGetRuntimeAwaitHelper(expression, out runtimeAsyncAwaitMethod, diagnostics))
+            if (isRuntimeAsyncEnabled && tryGetRuntimeAwaitHelper(expression, out runtimeAsyncAwaitCallPlaceholder, out runtimeAsyncAwaitCall, diagnostics))
             {
                 return true;
             }
@@ -302,9 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetIsCompletedProperty(awaiterType, node, expression.Type!, diagnostics, out isCompleted)
                 && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
                 && GetGetResultMethod(getAwaiter, node, expression.Type!, diagnostics, out getResult, out getAwaiterGetResultCall)
-                && (!isRuntimeAsyncEnabled || getRuntimeAwaitAwaiter(awaiterType, out runtimeAsyncAwaitMethod, expression.Syntax, diagnostics));
+                && (!isRuntimeAsyncEnabled || getRuntimeAwaitAwaiter(awaiterType, out runtimeAsyncAwaitCall, out runtimeAsyncAwaitCallPlaceholder, expression.Syntax, diagnostics));
 
-            bool tryGetRuntimeAwaitHelper(BoundExpression expression, out MethodSymbol? runtimeAwaitHelper, BindingDiagnosticBag diagnostics)
+            bool tryGetRuntimeAwaitHelper(BoundExpression expression, out BoundAwaitableValuePlaceholder? placeholder, out BoundCall? runtimeAwaitCall, BindingDiagnosticBag diagnostics)
             {
                 // For any `await expr` with where `expr` has type `E`, the compiler will attempt to match it to a helper method in `System.Runtime.CompilerServices.AsyncHelpers`. The following algorithm is used:
 
@@ -323,46 +326,105 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //      4. `Mie` is `Mi` with `Te` substituted for `Tm`, and `Pe` is the resulting parameter of `Mie`
                 //      5. There is an identity or implicit reference conversion from `E` to the type of `Pe`
                 // 6. If only one `Mi` remains, that method is used for the following rewrites. Otherwise, we instead move to [await any other type].
+                runtimeAwaitCall = null;
+                placeholder = null;
 
                 if (expression.Type is not NamedTypeSymbol { Arity: 0 or 1 } exprType)
                 {
-                    runtimeAwaitHelper = null;
                     return false;
                 }
 
                 var asyncHelpersType = GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers, diagnostics, expression.Syntax);
                 if (asyncHelpersType.IsErrorType())
                 {
-                    runtimeAwaitHelper = null;
                     return false;
                 }
 
                 var awaitMembers = asyncHelpersType.GetMembers("Await");
-                runtimeAwaitHelper = null;
 
                 foreach (var member in awaitMembers)
                 {
-                    if (member is not MethodSymbol method
-                        || method.Arity != exprType.Arity
-                        || method.ParameterCount > 1)
+                    if (!isApplicableMethod(exprType, member, node, diagnostics, this, out MethodSymbol? method, out Conversion argumentConversion))
                     {
                         continue;
                     }
 
+                    if (runtimeAwaitCall is not null)
+                    {
+                        runtimeAwaitCall = null;
+                        placeholder = null;
+                        return false;
+                    }
+
+                    placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
+
+                    BoundExpression argument = placeholder;
+                    if (!argumentConversion.IsIdentity)
+                    {
+                        argument = new BoundConversion(
+                            expression.Syntax,
+                            placeholder,
+                            argumentConversion,
+                            this.CheckOverflowAtRuntime,
+                            explicitCastInCode: false,
+                            conversionGroupOpt: null,
+                            constantValueOpt: null,
+                            method.Parameters[0].Type)
+                        {
+                            WasCompilerGenerated = true
+                        };
+                    }
+
+                    runtimeAwaitCall = new BoundCall(
+                        expression.Syntax,
+                        receiverOpt: null,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                        method,
+                        [argument],
+                        argumentNamesOpt: default,
+                        argumentRefKindsOpt: default,
+                        isDelegateCall: false,
+                        expanded: false,
+                        invokedAsExtensionMethod: false,
+                        argsToParamsOpt: default,
+                        defaultArguments: default,
+                        resultKind: LookupResultKind.Viable,
+                        method.ReturnType)
+                    {
+                        WasCompilerGenerated = true
+                    };
+                }
+
+                return runtimeAwaitCall is not null;
+
+                static bool isApplicableMethod(
+                    NamedTypeSymbol exprType,
+                    Symbol member,
+                    SyntaxNode node,
+                    BindingDiagnosticBag diagnostics,
+                    Binder @this,
+                    [NotNullWhen(true)] out MethodSymbol? awaitMethod,
+                    out Conversion conversion)
+                {
+                    conversion = default;
+                    awaitMethod = null;
+                    if (member is not MethodSymbol method
+                        || method.Arity != exprType.Arity
+                        || method.ParameterCount != 1)
+                    {
+                        return false;
+                    }
+
                     if (method.Arity == 0)
                     {
-                        if (method.ReturnsVoid && isValidConversion(exprType, method, node, diagnostics, this))
+                        if (method.ReturnsVoid && isValidConversion(exprType, method, node, diagnostics, @this, out conversion))
                         {
-                            if (runtimeAwaitHelper is null)
-                            {
-                                runtimeAwaitHelper = method;
-                                continue;
-                            }
-                            else
-                            {
-                                runtimeAwaitHelper = null;
-                                return false;
-                            }
+                            awaitMethod = method;
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
                     else
@@ -370,62 +432,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var unsubstitutedReturnType = method.ReturnType;
                         if ((object)unsubstitutedReturnType != method.TypeArgumentsWithAnnotations[0].Type)
                         {
-                            continue;
+                            return false;
                         }
 
                         var substitutedMethod = method.Construct(exprType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
                         var tempDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                         if (!ConstraintsHelper.CheckConstraints(
                             substitutedMethod,
-                            new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, expression.Syntax.Location, tempDiagnostics)))
+                            new ConstraintsHelper.CheckConstraintsArgs(@this.Compilation, @this.Conversions, includeNullability: false, node.Location, tempDiagnostics)))
                         {
                             tempDiagnostics.Free();
-                            continue;
-                        }
-
-                        if (!isValidConversion(exprType, substitutedMethod, node, diagnostics, this))
-                        {
-                            tempDiagnostics.Free();
-                            continue;
-                        }
-
-                        diagnostics.AddRangeAndFree(tempDiagnostics);
-
-                        if (runtimeAwaitHelper is null)
-                        {
-                            runtimeAwaitHelper = substitutedMethod;
-                        }
-                        else
-                        {
-                            runtimeAwaitHelper = null;
                             return false;
                         }
-                    }
 
-                    static bool isValidConversion(TypeSymbol exprOriginalType, MethodSymbol method, SyntaxNode node, BindingDiagnosticBag diagnostics, Binder @this)
-                    {
-                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
-                        var result = @this.Conversions.ClassifyImplicitConversionFromType(
-                            exprOriginalType,
-                            method.Parameters[0].Type,
-                            ref useSiteInfo) is { IsImplicit: true, Kind: ConversionKind.Identity or ConversionKind.ImplicitReference };
-
-                        if (result)
+                        if (!isValidConversion(exprType, substitutedMethod, node, diagnostics, @this, out conversion))
                         {
-                            diagnostics.Add(node, useSiteInfo);
+                            tempDiagnostics.Free();
+                            return false;
                         }
 
-                        return result;
+                        awaitMethod = substitutedMethod;
+                        diagnostics.AddRangeAndFree(tempDiagnostics);
+                        return true;
                     }
                 }
 
-                return runtimeAwaitHelper is not null;
+                static bool isValidConversion(TypeSymbol exprType, MethodSymbol method, SyntaxNode node, BindingDiagnosticBag diagnostics, Binder @this, out Conversion conversion)
+                {
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
+                    conversion = @this.Conversions.ClassifyImplicitConversionFromType(
+                        exprType,
+                        method.Parameters[0].Type,
+                        ref useSiteInfo);
+
+                    var result = conversion is { IsImplicit: true, Kind: ConversionKind.Identity or ConversionKind.ImplicitReference };
+                    if (result)
+                    {
+                        diagnostics.Add(node, useSiteInfo);
+                    }
+
+                    return result;
+                }
             }
 
-            bool getRuntimeAwaitAwaiter(TypeSymbol awaiterType, out MethodSymbol? runtimeAwaitAwaiterMethod, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            bool getRuntimeAwaitAwaiter(TypeSymbol awaiterType, out BoundCall? runtimeAwaitAwaiterCall, out BoundAwaitableValuePlaceholder? placeholder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 // Use site info is discarded because we don't actually do this conversion, we just need to know which generic
-                // method to call.
+                // method to call. The helpers are generic, so the final call will actually just be an identity conversion.
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var useUnsafeAwait = Compilation.Conversions.ClassifyImplicitConversionFromType(
                     awaiterType,
@@ -441,16 +494,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (awaitMethod is null)
                 {
-                    runtimeAwaitAwaiterMethod = null;
+                    runtimeAwaitAwaiterCall = null;
+                    placeholder = null;
                     return false;
                 }
 
                 Debug.Assert(awaitMethod is { Arity: 1 });
 
-                runtimeAwaitAwaiterMethod = awaitMethod.Construct(awaiterType);
+                var runtimeAwaitAwaiterMethod = awaitMethod.Construct(awaiterType);
                 ConstraintsHelper.CheckConstraints(
                     runtimeAwaitAwaiterMethod,
                     new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, syntax.Location, diagnostics));
+
+                placeholder = new BoundAwaitableValuePlaceholder(syntax, awaiterType);
+
+                runtimeAwaitAwaiterCall = new BoundCall(
+                    syntax,
+                    receiverOpt: null,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                    runtimeAwaitAwaiterMethod,
+                    [placeholder],
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    resultKind: LookupResultKind.Viable,
+                    runtimeAwaitAwaiterMethod.ReturnType)
+                {
+                    WasCompilerGenerated = true
+                };
 
                 return true;
             }

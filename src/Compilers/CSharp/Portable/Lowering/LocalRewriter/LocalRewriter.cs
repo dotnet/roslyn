@@ -1049,6 +1049,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Used for Length or Count properties only which are effectively readonly.
                     return true;
 
+                case BoundKind.AwaitableValuePlaceholder:
+                    // AwaitableValuePlaceholder that makes it here is always a parameter to a runtime async AsyncHelper method,
+                    // and are always passed by value.
+                    return false;
+
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
                     if (eventAccess.IsUsableAsField)

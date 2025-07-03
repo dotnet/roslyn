@@ -10,11 +10,12 @@ partial class BoundAwaitableInfo
 {
     private partial void Validate()
     {
-        if (RuntimeAsyncAwaitMethod is not null)
+        if (RuntimeAsyncAwaitCall is not null)
         {
-            Debug.Assert(RuntimeAsyncAwaitMethod.ContainingType.ExtendedSpecialType == InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers);
+            Debug.Assert(RuntimeAsyncAwaitCall.Method.ContainingType.ExtendedSpecialType == InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers);
+            Debug.Assert(RuntimeAsyncAwaitCallPlaceholder is not null);
 
-            switch (RuntimeAsyncAwaitMethod.Name)
+            switch (RuntimeAsyncAwaitCall.Method.Name)
             {
                 case "Await":
                     Debug.Assert(GetAwaiter is null);
@@ -30,11 +31,11 @@ partial class BoundAwaitableInfo
                     break;
 
                 default:
-                    Debug.Fail($"Unexpected RuntimeAsyncAwaitMethod: {RuntimeAsyncAwaitMethod.Name}");
+                    Debug.Fail($"Unexpected RuntimeAsyncAwaitCall: {RuntimeAsyncAwaitCall.Method.Name}");
                     break;
             }
         }
 
-        Debug.Assert(GetAwaiter is not null || RuntimeAsyncAwaitMethod is not null || IsDynamic || HasErrors);
+        Debug.Assert(GetAwaiter is not null || RuntimeAsyncAwaitCall is not null || IsDynamic || HasErrors);
     }
 }

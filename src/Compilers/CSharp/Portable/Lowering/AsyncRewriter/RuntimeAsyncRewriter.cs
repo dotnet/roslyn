@@ -50,7 +50,10 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         Debug.Assert(nodeType is not null);
 
         var awaitableInfo = node.AwaitableInfo;
-        var runtimeAsyncAwaitMethod = awaitableInfo.RuntimeAsyncAwaitMethod;
+        var runtimeAsyncAwaitCall = awaitableInfo.RuntimeAsyncAwaitCall;
+        Debug.Assert(runtimeAsyncAwaitCall is not null);
+        Debug.Assert(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder is not null);
+        var runtimeAsyncAwaitMethod = runtimeAsyncAwaitCall.Method;
         Debug.Assert(runtimeAsyncAwaitMethod is not null);
         Debug.Assert(ReferenceEquals(
             runtimeAsyncAwaitMethod.ContainingType.OriginalDefinition,
@@ -61,7 +64,11 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         {
             // This is the direct await case, with no need for the full pattern.
             // System.Runtime.CompilerServices.RuntimeHelpers.Await(awaitedExpression)
-            return _factory.Call(receiver: null, runtimeAsyncAwaitMethod, VisitExpression(node.Expression));
+            var expr = VisitExpression(node.Expression);
+            _placeholderMap.Add(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder, expr);
+            var call = Visit(awaitableInfo.RuntimeAsyncAwaitCall);
+            _placeholderMap.Remove(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder);
+            return call;
         }
         else
         {
@@ -108,11 +115,11 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
         var isCompletedCall = _factory.Call(tmp, isCompletedMethod);
 
         // UnsafeAwaitAwaiter(_tmp) OR AwaitAwaiter(_tmp)
-        Debug.Assert(awaitableInfo.RuntimeAsyncAwaitMethod is not null);
-        var awaitCall = _factory.Call(
-            receiver: null,
-            awaitableInfo.RuntimeAsyncAwaitMethod,
-            tmp);
+        Debug.Assert(awaitableInfo.RuntimeAsyncAwaitCall is not null);
+        Debug.Assert(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder is not null);
+        _placeholderMap.Add(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder, tmp);
+        var awaitCall = (BoundCall)Visit(awaitableInfo.RuntimeAsyncAwaitCall);
+        _placeholderMap.Remove(awaitableInfo.RuntimeAsyncAwaitCallPlaceholder);
 
         // if (!_tmp.IsCompleted) awaitCall
         var ifNotCompleted = _factory.If(_factory.Not(isCompletedCall), _factory.ExpressionStatement(awaitCall));
