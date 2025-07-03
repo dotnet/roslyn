@@ -223,9 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// in any way.  Specifically, it will not create a new character window, nor will it change the contents of the current window.
         /// </summary>
         public void AdvanceChar()
-        {
-            _positionInText++;
-        }
+            => AdvanceChar(1);
 
         /// <summary>
         /// Advances the text window if it currently pointing at the <paramref name="c"/> character.  Returns <see
