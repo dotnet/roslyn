@@ -5790,32 +5790,7 @@ static class E
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
-        AssertEx.Equal("extension<0>(!0)", extension.ComputeExtensionGroupingRawName());
-
-        // "0" instead of "T0"
-        var ilSrc = """
-.class private sequential ansi sealed beforefieldinit C
-    extends System.ValueType
-{
-    .method private hidebysig instance void M<0> ( !!0 t ) cil managed 
-    {
-        IL_0000: nop
-        IL_0001: ret
-    }
-}
-""";
-
-        try
-        {
-            CompileIL(ilSrc);
-        }
-        catch (ArgumentException ex)
-        {
-            Assert.Contains("The provided IL cannot be compiled.", ex.Message);
-            return;
-        }
-
-        Assert.True(false);
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -5836,7 +5811,7 @@ class C<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> { }
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
-        AssertEx.Equal("extension<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12>(C`13<!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10, !11, !12>)",
+        AssertEx.Equal("extension<,,,,,,,,,,,,>(C`13<!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10, !11, !12>)",
             extension.ComputeExtensionGroupingRawName());
     }
 
@@ -5859,7 +5834,7 @@ class MyAttribute : System.Attribute { }
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
-        AssertEx.Equal("extension<0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6014,32 +5989,6 @@ unsafe struct C
     .field private method void *(int32, string)[] 'field'
 } // end of class C
 """);
-
-        // System.Void instead of "void"
-        var ilSrc = """
-
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .method private hidebysig instance method System.Void *(int32) M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-""";
-
-        try
-        {
-            CompileIL(ilSrc);
-        }
-        catch (ArgumentException e)
-        {
-            Assert.Contains("The provided IL cannot be compiled.", e.Message);
-            return;
-        }
-
-        Assert.True(false);
     }
 
     [Fact]
@@ -6080,7 +6029,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<class 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<class>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6099,33 +6048,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<valuetype .ctor (System.ValueType) 0>(!0)", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class public auto ansi beforefieldinit C`1<valuetype .ctor (class System.ValueType) T>
-    extends System.Object
-{
-}
-""";
-        CompileIL(ilSrc);
-
-        ilSrc = """
-.class public auto ansi beforefieldinit C`1<valuetype .ctor class System.ValueType T>
-    extends System.Object
-{
-}
-""";
-        try
-        {
-            CompileIL(ilSrc);
-        }
-        catch (ArgumentException e)
-        {
-            Assert.Contains("The provided IL cannot be compiled.", e.Message);
-            return;
-        }
-
-        Assert.True(false);
+        AssertEx.Equal("extension<valuetype .ctor (System.ValueType)>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6144,7 +6067,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<class .ctor 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<class .ctor>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6169,7 +6092,7 @@ static class E
             Diagnostic(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, "class").WithLocation(3, 38));
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<class .ctor 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<class .ctor>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6188,7 +6111,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)) 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)", extension.ComputeExtensionGroupingRawName());
 
         var src2 = """
 unsafe struct C<T> where T : unmanaged
@@ -6228,7 +6151,7 @@ static class E
             Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.ValueType").WithArguments("System.ValueType").WithLocation(3, 31));
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6250,7 +6173,7 @@ static class E
             Diagnostic(ErrorCode.ERR_NewBoundWithUnmanaged, "new").WithLocation(3, 42));
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)) 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<valuetype .ctor (System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6271,7 +6194,7 @@ interface I { }
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<valuetype .ctor (I, System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)) 0>(!0)",
+        AssertEx.Equal("extension<valuetype .ctor (I, System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)",
             extension.ComputeExtensionGroupingRawName());
 
         var unmanagedType = """
@@ -6280,34 +6203,6 @@ interface I { }
 {
 }
 """;
-
-        var ilSrc = """
-.class public auto ansi beforefieldinit C1`1<valuetype .ctor (class System.ValueType modreq(class System.Runtime.InteropServices.UnmanagedType)) T>
-    extends System.Object
-{
-}
-
-""";
-        CompileIL(ilSrc + unmanagedType);
-
-        ilSrc = """
-.class public auto ansi beforefieldinit C1`1<valuetype .ctor (System.ValueType modreq(class System.Runtime.InteropServices.UnmanagedType)) T>
-    extends System.Object
-{
-}
-
-""";
-        try
-        {
-            CompileIL(ilSrc + unmanagedType);
-        }
-        catch (ArgumentException e)
-        {
-            Assert.Contains("The provided IL cannot be compiled.", e.Message);
-            return;
-        }
-
-        Assert.True(false);
     }
 
     [Fact]
@@ -6328,7 +6223,7 @@ interface I { }
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<(I) 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<(I)>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6350,7 +6245,7 @@ interface I2 { }
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<(I1, I2) 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<(I1, I2)>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6372,7 +6267,7 @@ interface I2 { }
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<(I1, I2) 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<(I1, I2)>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6395,35 +6290,7 @@ class C { }
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<(C, I1, I2) 0>(!0)", extension.ComputeExtensionGroupingRawName());
-
-        // extra comma
-        var ilSrc = """
-.class private sequential ansi sealed beforefieldinit S`1<(I1, I2, ) T>
-	extends System.ValueType
-{
-}
-
-.class interface private auto ansi abstract beforefieldinit I1
-{
-}
-
-.class interface private auto ansi abstract beforefieldinit I2
-{
-}
-""";
-
-        try
-        {
-            CompileIL(ilSrc);
-        }
-        catch (ArgumentException e)
-        {
-            Assert.Contains("The provided IL cannot be compiled.", e.Message);
-            return;
-        }
-
-        Assert.True(false);
+        AssertEx.Equal("extension<(C, I1, I2)>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6444,24 +6311,7 @@ interface I { }
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<valuetype .ctor (I, System.ValueType) 0>(!0)", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class public auto ansi beforefieldinit C1`1<valuetype .ctor (class I, class System.ValueType) T>
-    extends System.Object
-{
-}
-
-.class public auto ansi beforefieldinit C2`1<valuetype .ctor (class System.ValueType, class I) T>
-    extends System.Object
-{
-}
-
-.class interface private auto ansi abstract beforefieldinit I
-{
-}
-""";
-        CompileIL(ilSrc);
+        AssertEx.Equal("extension<valuetype .ctor (I, System.ValueType)>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6480,7 +6330,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<byreflike 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<byreflike>(!0)", extension.ComputeExtensionGroupingRawName());
 
         // Note: IL should have byreflike flag
         var src2 = """
@@ -6514,7 +6364,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<valuetype byreflike .ctor (System.ValueType) 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<valuetype byreflike .ctor (System.ValueType)>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6533,7 +6383,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<byreflike .ctor 0>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<byreflike .ctor>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6552,7 +6402,7 @@ static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<(!1) 0, 1>(!0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<(!1),>(!0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -6580,43 +6430,6 @@ struct D { }
 {
 } 
 """;
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .method private hidebysig instance method valuetype D *(valuetype D)[] M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-
-""";
-        CompileIL(ilSrc + dSrc);
-
-        // no "valuetype" on references to D
-        ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .method private hidebysig instance method D *(D)[] M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-""";
-        try
-        {
-            CompileIL(ilSrc + dSrc);
-        }
-        catch (ArgumentException e)
-        {
-            Assert.Contains("The provided IL cannot be compiled.", e.Message);
-            return;
-        }
-
-        Assert.True(false);
     }
 
     [Fact]
@@ -6644,44 +6457,6 @@ class D { }
 {
 }
 """;
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .method private hidebysig instance method class D *(class D)[] M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-
-""";
-        CompileIL(ilSrc + dSrc);
-
-        // no "class" on references to D
-        ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .method private hidebysig instance method D *(D)[] M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-
-""";
-        try
-        {
-            CompileIL(ilSrc + dSrc);
-        }
-        catch (ArgumentException e)
-        {
-            Assert.Contains("The provided IL cannot be compiled.", e.Message);
-            return;
-        }
-
-        Assert.True(false);
     }
 
     [Fact]
@@ -6699,7 +6474,7 @@ unsafe static class E
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<0>(method !0 *(!0)[])", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<>(method !0 *(!0)[])", extension.ComputeExtensionGroupingRawName());
 
         var dSrc = """
 .class private auto ansi beforefieldinit D
@@ -6707,19 +6482,6 @@ unsafe static class E
 {
 }
 """;
-        var ilSrc = """
-.class private auto ansi beforefieldinit C`1<T>
-    extends System.Object
-{
-    .method private hidebysig instance method !T *(!T)[] M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-
-""";
-        CompileIL(ilSrc + dSrc);
     }
 
     [Fact]
@@ -6740,24 +6502,6 @@ struct C<T> { }
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(C`1<C`1<System.Int32>>)", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .method private hidebysig instance valuetype D`1<valuetype D`1<int32>>[] M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-
-.class private sequential ansi sealed beforefieldinit D`1<T>
-    extends System.ValueType
-{
-} 
-""";
-        CompileIL(ilSrc);
     }
 
     [Fact]
@@ -6778,25 +6522,6 @@ class C<T> { }
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(C`1<C`1<System.Int32>>)", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .method private hidebysig instance class D`1<class D`1<int32>>[] M () cil managed 
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-
-.class private auto ansi beforefieldinit D`1<T>
-    extends System.Object
-{
-}
-""";
-
-        CompileIL(ilSrc);
     }
 
     [Fact]
@@ -6837,16 +6562,6 @@ unsafe static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method unmanaged void *()[])", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .field private method unmanaged stdcall void *() x
-}
-""";
-
-        CompileIL(ilSrc);
     }
 
     [Fact]
@@ -6866,16 +6581,6 @@ unsafe static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method unmanaged cdecl void *()[])", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .field private method unmanaged cdecl void *() x
-}
-""";
-
-        CompileIL(ilSrc);
     }
 
     [Fact]
@@ -6895,17 +6600,6 @@ unsafe static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method unmanaged stdcall void *()[])", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .field private method unmanaged stdcall void *() x
-}
-""";
-
-        CompileIL(ilSrc);
-        CreateCompilationWithIL("", ilSrc).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -6925,16 +6619,6 @@ unsafe static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method unmanaged thiscall void *()[])", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .field private method unmanaged thiscall void *() x
-}
-""";
-
-        CompileIL(ilSrc);
     }
 
     [Fact]
@@ -6954,16 +6638,6 @@ unsafe static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method unmanaged fastcall void *()[])", extension.ComputeExtensionGroupingRawName());
-
-        var ilSrc = """
-.class private auto ansi beforefieldinit C
-    extends System.Object
-{
-    .field private method unmanaged fastcall void *() x
-}
-""";
-
-        CompileIL(ilSrc);
     }
 
     [Fact]
@@ -7322,7 +6996,7 @@ static class E<T0>
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        AssertEx.Equal("extension<0>(!T0)", extension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<>(!T0)", extension.ComputeExtensionGroupingRawName());
     }
 
     [Fact]
@@ -7349,7 +7023,7 @@ static class E<T>
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(5, 9));
 
         var nestedExtension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetTypeMembers().Single();
-        AssertEx.Equal("extension<0>(!0)", nestedExtension.ComputeExtensionGroupingRawName());
+        AssertEx.Equal("extension<>(!0)", nestedExtension.ComputeExtensionGroupingRawName());
     }
 }
 

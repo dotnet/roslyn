@@ -218,8 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 appendTypeParameterTypeConstraints(typeParameter, builder);
-                // Note: in valid IL, we would need a valid identifier name
-                builder.Append(StringExtensions.GetNumeral(typeParameter.Ordinal));
+                // Note: skipping identifier
+                if (builder[builder.Length - 1] == ' ')
+                {
+                    builder.Remove(startIndex: builder.Length - 1, length: 1);
+                }
             }
 
             static void appendTypeParameterReference(TypeParameterSymbol typeParameter, StringBuilder builder)
@@ -227,7 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (typeParameter.ContainingType.IsExtension)
                 {
                     builder.Append("!");
-                    // Note: in valid IL, we would need a valid identifier name
                     builder.Append(StringExtensions.GetNumeral(typeParameter.Ordinal));
                 }
                 else
@@ -277,12 +279,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 typeConstraintStrings.Free();
-                builder.Append(") ");
+                builder.Append(")");
             }
 
             static void appendArrayType(ArrayTypeSymbol array, StringBuilder builder)
             {
-                Debug.Assert(array.Sizes.IsEmpty && array.LowerBounds.IsEmpty);
+                Debug.Assert(array.Sizes.IsEmpty && array.LowerBounds.IsDefault); // We only deal with source array types
 
                 appendType(array.ElementType, builder);
                 builder.Append('[');
@@ -321,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     builder.Append('&');
                     appendModifiers(functionPointer.Signature.RefCustomModifiers, builder);
+                    Debug.Assert(functionPointer.Signature.ReturnTypeWithAnnotations.CustomModifiers.IsEmpty); // We're only dealing with source function pointers
                 }
                 else
                 {
@@ -352,8 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void appendModifiers(ImmutableArray<CustomModifier> customModifiers, StringBuilder builder)
             {
                 // Order of modifiers is significant in metadata so we preserve the order.
-                var modifierStrings = ArrayBuilder<string>.GetInstance(customModifiers.Length);
-
                 foreach (CustomModifier modifier in customModifiers)
                 {
                     var modifierBuilder = PooledStringBuilder.GetInstance();
