@@ -90,6 +90,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return new RemoteProjectLoadResult(loadedFile, _hostProjectFactory, HasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
+        return new RemoteProjectLoadResult(loadedFile, _hostProjectFactory, IsMiscellaneousFile: false, preferredBuildHostKind, actualBuildHostKind);
     }
 }
