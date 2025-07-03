@@ -2337,7 +2337,9 @@ top:
                 if (width < MaxCachedTokenSize)
                 {
                     return _cache.LookupTrivia(
-                        TextWindow.CharacterWindow.AsSpan(TextWindow.LexemeRelativeStart, width),
+                        TextWindow.CharacterWindow,
+                        TextWindow.LexemeRelativeStart,
+                        width,
                         hashCode,
                         CreateWhitespaceTrivia,
                         TextWindow);

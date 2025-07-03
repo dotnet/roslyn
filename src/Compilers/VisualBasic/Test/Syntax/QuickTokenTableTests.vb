@@ -89,8 +89,8 @@ Public Class QuickTokenTableTests
             Dim text = New String(qt.Chars, 0, qt.Length)
             Dim token = InternalSyntax.SyntaxFactory.Identifier(text)
 
-            Assert.Null(table.FindItem(qt.Chars.AsSpan(qt.Start, qt.Length), qt.HashCode))
-            table.AddItem(qt.Chars.AsSpan(qt.Start, qt.Length), qt.HashCode, DirectCast(token, InternalSyntax.SyntaxToken))
+            Assert.Null(table.FindItem(qt.Chars, qt.Start, qt.Length, qt.HashCode))
+            table.AddItem(qt.Chars, qt.Start, qt.Length, qt.HashCode, DirectCast(token, InternalSyntax.SyntaxToken))
             Return New Tuple(Of String, InternalSyntax.SyntaxToken)(text, token)
         End Using
     End Function
@@ -107,7 +107,7 @@ Public Class QuickTokenTableTests
             Dim qt = scanner.QuickScanToken(False)
             Assert.True(qt.Succeeded)
 
-            Dim tokFound = table.FindItem(qt.Chars.AsSpan(qt.Start, qt.Length), qt.HashCode)
+            Dim tokFound = table.FindItem(qt.Chars, qt.Start, qt.Length, qt.HashCode)
             Assert.Same(e.Item2, tokFound)
         End Using
     End Sub
