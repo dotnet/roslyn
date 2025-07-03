@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Function Intern(s As Char(), start As Integer, length As Integer) As String
-            Return _stringTable.Add(s, start, length)
+            Return _stringTable.Add(s.AsSpan(start, length))
         End Function
 
         Friend Function Intern(ch As Char) As String
