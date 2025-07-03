@@ -242,7 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.NoOpStatement:
                 case BoundKind.Block:
-                case BoundKind.ThrowStatement:
                 case BoundKind.LabeledStatement:
                 case BoundKind.LocalFunctionStatement:
                     base.VisitStatement(statement);
