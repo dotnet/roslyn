@@ -191,9 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var span = TextSpan.FromBounds(lexemeStartPosition, textWindow.Position);
             Debug.Assert(span.Length > 0);
 
-            if (textWindow.SpanIsWithinWindow(span))
+            if (textWindow.TryGetTextIfWithinWindow(span, out var lexemeTextSpan))
             {
-                var lexemeTextSpan = textWindow.GetTextOfValidSpan(span);
                 var value = TriviaMap.FindItem(lexemeTextSpan, hashCode);
 
                 if (value == null)
