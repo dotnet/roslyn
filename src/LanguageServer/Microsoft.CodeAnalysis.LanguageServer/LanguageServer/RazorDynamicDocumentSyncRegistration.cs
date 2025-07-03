@@ -33,7 +33,8 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
 
             // We know devkit is enabled, but we need to check cohosting too. Cohosting will register for document sync, and if we do
             // it here as well, VS Code will send us duplicate open/close/change events for the same file, corrupting our documents.
-            if (await IsCohostingEnabledAsync(languageServerManager, cancellationToken).ConfigureAwait(false))
+            if (clientCapabilities.Workspace?.Configuration == true &&
+                await IsCohostingEnabledAsync(languageServerManager, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
