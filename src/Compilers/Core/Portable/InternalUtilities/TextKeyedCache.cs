@@ -105,6 +105,12 @@ namespace Roslyn.Utilities
 
         #endregion // Poolable
 
+        /// <summary>
+        /// Legacy entrypoint for VB.
+        /// </summary>
+        internal T? FindItem(char[] chars, int start, int len, int hashCode)
+            => FindItem(chars.AsSpan(start, len), hashCode);
+
         internal T? FindItem(ReadOnlySpan<char> chars, int hashCode)
         {
             // get direct element reference to avoid extra range checks
@@ -170,6 +176,12 @@ namespace Roslyn.Utilities
 
             return e;
         }
+
+        /// <summary>
+        /// Legacy entrypoint for VB.
+        /// </summary>
+        internal void AddItem(char[] chars, int start, int len, int hashCode, T item)
+            => AddItem(chars.AsSpan(start, len), hashCode, item);
 
         internal void AddItem(ReadOnlySpan<char> chars, int hashCode, T item)
         {

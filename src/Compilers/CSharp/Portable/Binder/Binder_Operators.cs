@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(node, useSiteInfo);
 
-            if (!hasError && leftType.IsVoidPointer())
+            if (!hasError && !bestSignature.Kind.IsUserDefined() && leftType.IsVoidPointer())
             {
                 Error(diagnostics, ErrorCode.ERR_VoidError, node);
                 hasError = true;
@@ -998,13 +998,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((resultOperatorKind & BinaryOperatorKind.Pointer) == BinaryOperatorKind.Pointer &&
                         leftType?.TypeKind == TypeKind.FunctionPointer && rightType?.TypeKind == TypeKind.FunctionPointer)
                     {
+                        Debug.Assert(!resultOperatorKind.IsUserDefined());
                         // Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.
                         Error(diagnostics, ErrorCode.WRN_DoNotCompareFunctionPointers, node.OperatorToken);
                     }
 
                     break;
                 default:
-                    if (leftType.IsVoidPointer() || rightType.IsVoidPointer())
+                    if (!resultOperatorKind.IsUserDefined() && (leftType.IsVoidPointer() || rightType.IsVoidPointer()))
                     {
                         // CONSIDER: dev10 cascades this, but roslyn doesn't have to.
                         Error(diagnostics, ErrorCode.ERR_VoidError, node);
@@ -3224,6 +3225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasErrors && operandType.IsVoidPointer())
             {
+                Debug.Assert(!signature.Kind.IsUserDefined());
                 Error(diagnostics, ErrorCode.ERR_VoidError, node);
                 hasErrors = true;
             }

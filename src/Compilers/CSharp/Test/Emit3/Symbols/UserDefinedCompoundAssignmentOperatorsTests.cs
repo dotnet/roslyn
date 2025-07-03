@@ -17691,7 +17691,7 @@ public class C1 : C2
             comp.VerifyEmitDiagnostics();
         }
 
-        private static string ToCRefOp(string op)
+        internal static string ToCRefOp(string op)
         {
             return op.Replace("&", "&amp;").Replace("<", "&lt;");
         }
