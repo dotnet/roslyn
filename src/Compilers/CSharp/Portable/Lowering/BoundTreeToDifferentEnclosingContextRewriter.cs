@@ -131,11 +131,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
             var isCompleted = VisitPropertySymbol(node.IsCompleted);
             var getResult = VisitMethodSymbol(node.GetResult);
-            var runtimeAsyncAwaitMethod = VisitMethodSymbol(node.RuntimeAsyncAwaitMethod);
 
             _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitMethod);
+            BoundCall? runtimeAsyncAwaitCall = null;
+            var runtimeAsyncAwaitCallPlaceholder = node.RuntimeAsyncAwaitCallPlaceholder;
+            var rewrittenRuntimeAsyncAwaitCallPlaceholder = runtimeAsyncAwaitCallPlaceholder;
+            if (rewrittenRuntimeAsyncAwaitCallPlaceholder is not null)
+            {
+                rewrittenRuntimeAsyncAwaitCallPlaceholder = runtimeAsyncAwaitCallPlaceholder!.Update(VisitType(rewrittenRuntimeAsyncAwaitCallPlaceholder.Type));
+                _placeholderMap.Add(runtimeAsyncAwaitCallPlaceholder, rewrittenRuntimeAsyncAwaitCallPlaceholder);
+                runtimeAsyncAwaitCall = (BoundCall?)this.Visit(node.RuntimeAsyncAwaitCall);
+                _placeholderMap.Remove(runtimeAsyncAwaitCallPlaceholder);
+            }
+#if DEBUG
+            else
+            {
+                Debug.Assert(node.RuntimeAsyncAwaitCall is null);
+            }
+#endif
+
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitCall, rewrittenRuntimeAsyncAwaitCallPlaceholder);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)

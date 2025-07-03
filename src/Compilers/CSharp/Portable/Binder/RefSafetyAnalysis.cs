@@ -958,6 +958,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 placeholders.Add((placeholder, valEscapeScope));
             }
+
+            if (awaitableInfo.RuntimeAsyncAwaitCallPlaceholder is { } runtimePlaceholder)
+            {
+                placeholders.Add((runtimePlaceholder, valEscapeScope));
+            }
         }
 
         public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)

@@ -194,10 +194,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Type__GetTypeFromHandle,
 
-        System_Runtime_CompilerServices_AsyncHelpers__AwaitTask,
-        System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T,
-        System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask,
-        System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T,
         System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter,
         System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter,
 

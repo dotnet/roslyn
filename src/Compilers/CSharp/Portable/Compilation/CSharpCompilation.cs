@@ -2249,7 +2249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = method.ExtractReturnTypeSyntax();
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out BoundExpression? result, out MethodSymbol? runtimeAwaitMethod, syntax, diagnostics);
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out BoundExpression? result, out BoundCall? runtimeAwaitCall, syntax, diagnostics);
 
             RoslynDebug.Assert(!namedType.IsDynamic());
             if (!success)
@@ -2257,8 +2257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Debug.Assert(result is { Type: not null } || runtimeAwaitMethod is { ReturnType: not null });
-            var returnType = result?.Type ?? runtimeAwaitMethod!.ReturnType;
+            Debug.Assert(result is { Type: not null } || runtimeAwaitCall is { Type: not null });
+            var returnType = result?.Type ?? runtimeAwaitCall!.Type;
             return returnType.IsVoidType() || returnType.SpecialType == SpecialType.System_Int32;
         }
 
