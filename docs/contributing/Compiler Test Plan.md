@@ -55,7 +55,7 @@ This document provides guidance for thinking about language interactions and tes
   - Compiler-recognized attributes should not have any effect in earlier LangVersions,
     except a LangVersion error should be reported when functionality depending on the attribute is used
     (for example, InlineArray conversion to Span).
-- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
+- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, `allows ref struct`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
 - Literals
