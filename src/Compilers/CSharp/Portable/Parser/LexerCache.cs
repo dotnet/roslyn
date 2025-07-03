@@ -194,7 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (textWindow.TryGetTextIfWithinWindow(span, out var lexemeTextSpan))
             {
                 var value = TriviaMap.FindItem(lexemeTextSpan, hashCode);
-
                 if (value == null)
                 {
                     value = SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
