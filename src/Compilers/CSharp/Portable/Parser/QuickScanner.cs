@@ -235,7 +235,9 @@ exitWhile:
             {
                 // this is a good token!
                 var token = _cache.LookupToken(
-                    TextWindow.CharacterWindow.AsSpan(TextWindow.LexemeRelativeStart, i - TextWindow.LexemeRelativeStart),
+                    TextWindow.CharacterWindow,
+                    TextWindow.LexemeRelativeStart,
+                    i - TextWindow.LexemeRelativeStart,
                     hashCode,
                     CreateQuickToken,
                     this);
