@@ -6196,13 +6196,6 @@ interface I { }
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<valuetype .ctor (I, System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType))>(!0)",
             extension.ComputeExtensionGroupingRawName());
-
-        var unmanagedType = """
-.class public auto ansi beforefieldinit System.Runtime.InteropServices.UnmanagedType
-    extends System.Object
-{
-}
-""";
     }
 
     [Fact]
@@ -6423,13 +6416,6 @@ struct D { }
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method D *(D)[])", extension.ComputeExtensionGroupingRawName());
-
-        var dSrc = """
-.class private sequential ansi sealed beforefieldinit D
-    extends System.ValueType
-{
-} 
-""";
     }
 
     [Fact]
@@ -6450,13 +6436,6 @@ class D { }
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method D *(D)[])", extension.ComputeExtensionGroupingRawName());
-
-        var dSrc = """
-.class private auto ansi beforefieldinit D
-    extends System.Object
-{
-}
-""";
     }
 
     [Fact]
@@ -6475,13 +6454,6 @@ unsafe static class E
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension<>(method !0 *(!0)[])", extension.ComputeExtensionGroupingRawName());
-
-        var dSrc = """
-.class private auto ansi beforefieldinit D
-    extends System.Object
-{
-}
-""";
     }
 
     [Fact]
