@@ -282,6 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendArrayType(ArrayTypeSymbol array, StringBuilder builder)
             {
+                Debug.Assert(array.Sizes.IsEmpty && array.LowerBounds.IsEmpty);
+
                 appendType(array.ElementType, builder);
                 builder.Append('[');
                 for (int i = 0; i < array.Rank; i++)
