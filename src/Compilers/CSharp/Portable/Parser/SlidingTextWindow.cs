@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Where the current character window starts in the source text.  This is the absolute position in the source text.
         /// In other words, if this is 2048, then that means it represents the chunk of characters starting at position 2048
-        /// in the source text. <c>CharacterWindow.Count</c> represents how large the chunk is.  Characters
-        /// <c>[0, CharacterWindow.Count)</c> are valid characters within the window, and represents
-        /// the chunk <c>[CharacterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="Text"/>.
+        /// in the source text. <c>_characterWindow.Count</c> represents how large the chunk is.  Characters
+        /// <c>[0, _characterWindow.Count)</c> are valid characters within the window, and represents
+        /// the chunk <c>[_characterWindowStartPositionInText, CharacterWindowEndPositionInText)</c> in <see cref="Text"/>.
         /// </summary>
         private int _characterWindowStartPositionInText;
 
