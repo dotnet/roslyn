@@ -1646,6 +1646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(members.Count > 0);
 
                     var receiver = SynthesizeMethodGroupReceiver(node, members);
+                    Debug.Assert(GetValueExpressionIfTypeOrValueReceiver(receiver) is null);
+
                     expression = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                         node,
                         typeArgumentList,
@@ -7894,7 +7896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (lookupResult.IsMultiViable)
                     {
                         CheckFeatureAvailability(boundLeft.Syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
-                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
+                        return BindMemberOfType(node, right, rightName, rightArity, invoked, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
                     }
                     else if (lookupResult.IsClear)
                     {
@@ -7915,7 +7917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lookupResult.IsMultiViable)
                     {
-                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensions, diagnostics: diagnostics);
+                        return BindMemberOfType(node, right, rightName, rightArity, invoked, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensions, diagnostics: diagnostics);
                     }
 
                     if (!invoked)
@@ -8097,17 +8099,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lookupResult.IsMultiViable)
                 {
-                    return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArgumentsWithAnnotations, lookupResult, flags, diagnostics);
+                    return BindMemberOfType(node, right, rightName, rightArity, invoked, indexed, boundLeft, typeArgumentsSyntax, typeArgumentsWithAnnotations, lookupResult, flags, diagnostics);
                 }
 
                 if (searchExtensionsIfNecessary)
                 {
-                    BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(boundLeft);
-
-                    if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out _))
-                    {
-                        boundLeft = ReplaceTypeOrValueReceiver(boundLeft, useType: false, diagnostics);
-                    }
+                    var members = ArrayBuilder<Symbol>.GetInstance();
+                    boundLeft = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(boundLeft, right, rightName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
+                    members.Free();
 
                     if (!invoked)
                     {
@@ -8394,6 +8393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode right,
             string plainName,
             int arity,
+            bool invoked,
             bool indexed,
             BoundExpression left,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
@@ -8425,6 +8425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the receiver of the method group, even though the spec notes that there is
                 // no associated instance expression.)
 
+                left = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(left, right, plainName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
+
                 result = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                     node,
                     typeArgumentsSyntax,
@@ -8439,7 +8441,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // methods are special because of extension methods.
                 Debug.Assert(symbol.Kind != SymbolKind.Method);
                 left = ReplaceTypeOrValueReceiver(left, symbol.IsStatic || symbol.Kind == SymbolKind.NamedType, diagnostics);
 
