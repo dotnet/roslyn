@@ -1134,6 +1134,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
@@ -1143,6 +1148,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
+
+            Validate()
         End Sub
 
 
