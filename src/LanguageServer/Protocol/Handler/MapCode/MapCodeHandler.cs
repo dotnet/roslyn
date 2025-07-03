@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.MapCode;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -32,7 +33,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalMapCodeParams request, RequestContext context, CancellationToken cancellationToken)
+    public Task<WorkspaceEdit?> HandleRequestAsync(VSInternalMapCodeParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -42,8 +43,26 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
             throw new NotImplementedException("mapCode Request failed: additional workspace 'Update' is currently not supported");
         }
 
+        var supportsDocumentChanges = context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.DocumentChanges ?? false;
+
+        return GetMappedWorkspaceEditAsync(
+            context.Solution,
+            request.Mappings,
+            supportsDocumentChanges,
+            context.Logger,
+            cancellationToken);
+    }
+
+    internal static async Task<WorkspaceEdit?> GetMappedWorkspaceEditAsync(
+        Solution solution,
+        VSInternalMapCodeMapping[] mappings,
+        bool supportsDocumentChanges,
+        ILspLogger logger,
+        CancellationToken cancellationToken)
+    {
+
         using var _ = PooledDictionary<DocumentUri, LSP.TextEdit[]>.GetInstance(out var uriToEditsMap);
-        foreach (var codeMapping in request.Mappings)
+        foreach (var codeMapping in mappings)
         {
             var mappingResult = await MapCodeAsync(codeMapping).ConfigureAwait(false);
 
@@ -58,7 +77,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
         }
 
         // return a combined WorkspaceEdit
-        if (context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.DocumentChanges is true)
+        if (supportsDocumentChanges)
         {
             return new WorkspaceEdit
             {
@@ -82,7 +101,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
             var textDocument = codeMapping.TextDocument
                 ?? throw new ArgumentException($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null.");
 
-            var document = await context.Solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
+            var document = await solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
             if (document is null)
                 throw new ArgumentException($"mapCode sub-request for {textDocument.DocumentUri} failed: can't find this document in the workspace.");
 
@@ -102,7 +121,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
 
             if (textChanges is null)
             {
-                context.TraceDebug($"mapCode sub-request for {textDocument.DocumentUri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
+                logger.LogDebug($"mapCode sub-request for {textDocument.DocumentUri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
                 return null;
             }
 
@@ -127,7 +146,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
                     // Ignore anything not in target document, which current code mapper doesn't handle anyway
                     if (!location.DocumentUri.Equals(textDocumentIdentifier.DocumentUri))
                     {
-                        context.TraceDebug($"A focus location in '{textDocumentIdentifier.DocumentUri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
+                        logger.LogDebug($"A focus location in '{textDocumentIdentifier.DocumentUri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
                         continue;
                     }
 
