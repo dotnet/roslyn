@@ -351,17 +351,7 @@ namespace Roslyn.Utilities
         /// <param name="length">The number of characters, beginning with <paramref name="start"/> to hash</param>
         /// <returns>The FNV-1a hash code of the substring beginning at <paramref name="start"/> and ending after <paramref name="length"/> characters.</returns>
         internal static int GetFNVHashCode(char[] text, int start, int length)
-        {
-            int hashCode = Hash.FnvOffsetBias;
-            int end = start + length;
-
-            for (int i = start; i < end; i++)
-            {
-                hashCode = unchecked((hashCode ^ text[i]) * Hash.FnvPrime);
-            }
-
-            return hashCode;
-        }
+            => GetFNVHashCode(text.AsSpan(start, length));
 
         /// <summary>
         /// Compute the hashcode of a single character using the FNV-1a algorithm
