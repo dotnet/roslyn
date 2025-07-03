@@ -11,6 +11,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -668,6 +669,23 @@ internal sealed class EditSession
         using var _ = PooledDictionary<string, AssemblyIdentity>.GetInstance(out var oldReferencesByName);
 
         oldReferencesByName.AddRange(oldCompilation.ReferencedAssemblyNames.Select(id => KeyValuePair.Create(id.Name, id)));
+
+        foreach (var newReference in newCompilation.ReferencedAssemblyNames)
+        {
+            if (oldReferencesByName.TryGetValue(newReference.Name, out var oldReference))
+            {
+                if (oldReference.Version != newReference.Version ||
+                    oldReference.CultureName != newReference.CultureName ||
+                    !oldReference.PublicKeyToken.SequenceEqual(newReference.PublicKeyToken))
+                {
+                    // Reference changed.
+                    projectDiagnostics.Add(Diagnostic.Create(
+                        EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangingReference),
+                        Location.None,
+                        [oldReference.ToString(), newReference.ToString()]));
+                }
+            }
+        }
     }
 
     internal static async ValueTask<ProjectChanges> GetProjectChangesAsync(
