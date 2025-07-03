@@ -10650,6 +10650,7 @@ class Test1
         }
 
         [Fact]
+        [WorkItem(78640, "https://github.com/dotnet/roslyn/issues/78640")]
         public void Repro_78640()
         {
             var source = """
