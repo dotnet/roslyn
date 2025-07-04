@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
+namespace Microsoft.VisualStudio.LanguageServices;
 
 /// <summary>
 /// Monitors Visual Studio's UIContext for Solution building/opening/closing and notifies the GlobalOperationService.
