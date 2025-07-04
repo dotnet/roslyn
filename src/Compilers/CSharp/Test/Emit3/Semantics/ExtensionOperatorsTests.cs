@@ -8579,13 +8579,7 @@ static class Extensions
     }
 }
 """;
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // The error is unexpected, but it is a preexisting condition - https://github.com/dotnet/roslyn/issues/78964.
-
-                // (7,13): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
-                //         c = ++c1;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "++c1").WithArguments("scoped C c1").WithLocation(7, 13)
-                );
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
         }
 
         /// <summary>
