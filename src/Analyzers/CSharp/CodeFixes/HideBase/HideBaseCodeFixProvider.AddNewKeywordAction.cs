@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrderModifiers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase;
 
@@ -20,46 +19,36 @@ using static CSharpSyntaxTokens;
 
 internal sealed partial class HideBaseCodeFixProvider
 {
-    private sealed class AddNewKeywordAction(Document document, SyntaxNode node) : CodeAction
+    private static async Task<Document> GetChangedDocumentAsync(
+        Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
-        private readonly Document _document = document;
-        private readonly SyntaxNode _node = node;
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var modifierOrder = await GetModifierOrderAsync(document, cancellationToken).ConfigureAwait(false);
 
-        public override string Title => CSharpCodeFixesResources.Hide_base_member;
+        return document.WithSyntaxRoot(root.ReplaceNode(node, GetNewNode(node, modifierOrder)));
+    }
 
-        protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+    private static SyntaxNode GetNewNode(SyntaxNode node, Dictionary<int, int>? preferredOrder)
+    {
+        var syntaxFacts = CSharpSyntaxFacts.Instance;
+        var modifiers = syntaxFacts.GetModifiers(node);
+        var newModifiers = modifiers.Add(NewKeyword);
+
+        if (preferredOrder is null ||
+            !AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
         {
-            var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = await _document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-            var newNode = GetNewNode(_node, configOptions.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder).Value);
-            var newRoot = root.ReplaceNode(_node, newNode);
-
-            return _document.WithSyntaxRoot(newRoot);
+            return syntaxFacts.WithModifiers(node, newModifiers);
         }
 
-        private static SyntaxNode GetNewNode(SyntaxNode node, string preferredModifierOrder)
-        {
-            var syntaxFacts = CSharpSyntaxFacts.Instance;
-            var modifiers = syntaxFacts.GetModifiers(node);
-            var newModifiers = modifiers.Add(NewKeyword);
+        var orderedModifiers = new SyntaxTokenList(
+            newModifiers.OrderBy(CompareModifiers));
 
-            if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(preferredModifierOrder, out var preferredOrder) ||
-                !AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
-            {
-                return syntaxFacts.WithModifiers(node, newModifiers);
-            }
+        return syntaxFacts.WithModifiers(node, orderedModifiers);
 
-            var orderedModifiers = new SyntaxTokenList(
-                newModifiers.OrderBy(CompareModifiers));
+        int CompareModifiers(SyntaxToken left, SyntaxToken right)
+            => GetOrder(left) - GetOrder(right);
 
-            return syntaxFacts.WithModifiers(node, orderedModifiers);
-
-            int CompareModifiers(SyntaxToken left, SyntaxToken right)
-                => GetOrder(left) - GetOrder(right);
-
-            int GetOrder(SyntaxToken token)
-                => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
-        }
+        int GetOrder(SyntaxToken token)
+            => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
     }
 }

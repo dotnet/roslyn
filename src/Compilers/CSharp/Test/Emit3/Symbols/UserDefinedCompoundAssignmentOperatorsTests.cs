@@ -7872,7 +7872,7 @@ class Program
             Assert.Equal(kind, SyntaxFacts.GetOperatorKind(name));
         }
 
-        private static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
+        internal static string CompoundAssignmentOperatorName(string op, bool isChecked = false)
         {
             SyntaxKind kind = CompoundAssignmentOperatorTokenKind(op);
 
@@ -17691,7 +17691,7 @@ public class C1 : C2
             comp.VerifyEmitDiagnostics();
         }
 
-        private static string ToCRefOp(string op)
+        internal static string ToCRefOp(string op)
         {
             return op.Replace("&", "&amp;").Replace("<", "&lt;");
         }
@@ -20231,6 +20231,82 @@ class Program
 
             var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "+=3+=55nullnull").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_01610_Consumption_RightIsImplicitObjectCreation()
+        {
+            var source = @"
+struct S1
+{
+    public void operator +=(S1 y) {}
+}
+
+struct S2
+{
+    public static S2 operator +(S2 x, S2 y) => x;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1 += new();
+
+        var s2 = new S2();
+        s2 += new();
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8310: Operator '+=' cannot be applied to operand 'new()'
+                //         s1 += new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s1 += new()").WithArguments("+=", "new()").WithLocation(17, 9),
+                // (20,9): error CS8310: Operator '+=' cannot be applied to operand 'new()'
+                //         s2 += new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s2 += new()").WithArguments("+=", "new()").WithLocation(20, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_01620_Consumption_RightIsDefault()
+        {
+            var source = @"
+struct S1
+{
+    public void operator +=(S1 y) {}
+}
+
+struct S2
+{
+    public static S2 operator +(S2 x, S2 y) => x;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1 += default;
+
+        var s2 = new S2();
+        s2 += default;
+    } 
+}
+";
+
+            var comp = CreateCompilation([source, CompilerFeatureRequiredAttribute]);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                //         s1 += default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s1 += default").WithArguments("+=", "default").WithLocation(17, 9),
+                // (20,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                //         s2 += default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s2 += default").WithArguments("+=", "default").WithLocation(20, 9)
+                );
         }
     }
 }

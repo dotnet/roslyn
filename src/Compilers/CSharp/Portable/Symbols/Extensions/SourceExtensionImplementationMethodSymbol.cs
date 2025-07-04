@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(sourceMethod.GetIsNewExtensionMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
-            Debug.Assert(!sourceMethod.IsExtern);
-            Debug.Assert(!sourceMethod.IsExternal);
 
             // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Are we creating type parameters with the right emit behavior? Attributes, etc.
             //            Also, they should be IsImplicitlyDeclared
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override MethodKind MethodKind => MethodKind.Ordinary;
         public override bool IsImplicitlyDeclared => true;
 
-        internal override bool HasSpecialName => false;
+        internal override bool HasSpecialName => _originalMethod.HasSpecialNameAttribute;
 
         internal override int ParameterCount
         {
@@ -59,9 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsAccessCheckedOnOverride => false;
 
-        public sealed override bool IsExtern => false;
-        public sealed override DllImportData? GetDllImportData() => null;
-        internal sealed override bool IsExternal => false;
+        public sealed override bool IsExtern => _originalMethod.IsExtern;
+        public sealed override DllImportData? GetDllImportData() => _originalMethod.GetDllImportData();
+        internal sealed override bool IsExternal => _originalMethod.IsExternal;
 
         internal sealed override bool IsDeclaredReadOnly => false;
 

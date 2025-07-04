@@ -69,9 +69,11 @@ internal partial struct SymbolKey
                         }
 
                         break;
+#if !ROSLYN_4_12_OR_LOWER
                     case INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } extensionParameter }:
                         Resolve(result, reader, metadataName, ordinal, [extensionParameter]);
                         break;
+#endif
                 }
             }
 

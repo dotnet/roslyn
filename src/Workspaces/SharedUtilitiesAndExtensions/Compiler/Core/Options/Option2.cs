@@ -75,7 +75,7 @@ internal sealed partial class Option2<T> : ISingleValuedOption<T>
     public T DefaultValue => Definition.DefaultValue;
     OptionDefinition IOption2.Definition => Definition;
 
-#if CODE_STYLE
+#if !WORKSPACE
     bool IOption2.IsPerLanguage => false;
 #else
     string IOption.Feature => "config";

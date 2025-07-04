@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.MoveStaticMembers
 Imports Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
 Imports Microsoft.CodeAnalysis.Testing
-Imports Microsoft.CodeAnalysis.Testing.Verifiers
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.MoveStaticMembers.VisualBasicMoveStaticMembersRefactoringProvider)
 

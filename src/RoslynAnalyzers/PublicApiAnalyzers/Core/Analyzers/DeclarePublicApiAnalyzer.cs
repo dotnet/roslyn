@@ -366,6 +366,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 var apiDataProvider = file.IsShipping ? s_shippingApiDataProvider : s_nonShippingApiDataProvider;
                 var text = additionalText.GetText(context.CancellationToken);
+                if (text is null)
+                    continue;
+
                 additionalFiles = additionalFiles.Add(additionalText, text);
                 if (!context.TryGetValue(text, apiDataProvider, out var apiData))
                     continue;

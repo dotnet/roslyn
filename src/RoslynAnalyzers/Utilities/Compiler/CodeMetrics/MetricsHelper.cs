@@ -4,8 +4,6 @@
 
 #nullable disable warnings
 
-#if HAS_IOPERATION
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +11,6 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Lightup;
-using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -269,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                                 cyclomaticComplexity += 1;
                                 break;
 
-                            case OperationKindEx.Attribute:
+                            case OperationKind.Attribute:
                             case OperationKind.None:
                                 // Skip non-applicable attributes.
                                 if (!applicableAttributeNodes.Contains(node))
@@ -421,5 +418,3 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         }
     }
 }
-
-#endif
