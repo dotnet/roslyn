@@ -4503,7 +4503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
-                    if (increment.MethodOpt is { } incrementMethod)
+                    if (increment.MethodOpt is { IsStatic: true } incrementMethod)
                     {
                         var prefix = increment.OperatorKind is UnaryOperatorKind.UserDefinedPrefixIncrement or UnaryOperatorKind.UserDefinedPrefixDecrement;
                         Debug.Assert(prefix || increment.OperatorKind is UnaryOperatorKind.UserDefinedPostfixIncrement or UnaryOperatorKind.UserDefinedPostfixDecrement);
@@ -5321,7 +5321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
-                    if (increment.MethodOpt is { } incrementMethod)
+                    if (increment.MethodOpt is { IsStatic: true } incrementMethod)
                     {
                         var prefix = increment.OperatorKind is UnaryOperatorKind.UserDefinedPrefixIncrement or UnaryOperatorKind.UserDefinedPrefixDecrement;
                         Debug.Assert(prefix || increment.OperatorKind is UnaryOperatorKind.UserDefinedPostfixIncrement or UnaryOperatorKind.UserDefinedPostfixDecrement);
