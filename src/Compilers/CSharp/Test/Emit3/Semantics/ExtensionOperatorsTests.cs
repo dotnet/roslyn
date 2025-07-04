@@ -4173,6 +4173,65 @@ class Program
                 );
         }
 
+        [Fact]
+        public void Unary_074_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator -(S2 x) => throw null;
+    }
+}
+
+public static class Extensions2
+{
+    extension(S2)
+    {
+        public static S2 operator -(S2 x) => throw null;
+    }
+}
+
+public struct S2
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = -s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (26,13): error CS0035: Operator '-' is ambiguous on an operand of type 'S2'
+                //         _ = -s2;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-s2").WithArguments("-", "S2").WithLocation(26, 13)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+
+#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
+            AssertEx.Equal("Extensions2.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions1.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+#else
+            AssertEx.Equal("Extensions1.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions2.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+#endif
+        }
+
         [Theory]
         [CombinatorialData]
         public void Increment_001_Declaration([CombinatorialValues("++", "--")] string op)
@@ -10279,6 +10338,133 @@ class Program
                 //     unsafe void* Test(void* x) => ++x;
                 Diagnostic(ErrorCode.ERR_VoidError, op + "x").WithLocation(11, 35)
                 );
+        }
+
+        [Fact]
+        public void Increment_113_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public static class Extensions2
+{
+    extension(ref S2 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S2
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
+            comp.VerifyDiagnostics(
+                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(ref S2).operator ++()' and 'Extensions1.extension(ref S2).operator ++()'
+                //         ++s2;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("Extensions2.extension(ref S2).operator ++()", "Extensions1.extension(ref S2).operator ++()").WithLocation(26, 9)
+                );
+#else
+            comp.VerifyDiagnostics(
+                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(ref S2).operator ++()' and 'Extensions2.extension(ref S2).operator ++()'
+                //         ++s2;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("Extensions1.extension(ref S2).operator ++()", "Extensions2.extension(ref S2).operator ++()").WithLocation(26, 9)
+                );
+#endif
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+
+#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
+            AssertEx.Equal("Extensions2.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[1].ToDisplayString());
+#else
+            AssertEx.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions2.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[1].ToDisplayString());
+#endif
+        }
+
+        [Fact]
+        public void Increment_114_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator ++(S2 x) => throw null;
+    }
+}
+
+public static class Extensions2
+{
+    extension(S2)
+    {
+        public static S2 operator ++(S2 x) => throw null;
+    }
+}
+
+public struct S2
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (26,9): error CS0035: Operator '++' is ambiguous on an operand of type 'S2'
+                //         ++s2;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "++s2").WithArguments("++", "S2").WithLocation(26, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+
+#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
+            AssertEx.Equal("Extensions2.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions1.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+#else
+            AssertEx.Equal("Extensions1.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions2.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+#endif
         }
 
         [Theory]
@@ -19457,6 +19643,110 @@ class Program
                 );
         }
 
+        [Fact]
+        public void Binary_151_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, int y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator +(S2 x, int y)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = s2 + s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (22,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S2'
+                //         _ = s2 + s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s2").WithArguments("+", "S2", "S2").WithLocation(22, 13)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact]
+        public void Binary_152_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, C1 y) => throw null;
+        public static S2 operator +(S2 x, C2 y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator +(S2 x, int y)
+    {
+        return x;
+    }
+
+    public static implicit operator C1 (S2 x) => null;
+    public static implicit operator C2 (S2 x) => null;
+}
+
+public class C1;
+public class C2;
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = s2 + s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,13): error CS0034: Operator '+' is ambiguous on operands of type 'S2' and 'S2'
+                //         _ = s2 + s2;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s2 + s2").WithArguments("+", "S2", "S2").WithLocation(29, 13)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.Equal("Extensions1.extension(S2).operator +(S2, C1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions1.extension(S2).operator +(S2, C2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+        }
+
         [Theory]
         [CombinatorialData]
         public void CompoundAssignment_001_Declaration([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
@@ -26794,6 +27084,337 @@ class Program
 
             var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
             CompileAndVerify(comp, expectedOutput: "operator1", verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CompoundAssignment_142_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator +=(int y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator +(S2 x, int y)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        s2 += s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (22,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S2' and 'S2'
+                //         s2 += s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 += s2").WithArguments("+=", "S2", "S2").WithLocation(22, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact]
+        public void CompoundAssignment_143_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator +=(C1 y) => throw null;
+        public void operator +=(C2 y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator +(S2 x, int y)
+    {
+        return x;
+    }
+
+    public static implicit operator C1 (S2 x) => null;
+    public static implicit operator C2 (S2 x) => null;
+}
+
+public class C1;
+public class C2;
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        s2 += s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,12): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(ref S2).operator +=(C1)' and 'Extensions1.extension(ref S2).operator +=(C2)'
+                //         s2 += s2;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "+=").WithArguments("Extensions1.extension(ref S2).operator +=(C1)", "Extensions1.extension(ref S2).operator +=(C2)").WithLocation(29, 12)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            AssertEx.Equal("Extensions1.extension(ref S2).operator +=(C1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions1.extension(ref S2).operator +=(C2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_144_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, int y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator +(S2 x, int y)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        s2 += s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (22,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S2' and 'S2'
+                //         s2 += s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 += s2").WithArguments("+=", "S2", "S2").WithLocation(22, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
+        [Fact]
+        public void CompoundAssignment_145_Consumption_ErrorScenarioCandidates()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, C1 y) => throw null;
+        public static S2 operator +(S2 x, C2 y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator +(S2 x, int y)
+    {
+        return x;
+    }
+
+    public static implicit operator C1 (S2 x) => null;
+    public static implicit operator C2 (S2 x) => null;
+}
+
+public class C1;
+public class C2;
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        s2 += s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (29,9): error CS0034: Operator '+=' is ambiguous on operands of type 'S2' and 'S2'
+                //         s2 += s2;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s2 += s2").WithArguments("+=", "S2", "S2").WithLocation(29, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.AssignmentExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            AssertEx.Equal("Extensions1.extension(S2).operator +(S2, C1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions1.extension(S2).operator +(S2, C2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+        }
+
+        [Fact]
+        public void CompoundAssignment_146_Consumption_BadOperator()
+        {
+            var source1 = @"
+public static class Extensions1
+{
+    extension(C1 p)
+    {
+        public void operator +=(int a, int x = 0) {}
+    }
+}
+
+public class C1;
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (6,30): error CS1020: Overloadable binary operator expected
+                //         public void operator +=(int a, int x = 0) {}
+                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "+=").WithLocation(6, 30),
+                // (6,44): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //         public void operator +=(int a, int x = 0) {}
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(6, 44)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_147_Consumption_BadOperator()
+        {
+            var source1 = @"
+public static class Extensions1
+{
+    extension(ref C1 p)
+    {
+        public void operator +=(int a) {}
+    }
+}
+
+public class C1;
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (4,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+                //     extension(ref C1 p)
+                Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "C1").WithLocation(4, 19)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_148_Consumption_BadOperator()
+        {
+            var source1 = @"
+public static class Extensions1
+{
+    extension(C1 p)
+    {
+        public void operator +=(int a) {}
+    }
+}
+
+public struct C1;
+";
+            var source2 = @"
+public class Program
+{
+    static void Main()
+    {
+        var x = new C1();
+        x += 1;
+    } 
+}
+";
+
+            CSharpCompilation comp1 = CreateCompilation([source1, CompilerFeatureRequiredAttribute]);
+            comp1.VerifyDiagnostics(
+                // (6,30): error CS9322: Cannot declare instance operator for a struct unless containing extension block receiver parameter is a 'ref' parameter
+                //         public void operator +=(int a) {}
+                Diagnostic(ErrorCode.ERR_InstanceOperatorStructExtensionWrongReceiverRefKind, "+=").WithLocation(6, 30)
+                );
+
+            var comp2 = CreateCompilation(source2, references: [comp1.ToMetadataReference()], options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(
+                // (7,9): error CS0019: Operator '+=' cannot be applied to operands of type 'C1' and 'int'
+                //         x += 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x += 1").WithArguments("+=", "C1", "int").WithLocation(7, 9)
+                );
         }
     }
 }
