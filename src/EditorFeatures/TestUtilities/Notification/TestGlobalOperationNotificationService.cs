@@ -4,17 +4,17 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Composition;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
+namespace Microsoft.CodeAnalysis.Test.Utilities.Notification;
 
-[Export(typeof(IGlobalOperationNotificationService)), Shared]
+[Export(typeof(IGlobalOperationNotificationService)), PartNotDiscoverable, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class VisualStudioGlobalOperationNotificationService(
-    IThreadingContext threadingContext,
+internal sealed class TestGlobalOperationNotificationService(
     IAsynchronousOperationListenerProvider listenerProvider)
-    : AbstractGlobalOperationNotificationService(listenerProvider, threadingContext.DisposalToken);
+    : AbstractGlobalOperationNotificationService(listenerProvider, CancellationToken.None);
