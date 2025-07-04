@@ -3074,4 +3074,40 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     #endregion
+
+    protected override IEnumerable<RudeProjectEditKind> GetParseOptionsRudeEdits(ParseOptions oldOptions, ParseOptions newOptions)
+    {
+        foreach (var rudeEdit in base.GetParseOptionsRudeEdits(oldOptions, newOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        var oldCSharpOptions = (CSharpParseOptions)oldOptions;
+        var newCSharpOptions = (CSharpParseOptions)newOptions;
+
+        if (oldCSharpOptions.LanguageVersion != newCSharpOptions.LanguageVersion)
+        {
+            yield return RudeProjectEditKind.LangVersion;
+        }
+
+        if (oldCSharpOptions.PreprocessorSymbolNames.SequenceEqual(newCSharpOptions.PreprocessorSymbolNames, StringComparer.Ordinal))
+        {
+            yield return RudeProjectEditKind.DefineConstants;
+        }
+    }
+
+    protected override IEnumerable<RudeProjectEditKind> GetCompilationOptionsRudeEdits(CompilationOptions oldOptions, CompilationOptions newOptions)
+    {
+        foreach (var rudeEdit in base.GetCompilationOptionsRudeEdits(oldOptions, newOptions))
+        {
+            yield return rudeEdit;
+        }
+
+        var oldCSharpOptions = (CSharpCompilationOptions)oldOptions;
+        var newCSharpOptions = (CSharpCompilationOptions)newOptions;
+
+        // Change allowed:
+        // AllowUnsafe
+        // TODO ...
+    }
 }

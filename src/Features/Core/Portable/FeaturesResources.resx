@@ -369,6 +369,9 @@
   <data name="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding or moving {0} of a COM interface requires restarting the application.</value>
   </data>
+  <data name="Changing_project_setting_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing project setting '{0}' requires restarting the application.</value>
+  </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>
   </data>
