@@ -286,9 +286,7 @@ namespace Roslyn.Utilities
             => GetFNVHashCode(text.AsSpan(start, length));
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
-        {
-            return GetCaseInsensitiveFNVHashCode(text.AsSpan(0, text.Length));
-        }
+            => GetCaseInsensitiveFNVHashCode(text.AsSpan());
 
         internal static int GetCaseInsensitiveFNVHashCode(ReadOnlySpan<char> data)
         {
@@ -375,14 +373,7 @@ namespace Roslyn.Utilities
         /// <param name="text">The string to combine</param>
         /// <returns>The result of combining <paramref name="hashCode"/> with <paramref name="text"/> using the FNV-1a algorithm</returns>
         internal static int CombineFNVHash(int hashCode, string text)
-        {
-            foreach (char ch in text)
-            {
-                hashCode = unchecked((hashCode ^ ch) * Hash.FnvPrime);
-            }
-
-            return hashCode;
-        }
+            => CombineFNVHash(hashCode, text.AsSpan());
 
         /// <summary>
         /// Combine a char with an existing FNV-1a hash code
