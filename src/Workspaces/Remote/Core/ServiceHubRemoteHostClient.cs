@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,6 +59,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
         AsynchronousOperationListenerProvider listenerProvider,
         IServiceBroker serviceBroker,
         RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+        ImmutableArray<string> oopMefComponentPaths,
         CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, KeyValueLogMessage.NoProperty, cancellationToken))
@@ -74,7 +76,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
             var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
             var remoteProcessIdAndErrorMessage = await client.TryInvokeAsync<IRemoteInitializationService, (int processId, string? errorMessage)>(
-                (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, localSettingsDirectory, cancellationToken),
+                (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, localSettingsDirectory, oopMefComponentPaths, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (remoteProcessIdAndErrorMessage.HasValue)
