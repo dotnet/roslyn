@@ -8,9 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-#if DEBUG
-#endif
-
 namespace Roslyn.Utilities
 {
     /// <summary>
