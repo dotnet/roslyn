@@ -28,7 +28,7 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
     {
         if (context.Diagnostics.First().Properties.ContainsKey(ForEachCastHelpers.IsFixable))
         {
-            RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<SyntaxNode>));
+            RegisterCodeFix(context, AnalyzersResources.Add_explicit_cast, nameof(AbstractForEachCastCodeFixProvider<>));
         }
 
         return Task.CompletedTask;
