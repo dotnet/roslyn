@@ -223,21 +223,11 @@
         }
       }
     },
-    // CompletionOptionsStorage.ShowNewSnippetExperienceUserOption
+    // CompletionOptionsStorage.ShowNewSnippetExperience
     "textEditor.csharp.intellisense.showNewSnippetExperience": {
       "title": "@Show_new_snippet_experience;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": false,
-      "messages": [
-        {
-          "text": "@Experimental_feature;..\\Microsoft.VisualStudio.LanguageServices.dll"
-        }
-      ],
-      "alternateDefault": {
-        // CompletionOptionsStorage.ShowNewSnippetExperienceFeatureFlag
-        "flagName": "Roslyn.SnippetCompletion",
-        "default": true
-      },
       "order": 100,
       "migration": {
         "pass": {

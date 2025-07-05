@@ -192,11 +192,6 @@
         <target state="translated">新しいスニペット エクスペリエンスを表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_new_snippet_experience_experimental">
-        <source>Show new snippet experience (experimental)</source>
-        <target state="translated">新しいスニペット エクスペリエンスの表示 (試験段階)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">.NET Framework アセンブリの型に using を提案する</target>
