@@ -50,8 +50,6 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     private readonly List<ClassifiedTextRun> quotaExceededContent;
     private readonly IServiceProvider _serviceProvider;
 
-    private OnTheFlyDocsState _currentState = OnTheFlyDocsState.OnDemandLink;
-
     /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -262,9 +260,9 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
     public OnTheFlyDocsState CurrentState
     {
-        get => _currentState;
-        set => OnPropertyChanged(ref _currentState, value);
-    }
+        get;
+        set => OnPropertyChanged(ref field, value);
+    } = OnTheFlyDocsState.OnDemandLink;
 
     public UIElement OnDemandLinkContent { get; }
 
