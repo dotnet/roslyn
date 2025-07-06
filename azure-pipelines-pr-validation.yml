@@ -39,6 +39,8 @@ variables:
     value: false
   - name: Codeql.SkipTaskAutoInjection
     value: true
+  - name: SignType
+    value: 'test'
 
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # If the pipeline is running in DevDiv, the account has access to the VS drop storage.
