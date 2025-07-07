@@ -1739,8 +1739,8 @@ public sealed partial class ServiceHubServicesTests
         return (project, documents);
     }
 
-    private static Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
-        => client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+    private static async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
+        => await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
             solution,
             async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, cancellationToken),
             CancellationToken.None);

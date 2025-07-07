@@ -65,14 +65,7 @@ public sealed class GenerateDefaultConstructorsTests
 
 #if !CODE_STYLE
 
-<<<<<<< TODO: Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Features.UnitTests (net8.0)', Before:
-    private static async Task TestRefactoringMissingAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
-=======
     private static Task TestRefactoringMissingAsync(
-        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
->>>>>>> After
-    private static async Task TestRefactoringMissingAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source)
         => new VerifyRefactoring.Test
         {
