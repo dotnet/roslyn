@@ -13,32 +13,32 @@ namespace Analyzer.Utilities
 {
     internal static class DocumentExtensions
     {
-        public static async ValueTask<SemanticModel> GetRequiredSemanticModelAsync(this Document document, CancellationToken cancellationToken)
-        {
-            if (document.TryGetSemanticModel(out var semanticModel))
-                return semanticModel;
+        //public static async ValueTask<SemanticModel> GetRequiredSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        //{
+        //    if (document.TryGetSemanticModel(out var semanticModel))
+        //        return semanticModel;
 
-            semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return semanticModel ?? throw new InvalidOperationException("SyntaxTree is required to accomplish the task but is not supported by document");
-        }
+        //    semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        //    return semanticModel ?? throw new InvalidOperationException("SyntaxTree is required to accomplish the task but is not supported by document");
+        //}
 
-        public static async ValueTask<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
-        {
-            if (document.TryGetSyntaxTree(out var syntaxTree))
-                return syntaxTree;
+        //public static async ValueTask<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
+        //{
+        //    if (document.TryGetSyntaxTree(out var syntaxTree))
+        //        return syntaxTree;
 
-            syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return syntaxTree ?? throw new InvalidOperationException("SyntaxTree is required to accomplish the task but is not supported by document");
-        }
+        //    syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        //    return syntaxTree ?? throw new InvalidOperationException("SyntaxTree is required to accomplish the task but is not supported by document");
+        //}
 
-        public static async ValueTask<SyntaxNode> GetRequiredSyntaxRootAsync(this Document document, CancellationToken cancellationToken)
-        {
-            if (document.TryGetSyntaxRoot(out var root))
-                return root;
+        //public static async ValueTask<SyntaxNode> GetRequiredSyntaxRootAsync(this Document document, CancellationToken cancellationToken)
+        //{
+        //    if (document.TryGetSyntaxRoot(out var root))
+        //        return root;
 
-            root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return root ?? throw new InvalidOperationException("SyntaxTree is required to accomplish the task but is not supported by document");
-        }
+        //    root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        //    return root ?? throw new InvalidOperationException("SyntaxTree is required to accomplish the task but is not supported by document");
+        //}
     }
 }
 
