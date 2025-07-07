@@ -29,6 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Dim root = model.SyntaxTree.GetRoot(cancellationToken)
             predicate = If(predicate, Functions(Of SyntaxNode).True)
             Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
+            If diagnostics.Any(Function(diag) diag.Severity = DiagnosticSeverity.Error) Then
+                ' If this file contains errors, unnecessary using diagnostics may not be useful.
+                ' For example, if the errors are caused by missing references.
+                Return ImmutableArray(Of ImportsClauseSyntax).Empty
+            End If
 
             Dim unnecessaryImports = ArrayBuilder(Of ImportsClauseSyntax).GetInstance()
 

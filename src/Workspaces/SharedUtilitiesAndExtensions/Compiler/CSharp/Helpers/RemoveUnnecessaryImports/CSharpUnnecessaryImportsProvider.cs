@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,6 +29,12 @@ internal sealed class CSharpUnnecessaryImportsProvider
         var root = model.SyntaxTree.GetRoot(cancellationToken);
         predicate ??= Functions<SyntaxNode>.True;
         var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
+        if (diagnostics.Any(diag => diag.Severity == DiagnosticSeverity.Error))
+        {
+            // If this file contains errors, unnecessary using diagnostics may not be useful.
+            // For example, if the errors are caused by missing references.
+            return [];
+        }
 
         using var _ = ArrayBuilder<UsingDirectiveSyntax>.GetInstance(out var result);
         foreach (var diagnostic in diagnostics)
