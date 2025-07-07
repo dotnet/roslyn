@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 [ExportCompletionProvider(nameof(ProjectDirectiveCompletionProvider), LanguageNames.CSharp)]
+[ExtensionOrder(After = nameof(ReferenceDirectiveCompletionProvider))]
 [Shared]
 internal sealed class ProjectDirectiveCompletionProvider : AbstractDirectivePathCompletionProvider
 {
