@@ -166,7 +166,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             // If it's a proper file based program, we'll put it in the main host workspace factory since we want cross-project references to work.
             // Otherwise, we'll keep it in miscellaneous files.
             ProjectFactory: isFileBasedProgram ? _workspaceFactory.HostProjectFactory : _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
-            HasAllInformation: isFileBasedProgram,
+            IsMiscellaneousFile: !isFileBasedProgram,
             Preferred: buildHostKind,
             Actual: buildHostKind);
     }

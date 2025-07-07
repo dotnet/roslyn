@@ -174,7 +174,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected sealed record RemoteProjectLoadResult(RemoteProjectFile ProjectFile, ProjectSystemProjectFactory ProjectFactory, bool HasAllInformation, BuildHostProcessKind Preferred, BuildHostProcessKind Actual);
+    protected sealed record RemoteProjectLoadResult(RemoteProjectFile ProjectFile, ProjectSystemProjectFactory ProjectFactory, bool IsMiscellaneousFile, BuildHostProcessKind Preferred, BuildHostProcessKind Actual);
 
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
@@ -209,7 +209,7 @@ internal abstract class LanguageServerProjectLoader
                 return false;
             }
 
-            (RemoteProjectFile remoteProjectFile, ProjectSystemProjectFactory projectFactory, bool hasAllInformation, BuildHostProcessKind preferredBuildHostKind, BuildHostProcessKind actualBuildHostKind) = remoteProjectLoadResult;
+            (RemoteProjectFile remoteProjectFile, ProjectSystemProjectFactory projectFactory, bool isMiscellaneousFile, BuildHostProcessKind preferredBuildHostKind, BuildHostProcessKind actualBuildHostKind) = remoteProjectLoadResult;
             if (preferredBuildHostKind != actualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
@@ -249,7 +249,7 @@ internal abstract class LanguageServerProjectLoader
                     var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, projectFactory, loadedProjectInfo);
                     newProjectTargetsBuilder.Add(target);
 
-                    var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                    var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, _logger);
                     needsRestore |= targetNeedsRestore;
                     if (!targetAlreadyExists)
                     {
