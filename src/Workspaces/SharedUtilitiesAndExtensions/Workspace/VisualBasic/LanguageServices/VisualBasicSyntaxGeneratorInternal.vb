@@ -567,9 +567,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Overrides Function ConvertExpression(type As SyntaxNode, expression As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.CTypeExpression(DirectCast(expression, ExpressionSyntax), DirectCast(type, TypeSyntax)).WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
-
-        Public Overrides Function AttributeList(attribute As SyntaxNode, Optional methodTarget As Boolean = False) As SyntaxNode
-            Return SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(DirectCast(attribute, AttributeSyntax)))
-        End Function
     End Class
 End Namespace

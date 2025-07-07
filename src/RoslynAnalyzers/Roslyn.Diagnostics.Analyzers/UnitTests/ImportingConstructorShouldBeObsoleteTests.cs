@@ -381,7 +381,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             """;
         var fixedSource = $"""
             Imports System
-
             Imports {mefNamespace}
             Imports Microsoft.CodeAnalysis.Host.Mef
 
