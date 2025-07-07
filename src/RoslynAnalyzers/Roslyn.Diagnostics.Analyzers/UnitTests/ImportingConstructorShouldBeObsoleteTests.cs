@@ -135,10 +135,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -193,10 +190,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -247,10 +241,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -303,10 +294,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -406,10 +394,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -461,10 +446,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -518,10 +500,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -574,10 +553,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -632,10 +608,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
         }.RunAsync();
     }
 
@@ -687,10 +660,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
             NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
@@ -746,10 +716,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
             },
-            FixedState =
-            {
-                Sources = { fixedSource },
-            },
+            FixedCode = fixedSource,
             NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
