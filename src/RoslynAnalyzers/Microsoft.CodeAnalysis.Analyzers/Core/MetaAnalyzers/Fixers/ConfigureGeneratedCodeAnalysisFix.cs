@@ -13,13 +13,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     public abstract class ConfigureGeneratedCodeAnalysisFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(ConfigureGeneratedCodeAnalysisAnalyzer.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = [ConfigureGeneratedCodeAnalysisAnalyzer.Rule.Id];
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

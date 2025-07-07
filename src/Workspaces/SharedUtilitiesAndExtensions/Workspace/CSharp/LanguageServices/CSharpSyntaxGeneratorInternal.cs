@@ -336,4 +336,13 @@ internal sealed class CSharpSyntaxGeneratorInternal() : SyntaxGeneratorInternal
 
     public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
         => SyntaxFactory.CastExpression((TypeSyntax)type, (ExpressionSyntax)Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
+
+    public override SyntaxNode AttributeList(SyntaxNode attribute, bool methodTarget = false)
+    {
+        var attributeList = SyntaxFactory.AttributeList([(AttributeSyntax)attribute]);
+        if (methodTarget)
+            attributeList = attributeList.WithTarget(SyntaxFactory.AttributeTargetSpecifier(MethodKeyword));
+
+        return attributeList;
+    }
 }

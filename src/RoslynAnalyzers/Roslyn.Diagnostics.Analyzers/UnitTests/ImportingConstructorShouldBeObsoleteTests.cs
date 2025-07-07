@@ -5,16 +5,17 @@
 using System.Threading.Tasks;
 using Test.Utilities;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
-    Roslyn.Diagnostics.Analyzers.ImportingConstructorShouldBeObsolete,
-    Roslyn.Diagnostics.Analyzers.ImportingConstructorShouldBeObsoleteCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
-    Roslyn.Diagnostics.Analyzers.ImportingConstructorShouldBeObsolete,
-    Roslyn.Diagnostics.Analyzers.ImportingConstructorShouldBeObsoleteCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
-    public class ImportingConstructorShouldBeObsoleteTests
+    using VerifyCS = CSharpCodeFixVerifier<
+        ImportingConstructorShouldBeObsolete,
+        ImportingConstructorShouldBeObsoleteCodeFixProvider>;
+    using VerifyVB = VisualBasicCodeFixVerifier<
+        ImportingConstructorShouldBeObsolete,
+        ImportingConstructorShouldBeObsoleteCodeFixProvider>;
+
+    public sealed class ImportingConstructorShouldBeObsoleteTests
     {
         [Theory]
         [InlineData("System.Composition")]

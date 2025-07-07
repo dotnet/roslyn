@@ -20,11 +20,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers;
 
-public abstract class ImportingConstructorShouldBeObsoleteCodeFixProvider() : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(ImportingConstructorShouldBeObsoleteCodeFixProvider)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+public sealed class ImportingConstructorShouldBeObsoleteCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [ImportingConstructorShouldBeObsolete.Rule.Id];
-
-    protected abstract SyntaxNode RetargetAttributeToMethod(SyntaxNode obsoleteAttribute);
 
     public override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
@@ -82,7 +83,7 @@ public abstract class ImportingConstructorShouldBeObsoleteCodeFixProvider() : Co
         return Task.CompletedTask;
     }
 
-    private async Task<Document> AddObsoleteAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+    private static async Task<Document> AddObsoleteAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -94,6 +95,7 @@ public abstract class ImportingConstructorShouldBeObsoleteCodeFixProvider() : Co
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
         var generator = SyntaxGenerator.GetGenerator(document);
+        var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
         var isPrimaryConstructorTypeDeclaration = syntaxFacts.IsTypeDeclaration(constructor);
         var declaration = isPrimaryConstructorTypeDeclaration
@@ -109,10 +111,10 @@ public abstract class ImportingConstructorShouldBeObsoleteCodeFixProvider() : Co
                 GenerateErrorArgument(generator, allowNamedArgument: document.Project.Language == LanguageNames.CSharp),
             ]);
 
-        if (isPrimaryConstructorTypeDeclaration)
-            obsoleteAttribute = RetargetAttributeToMethod(obsoleteAttribute);
+        var attributeList = generatorInternal.AttributeList(
+            obsoleteAttribute, methodTarget: isPrimaryConstructorTypeDeclaration);
 
-        var newDeclaration = generator.AddAttributes(declaration, obsoleteAttribute);
+        var newDeclaration = generator.AddAttributes(declaration, attributeList);
         return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
     }
 
