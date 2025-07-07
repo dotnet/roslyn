@@ -4,10 +4,12 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Roslyn.Diagnostics.Analyzers;
 
@@ -20,9 +22,12 @@ using static SyntaxFactory;
 internal sealed class CSharpImportingConstructorShouldBeObsoleteCodeFixProvider() :
     AbstractImportingConstructorShouldBeObsoleteCodeFixProvider
 {
-    protected override bool IsPrimaryConstructorTypeDeclaration(SyntaxNode node)
-        => node is TypeDeclarationSyntax { ParameterList: not null };
+    protected override bool IsOnPrimaryConstructorTypeDeclaration(SyntaxNode attributeName, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
+    {
+        typeDeclaration = attributeName.GetAncestor<AttributeListSyntax>()?.Parent;
+        return typeDeclaration is TypeDeclarationSyntax { ParameterList: not null };
+    }
 
-    protected override SyntaxNode MethodTargetingAttributeList(SyntaxNode attribute)
-        => AttributeList(AttributeTargetSpecifier(MethodKeyword), [(AttributeSyntax)attribute]);
+    protected override SyntaxNode AddMethodTarget(SyntaxNode attributeList)
+        => ((AttributeListSyntax)attributeList).WithTarget(AttributeTargetSpecifier(MethodKeyword));
 }

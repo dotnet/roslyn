@@ -16,12 +16,12 @@ Namespace Roslyn.Diagnostics.Analyzers
         Public Sub New()
         End Sub
 
-        Protected Overrides Function IsPrimaryConstructorTypeDeclaration(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsOnPrimaryConstructorTypeDeclaration(attributeName As SyntaxNode, ByRef typeDeclaration As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Protected Overrides Function MethodTargetingAttributeList(attribute As SyntaxNode) As SyntaxNode
-            Return attribute
+        Protected Overrides Function AddMethodTarget(attributeList As SyntaxNode) As SyntaxNode
+            Return attributeList
         End Function
     End Class
 End Namespace

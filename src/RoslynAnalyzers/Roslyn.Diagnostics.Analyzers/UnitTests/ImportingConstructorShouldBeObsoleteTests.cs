@@ -248,6 +248,56 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
     [WindowsOnlyTheory]
     [InlineData("System.Composition")]
     [InlineData("System.ComponentModel.Composition")]
+    public async Task NotMarkedObsolete_PrimaryConstructor_CSharpAsync(string mefNamespace)
+    {
+        var source = $$"""
+            using System;
+            using {{mefNamespace}};
+
+            [Export]
+            [method: [|ImportingConstructor|]]
+            class C() {
+            }
+
+            namespace Microsoft.CodeAnalysis.Host.Mef {
+                static class MefConstruction {
+                    internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                }
+            }
+            """;
+        var fixedSource = $$"""
+            using System;
+            using {{mefNamespace}};
+            using Microsoft.CodeAnalysis.Host.Mef;
+
+            [Export]
+            [method: ImportingConstructor]
+            [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            class C() {
+            }
+
+            namespace Microsoft.CodeAnalysis.Host.Mef {
+                static class MefConstruction {
+                    internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                }
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = fixedSource,
+            LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [WindowsOnlyTheory]
+    [InlineData("System.Composition")]
+    [InlineData("System.ComponentModel.Composition")]
     public async Task NotMarkedObsolete_VisualBasicAsync(string mefNamespace)
     {
         var source = $"""

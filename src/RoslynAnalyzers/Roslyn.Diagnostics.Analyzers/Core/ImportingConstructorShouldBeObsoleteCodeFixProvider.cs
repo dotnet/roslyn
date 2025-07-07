@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -24,8 +23,8 @@ public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvide
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [ImportingConstructorShouldBeObsolete.Rule.Id];
 
-    protected abstract bool IsPrimaryConstructorTypeDeclaration(SyntaxNode node);
-    protected abstract SyntaxNode MethodTargetingAttributeList(SyntaxNode attribute);
+    protected abstract bool IsOnPrimaryConstructorTypeDeclaration(SyntaxNode attributeName, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
+    protected abstract SyntaxNode AddMethodTarget(SyntaxNode attributeList);
 
     public override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
@@ -91,27 +90,27 @@ public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvide
         if (obsoleteAttributeSymbol is null)
             return document;
 
-        var constructor = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
+        var attributeName = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
 
         var generator = SyntaxGenerator.GetGenerator(document);
 
-        var isPrimaryConstructorTypeDeclaration = this.IsPrimaryConstructorTypeDeclaration(constructor);
+        var isPrimaryConstructorTypeDeclaration = this.IsOnPrimaryConstructorTypeDeclaration(attributeName, out var typeDeclaration);
         var declaration = isPrimaryConstructorTypeDeclaration
-            ? constructor
-            : generator.TryGetContainingDeclaration(constructor, DeclarationKind.Constructor);
+            ? typeDeclaration
+            : generator.TryGetContainingDeclaration(attributeName, DeclarationKind.Constructor);
         if (declaration is null)
             return document;
 
-        var obsoleteAttribute = generator.Attribute(
+        var obsoleteAttributeList = generator.Attribute(
             generator.TypeExpression(obsoleteAttributeSymbol).WithAddImportsAnnotation(),
             [
                 GenerateDescriptionArgument(generator, semanticModel),
                 GenerateErrorArgument(generator, allowNamedArgument: document.Project.Language == LanguageNames.CSharp),
             ]);
 
-        var attributeList = isPrimaryConstructorTypeDeclaration ? this.MethodTargetingAttributeList(obsoleteAttribute) : obsoleteAttribute;
+        obsoleteAttributeList = isPrimaryConstructorTypeDeclaration ? this.AddMethodTarget(obsoleteAttributeList) : obsoleteAttributeList;
 
-        var newDeclaration = generator.AddAttributes(declaration, attributeList);
+        var newDeclaration = generator.AddAttributes(declaration, obsoleteAttributeList);
         return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
     }
 
