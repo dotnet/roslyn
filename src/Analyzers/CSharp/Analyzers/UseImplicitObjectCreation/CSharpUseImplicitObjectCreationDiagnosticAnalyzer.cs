@@ -56,7 +56,10 @@ internal sealed class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : Abstra
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            objectCreation.Type.GetLocation(),
+            // Place the suggestion on the 'new' keyword.  This is both the earliest part of the object creation
+            // expression, and it also matches the location we place the 'use collection expression' analyzer,
+            // ensuring consistency between the two analyzers.
+            objectCreation.NewKeyword.GetLocation(),
             styleOption.Notification,
             context.Options,
             [objectCreation.GetLocation()],
