@@ -7021,5 +7021,161 @@ unsafe static class E
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
         AssertEx.Equal("extension(method System.Int32& *(System.Int32&)[])", extension.ComputeExtensionGroupingRawName());
     }
+
+    [Fact]
+    public void GroupingTypeRawName_68()
+    {
+        var src = """
+static class E
+{
+    extension((dynamic, dynamic))
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.ValueTuple`2<System.Object, System.Object>)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_69()
+    {
+        var src = """
+static class E
+{
+    extension(dynamic)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
+            //     extension(dynamic)
+            Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension(System.Object)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_70()
+    {
+        var src = """
+static class E
+{
+    extension<in T>(T)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     extension<in T>(T)
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 15));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_71()
+    {
+        var src = """
+static class E
+{
+    extension<out T>(T)
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     extension<out T>(T)
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "out").WithLocation(3, 15));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        var extension = (SourceNamedTypeSymbol)e.GetTypeMembers().Single();
+        AssertEx.Equal("extension<>(!0)", extension.ComputeExtensionGroupingRawName());
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_72()
+    {
+        var src = """
+static class E
+{
+    extension<in T>(T t)
+    {
+        public void M() { }
+    }
+    extension<T>(T t)
+    {
+        public void M() { }
+    }
+
+    public static void M2<in T>(this T t) { }
+    public static void M2<T>(this T t) { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,15): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     extension<in T>(T t)
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(3, 15),
+            // (9,21): error CS0111: Type 'E' already defines a member called 'M' with the same parameter types
+            //         public void M() { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "E").WithLocation(9, 21),
+            // (12,27): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
+            //     public static void M2<in T>(this T t) { }
+            Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(12, 27),
+            // (13,24): error CS0111: Type 'E' already defines a member called 'M2' with the same parameter types
+            //     public static void M2<T>(this T t) { }
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M2").WithArguments("M2", "E").WithLocation(13, 24));
+    }
+
+    [Fact]
+    public void GroupingTypeRawName_73()
+    {
+        // Function pointer type with type named "void"
+        var src = """
+unsafe static class E
+{
+    extension(delegate*<@void, @void>[])
+    {
+    }
+}
+class @void { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
+        AssertEx.Equal("extension(method 'void' *('void')[])", extension.ComputeExtensionGroupingRawName());
+
+        var src2 = """
+unsafe struct C
+{
+    delegate*<@void, @void>[] field;
+}
+class @void { }
+""";
+        CompileAndVerify(src2, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C", """
+.class private sequential ansi sealed beforefieldinit C
+    extends [System.Runtime]System.ValueType
+{
+    // Fields
+    .field private method class 'void' *(class 'void')[] 'field'
+} // end of class C
+""");
+    }
 }
 

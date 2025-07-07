@@ -126,6 +126,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     appendFunctionPointerType(functionPointer, builder);
                 }
+                else if (type is DynamicTypeSymbol)
+                {
+                    builder.Append("System.Object");
+                }
                 else
                 {
                     throw ExceptionUtilities.UnexpectedValue(type);
@@ -139,6 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (namedType.SpecialType == SpecialType.System_Void)
                 {
                     builder.Append("void");
+                    return;
+                }
+
+                if (namedType.Name == "void")
+                {
+                    builder.Append("'void'");
                     return;
                 }
 
@@ -196,8 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendTypeParameterDeclaration(TypeParameterSymbol typeParameter, StringBuilder builder)
             {
-                Debug.Assert(typeParameter.Variance == VarianceKind.None);
-
                 if (typeParameter.HasReferenceTypeConstraint)
                 {
                     builder.Append("class ");
@@ -218,7 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 appendTypeParameterTypeConstraints(typeParameter, builder);
-                // Note: skipping identifier
+
+                // Note: skipping identifier and variance
                 if (builder[builder.Length - 1] == ' ')
                 {
                     builder.Remove(startIndex: builder.Length - 1, length: 1);
@@ -288,12 +297,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 appendType(array.ElementType, builder);
                 builder.Append('[');
-                for (int i = 0; i < array.Rank; i++)
+                for (int i = 1; i < array.Rank; i++)
                 {
-                    if (i > 0)
-                    {
-                        builder.Append(',');
-                    }
+                    builder.Append(',');
                 }
 
                 builder.Append(']');
