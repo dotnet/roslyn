@@ -123,18 +123,15 @@ public sealed class MakeMemberRequiredTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68478")]
     public async Task SimpleSetPropertyMissingRequiredAttribute()
     {
-        var code =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             class MyClass
             {
                 public string {|CS8618:MyProperty|} { get; set; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -191,18 +188,16 @@ public sealed class MakeMemberRequiredTests
     [Fact]
     public async Task NotOnGetOnlyProperty()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
             {
                 public string {|CS8618:MyProperty|} { get; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
@@ -439,18 +434,16 @@ public sealed class MakeMemberRequiredTests
     [Fact]
     public async Task NotForLowerVersionOfCSharp()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
             {
                 public string {|CS8618:MyProperty|} { get; set; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
@@ -459,7 +452,9 @@ public sealed class MakeMemberRequiredTests
     [Fact]
     public async Task NotOnConstructorDeclaration()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
@@ -467,11 +462,7 @@ public sealed class MakeMemberRequiredTests
                 public string MyProperty { get; set; }
                 public {|CS8618:MyClass|}() { }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();
@@ -480,18 +471,16 @@ public sealed class MakeMemberRequiredTests
     [Fact]
     public async Task NotOnEventDeclaration()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
             
             class MyClass
             {
                 public event System.EventHandler {|CS8618:MyEvent|};
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();

@@ -21,14 +21,13 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
     [Fact]
     public async Task TestNoConvertToFileScopedInCSharp9()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             Options =
             {
@@ -40,14 +39,13 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
     [Fact]
     public async Task TestNoConvertToFileScopedInCSharp10WithBlockScopedPreference()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -101,7 +99,9 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
     [Fact]
     public async Task TestNoConvertWithMultipleNamespaces()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
             }
@@ -109,10 +109,7 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
             namespace N2
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -124,17 +121,16 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
     [Fact]
     public async Task TestNoConvertWithNestedNamespaces1()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 namespace N2
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -146,16 +142,15 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
     [Fact]
     public async Task TestNoConvertWithTopLevelStatement1()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             {|CS8805:int i = 0;|}
 
             namespace N
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -167,16 +162,15 @@ public sealed class ConvertToFileScopedNamespaceAnalyzerTests
     [Fact]
     public async Task TestNoConvertWithTopLevelStatement2()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
             }
 
             int i = 0;
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             ExpectedDiagnostics =
             {

@@ -103,7 +103,9 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
     [Fact]
     public async Task TestWithOptionOff()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class C
@@ -116,10 +118,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 void Bar(Func<int, string> f) { }
                 string Quux(int i) => default;
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
             Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
         }.RunAsync();

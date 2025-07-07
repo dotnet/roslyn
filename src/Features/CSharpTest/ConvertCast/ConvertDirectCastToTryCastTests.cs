@@ -21,7 +21,9 @@ public sealed class ConvertDirectCastToTryCastTests
     [Fact]
     public async Task ConvertFromExplicitToAs()
     {
-        const string InitialMarkup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 public static void Main()
@@ -29,8 +31,8 @@ public sealed class ConvertDirectCastToTryCastTests
                     var x = ([||]object)1;
                 }
             }
-            """;
-        const string ExpectedMarkup = """
+            """,
+            FixedCode = """
             class Program
             {
                 public static void Main()
@@ -38,11 +40,7 @@ public sealed class ConvertDirectCastToTryCastTests
                     var x = 1 as object;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = InitialMarkup,
-            FixedCode = ExpectedMarkup,
+            """,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
     }
@@ -55,7 +53,9 @@ public sealed class ConvertDirectCastToTryCastTests
     [InlineData("List<int>")]
     public async Task ConvertFromExplicitToAsSpecialTypes(string targetType)
     {
-        var initialMarkup = @$"
+        await new VerifyCS.Test
+        {
+            TestCode = @$"
 using System;
 using System.Collections.Generic;
 
@@ -66,8 +66,8 @@ class Program
         var o = new object();
         var x = ([||]{targetType})o;
     }}
-}}";
-        var expectedMarkup = @$"
+}}",
+            FixedCode = @$"
 using System;
 using System.Collections.Generic;
 
@@ -78,12 +78,7 @@ class Program
         var o = new object();
         var x = o as {targetType};
     }}
-}}";
-
-        await new VerifyCS.Test
-        {
-            TestCode = initialMarkup,
-            FixedCode = expectedMarkup,
+}}",
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
     }
@@ -91,7 +86,9 @@ class Program
     [Fact]
     public async Task ConvertFromExplicitToAs_ValueType()
     {
-        const string InitialMarkup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 public static void Main()
@@ -99,10 +96,7 @@ class Program
                     var x = ([||]byte)1;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = InitialMarkup,
+            """,
             OffersEmptyRefactoring = false,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
@@ -111,7 +105,9 @@ class Program
     [Fact]
     public async Task ConvertFromExplicitToAs_ValueTypeConstraint()
     {
-        const string InitialMarkup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             public class C
             {
                 public void M<T>() where T: struct
@@ -120,10 +116,7 @@ class Program
                     var t = (T[||])o;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = InitialMarkup,
+            """,
             OffersEmptyRefactoring = false,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
@@ -132,7 +125,9 @@ class Program
     [Fact]
     public async Task ConvertFromExplicitToAs_Unconstraint()
     {
-        const string InitialMarkup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             public class C
             {
                 public void M<T>()
@@ -141,10 +136,7 @@ class Program
                     var t = (T[||])o;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = InitialMarkup,
+            """,
             OffersEmptyRefactoring = false,
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
@@ -153,16 +145,6 @@ class Program
     [Fact]
     public async Task ConvertFromExplicitToAs_ClassConstraint()
     {
-        const string InitialMarkup = """
-            public class C
-            {
-                public void M<T>() where T: class
-                {
-                    var o = new object();
-                    var t = (T[||])o;
-                }
-            }
-            """;
         const string FixedCode = """
             public class C
             {
@@ -175,7 +157,16 @@ class Program
             """;
         await new VerifyCS.Test
         {
-            TestCode = InitialMarkup,
+            TestCode = """
+            public class C
+            {
+                public void M<T>() where T: class
+                {
+                    var o = new object();
+                    var t = (T[||])o;
+                }
+            }
+            """,
             FixedCode = FixedCode,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
@@ -222,7 +213,9 @@ public class C
     [Fact]
     public async Task ConvertFromExplicitToAs_NestedTypeParameters()
     {
-        var initialMarkup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             public class Target { }
 
             public class C
@@ -235,8 +228,8 @@ public class C
                     var u = (U[||])o;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             public class Target { }
 
             public class C
@@ -249,11 +242,7 @@ public class C
                     var u = o as U;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = initialMarkup,
-            FixedCode = fixedCode,
+            """,
             OffersEmptyRefactoring = false,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
@@ -291,7 +280,9 @@ public class C
                 "(C)(1 as object)")]
     public async Task ConvertFromExplicitToAs_Nested(string cast, string asExpression)
     {
-        var initialMarkup = @$"
+        await new VerifyCS.Test
+        {
+            TestCode = @$"
 class C {{ }}
 
 class Program
@@ -301,8 +292,8 @@ class Program
         var x = {cast};
     }}
 }}
-";
-        var expectedMarkup = @$"
+",
+            FixedCode = @$"
 class C {{ }}
 
 class Program
@@ -312,11 +303,7 @@ class Program
         var x = {asExpression};
     }}
 }}
-";
-        await new VerifyCS.Test
-        {
-            TestCode = initialMarkup,
-            FixedCode = expectedMarkup,
+",
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
 
@@ -355,7 +342,9 @@ class Program
         """)]
     public async Task ConvertFromExplicitToAs_Trivia(string cast, string asExpression)
     {
-        var initialMarkup = @$"
+        await new VerifyCS.Test
+        {
+            TestCode = @$"
 class Program
 {{
     public static void Main()
@@ -363,8 +352,8 @@ class Program
         var x = {cast};
     }}
 }}
-";
-        var expectedMarkup = @$"
+",
+            FixedCode = @$"
 class Program
 {{
     public static void Main()
@@ -372,11 +361,7 @@ class Program
         var x = {asExpression};
     }}
 }}
-";
-        await new VerifyCS.Test
-        {
-            TestCode = initialMarkup,
-            FixedCode = expectedMarkup,
+",
             CodeActionValidationMode = CodeActionValidationMode.SemanticStructure,
         }.RunAsync();
     }
@@ -384,7 +369,9 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
     public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableEnable()
     {
-        var initialMarkup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             #nullable enable
 
             class Program
@@ -394,8 +381,8 @@ class Program
                     var x = ([||]string?)null;
                 }
             }
-            """;
-        var expectedMarkup = """
+            """,
+            FixedCode = """
             #nullable enable
 
             class Program
@@ -405,11 +392,7 @@ class Program
                     var x = null as string;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = initialMarkup,
-            FixedCode = expectedMarkup,
+            """,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
     }
@@ -417,7 +400,9 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64052")]
     public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableDisable()
     {
-        var initialMarkup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             #nullable disable
 
             class Program
@@ -427,8 +412,8 @@ class Program
                     var x = ([||]string?)null;
                 }
             }
-            """;
-        var expectedMarkup = """
+            """,
+            FixedCode = """
             #nullable disable
 
             class Program
@@ -438,11 +423,7 @@ class Program
                     var x = null as string;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = initialMarkup,
-            FixedCode = expectedMarkup,
+            """,
             CompilerDiagnostics = CompilerDiagnostics.None, // Suppress compiler warning about nullable string in non-nullable context
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
@@ -451,15 +432,6 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64466")]
     public async Task ConvertFromExplicitToAs_NullableValueType()
     {
-        const string InitialMarkup = """
-            class Program
-            {
-                public static void Main()
-                {
-                    var x = ([||]byte?)null;
-                }
-            }
-            """;
         const string FixedCode = """
             class Program
             {
@@ -471,7 +443,15 @@ class Program
             """;
         await new VerifyCS.Test
         {
-            TestCode = InitialMarkup,
+            TestCode = """
+            class Program
+            {
+                public static void Main()
+                {
+                    var x = ([||]byte?)null;
+                }
+            }
+            """,
             FixedCode = FixedCode,
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();

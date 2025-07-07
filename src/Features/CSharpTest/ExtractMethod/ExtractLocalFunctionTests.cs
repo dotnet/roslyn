@@ -5175,15 +5175,6 @@ class Program
         var code = """
             [|System.Console.WriteLine("string");|]
             """;
-        var expected = """
-            NewMethod();
-
-            static void NewMethod()
-            {
-                System.Console.WriteLine("string");
-            }
-            """;
-
         await new VerifyCS.Test
         {
             TestState =
@@ -5191,7 +5182,14 @@ class Program
                 Sources = { code },
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            FixedCode = expected,
+            FixedCode = """
+            NewMethod();
+
+            static void NewMethod()
+            {
+                System.Console.WriteLine("string");
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();
@@ -5209,7 +5207,14 @@ class Program
 
             System.Console.WriteLine(x);
             """;
-        var expected = """
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = """
             System.Console.WriteLine("string");
 
             int x = NewMethod();
@@ -5222,16 +5227,7 @@ class Program
                 System.Console.WriteLine(x);
                 return x;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { code },
-                OutputKind = OutputKind.ConsoleApplication,
-            },
-            FixedCode = expected,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();
@@ -5253,7 +5249,14 @@ class Program
 
             class Ignored { }
             """;
-        var expected = """
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = """
             using System;
 
             Console.WriteLine("string");
@@ -5270,16 +5273,7 @@ class Program
             }
 
             class Ignored { }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { code },
-                OutputKind = OutputKind.ConsoleApplication,
-            },
-            FixedCode = expected,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();
@@ -5303,7 +5297,14 @@ class Program
 
             class Ignored2 { }
             """;
-        var expected = """
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = """
             using System;
 
             Console.WriteLine("string");
@@ -5322,16 +5323,7 @@ class Program
             }
 
             class Ignored2 { }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { code },
-                OutputKind = OutputKind.ConsoleApplication,
-            },
-            FixedCode = expected,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();
@@ -5344,15 +5336,6 @@ class Program
         var code = """
             System.Console.WriteLine([|"string"|]);
             """;
-        var expected = """
-            System.Console.WriteLine(NewMethod());
-
-            static string NewMethod()
-            {
-                return "string";
-            }
-            """;
-
         await new VerifyCS.Test
         {
             TestState =
@@ -5360,7 +5343,14 @@ class Program
                 Sources = { code },
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            FixedCode = expected,
+            FixedCode = """
+            System.Console.WriteLine(NewMethod());
+
+            static string NewMethod()
+            {
+                return "string";
+            }
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -5374,7 +5364,14 @@ class Program
                 System.Console.WriteLine([|"string"|]);
             }
             """;
-        var expected = """
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { code },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = """
             {
                 System.Console.WriteLine(NewMethod());
 
@@ -5383,16 +5380,7 @@ class Program
                     return "string";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { code },
-                OutputKind = OutputKind.ConsoleApplication,
-            },
-            FixedCode = expected,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Extract_local_function),
         }.RunAsync();

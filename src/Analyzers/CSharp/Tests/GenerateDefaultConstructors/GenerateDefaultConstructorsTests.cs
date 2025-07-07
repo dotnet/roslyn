@@ -940,7 +940,10 @@ index: 3);
                 object X = 1;
             }
             """;
-        var fixedSource = """
+        await new VerifyCodeFix.Test
+        {
+            TestCode = source.Replace("[||]", ""),
+            FixedCode = """
             struct S
             {
                 object X = 1;
@@ -949,12 +952,7 @@ index: 3);
                 {
                 }
             }
-            """;
-
-        await new VerifyCodeFix.Test
-        {
-            TestCode = source.Replace("[||]", ""),
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 

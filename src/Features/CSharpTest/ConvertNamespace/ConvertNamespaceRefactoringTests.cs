@@ -28,14 +28,13 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertToFileScopedInCSharp9()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace $$N
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             Options =
             {
@@ -47,14 +46,13 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertToFileScopedInCSharp10WithFileScopedPreference()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace $$N
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -108,15 +106,14 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNotBeforeNamespaceToken()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             $$
             namespace N
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -128,14 +125,13 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNotOnOpenBrace()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             $${
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -147,7 +143,9 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertWithMultipleNamespaces()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace $$N
             {
             }
@@ -155,10 +153,7 @@ public sealed class ConvertNamespaceRefactoringTests
             namespace N2
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -170,17 +165,16 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertWithNestedNamespaces1()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace $$N
             {
                 namespace N2
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -192,17 +186,16 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertWithNestedNamespaces2()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
                 namespace $$N2
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -214,16 +207,15 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertWithTopLevelStatement1()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             {|CS8805:int i = 0;|}
 
             namespace $$N
             {
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -235,16 +227,15 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertWithTopLevelStatement2()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace $$N
             {
             }
 
             {|CS8805:{|CS8803:int i = 0;|}|}
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -608,12 +599,11 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestNoConvertToBlockScopedInCSharp10WithBlockScopedPreference()
     {
-        var code = """
-            namespace $$N;
-            """;
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            namespace $$N;
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -667,13 +657,12 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestConvertToBlockNotBeforeNamespaceToken2()
     {
-        var code = """
-            $$
-            namespace N;
-            """;
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            $$
+            namespace N;
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -685,13 +674,12 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestConvertToBlockNotAfterSemicolon()
     {
-        var code = """
-            namespace N;
-            $$
-            """;
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            namespace N;
+            $$
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -703,12 +691,11 @@ public sealed class ConvertNamespaceRefactoringTests
     [Fact]
     public async Task TestConvertToBlockAfterSemicolon()
     {
-        var code = """
-            namespace N; $$
-            """;
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            namespace N; $$
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {

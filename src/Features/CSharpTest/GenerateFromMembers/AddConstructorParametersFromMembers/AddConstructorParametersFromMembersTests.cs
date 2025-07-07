@@ -1203,8 +1203,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_SecondOfThree()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|l|];
@@ -1218,9 +1219,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int l;
@@ -1235,11 +1235,7 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 1,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j)"), codeAction.Title)
         }.RunAsync();
@@ -1248,8 +1244,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_ThirdOfThree()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|l|];
@@ -1263,10 +1260,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int l;
@@ -1281,11 +1276,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     this.l = l;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 2,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j, int k)"), codeAction.Title)
         }.RunAsync();
@@ -1294,8 +1285,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_FirstOptionalOfThree()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|l|];
@@ -1309,9 +1301,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int l;
@@ -1326,11 +1317,7 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 3,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i)"), codeAction.Title)
         }.RunAsync();
@@ -1339,8 +1326,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_SecondOptionalOfThree()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|l|];
@@ -1354,9 +1342,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int [|l|];
@@ -1371,12 +1358,7 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 4,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j)"), codeAction.Title)
         }.RunAsync();
@@ -1385,8 +1367,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_ThirdOptionalOfThree()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|l|];
@@ -1400,9 +1383,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int [|l|];
@@ -1417,11 +1399,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     this.l = l;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 5,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, int j, int k)"), codeAction.Title)
         }.RunAsync();
@@ -1430,8 +1408,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_OneMustBeOptional()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|l|];
@@ -1453,9 +1432,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int [|l|];
@@ -1478,11 +1456,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     this.l = l;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 1,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, double j, int k)"), codeAction.Title)
         }.RunAsync();
@@ -1491,8 +1465,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_OneMustBeOptional2()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|l|];
@@ -1512,9 +1487,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int [|l|];
@@ -1535,11 +1509,7 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 3,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int i, double j)"), codeAction.Title)
         }.RunAsync();
@@ -1590,8 +1560,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33603")]
     public async Task TestMultipleConstructors_AllMustBeOptional2()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int [|p|];
@@ -1605,9 +1576,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 int [|p|];
@@ -1622,11 +1592,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     this.p = p;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             CodeActionIndex = 2,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(CodeFixesResources.Add_to_0, "C(int l, double m, int n)"), codeAction.Title)
         }.RunAsync();
@@ -1655,8 +1621,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestNoFieldNamingStyle_ParameterPrefixAndSuffix()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|v|];
@@ -1664,10 +1631,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 private int v;
@@ -1676,11 +1641,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     v = p_v_End;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             EditorConfig = ParameterNamesCamelCaseWithPUnderscorePrefixEndUnderscoreSuffixEditorConfig
         }.RunAsync();
     }
@@ -1688,8 +1649,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestCommonFieldNamingStyle()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|t_v|];
@@ -1697,10 +1659,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 private int t_v;
@@ -1709,11 +1669,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     t_v = p_v;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             EditorConfig = ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
         }.RunAsync();
     }
@@ -1721,8 +1677,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestSpecifiedFieldNamingStyle()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|field_v|];
@@ -1730,10 +1687,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 private int field_v;
@@ -1742,11 +1697,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     field_v = p_v;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
         }.RunAsync();
     }
@@ -1754,8 +1705,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestSpecifiedAndCommonFieldNamingStyle()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|field_s_v|];
@@ -1763,10 +1715,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 private int field_s_v;
@@ -1775,12 +1725,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     field_s_v = p_v;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
         }.RunAsync();
     }
@@ -1788,8 +1733,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestSpecifiedAndCommonFieldNamingStyle2()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|s_field_v|];
@@ -1797,10 +1743,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 private int s_field_v;
@@ -1809,11 +1753,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     s_field_v = p_v;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
         }.RunAsync();
     }
@@ -1821,8 +1761,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestBaseNameEmpty()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|field__End|];
@@ -1830,11 +1771,7 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig
         }.RunAsync();
     }
@@ -1842,8 +1779,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestSomeBaseNamesAreEmpty()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|field_test_End;
@@ -1852,10 +1790,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 private int field_test_End;
@@ -1865,12 +1801,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     field_test_End = p_test;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
         }.RunAsync();
     }
@@ -1878,8 +1809,9 @@ public sealed class AddConstructorParametersFromMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35775")]
     public async Task TestManyCommonPrefixes()
     {
-        var source =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 private int [|______test|];
@@ -1887,10 +1819,8 @@ public sealed class AddConstructorParametersFromMembersTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 private int ______test;
@@ -1899,12 +1829,7 @@ public sealed class AddConstructorParametersFromMembersTests
                     ______test = p_test;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = source,
-            FixedCode = expected,
+            """,
             EditorConfig = ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
         }.RunAsync();
     }

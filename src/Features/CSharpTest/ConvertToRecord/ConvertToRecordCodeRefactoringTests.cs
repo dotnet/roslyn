@@ -27,34 +27,6 @@ public sealed class ConvertToRecordCodeRefactoringTests
     [Fact]
     public async Task VerifyRefactoringAndFixHaveSameEquivalenceKey()
     {
-        var initialMarkupCodeFix = """
-            namespace N
-            {
-                public record B
-                {
-                    public int Foo { get; init; }
-                }
-
-                public class C : [|B|]
-                {
-                    public int P { get; init; }
-                }
-            }
-            """;
-        var initialMarkupRefactoring = """
-            namespace N
-            {
-                public record B
-                {
-                    public int Foo { get; init; }
-                }
-
-                public class [|C : {|CS8865:B|}|]
-                {
-                    public int P { get; init; }
-                }
-            }
-            """;
         var changedMarkup = """
             namespace N
             {
@@ -69,13 +41,39 @@ public sealed class ConvertToRecordCodeRefactoringTests
         CodeAction? codeAction = null;
         var refactoringTest = new RefactoringTest
         {
-            TestCode = initialMarkupRefactoring,
+            TestCode = """
+            namespace N
+            {
+                public record B
+                {
+                    public int Foo { get; init; }
+                }
+
+                public class [|C : {|CS8865:B|}|]
+                {
+                    public int P { get; init; }
+                }
+            }
+            """,
             FixedCode = changedMarkup,
             CodeActionVerifier = Verify,
         };
         var codeFixTest = new CodeFixTest
         {
-            TestCode = initialMarkupCodeFix,
+            TestCode = """
+            namespace N
+            {
+                public record B
+                {
+                    public int Foo { get; init; }
+                }
+
+                public class C : [|B|]
+                {
+                    public int P { get; init; }
+                }
+            }
+            """,
             FixedCode = changedMarkup,
             CodeActionVerifier = Verify,
         };

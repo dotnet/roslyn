@@ -16,16 +16,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task ErrorOnCapture_InMethod()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 class C(int i)
                 {
                     private int M() => [|i|];
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -33,7 +31,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task ErrorOnCapture_InProperty()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 class C(int i)
                 {
                     private int P
@@ -42,11 +42,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         set => [|i|] = value;
                     }
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -54,7 +50,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task ErrorOnCapture_InIndexer()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 class C(int i)
                 {
                     private int this[int param]
@@ -63,11 +61,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         set => [|i|] = value;
                     }
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -75,7 +69,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task ErrorOnCapture_InEvent()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 class C(int i)
                 {
                     public event System.Action E
@@ -84,11 +80,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         remove => _ = [|i|];
                     }
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -96,7 +88,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task ErrorOnCapture_UseInSubsequentConstructor()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 class C(int i)
                 {
                     C(bool b) : this(1)
@@ -104,11 +98,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         _ = i;
                     }
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(5,13): error RS0103: Primary constructor parameter 'i' should not be implicitly captured
@@ -122,14 +112,12 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task NoError_PassToBase()
         {
-            var source = """
-                class Base(int i);
-                class Derived(int i) : Base(i);
-                """;
-
             await new VerifyCS.Test
             {
-                TestCode = source,
+                TestCode = """
+                class Base(int i);
+                class Derived(int i) : Base(i);
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -137,16 +125,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task NoError_FieldInitializer()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 class C(int i)
                 {
                     public int I = i;
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -154,16 +140,14 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task NoError_PropertyInitializer()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 class C(int i)
                 {
                     public int I { get; set; } = i;
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -171,15 +155,13 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task NoError_CapturedInLambda()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 using System;
                 public class Base(Action action);
                 public class Derived(int i) : Base(() => Console.WriteLine(i));
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -187,7 +169,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task NoError_LocalFunctionParameterReference()
         {
-            var source = """
+            await new VerifyCS.Test
+            {
+                TestCode = """
                 using System;
                 class C
                 {
@@ -203,11 +187,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                         }
                     }
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }

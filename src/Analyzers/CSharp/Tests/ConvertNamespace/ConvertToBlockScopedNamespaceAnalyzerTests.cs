@@ -75,12 +75,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
     [Fact]
     public async Task TestNoConvertToBlockScopedInCSharp10WithBlockScopedPreference()
     {
-        var code = """
-            namespace N {}
-            """;
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            namespace N {}
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {

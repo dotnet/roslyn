@@ -202,7 +202,10 @@ public sealed class RemoveAsyncModifierTests
     [Fact]
     public async Task Method_ValueTask_BlockBody()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
@@ -215,9 +218,8 @@ public sealed class RemoveAsyncModifierTests
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -232,20 +234,17 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask();
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task Method_ValueTaskOfT_BlockBody()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
@@ -260,8 +259,8 @@ public sealed class RemoveAsyncModifierTests
                     return 3;
                 }
             }
-            """;
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -276,29 +275,25 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask<int>(3);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task Method_ValueTask_ExpressionBody()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
                 async ValueTask {|CS1998:Goo|}() => System.Console.WriteLine(1);
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
@@ -309,42 +304,32 @@ public sealed class RemoveAsyncModifierTests
                     return new ValueTask();
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task Method_ValueTaskOfT_ExpressionBody()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
+            TestCode = """
             using System.Threading.Tasks;
 
             class C
             {
                 async ValueTask<int> {|CS1998:Goo|}() => 3;
             }
-            """;
-
-        var expected = """
+            """,
+            FixedCode = """
             using System.Threading.Tasks;
 
             class C
             {
                 ValueTask<int> Goo() => new ValueTask<int>(3);
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard21,
-            TestCode = source,
-            FixedCode = expected,
+            """,
         }.RunAsync();
     }
 

@@ -21,13 +21,11 @@ public sealed class ConvertToProgramMainAnalyzerTests
     [Fact]
     public async Task NotOfferedWhenUserPrefersTopLevelStatements()
     {
-        var code = """
-            System.Console.WriteLine(0);
-            """;
-
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            System.Console.WriteLine(0);
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
@@ -37,7 +35,9 @@ public sealed class ConvertToProgramMainAnalyzerTests
     [Fact]
     public async Task NotOfferedWhenUserPrefersProgramMainButNoTopLevelStatements()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -45,11 +45,7 @@ public sealed class ConvertToProgramMainAnalyzerTests
                     System.Console.WriteLine(0);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false } },
         }.RunAsync();
@@ -142,13 +138,11 @@ public sealed class ConvertToProgramMainAnalyzerTests
     [Fact]
     public async Task NotOfferedInLibrary()
     {
-        var code = """
-            {|CS8805:System.Console.WriteLine(0);|}
-            """;
-
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            {|CS8805:System.Console.WriteLine(0);|}
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
         }.RunAsync();
@@ -157,13 +151,11 @@ public sealed class ConvertToProgramMainAnalyzerTests
     [Fact]
     public async Task NotOfferedWhenSuppressed()
     {
-        var code = """
-            System.Console.WriteLine(0);
-            """;
-
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            System.Console.WriteLine(0);
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.None } },

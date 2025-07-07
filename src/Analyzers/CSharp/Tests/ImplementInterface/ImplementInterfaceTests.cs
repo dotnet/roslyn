@@ -10441,7 +10441,9 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
     [Fact]
     public async Task ImplementRemainingExplicitlyMissingWhenAllImplementedAreExplicit()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             interface I
             {
                 void M1();
@@ -10452,8 +10454,8 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             {
                 void I.M1(){}
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             interface I
             {
                 void M1();
@@ -10469,12 +10471,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
 
                 void I.M1(){}
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             CodeActionsVerifier = codeActions => Assert.Equal(2, codeActions.Length),
         }.RunAsync();
     }
@@ -12088,8 +12085,9 @@ interface I
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70232")]
     public async Task TestMissingWhenAlreadyContainingImpl()
     {
-        var code =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             interface I
             {
                 event System.EventHandler Click;
@@ -12102,10 +12100,7 @@ interface I
                 event System.EventHandler I.Click
 
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             //LanguageVersion = LanguageVersion.CSharp12,
             ExpectedDiagnostics =
             {

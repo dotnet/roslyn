@@ -254,25 +254,22 @@ class MyClass
     [Fact]
     public async Task TestIncrementalFixesFullLine()
     {
-        var testCode = @"
+        await new Verify.Test
+        {
+            TestCode = @"
 class MyClass
 {
     int Property1$${$$get;$$set;$$}
     int Property2$${$$get;$$}
 }
-";
-        var fixedCode = @"
+",
+            FixedCode = @"
 class MyClass
 {
     int Property1 { get; set; }
     int Property2 { get; }
 }
-";
-
-        await new Verify.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+",
 
             // Each application of a single code fix covers all diagnostics on the same line. In total, two lines
             // require changes so the number of incremental iterations is exactly 2.
