@@ -20,11 +20,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(ImportingConstructorShouldBeObsoleteCodeFixProvider)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
-public sealed class ImportingConstructorShouldBeObsoleteCodeFixProvider() : CodeFixProvider
+public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvider() : CodeFixProvider
 {
+    private protected abstract ISyntaxFacts SyntaxFacts { get; }
+    private protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
+
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [ImportingConstructorShouldBeObsolete.Rule.Id];
 
     public override FixAllProvider GetFixAllProvider()
@@ -83,7 +83,7 @@ public sealed class ImportingConstructorShouldBeObsoleteCodeFixProvider() : Code
         return Task.CompletedTask;
     }
 
-    private static async Task<Document> AddObsoleteAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+    private async Task<Document> AddObsoleteAttributeAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -92,10 +92,10 @@ public sealed class ImportingConstructorShouldBeObsoleteCodeFixProvider() : Code
             return document;
 
         var constructor = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
-        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var syntaxFacts = this.SyntaxFacts;
 
         var generator = SyntaxGenerator.GetGenerator(document);
-        var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+        var generatorInternal = this.SyntaxGeneratorInternal;
 
         var isPrimaryConstructorTypeDeclaration = syntaxFacts.IsTypeDeclaration(constructor);
         var declaration = isPrimaryConstructorTypeDeclaration

@@ -10,10 +10,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests;
 
 using VerifyCS = CSharpCodeFixVerifier<
     ImportingConstructorShouldBeObsolete,
-    ImportingConstructorShouldBeObsoleteCodeFixProvider>;
+    CSharpImportingConstructorShouldBeObsoleteCodeFixProvider>;
 using VerifyVB = VisualBasicCodeFixVerifier<
     ImportingConstructorShouldBeObsolete,
-    ImportingConstructorShouldBeObsoleteCodeFixProvider>;
+    BasicImportingConstructorShouldBeObsoleteCodeFixProvider>;
 
 public sealed class ImportingConstructorShouldBeObsoleteTests
 {
