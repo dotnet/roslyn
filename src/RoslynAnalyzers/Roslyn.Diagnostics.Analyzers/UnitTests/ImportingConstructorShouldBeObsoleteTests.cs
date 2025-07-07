@@ -99,7 +99,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             [Export]
             class C {
                 [ImportingConstructor]
-                [Obsolete(MefConstruction.ImportingConstructorMessage, error: false)]
+                [[|Obsolete(MefConstruction.ImportingConstructorMessage, error: false)|]]
                 public C() { }
             }
 
@@ -134,7 +134,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(9, 6, 9, 73).WithArguments("C") },
             },
             FixedState =
             {
@@ -156,7 +155,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             <Export>
             Class C
                 <ImportingConstructor>
-                <Obsolete(MefConstruction.ImportingConstructorMessage, False)>
+                <[|Obsolete(MefConstruction.ImportingConstructorMessage, False)|]>
                 Public Sub New()
                 End Sub
             End Class
@@ -193,7 +192,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(9, 6, 9, 66).WithArguments("C") },
             },
             FixedState =
             {
@@ -213,7 +211,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
 
             [Export]
             class C {
-                [ImportingConstructor]
+                [[|ImportingConstructor|]]
                 public C() { }
             }
 
@@ -248,7 +246,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(7, 6, 7, 26).WithArguments("C") },
             },
             FixedState =
             {
@@ -268,7 +265,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
 
             <Export>
             Class C
-                <ImportingConstructor>
+                <[|ImportingConstructor|]>
                 Public Sub New()
                 End Sub
             End Class
@@ -305,7 +302,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(7, 6, 7, 26).WithArguments("C") },
             },
             FixedState =
             {
@@ -324,7 +320,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
 
             [Export]
             class C {
-                [ImportingConstructor]
+                [[|ImportingConstructor|]]
                 public C() { }
             }
             """;
@@ -354,7 +350,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source, helperSource },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
             },
             FixedState =
             {
@@ -373,7 +368,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
 
             <Export>
             Class C
-                <ImportingConstructor>
+                <[|ImportingConstructor|]>
                 Public Sub New()
                 End Sub
             End Class
@@ -411,7 +406,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(6, 6, 6, 26).WithArguments("C") },
             },
             FixedState =
             {
@@ -432,7 +426,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             [Export]
             class C {
                 [ImportingConstructor]
-                [Obsolete]
+                [[|Obsolete|]]
                 public C() { }
             }
 
@@ -467,7 +461,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 14).WithArguments("C") },
             },
             FixedState =
             {
@@ -488,7 +481,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             <Export>
             Class C
                 <ImportingConstructor>
-                <Obsolete>
+                <[|Obsolete|]>
                 Public Sub New()
                 End Sub
             End Class
@@ -525,7 +518,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 14).WithArguments("C") },
             },
             FixedState =
             {
@@ -547,7 +539,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             [Export]
             class C {
                 [ImportingConstructor]
-                [Obsolete(MefConstruction.ImportingConstructorMessage)]
+                [[|Obsolete(MefConstruction.ImportingConstructorMessage)|]]
                 public C() { }
             }
 
@@ -582,7 +574,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(9, 6, 9, 59).WithArguments("C") },
             },
             FixedState =
             {
@@ -604,7 +595,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             <Export>
             Class C
                 <ImportingConstructor>
-                <Obsolete(MefConstruction.ImportingConstructorMessage)>
+                <[|Obsolete(MefConstruction.ImportingConstructorMessage)|]>
                 Public Sub New()
                 End Sub
             End Class
@@ -641,7 +632,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(9, 6, 9, 59).WithArguments("C") },
             },
             FixedState =
             {
@@ -662,7 +652,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             [Export]
             class C {
                 [ImportingConstructor]
-                [Obsolete("INCORRECT MESSAGE")]
+                [[|Obsolete("INCORRECT MESSAGE")|]]
                 public C() { }
             }
 
@@ -697,7 +687,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyCS.Diagnostic().WithSpan(8, 6, 8, 35).WithArguments("C") },
             },
             FixedState =
             {
@@ -720,7 +709,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             <Export>
             Class C
                 <ImportingConstructor>
-                <Obsolete("INCORRECT MESSAGE")>
+                <[|Obsolete("INCORRECT MESSAGE")|]>
                 Public Sub New()
                 End Sub
             End Class
@@ -757,7 +746,6 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
             {
                 Sources = { source },
                 AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-                ExpectedDiagnostics = { VerifyVB.Diagnostic().WithSpan(8, 6, 8, 35).WithArguments("C") },
             },
             FixedState =
             {
