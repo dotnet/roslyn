@@ -475,12 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // dots followed by an integer (which will be treated as a range expression).
                             //
                             // Move back one space to see what's before this dot and adjust accordingly.
-
-                            this.TextWindow.Reset(atDotPosition - 1);
-                            var priorCharacterIsDot = this.TextWindow.PeekChar() is '.';
-                            this.TextWindow.Reset(atDotPosition);
-
-                            if (priorCharacterIsDot)
+                            if (this.TextWindow.PreviousChar() is '.')
                             {
                                 // We have two dots in a row.  Treat the second dot as a dot, not the start of a number literal.
                                 TextWindow.AdvanceChar();
