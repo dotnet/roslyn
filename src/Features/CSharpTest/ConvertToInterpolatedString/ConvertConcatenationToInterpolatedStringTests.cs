@@ -1004,18 +1004,17 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
     public async Task TestConcatenationWithConstMemberCSharp9()
     {
         // lang=c#-test
-        var code = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestCode = """
             class C
             {
                 const string Hello = "Hello";
                 const string World = "World";
                 const string Message = Hello + " " + [||]World;
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code,
+            """,
         }.RunAsync();
     }
 
@@ -1057,17 +1056,6 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                 }
             }
             """;
-        var fixedCode = """
-            class C
-            {
-                void M() {
-                    const string Hello = "Hello";
-                    const string World = "World";
-                    const string Message = $"{Hello} {World}";
-                }
-            }
-            """;
-
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp9,
@@ -1078,7 +1066,16 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
         {
             LanguageVersion = LanguageVersion.Preview,
             TestCode = code,
-            FixedCode = fixedCode,
+            FixedCode = """
+            class C
+            {
+                void M() {
+                    const string Hello = "Hello";
+                    const string World = "World";
+                    const string Message = $"{Hello} {World}";
+                }
+            }
+            """,
         }.RunAsync();
     }
 

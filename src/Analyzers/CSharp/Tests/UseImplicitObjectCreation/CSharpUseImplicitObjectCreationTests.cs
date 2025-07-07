@@ -24,16 +24,15 @@ public sealed class UseImplicitObjectCreationTests
     [Fact]
     public async Task TestMissingBeforeCSharp9()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            TestCode = """
                 class C
                 {
                     C c = new C();
                 }
-                """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-            TestCode = source,
+                """,
         }.RunAsync();
     }
 
@@ -721,16 +720,15 @@ public sealed class UseImplicitObjectCreationTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57777")]
     public async Task TestMissingOnNullableStruct()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            TestCode = """
                 class C
                 {
                     int? i = new int?();
                 }
-                """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
-            TestCode = source,
+                """,
         }.RunAsync();
     }
 

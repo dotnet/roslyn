@@ -52,7 +52,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotInCSharp7()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -62,10 +64,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -73,7 +72,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotWithNonConstant()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o, int length)
@@ -83,10 +84,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -94,7 +92,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotWithoutTest()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o, int length)
@@ -102,10 +102,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     var v = (o as string)?.Length;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -113,7 +110,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotWithNonMemberBinding1()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 C[] X;
@@ -126,10 +125,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -137,7 +133,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsConstant_CSharp8()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -147,10 +145,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -158,7 +153,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsConstant_CSharp9()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -168,10 +165,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -179,7 +173,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsNull_ValueType_CSharp8()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -189,10 +185,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -200,7 +193,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsNull_ValueType_CSharp9()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -210,10 +205,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -221,7 +213,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsNull_ValueType2_CSharp9()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 C X;
@@ -234,10 +228,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -245,7 +236,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsNull_ReferenceType_CSharp8()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 string X;
@@ -257,10 +250,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -340,7 +330,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsNull_NullableType_CSharp8()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int? X;
@@ -352,10 +344,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -363,7 +352,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestNotEqualsNull_NullableType2_CSharp8()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int? X;
@@ -375,10 +366,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -581,7 +569,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestIsNotConstantPattern()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -591,10 +581,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -602,7 +589,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestIsNullPattern()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -612,10 +601,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -623,7 +609,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestIsNotNullPattern_ValueType()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(object o)
@@ -633,10 +621,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -644,7 +629,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestIsNotNullPattern_ValueType2()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 C X;
@@ -657,10 +644,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -812,7 +796,9 @@ public sealed partial class CSharpAsAndMemberAccessTests
     [Fact]
     public async Task TestMemberAccess1_CSharp9()
     {
-        var test = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 C X;
@@ -825,11 +811,7 @@ public sealed partial class CSharpAsAndMemberAccessTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = test,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }

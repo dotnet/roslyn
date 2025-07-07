@@ -20,7 +20,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("A", "A")]
         public async Task MoveTraitToType_MovesSecond_CSharpAsync(string name, string value)
         {
-            var source = $@"
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
+                TestCode = $@"
 using Xunit;
 
 class C
@@ -31,8 +34,8 @@ class C
     [Fact, Trait(""{name}"", ""{value}"")]
     public void Method2() {{ }}
 }}
-";
-            var fixedSource = $@"
+",
+                FixedCode = $@"
 using Xunit;
 
 [Trait(""{name}"", ""{value}"")]
@@ -43,13 +46,7 @@ class C
     [Fact]
     public void Method2() {{ }}
 }}
-";
-
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = source,
-                FixedCode = fixedSource,
+",
             }.RunAsync();
         }
 
@@ -59,7 +56,10 @@ class C
         [InlineData("A", "A")]
         public async Task MoveTraitToType_MovesSecond_VisualBasicAsync(string name, string value)
         {
-            var source = $@"
+            await new VerifyVB.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
+                TestCode = $@"
 Imports Xunit
 
 Class C
@@ -71,8 +71,8 @@ Class C
     Public Sub Method2()
     End Sub
 End Class
-";
-            var fixedSource = $@"
+",
+                FixedCode = $@"
 Imports Xunit
 
 <Trait(""{name}"", ""{value}"")>
@@ -84,13 +84,7 @@ Class C
     Public Sub Method2()
     End Sub
 End Class
-";
-
-            await new VerifyVB.Test
-            {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = source,
-                FixedCode = fixedSource,
+",
             }.RunAsync();
         }
 
@@ -100,7 +94,10 @@ End Class
         [InlineData("A", "A")]
         public async Task MoveTraitToType_MovesOnlyFirst_CSharpAsync(string name, string value)
         {
-            var source = $@"
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
+                TestCode = $@"
 using Xunit;
 
 class C
@@ -111,8 +108,8 @@ class C
     [Fact, Trait(""{name}"", ""{value}"")]
     public void Method2() {{ }}
 }}
-";
-            var fixedSource = $@"
+",
+                FixedCode = $@"
 using Xunit;
 
 [Trait("""", """")]
@@ -123,13 +120,7 @@ class C
     [Fact, Trait(""{name}"", ""{value}"")]
     public void Method2() {{ }}
 }}
-";
-
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = source,
-                FixedCode = fixedSource,
+",
             }.RunAsync();
         }
 
@@ -139,7 +130,10 @@ class C
         [InlineData("A", "A")]
         public async Task MoveTraitToType_MovesOnlyFirst_VisualBasicAsync(string name, string value)
         {
-            var source = $@"
+            await new VerifyVB.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
+                TestCode = $@"
 Imports Xunit
 
 Class C
@@ -151,8 +145,8 @@ Class C
     Public Sub Method2()
     End Sub
 End Class
-";
-            var fixedSource = $@"
+",
+                FixedCode = $@"
 Imports Xunit
 
 <Trait("""", """")>
@@ -164,13 +158,7 @@ Class C
     Public Sub Method2()
     End Sub
 End Class
-";
-
-            await new VerifyVB.Test
-            {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
-                TestCode = source,
-                FixedCode = fixedSource,
+",
             }.RunAsync();
         }
     }

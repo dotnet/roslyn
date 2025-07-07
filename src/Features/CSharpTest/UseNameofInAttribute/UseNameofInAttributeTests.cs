@@ -161,7 +161,9 @@ public sealed class UseNameofInAttributeTests
     [Fact]
     public async Task NotBeforeCSharp11()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Diagnostics.CodeAnalysis;
             #nullable enable
             class C
@@ -169,11 +171,7 @@ public sealed class UseNameofInAttributeTests
                 [return: NotNullIfNotNull("input")]
                 string? M(string? input) => input;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -182,7 +180,9 @@ public sealed class UseNameofInAttributeTests
     [Fact]
     public async Task NotOnIncorrectAttributeName()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Diagnostics.CodeAnalysis;
             #nullable enable
             class C
@@ -190,11 +190,7 @@ public sealed class UseNameofInAttributeTests
                 [return: {|CS0246:{|CS0246:NotNullIfNotNull1|}|}("input")]
                 string? M(string? input) => input;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -203,7 +199,9 @@ public sealed class UseNameofInAttributeTests
     [Fact]
     public async Task TestNotWhenMissingArguments()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Diagnostics.CodeAnalysis;
             #nullable enable
             class C
@@ -211,11 +209,7 @@ public sealed class UseNameofInAttributeTests
                 [return: {|CS7036:NotNullIfNotNull|}]
                 string? M(string? input) => input;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
@@ -224,7 +218,9 @@ public sealed class UseNameofInAttributeTests
     [Fact]
     public async Task NotOnIncorrectReferencedName()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Diagnostics.CodeAnalysis;
             #nullable enable
             class C
@@ -232,11 +228,7 @@ public sealed class UseNameofInAttributeTests
                 [return: NotNullIfNotNull("input1")]
                 string? M(string? input) => input;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();

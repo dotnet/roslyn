@@ -23,7 +23,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact]
     public async Task NotInCSharp9()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Reflection;
 
@@ -37,11 +39,7 @@ public sealed class SimplifyPropertyPatternTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -88,7 +86,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact]
     public async Task TestNotWithoutPropertyPattern1()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Reflection;
 
@@ -102,11 +102,7 @@ public sealed class SimplifyPropertyPatternTests
                     }
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -114,7 +110,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact]
     public async Task TestNotWithoutPropertyPattern2()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Reflection;
 
@@ -128,10 +126,7 @@ public sealed class SimplifyPropertyPatternTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -139,7 +134,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact]
     public async Task TestNotWithTypePatterm()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Reflection;
 
@@ -153,10 +150,7 @@ public sealed class SimplifyPropertyPatternTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -164,7 +158,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact]
     public async Task TestNotWithOuterDesignation()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Reflection;
 
@@ -178,10 +174,7 @@ public sealed class SimplifyPropertyPatternTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -189,7 +182,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact]
     public async Task TestNotWithoutInnerSubpatterns()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Reflection;
 
@@ -203,10 +198,7 @@ public sealed class SimplifyPropertyPatternTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -214,7 +206,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact]
     public async Task TestNotWithMultipleInnerSubpatterns()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Reflection;
 
@@ -228,10 +222,7 @@ public sealed class SimplifyPropertyPatternTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -729,7 +720,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
     public async Task TestTuplePattern()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             record R(int Prop);
 
             class C
@@ -739,10 +732,7 @@ public sealed class SimplifyPropertyPatternTests
                     _ = (A: r, r) is (A: { Prop: { } }, _);
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -751,7 +741,9 @@ public sealed class SimplifyPropertyPatternTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57674")]
     public async Task TestPositionalPattern()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             record R(R Child, int Value);
 
             class C
@@ -761,10 +753,7 @@ public sealed class SimplifyPropertyPatternTests
                     _ = r is R(Child: { Child: { } }, _);
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();

@@ -35,15 +35,13 @@ public sealed class FileHeaderTests
     [InlineData("file_header_template = unset")]
     public async Task TestFileHeaderNotConfiguredAsync(string fileHeaderTemplate)
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             EditorConfig = $@"
 [*]
 {fileHeaderTemplate}
@@ -94,14 +92,16 @@ public sealed class FileHeaderTests
     [Fact]
     public async Task TestNoFileHeaderWithUsingDirectiveAsync()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             [||]using System;
 
             namespace N
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -110,12 +110,7 @@ public sealed class FileHeaderTests
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -127,15 +122,17 @@ public sealed class FileHeaderTests
     [Fact]
     public async Task TestNoFileHeaderWithBlankLineAndUsingDirectiveAsync()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             [||]
             using System;
 
             namespace N
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -144,12 +141,7 @@ public sealed class FileHeaderTests
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -169,7 +161,10 @@ public sealed class FileHeaderTests
             {
             }
             """;
-        var fixedCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = testCode,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -178,12 +173,7 @@ public sealed class FileHeaderTests
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -195,30 +185,25 @@ public sealed class FileHeaderTests
     [Fact]
     public async Task TestFileNameBuiltInVariableAsync()
     {
-        var editorConfig = """
-            [*.cs]
-            file_header_template = {fileName} Copyright (c) SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
-            """;
-
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             [||]namespace N
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Test0.cs Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace N
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
-            EditorConfig = editorConfig,
+            """,
+            EditorConfig = """
+            [*.cs]
+            file_header_template = {fileName} Copyright (c) SomeCorp. All rights reserved.\nLicensed under the ??? license. See LICENSE file in the project root for full license information.
+            """,
         }.RunAsync();
     }
 
@@ -229,18 +214,16 @@ public sealed class FileHeaderTests
     [Fact]
     public async Task TestValidFileHeaderWithSingleLineCommentsAsync()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -252,7 +235,9 @@ public sealed class FileHeaderTests
     [Fact]
     public async Task TestValidFileHeaderWithMultiLineComments1Async()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             /* Copyright (c) SomeCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
              */
@@ -260,11 +245,7 @@ public sealed class FileHeaderTests
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -276,18 +257,16 @@ public sealed class FileHeaderTests
     [Fact]
     public async Task TestValidFileHeaderWithMultiLineComments2Async()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             /* Copyright (c) SomeCorp. All rights reserved.
                Licensed under the ??? license. See LICENSE file in the project root for full license information. */
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -328,24 +307,21 @@ public sealed class FileHeaderTests
     [InlineData("[|//|]    ")]
     public async Task TestInvalidFileHeaderWithoutTextAsync(string comment)
     {
-        var testCode = $@"{comment}
+        await new VerifyCS.Test
+        {
+            TestCode = $@"{comment}
 
 namespace Bar
 {{
-}}";
-        var fixedCode = """
+}}",
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -357,27 +333,24 @@ namespace Bar
     [Fact]
     public async Task TestInvalidFileHeaderWithWrongTextAsync()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             [|//|] Copyright (c) OtherCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -389,7 +362,9 @@ namespace Bar
     [Fact]
     public async Task TestInvalidFileHeaderWithWrongText2Async()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             [|/*|] Copyright (c) OtherCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
              */
@@ -397,8 +372,8 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -409,12 +384,7 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -425,7 +395,9 @@ namespace Bar
     [InlineData(" Header", " Header")]
     public async Task TestValidFileHeaderInRegionAsync(string startLabel, string endLabel)
     {
-        var testCode = $@"#region{startLabel}
+        await new VerifyCS.Test
+        {
+            TestCode = $@"#region{startLabel}
 // Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 #endregion{endLabel}
@@ -433,11 +405,7 @@ namespace Bar
 namespace Bar
 {{
 }}
-";
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
+",
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -448,7 +416,9 @@ namespace Bar
     [InlineData(" Header", " Header")]
     public async Task TestInvalidFileHeaderWithWrongTextInRegionAsync(string startLabel, string endLabel)
     {
-        var testCode = $@"#region{startLabel}
+        await new VerifyCS.Test
+        {
+            TestCode = $@"#region{startLabel}
 [|//|] Copyright (c) OtherCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 #endregion{endLabel}
@@ -456,8 +426,8 @@ namespace Bar
 namespace Bar
 {{
 }}
-";
-        var fixedCode = $@"// Copyright (c) SomeCorp. All rights reserved.
+",
+            FixedCode = $@"// Copyright (c) SomeCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 #region{startLabel}
@@ -468,12 +438,7 @@ namespace Bar
 namespace Bar
 {{
 }}
-";
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+",
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -485,22 +450,19 @@ namespace Bar
     [Fact]
     public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment1Async()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             {|CS1035:|}[|/*|] Copyright (c) OtherCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             {|CS1035:|}/* Copyright (c) OtherCorp. All rights reserved.
              * Licensed under the ??? license. See LICENSE file in the project root for full license information.
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -512,20 +474,17 @@ namespace Bar
     [Fact]
     public async Task TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment2Async()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             {|CS1035:|}[|/*|]/
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             {|CS1035:|}/*/
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -539,26 +498,23 @@ namespace Bar
     [InlineData("    ")]
     public async Task TestInvalidFileHeaderWithWrongTextAfterBlankLineAsync(string firstLine)
     {
-        var testCode = $@"{firstLine}
+        await new VerifyCS.Test
+        {
+            TestCode = $@"{firstLine}
 [|//|] Copyright (c) OtherCorp. All rights reserved.
 // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
 namespace Bar
 {{
-}}";
-        var fixedCode = """
+}}",
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -570,7 +526,9 @@ namespace Bar
     [Fact]
     public async Task TestInvalidFileHeaderWithWrongTextFollowedByCommentAsync()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             [|//|] Copyright (c) OtherCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -579,8 +537,8 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             // Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
@@ -589,12 +547,7 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettings,
         }.RunAsync();
     }
@@ -602,15 +555,17 @@ namespace Bar
     [Fact]
     public async Task TestHeaderMissingRequiredNewLinesAsync()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             [|//|] Copyright (c) SomeCorp. All rights reserved.
             // Licensed under the ??? license. See LICENSE file in the project root for full license information.
 
             namespace Bar
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             //
             // Copyright (c) SomeCorp. All rights reserved.
             //
@@ -620,12 +575,7 @@ namespace Bar
             namespace Bar
             {
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             EditorConfig = TestSettingsWithEmptyLines,
         }.RunAsync();
     }
