@@ -21,6 +21,8 @@ of scope in the final design of the shipping feature.
     - [Pipeline model design](#pipeline-model-design)
     - [Use `ForAttributeWithMetadataName`](#use-forattributewithmetadataname)
     - [Use an indented text writer, not `SyntaxNode`s, for generation](#use-an-indented-text-writer-not-syntaxnodes-for-generation)
+    - [Put `Microsoft.CodeAnalysis.EmbeddedAttribute` on generated marker types](#put-microsoftcodeanalysisembeddedattribute-on-generated-marker-types)
+    - [Do not scan for types that indirectly implement interfaces, indirectly inherit from types, or are indirectly marked by an attribute from an interface or base type](#do-not-scan-for-types-that-indirectly-implement-interfaces-indirectly-inherit-from-types-or-are-indirectly-marked-by-an-attribute-from-an-interface-or-base-type)
   - [Designs](#designs)
     - [Generated class](#generated-class)
     - [Additional file transformation](#additional-file-transformation)
