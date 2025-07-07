@@ -54,7 +54,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
 
     public async ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
         Solution solution,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {

@@ -226,7 +226,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     {
         var runningProjects = solution.ProjectIds.ToImmutableDictionary(
             keySelector: id => id,
-            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = false, RestartWhenChangesHaveNoEffect = false });
+            elementSelector: id => new RunningProjectOptions() { AllowPartialUpdate = false, RestartWhenChangesHaveNoEffect = false });
 
         var result = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
         return (result.ModuleUpdates, result.Diagnostics.OrderBy(d => d.ProjectId.DebugName).ToImmutableArray().ToDiagnosticData(solution));
@@ -240,7 +240,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     {
         var runningProjects = solution.ProjectIds.ToImmutableDictionary(
             keySelector: id => id,
-            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = allowPartialUpdate, RestartWhenChangesHaveNoEffect = false });
+            elementSelector: id => new RunningProjectOptions() { AllowPartialUpdate = allowPartialUpdate, RestartWhenChangesHaveNoEffect = false });
 
         var results = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
 

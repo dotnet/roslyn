@@ -53,8 +53,8 @@ public sealed class EmitSolutionUpdateResultsTests
             .OrderBy(g => g.Key)
             .Select(g => new ProjectDiagnostics(g.Key, [.. g.Select(e => Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(e.kind), Location.None))]))];
 
-    private static ImmutableDictionary<ProjectId, RunningProjectInfo> CreateRunningProjects(IEnumerable<(ProjectId id, bool noEffectRestarts)> projectIds, bool allowPartialUpdate = true)
-        => projectIds.ToImmutableDictionary(keySelector: e => e.id, elementSelector: e => new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = e.noEffectRestarts, AllowPartialUpdate = allowPartialUpdate });
+    private static ImmutableDictionary<ProjectId, RunningProjectOptions> CreateRunningProjects(IEnumerable<(ProjectId id, bool noEffectRestarts)> projectIds, bool allowPartialUpdate = true)
+        => projectIds.ToImmutableDictionary(keySelector: e => e.id, elementSelector: e => new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = e.noEffectRestarts, AllowPartialUpdate = allowPartialUpdate });
 
     private static IEnumerable<string> Inspect(ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart)
         => projectsToRestart

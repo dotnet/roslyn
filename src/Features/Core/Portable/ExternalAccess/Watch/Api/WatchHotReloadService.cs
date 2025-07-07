@@ -211,7 +211,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
 
         var runningProjectsImpl = runningProjects.ToImmutableDictionary(
             static e => e.Key,
-            static e => new EditAndContinue.RunningProjectInfo()
+            static e => new EditAndContinue.RunningProjectOptions()
             {
                 RestartWhenChangesHaveNoEffect = e.Value.RestartWhenChangesHaveNoEffect,
                 AllowPartialUpdate = RequireCommit

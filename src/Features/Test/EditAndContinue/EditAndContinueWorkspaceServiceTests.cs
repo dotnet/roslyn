@@ -3672,9 +3672,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // TODO: Set RestartWhenChangesHaveNoEffect=true and AllowPartialUpdate=true
         // https://github.com/dotnet/roslyn/issues/78244
-        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty
-            .Add(projectAId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false })
-            .Add(projectBId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty
+            .Add(projectAId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false })
+            .Add(projectBId, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
 
         // emit updates:
         var result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
@@ -5524,14 +5524,14 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
             var solution1 = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(" + i + "); } }"));
 
-            var result1 = await encService.EmitSolutionUpdateAsync(sessionId, solution1, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveSpans, CancellationToken.None);
+            var result1 = await encService.EmitSolutionUpdateAsync(sessionId, solution1, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_noActiveSpans, CancellationToken.None);
             Assert.Empty(result1.Diagnostics);
             Assert.Equal(1, result1.ModuleUpdates.Updates.Length);
             encService.DiscardSolutionUpdate(sessionId);
 
             var solution2 = solution1.WithDocumentText(documentIdA, CreateText(source3));
 
-            var result2 = await encService.EmitSolutionUpdateAsync(sessionId, solution2, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveSpans, CancellationToken.None);
+            var result2 = await encService.EmitSolutionUpdateAsync(sessionId, solution2, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_noActiveSpans, CancellationToken.None);
             Assert.Equal("CS0103", result2.Diagnostics.Single().Diagnostics.Single().Id);
             Assert.Empty(result2.ModuleUpdates.Updates);
 
@@ -5554,7 +5554,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EndDebuggingSession(debuggingSession);
 
         // The folling methods shall not be called after the debugging session ended.
-        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_noActiveSpans, CancellationToken.None));
+        await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectOptions>.Empty, s_noActiveSpans, CancellationToken.None));
         Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true));
         Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
         Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate());

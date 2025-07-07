@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [DataContract]
-internal readonly struct RunningProjectInfo
+internal readonly struct RunningProjectOptions
 {
     /// <summary>
     /// Required restart of the project when an edit that has no effect until the app is restarted is made to any dependent project.

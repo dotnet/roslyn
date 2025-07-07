@@ -523,7 +523,7 @@ internal sealed class DebuggingSession : IDisposable
 
     public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         Solution solution,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
