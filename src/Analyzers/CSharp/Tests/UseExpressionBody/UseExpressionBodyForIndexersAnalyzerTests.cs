@@ -20,9 +20,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
 public sealed class UseExpressionBodyForIndexersAnalyzerTests
 {
-    private static async Task TestWithUseExpressionBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseExpressionBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
@@ -32,11 +31,9 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never },
             }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseBlockBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
@@ -46,7 +43,6 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never },
             }
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseExpressionBody1()
@@ -205,9 +201,8 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
-    public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
-    {
-        await new VerifyCS.Test
+    public Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -236,7 +231,6 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
             NumberOfFixAllIterations = 2,
             NumberOfIncrementalIterations = 2,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseBlockBody3()

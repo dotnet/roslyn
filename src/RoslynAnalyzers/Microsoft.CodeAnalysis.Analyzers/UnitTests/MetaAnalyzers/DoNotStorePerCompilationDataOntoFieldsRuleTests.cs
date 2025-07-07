@@ -281,9 +281,8 @@ End Class
         }
 
         [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
-        public async Task CSharp_NestedStruct_NoDiagnosticAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NestedStruct_NoDiagnosticAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -342,7 +341,6 @@ namespace MyNamespace
         }
     }
 }");
-        }
 
         [Theory]
         [InlineData("Func")]

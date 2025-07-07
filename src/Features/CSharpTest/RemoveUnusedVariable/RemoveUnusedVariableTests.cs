@@ -29,9 +29,8 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
         => (null, new CSharpRemoveUnusedVariableCodeFixProvider());
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariable()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -49,12 +48,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariable1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariable1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -76,12 +73,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariable3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariable3()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -99,12 +94,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariableMultipleOnLine()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableMultipleOnLine()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -123,12 +116,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariableMultipleOnLine1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableMultipleOnLine1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -147,12 +138,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariableFixAll()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableFixAll()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -171,12 +160,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariableFixAll1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -195,12 +182,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedVariableFixAll2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableFixAll2()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -218,13 +203,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20466")]
-    public async Task RemoveUnusedCatchVariable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedCatchVariable()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -253,13 +236,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20987")]
-    public async Task LeadingDirectives()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LeadingDirectives()
+        => TestInRegularAndScriptAsync(
             """
             #define DIRECTIVE1
 
@@ -305,13 +286,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20942")]
-    public async Task TestWhitespaceBetweenStatements1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhitespaceBetweenStatements1()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -335,13 +314,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20942")]
-    public async Task TestWhitespaceBetweenStatements2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhitespaceBetweenStatements2()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -362,12 +339,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task TestWhitespaceBetweenStatementsInSwitchSection1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhitespaceBetweenStatementsInSwitchSection1()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -399,12 +374,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task TestWhitespaceBetweenStatementsInSwitchSection2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWhitespaceBetweenStatementsInSwitchSection2()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -433,12 +406,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveVariableAndComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveVariableAndComment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -456,12 +427,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveVariableAndAssgnment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveVariableAndAssgnment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -480,12 +449,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task JointDeclarationRemoveFirst()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task JointDeclarationRemoveFirst()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -506,12 +473,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task JointDeclarationRemoveSecond()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task JointDeclarationRemoveSecond()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -532,12 +497,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23322"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task JointAssignmentRemoveFirst()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task JointAssignmentRemoveFirst()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -561,12 +524,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task JointAssignmentRemoveSecond()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task JointAssignmentRemoveSecond()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -590,12 +551,10 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/22921"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
-    public async Task RemoveUnusedLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedLambda()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -618,7 +577,6 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -708,9 +666,8 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-    public async Task RemoveUnusedVariableDeclaredInForStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableDeclaredInForStatement()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -735,13 +692,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-    public async Task RemoveUnusedVariableJointDeclaredInForStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableJointDeclaredInForStatement()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -766,25 +721,21 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/44273")]
-    public async Task TopLevelStatement()
-    {
-        await TestAsync("""
+    public Task TopLevelStatement()
+        => TestAsync("""
             [|int i = 0|];
             """,
             """
 
             """, TestOptions.Regular);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/49827")]
-    public async Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -811,13 +762,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/49827")]
-    public async Task DoNotCrashOnDeclarationInsideIfStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DoNotCrashOnDeclarationInsideIfStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Class
             {
@@ -830,13 +779,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/56924")]
-    public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -861,13 +808,11 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/51737")]
-    public async Task RemoveUnusedVariableTopLevel()
-    {
-        await TestAsync(
+    public Task RemoveUnusedVariableTopLevel()
+        => TestAsync(
             """
             [|int i = 1|];
             i = 2;
@@ -875,5 +820,4 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
             """
 
             """, CSharpParseOptions.Default);
-    }
 }

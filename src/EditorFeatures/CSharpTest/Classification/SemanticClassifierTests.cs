@@ -38,47 +38,39 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     }
 
     [Theory, CombinatorialData]
-    public async Task GenericClassDeclaration(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task GenericClassDeclaration(TestHost testHost)
+        => TestInMethodAsync(
             className: "Class<T>",
             methodName: "M",
             @"new Class<int>();",
             testHost,
             Class("Class"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task RefVar(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task RefVar(TestHost testHost)
+        => TestInMethodAsync(
             @"int i = 0; ref var x = ref i;",
             testHost,
             Classifications(Keyword("var"), Local("i")));
-    }
 
     [Theory, CombinatorialData]
-    public async Task UsingAlias1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task UsingAlias1(TestHost testHost)
+        => TestAsync(
 @"using M = System.Math;",
             testHost,
             Class("M"),
             Namespace("System"),
             Class("Math"),
             Static("Math"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsTypeArgument(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DynamicAsTypeArgument(TestHost testHost)
+        => TestInMethodAsync(
             className: "Class<T>",
             methodName: "M",
             @"new Class<dynamic>();",
             testHost,
             Classifications(Class("Class"), Keyword("dynamic")));
-    }
 
     [Theory, CombinatorialData]
     public async Task UsingTypeAliases(TestHost testHost)
@@ -100,9 +92,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     }
 
     [Theory, CombinatorialData]
-    public async Task DynamicTypeAlias(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicTypeAlias(TestHost testHost)
+        => TestAsync(
             """
             using dynamic = System.EventArgs;
 
@@ -117,12 +108,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("EventArgs"),
             Class("dynamic"),
             Class("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsDelegateName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsDelegateName(TestHost testHost)
+        => TestAsync(
             """
             delegate void dynamic();
 
@@ -136,12 +125,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Delegate("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsInterfaceName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsInterfaceName(TestHost testHost)
+        => TestAsync(
             """
             interface dynamic
             {
@@ -154,12 +141,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Interface("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsEnumName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsEnumName(TestHost testHost)
+        => TestAsync(
             """
             enum dynamic
             {
@@ -172,12 +157,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Enum("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsClassName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsClassName(TestHost testHost)
+        => TestAsync(
             """
             class dynamic
             {
@@ -190,13 +173,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("dynamic"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
-    public async Task DynamicAsRecordName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsRecordName(TestHost testHost)
+        => TestAsync(
             """
             record dynamic
             {
@@ -209,12 +190,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             RecordClass("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsClassNameAndLocalVariableName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsClassNameAndLocalVariableName(TestHost testHost)
+        => TestAsync(
             """
             class dynamic
             {
@@ -226,12 +205,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsStructName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsStructName(TestHost testHost)
+        => TestAsync(
             """
             struct dynamic
             {
@@ -244,12 +221,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Struct("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsGenericClassName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsGenericClassName(TestHost testHost)
+        => TestAsync(
             """
             class dynamic<T>
             {
@@ -262,12 +237,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsGenericClassNameButOtherArity(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsGenericClassNameButOtherArity(TestHost testHost)
+        => TestAsync(
             """
             class dynamic<T>
             {
@@ -280,12 +253,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Keyword("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsUndefinedGenericType(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsUndefinedGenericType(TestHost testHost)
+        => TestAsync(
             """
             class dynamic
             {
@@ -298,12 +269,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsExternAlias(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsExternAlias(TestHost testHost)
+        => TestAsync(
             """
             extern alias dynamic;
 
@@ -314,12 +283,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Namespace("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericClassNameButOtherArity(TestHost testHost)
-    {
-        await TestAsync(
+    public Task GenericClassNameButOtherArity(TestHost testHost)
+        => TestAsync(
             """
             class A<T>
             {
@@ -331,12 +298,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """, testHost,
             Class("A"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericTypeParameter(TestHost testHost)
-    {
-        await TestAsync(
+    public Task GenericTypeParameter(TestHost testHost)
+        => TestAsync(
             """
             class C<T>
             {
@@ -347,12 +312,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             TypeParameter("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericMethodTypeParameter(TestHost testHost)
-    {
-        await TestAsync(
+    public Task GenericMethodTypeParameter(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -366,12 +329,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             TypeParameter("T"),
             TypeParameter("T"),
             TypeParameter("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericMethodTypeParameterInLocalVariableDeclaration(TestHost testHost)
-    {
-        await TestAsync(
+    public Task GenericMethodTypeParameterInLocalVariableDeclaration(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -383,12 +344,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             TypeParameter("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ParameterOfLambda1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ParameterOfLambda1(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -401,12 +360,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ParameterOfAnonymousMethod(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ParameterOfAnonymousMethod(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -419,12 +376,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericTypeParameterAfterWhere(TestHost testHost)
-    {
-        await TestAsync(
+    public Task GenericTypeParameterAfterWhere(TestHost testHost)
+        => TestAsync(
             """
             class C<A, B> where A : B
             {
@@ -433,12 +388,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("A"),
             TypeParameter("B"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BaseClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BaseClass(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -450,12 +403,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BaseInterfaceOnInterface(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BaseInterfaceOnInterface(TestHost testHost)
+        => TestAsync(
             """
             interface T
             {
@@ -467,12 +418,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Interface("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BaseInterfaceOnClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BaseInterfaceOnClass(TestHost testHost)
+        => TestAsync(
             """
             interface T
             {
@@ -484,12 +433,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Interface("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task InterfaceColorColor(TestHost testHost)
-    {
-        await TestAsync(
+    public Task InterfaceColorColor(TestHost testHost)
+        => TestAsync(
             """
             interface T
             {
@@ -503,12 +450,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Interface("T"),
             Interface("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DelegateColorColor(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DelegateColorColor(TestHost testHost)
+        => TestAsync(
             """
             delegate void T();
 
@@ -519,12 +464,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Delegate("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DelegateReturnsItself(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DelegateReturnsItself(TestHost testHost)
+        => TestAsync(
             """
             delegate T T();
 
@@ -537,12 +480,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Delegate("T"),
             Delegate("T"),
             Delegate("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task StructColorColor(TestHost testHost)
-    {
-        await TestAsync(
+    public Task StructColorColor(TestHost testHost)
+        => TestAsync(
             """
             struct T
             {
@@ -551,12 +492,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Struct("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task EnumColorColor(TestHost testHost)
-    {
-        await TestAsync(
+    public Task EnumColorColor(TestHost testHost)
+        => TestAsync(
             """
             enum T
             {
@@ -571,12 +510,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Enum("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsGenericTypeParameter(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsGenericTypeParameter(TestHost testHost)
+        => TestAsync(
             """
             class C<dynamic>
             {
@@ -585,12 +522,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             TypeParameter("dynamic"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsGenericFieldName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task DynamicAsGenericFieldName(TestHost testHost)
+        => TestAsync(
             """
             class A<T>
             {
@@ -599,12 +534,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             TypeParameter("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PropertySameNameAsClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PropertySameNameAsClass(TestHost testHost)
+        => TestAsync(
             """
             class N
             {
@@ -626,12 +559,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Local("n"),
             Property("N"),
             Property("N"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AttributeWithoutAttributeSuffix(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AttributeWithoutAttributeSuffix(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -644,12 +575,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Class("Obsolete"),
             Obsolete("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AttributeOnNonExistingMember(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AttributeOnNonExistingMember(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -661,12 +590,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Namespace("System"),
             Class("Obsolete"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AttributeWithoutAttributeSuffixOnAssembly(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AttributeWithoutAttributeSuffixOnAssembly(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -680,12 +607,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Class("My"),
             Class("Attribute"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AttributeViaNestedClassOrDerivedClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AttributeViaNestedClassOrDerivedClass(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -710,12 +635,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("My"),
             Class("Attribute"),
             Class("Base"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NamedAndOptional(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NamedAndOptional(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -733,38 +656,32 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("C"),
             Method("B"),
             Parameter("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PartiallyWrittenGenericName1(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task PartiallyWrittenGenericName1(TestHost testHost)
+        => TestInMethodAsync(
             className: "Class<T>",
             methodName: "M",
             @"Class<int",
             testHost,
             Class("Class"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PartiallyWrittenGenericName2(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task PartiallyWrittenGenericName2(TestHost testHost)
+        => TestInMethodAsync(
             className: "Class<T1, T2>",
             methodName: "M",
             @"Class<int, b",
             testHost,
             Class("Class"));
-    }
 
     // The "Color Color" problem is the C# IDE folklore for when
     // a property name is the same as a type name
     // and the resulting ambiguities that the spec
     // resolves in favor of properties
     [Theory, CombinatorialData]
-    public async Task ColorColor(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor(TestHost testHost)
+        => TestAsync(
             """
             class Color
             {
@@ -773,12 +690,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("Color"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor2(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -795,12 +710,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Field("T"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor3(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor3(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -819,16 +732,14 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Field("T"),
             Method("M"));
-    }
 
     /// <summary>
     /// Instance field should be preferred to type
     /// §7.5.4.1
     /// </summary>
     [Theory, CombinatorialData]
-    public async Task ColorColor4(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor4(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -844,16 +755,14 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Field("T"),
             Field("T"));
-    }
 
     /// <summary>
     /// Type should be preferred to a static field
     /// §7.5.4.1
     /// </summary>
     [Theory, CombinatorialData]
-    public async Task ColorColor5(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor5(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -870,15 +779,13 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Field("T"),
             Static("T"));
-    }
 
     /// <summary>
     /// Needs to prefer the local
     /// </summary>
     [Theory, CombinatorialData]
-    public async Task ColorColor6(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor6(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -896,15 +803,13 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Local("T"),
             Field("field"));
-    }
 
     /// <summary>
     /// Needs to prefer the type
     /// </summary>
     [Theory, CombinatorialData]
-    public async Task ColorColor7(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor7(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -923,12 +828,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Field("field"),
             Static("field"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor8(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor8(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -949,12 +852,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Method("M"),
             Local("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor9(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor9(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -971,13 +872,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Parameter("T"),
             Class("T"),
             Parameter("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor10(TestHost testHost)
-    {
-        // note: 'var' now binds to the type of the local.
-        await TestAsync(
+    public Task ColorColor10(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -993,12 +891,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Local("T"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor11(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor11(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -1013,12 +909,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Local("T"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor12(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor12(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -1034,12 +928,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Keyword("var"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor13(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor13(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -1055,12 +947,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Class("T"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ColorColor14(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ColorColor14(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -1076,12 +966,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Class("T"),
             Local("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NamespaceNameSameAsTypeName1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NamespaceNameSameAsTypeName1(TestHost testHost)
+        => TestAsync(
             """
             namespace T
             {
@@ -1098,12 +986,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("T"),
             Class("T"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NamespaceNameSameAsTypeNameWithGlobal(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NamespaceNameSameAsTypeNameWithGlobal(TestHost testHost)
+        => TestAsync(
             """
             namespace T
             {
@@ -1122,12 +1008,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Namespace("T"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AmbiguityTypeAsGenericMethodArgumentVsLocal(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AmbiguityTypeAsGenericMethodArgumentVsLocal(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -1142,12 +1026,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             TypeParameter("T"),
             Method("M"),
             TypeParameter("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AmbiguityTypeAsGenericArgumentVsLocal(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AmbiguityTypeAsGenericArgumentVsLocal(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -1168,12 +1050,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Class("G"),
             Class("T"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AmbiguityTypeAsGenericArgumentVsField(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AmbiguityTypeAsGenericArgumentVsField(TestHost testHost)
+        => TestAsync(
             """
             class T
             {
@@ -1195,15 +1075,13 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("T"),
             Field("f"),
             Static("f"));
-    }
 
     /// <summary>
     /// §7.5.4.2
     /// </summary>
     [Theory, CombinatorialData]
-    public async Task GrammarAmbiguity_7_5_4_2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task GrammarAmbiguity_7_5_4_2(TestHost testHost)
+        => TestAsync(
             """
             class M
             {
@@ -1237,12 +1115,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Method("G"),
             Class("A"),
             Class("B"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AnonymousTypePropertyName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AnonymousTypePropertyName(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -1256,12 +1132,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Keyword("var"),
             Property("String"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task YieldAsATypeName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task YieldAsATypeName(TestHost testHost)
+        => TestAsync(
             """
             using System.Collections.Generic;
 
@@ -1283,12 +1157,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("yield"),
             Class("yield"),
             Local("yield"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TypeNameDottedNames(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TypeNameDottedNames(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -1302,12 +1174,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Class("C"),
             Class("Nested"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BindingTypeNameFromBCLViaGlobalAlias(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BindingTypeNameFromBCLViaGlobalAlias(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -1320,7 +1190,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Namespace("System"),
             Class("String"));
-    }
 
     [Theory, CombinatorialData]
     public async Task BindingTypeNames(TestHost testHost)
@@ -1361,9 +1230,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     }
 
     [Theory, CombinatorialData]
-    public async Task Constructors(TestHost testHost)
-    {
-        await TestAsync(
+    public Task Constructors(TestHost testHost)
+        => TestAsync(
             """
             struct S
             {
@@ -1391,12 +1259,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Struct("S"),
             Keyword("var"),
             Class("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TypesOfClassMembers(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TypesOfClassMembers(TestHost testHost)
+        => TestAsync(
             """
             class Type
             {
@@ -1455,15 +1321,13 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("Type"),
             Class("Type"),
             Class("Type"));
-    }
 
     /// <summary>
     /// NAQ = Namespace Alias Qualifier (?)
     /// </summary>
     [Theory, CombinatorialData]
-    public async Task NAQTypeNameCtor(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task NAQTypeNameCtor(TestHost testHost)
+        => TestInMethodAsync(
 @"System.IO.BufferedStream b = new global::System.IO.BufferedStream();",
             testHost,
             Namespace("System"),
@@ -1472,12 +1336,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Namespace("IO"),
             Class("BufferedStream"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQEnum(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQEnum(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -1491,12 +1353,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Namespace("IO"),
             Enum("DriveType"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQDelegate(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQDelegate(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -1509,22 +1369,18 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Namespace("System"),
             Delegate("AssemblyLoadEventHandler"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQTypeNameMethodCall(TestHost testHost)
-    {
-        await TestInMethodAsync(@"global::System.String.Clone("");",
+    public Task NAQTypeNameMethodCall(TestHost testHost)
+        => TestInMethodAsync(@"global::System.String.Clone("");",
             testHost,
             Namespace("System"),
             Class("String"),
             Method("Clone"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQEventSubscription(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task NAQEventSubscription(TestHost testHost)
+        => TestInMethodAsync(
             """
             global::System.AppDomain.CurrentDomain.AssemblyLoad += 
                         delegate (object sender, System.AssemblyLoadEventArgs args) {};
@@ -1537,12 +1393,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Event("AssemblyLoad"),
             Namespace("System"),
             Class("AssemblyLoadEventArgs"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AnonymousDelegateParameterType(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AnonymousDelegateParameterType(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -1560,12 +1414,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("EventArgs"),
             Namespace("System"),
             Class("EventArgs"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQCtor(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task NAQCtor(TestHost testHost)
+        => TestInMethodAsync(
 @"global::System.Collections.DictionaryEntry de = new global::System.Collections.DictionaryEntry();",
             testHost,
             Namespace("System"),
@@ -1574,7 +1426,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Namespace("Collections"),
             Struct("DictionaryEntry"));
-    }
 
     [Theory, CombinatorialData]
     public async Task NAQSameFileClass(TestHost testHost)
@@ -1604,9 +1455,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     }
 
     [Theory, CombinatorialData]
-    public async Task NAQSameFileClassWithNamespace(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQSameFileClassWithNamespace(TestHost testHost)
+        => TestAsync(
             """
             using @global = N;
 
@@ -1629,12 +1479,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("C"),
             Method("M"),
             Static("M"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQSameFileClassWithNamespaceAndEscapedKeyword(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQSameFileClassWithNamespaceAndEscapedKeyword(TestHost testHost)
+        => TestAsync(
             """
             using @global = N;
 
@@ -1657,12 +1505,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("C"),
             Method("M"),
             Static("M"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQGlobalWarning(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQGlobalWarning(TestHost testHost)
+        => TestAsync(
             """
             using global = N;
 
@@ -1685,12 +1531,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("C"),
             Method("M"),
             Static("M"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQUserDefinedNAQNamespace(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQUserDefinedNAQNamespace(TestHost testHost)
+        => TestAsync(
             """
             using goo = N;
 
@@ -1713,12 +1557,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("C"),
             Method("M"),
             Static("M"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQUserDefinedNAQNamespaceDoubleColon(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQUserDefinedNAQNamespaceDoubleColon(TestHost testHost)
+        => TestAsync(
             """
             using goo = N;
 
@@ -1741,12 +1583,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("C"),
             Method("M"),
             Static("M"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQUserDefinedNamespace1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQUserDefinedNamespace1(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -1772,12 +1612,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("D"),
             Namespace("A"),
             Namespace("B"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQUserDefinedNamespaceWithGlobal(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQUserDefinedNamespaceWithGlobal(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -1803,12 +1641,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("D"),
             Namespace("A"),
             Namespace("B"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQUserDefinedNAQForClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQUserDefinedNAQForClass(TestHost testHost)
+        => TestAsync(
             """
             using IO = global::System.IO;
 
@@ -1826,12 +1662,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("IO"),
             Namespace("IO"),
             Class("BinaryReader"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NAQUserDefinedTypes(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NAQUserDefinedTypes(TestHost testHost)
+        => TestAsync(
             """
             using rabbit = MyNameSpace;
 
@@ -1916,12 +1750,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("MyNameSpace"),
             Namespace("OtherNamespace"),
             Delegate("MyDelegate"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PreferPropertyOverNestedClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PreferPropertyOverNestedClass(TestHost testHost)
+        => TestAsync(
             """
             class Outer
             {
@@ -1945,12 +1777,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("A"),
             Local("a"),
             Field("B"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TypeNameInsideNestedClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TypeNameInsideNestedClass(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -1976,12 +1806,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Static("Console"),
             Method("WriteLine"),
             Static("WriteLine"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task StructEnumTypeNames(TestHost testHost)
-    {
-        await TestAsync(
+    public Task StructEnumTypeNames(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -2006,12 +1834,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Enum("ConsoleColor"),
             Struct("Int32"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PreferFieldOverClassWithSameName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PreferFieldOverClassWithSameName(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -2024,12 +1850,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """, testHost,
             Field("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task AttributeBinding(TestHost testHost)
-    {
-        await TestAsync(
+    public Task AttributeBinding(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -2073,12 +1897,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("Attribute"),
             Class("ObsoleteAttribute"),
             Class("Attribute"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ShouldNotClassifyNamespacesAsTypes(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ShouldNotClassifyNamespacesAsTypes(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -2091,12 +1913,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("Roslyn"),
             Namespace("Compilers"),
             Namespace("Internal"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NestedTypeCantHaveSameNameAsParentType(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NestedTypeCantHaveSameNameAsParentType(TestHost testHost)
+        => TestAsync(
             """
             class Program
             {
@@ -2114,7 +1934,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Class("Program"),
             Class("Program"));
-    }
 
     [Theory, CombinatorialData]
     public async Task NestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
@@ -2158,9 +1977,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     }
 
     [Theory, CombinatorialData]
-    public async Task EnumFieldWithSameNameShouldBePreferredToType(TestHost testHost)
-    {
-        await TestAsync(
+    public Task EnumFieldWithSameNameShouldBePreferredToType(TestHost testHost)
+        => TestAsync(
             """
             enum E
             {
@@ -2169,13 +1987,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """, testHost,
             EnumMember("E"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
     [CombinatorialData]
-    public async Task TestGenericVarClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestGenericVarClassification(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -2194,13 +2010,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Namespace("System"),
             Keyword("var"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
     [CombinatorialData]
-    public async Task TestInaccessibleVarClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestInaccessibleVarClassification(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -2223,13 +2037,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Class("A"),
             Keyword("var"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
     [CombinatorialData]
-    public async Task TestVarNamedTypeClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestVarNamedTypeClassification(TestHost testHost)
+        => TestAsync(
             """
             class var
             {
@@ -2241,13 +2053,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Keyword("var"));
-    }
 
     [Theory, WorkItem(9513, "DevDiv_Projects/Roslyn")]
     [CombinatorialData]
-    public async Task RegressionFor9513(TestHost testHost)
-    {
-        await TestAsync(
+    public Task RegressionFor9513(TestHost testHost)
+        => TestAsync(
             """
             enum E
             {
@@ -2281,13 +2091,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             EnumMember("B"),
             Enum("E"),
             EnumMember("A"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
     [CombinatorialData]
-    public async Task RegressionFor9572(TestHost testHost)
-    {
-        await TestAsync(
+    public Task RegressionFor9572(TestHost testHost)
+        => TestAsync(
             """
             class A<T, S> where T : A<T, S>.I, A<T, T>.I
             {
@@ -2306,13 +2114,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             TypeParameter("T"),
             TypeParameter("T"),
             Interface("I"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
     [CombinatorialData]
-    public async Task RegressionFor9831(TestHost testHost)
-    {
-        await TestAsync(@"F : A",
+    public Task RegressionFor9831(TestHost testHost)
+        => TestAsync(@"F : A",
             """
             public class B<T>
             {
@@ -2330,13 +2136,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("A"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
     [CombinatorialData]
-    public async Task TestVar(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestVar(TestHost testHost)
+        => TestAsync(
             """
             class Program
             {
@@ -2363,13 +2167,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Static("GetVarT"),
             Keyword("var"),
             Class("var"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
     [CombinatorialData]
-    public async Task TestVar2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestVar2(TestHost testHost)
+        => TestAsync(
             """
             class Program
             {
@@ -2384,13 +2186,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Keyword("var"),
             Parameter("args"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
     [CombinatorialData]
-    public async Task TestDuplicateTypeParamWithConstraint(TestHost testHost)
-    {
-        await TestAsync(@"where U : IEnumerable<S>",
+    public Task TestDuplicateTypeParamWithConstraint(TestHost testHost)
+        => TestAsync(@"where U : IEnumerable<S>",
             """
             using System.Collections.Generic;
 
@@ -2406,22 +2206,18 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("U"),
             Interface("IEnumerable"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
     [CombinatorialData]
-    public async Task OptimisticallyColorFromInDeclaration(TestHost testHost)
-    {
-        await TestInExpressionAsync("from ",
+    public Task OptimisticallyColorFromInDeclaration(TestHost testHost)
+        => TestInExpressionAsync("from ",
             testHost,
             Keyword("from"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
     [CombinatorialData]
-    public async Task OptimisticallyColorFromInAssignment(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task OptimisticallyColorFromInAssignment(TestHost testHost)
+        => TestInMethodAsync(
             """
             var q = 3;
 
@@ -2431,7 +2227,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Local("q"),
             Keyword("from"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
     [CombinatorialData]
@@ -2440,9 +2235,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
     [CombinatorialData]
-    public async Task DoNotColorThingsOtherThanFromInAssignment(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DoNotColorThingsOtherThanFromInAssignment(TestHost testHost)
+        => TestInMethodAsync(
             """
             var q = 3;
 
@@ -2451,13 +2245,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Keyword("var"),
             Local("q"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
     [CombinatorialData]
-    public async Task DoNotColorFromWhenBoundInDeclaration(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DoNotColorFromWhenBoundInDeclaration(TestHost testHost)
+        => TestInMethodAsync(
             """
             var from = 3;
             var q = from
@@ -2466,13 +2258,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Keyword("var"),
             Local("from"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
     [CombinatorialData]
-    public async Task DoNotColorFromWhenBoundInAssignment(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DoNotColorFromWhenBoundInAssignment(TestHost testHost)
+        => TestInMethodAsync(
             """
             var q = 3;
             var from = 3;
@@ -2484,13 +2274,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Local("q"),
             Local("from"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
     [CombinatorialData]
-    public async Task NewOfClassWithOnlyPrivateConstructor(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NewOfClassWithOnlyPrivateConstructor(TestHost testHost)
+        => TestAsync(
             """
             class X
             {
@@ -2509,13 +2297,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("X"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
     [CombinatorialData]
-    public async Task TestNullableVersusConditionalAmbiguity1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestNullableVersusConditionalAmbiguity1(TestHost testHost)
+        => TestAsync(
             """
             class Program
             {
@@ -2531,13 +2317,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("C1"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544179")]
     [CombinatorialData]
-    public async Task TestPointerVersusMultiplyAmbiguity1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestPointerVersusMultiplyAmbiguity1(TestHost testHost)
+        => TestAsync(
             """
             class Program
             {
@@ -2553,13 +2337,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("C1"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544302")]
     [CombinatorialData]
-    public async Task EnumTypeAssignedToNamedPropertyOfSameNameInAttributeCtor(TestHost testHost)
-    {
-        await TestAsync(
+    public Task EnumTypeAssignedToNamedPropertyOfSameNameInAttributeCtor(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using System.Runtime.InteropServices;
@@ -2578,13 +2360,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("DllImport"),
             Field("CallingConvention"),
             Enum("CallingConvention"));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531119")]
     [CombinatorialData]
-    public async Task OnlyClassifyGenericNameOnce(TestHost testHost)
-    {
-        await TestAsync(
+    public Task OnlyClassifyGenericNameOnce(TestHost testHost)
+        => TestAsync(
             """
             enum Type
             {
@@ -2597,12 +2377,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Struct("Type"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NameOf1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NameOf1(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -2615,12 +2393,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Keyword("var"),
             Keyword("nameof"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NameOf2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NameOf2(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -2634,12 +2410,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Keyword("nameof"),
             Class("C"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NameOfLocalMethod(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NameOfLocalMethod(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -2665,12 +2439,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Keyword("nameof"),
             Method("M"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task MethodCalledNameOfInScope(TestHost testHost)
-    {
-        await TestAsync(
+    public Task MethodCalledNameOfInScope(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -2688,12 +2460,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Keyword("var"),
             Method("nameof"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task Tuples(TestHost testHost)
-    {
-        await TestAsync(
+    public Task Tuples(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -2702,7 +2472,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             ParseOptions(TestOptions.Regular, Options.Script));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
@@ -2721,9 +2490,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
-    public async Task InXmlDocCref_WhenTypeOnlyIsSpecified_ItIsClassified(TestHost testHost)
-    {
-        await TestAsync(
+    public Task InXmlDocCref_WhenTypeOnlyIsSpecified_ItIsClassified(TestHost testHost)
+        => TestAsync(
             """
             /// <summary>
             /// <see cref="MyClass"/>
@@ -2737,13 +2505,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Class("MyClass"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
-    public async Task InXmlDocCref_WhenConstructorOnlyIsSpecified_NothingIsClassified(TestHost testHost)
-    {
-        await TestAsync(
+    public Task InXmlDocCref_WhenConstructorOnlyIsSpecified_NothingIsClassified(TestHost testHost)
+        => TestAsync(
             """
             /// <summary>
             /// <see cref="MyClass(int)"/>
@@ -2756,13 +2522,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """, testHost,
             Class("MyClass"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/633")]
-    public async Task InXmlDocCref_WhenTypeAndConstructorSpecified_OnlyTypeIsClassified(TestHost testHost)
-    {
-        await TestAsync(
+    public Task InXmlDocCref_WhenTypeAndConstructorSpecified_OnlyTypeIsClassified(TestHost testHost)
+        => TestAsync(
             """
             /// <summary>
             /// <see cref="MyClass.MyClass(int)"/>
@@ -2777,13 +2541,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Class("MyClass"),
             Class("MyClass"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13174")]
-    public async Task TestMemberBindingThatLooksGeneric(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestMemberBindingThatLooksGeneric(TestHost testHost)
+        => TestAsync(
             """
             using System.Diagnostics;
             using System.Threading.Tasks;
@@ -2812,13 +2574,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Static("Assert"),
             Parameter("args"),
             Property("Length"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23940")]
-    public async Task TestAliasQualifiedClass(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestAliasQualifiedClass(TestHost testHost)
+        => TestAsync(
             """
             using System;
             using Col = System.Collections.Generic;
@@ -2844,47 +2604,38 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Namespace("Col"),
             Class("List"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
-    {
-        // Asserts no Keyword("unmanaged") because it is an identifier.
-        await TestInMethodAsync("""
+    public Task TestUnmanagedConstraint_InsideMethod(TestHost testHost)
+        => TestInMethodAsync("""
             var unmanaged = 0;
             unmanaged++;
             """,
             testHost,
             Keyword("var"),
             Local("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Type_Keyword(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestUnmanagedConstraint_Type_Keyword(TestHost testHost)
+        => TestAsync(
             "class X<T> where T : unmanaged { }",
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Type_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_Type_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface unmanaged {}
             class X<T> where T : unmanaged { }
             """,
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface unmanaged {}
@@ -2895,12 +2646,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Method_Keyword(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_Method_Keyword(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void M<T>() where T : unmanaged { }
@@ -2909,12 +2658,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Method_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_Method_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface unmanaged {}
             class X
             {
@@ -2924,12 +2671,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface unmanaged {}
@@ -2943,34 +2688,28 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Delegate_Keyword(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestUnmanagedConstraint_Delegate_Keyword(TestHost testHost)
+        => TestAsync(
             "delegate void D<T>() where T : unmanaged;",
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Delegate_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_Delegate_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface unmanaged {}
             delegate void D<T>() where T : unmanaged;
             """,
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface unmanaged {}
@@ -2981,12 +2720,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -2998,12 +2735,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_LocalFunction_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface unmanaged {}
             class X
             {
@@ -3016,12 +2751,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface unmanaged {}
@@ -3038,7 +2771,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("unmanaged"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29451")]
     [CombinatorialData]
@@ -3049,20 +2781,17 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/30378")]
     [CombinatorialData]
-    public async Task TestFormatSpecifierInInterpolation(TestHost testHost)
-    {
-        await TestInMethodAsync(@"var goo = $""goo{{1:0000}}bar"";",
+    public Task TestFormatSpecifierInInterpolation(TestHost testHost)
+        => TestInMethodAsync(@"var goo = $""goo{{1:0000}}bar"";",
             testHost,
             Keyword("var"),
             Escape(@"{{"),
             Escape(@"}}"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
     [CombinatorialData]
-    public async Task TestOverloadedOperator_BinaryExpression(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestOverloadedOperator_BinaryExpression(TestHost testHost)
+        => TestAsync("""
             class C
             {
                 void M()
@@ -3089,13 +2818,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("True"),
             Class("True"),
             Class("True"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
     [CombinatorialData]
-    public async Task TestOverloadedOperator_PrefixUnaryExpression(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestOverloadedOperator_PrefixUnaryExpression(TestHost testHost)
+        => TestAsync("""
             class C
             {
                 void M()
@@ -3118,13 +2845,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             OverloadedOperators.Exclamation,
             Class("True"),
             Class("True"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
     [CombinatorialData]
-    public async Task TestOverloadedOperator_PostfixUnaryExpression(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestOverloadedOperator_PostfixUnaryExpression(TestHost testHost)
+        => TestAsync("""
             class C
             {
                 void M()
@@ -3153,13 +2878,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("True"),
             Class("True"),
             Class("True"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/29492")]
     [CombinatorialData]
-    public async Task TestOverloadedOperator_ConditionalExpression(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestOverloadedOperator_ConditionalExpression(TestHost testHost)
+        => TestAsync("""
             class C
             {
                 void M()
@@ -3184,12 +2907,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("True"),
             Class("True"),
             Class("True"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestCatchDeclarationVariable(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task TestCatchDeclarationVariable(TestHost testHost)
+        => TestInMethodAsync("""
             try
             {
             }
@@ -3200,47 +2921,38 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Local("ex"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_InsideMethod(TestHost testHost)
-    {
-        // Asserts no Keyword("notnull") because it is an identifier.
-        await TestInMethodAsync("""
+    public Task TestNotNullConstraint_InsideMethod(TestHost testHost)
+        => TestInMethodAsync("""
             var notnull = 0;
             notnull++;
             """,
             testHost,
             Keyword("var"),
             Local("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Type_Keyword(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestNotNullConstraint_Type_Keyword(TestHost testHost)
+        => TestAsync(
             "class X<T> where T : notnull { }",
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Type_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_Type_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface notnull {}
             class X<T> where T : notnull { }
             """,
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_Type_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface notnull {}
@@ -3251,12 +2963,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Method_Keyword(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_Method_Keyword(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void M<T>() where T : notnull { }
@@ -3265,12 +2975,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Method_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_Method_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface notnull {}
             class X
             {
@@ -3280,12 +2988,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_Method_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface notnull {}
@@ -3299,34 +3005,28 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Delegate_Keyword(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestNotNullConstraint_Delegate_Keyword(TestHost testHost)
+        => TestAsync(
             "delegate void D<T>() where T : notnull;",
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Delegate_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_Delegate_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface notnull {}
             delegate void D<T>() where T : notnull;
             """,
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_Delegate_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface notnull {}
@@ -3337,12 +3037,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_LocalFunction_Keyword(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_LocalFunction_Keyword(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3354,12 +3052,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_LocalFunction_ExistingInterface(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_LocalFunction_ExistingInterface(TestHost testHost)
+        => TestAsync("""
             interface notnull {}
             class X
             {
@@ -3372,12 +3068,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestNotNullConstraint_LocalFunction_ExistingInterfaceButOutOfScope(TestHost testHost)
+        => TestAsync("""
             namespace OtherScope
             {
                 interface notnull {}
@@ -3394,12 +3088,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("OtherScope"),
             TypeParameter("T"),
             Keyword("notnull"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NonDiscardVariableDeclaration(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task NonDiscardVariableDeclaration(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3412,12 +3104,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("var"),
             Method("Parse"),
             Static("Parse"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NonDiscardVariableDeclarationMultipleDeclarators(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task NonDiscardVariableDeclarationMultipleDeclarators(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3427,12 +3117,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
                 }
             }
             """, testHost);
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardAssignment(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardAssignment(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3445,12 +3133,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("_"),
             Method("Parse"),
             Static("Parse"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInOutDeclaration(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardInOutDeclaration(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3464,12 +3150,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Static("TryParse"),
             Keyword("var"),
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInOutAssignment(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardInOutAssignment(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3482,12 +3166,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Method("TryParse"),
             Static("TryParse"),
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInDeconstructionAssignment(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardInDeconstructionAssignment(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3498,12 +3180,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInDeconstructionDeclaration(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardInDeconstructionDeclaration(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3514,12 +3194,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInPatternMatch(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardInPatternMatch(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 bool N(object x)
@@ -3531,12 +3209,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Parameter("x"),
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInSwitch(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardInSwitch(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 bool N(object x)
@@ -3554,12 +3230,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Parameter("x"),
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInSwitchPatternMatch(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardInSwitchPatternMatch(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 bool N(object x)
@@ -3574,12 +3248,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Parameter("x"),
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task UnusedUnderscoreParameterInLambda(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task UnusedUnderscoreParameterInLambda(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3591,12 +3263,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             testHost,
             Namespace("System"),
             Delegate("Func"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task UsedUnderscoreParameterInLambda(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task UsedUnderscoreParameterInLambda(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3609,12 +3279,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Namespace("System"),
             Delegate("Func"),
             Parameter("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardsInLambda(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardsInLambda(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3628,12 +3296,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Delegate("Func"),
             Keyword("_"),
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardsInLambdaWithInferredType(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DiscardsInLambdaWithInferredType(TestHost testHost)
+        => TestAsync("""
             class X
             {
                 void N()
@@ -3647,43 +3313,35 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Delegate("Func"),
             Keyword("_"),
             Keyword("_"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NativeInteger(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task NativeInteger(TestHost testHost)
+        => TestInMethodAsync(
             @"nint i = 0; nuint i2 = 0;",
             testHost,
             Classifications(Keyword("nint"), Keyword("nuint")));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NotNativeInteger(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task NotNativeInteger(TestHost testHost)
+        => TestInMethodAsync(
             "nint",
             "M",
             "nint i = 0;",
             testHost,
             Classifications(Class("nint")));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NotNativeUnsignedInteger(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task NotNativeUnsignedInteger(TestHost testHost)
+        => TestInMethodAsync(
             "nuint",
             "M",
             "nuint i = 0;",
             testHost,
             Classifications(Class("nuint")));
-    }
 
     [Theory, CombinatorialData]
-    public async Task StaticBoldingMethodName(TestHost testHost)
-    {
-        await TestAsync(
+    public Task StaticBoldingMethodName(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -3698,12 +3356,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Delegate("Action"),
             Method("Method"),
             Static("Method"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task StaticBoldingMethodNameNestedInNameof(TestHost testHost)
-    {
-        await TestAsync(
+    public Task StaticBoldingMethodNameNestedInNameof(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -3718,12 +3374,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("nameof"),
             Static("Method"),
             Method("Method"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BoldingMethodNameStaticAndNot(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BoldingMethodNameStaticAndNot(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -3747,13 +3401,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Keyword("nameof"),
             Static("Method"),
             Method("Method"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
-    public async Task BasicRecordClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BasicRecordClassification(TestHost testHost)
+        => TestAsync(
             """
             record R
             {
@@ -3764,13 +3416,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             RecordClass("R"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/46985")]
-    public async Task ParameterizedRecordClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task ParameterizedRecordClassification(TestHost testHost)
+        => TestAsync(
             """
             record R(int X, int Y);
 
@@ -3781,12 +3431,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             RecordClass("R"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BasicRecordClassClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BasicRecordClassClassification(TestHost testHost)
+        => TestAsync(
             """
             record class R
             {
@@ -3797,12 +3445,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             RecordClass("R"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BasicRecordStructClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BasicRecordStructClassification(TestHost testHost)
+        => TestAsync(
             """
             record struct R
             {
@@ -3811,12 +3457,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             RecordStruct("R"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task BasicFileScopedNamespaceClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task BasicFileScopedNamespaceClassification(TestHost testHost)
+        => TestAsync(
             """
             namespace NS;
 
@@ -3824,12 +3468,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             """,
             testHost,
             Namespace("NS"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task NullCheckedParameterClassification(TestHost testHost)
-    {
-        await TestAsync(
+    public Task NullCheckedParameterClassification(TestHost testHost)
+        => TestAsync(
             """
             class C
             {
@@ -3837,13 +3479,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             }
             """,
             testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/57184")]
-    public async Task MethodGroupClassifications(TestHost testHost)
-    {
-        await TestAsync(
+    public Task MethodGroupClassifications(TestHost testHost)
+        => TestAsync(
             """
             var f = m;
             Delegate d = m;
@@ -3863,14 +3503,12 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Method("m"),
             Method("m"),
             Method("m"));
-    }
 
     /// <seealso cref="SyntacticClassifierTests.LocalFunctionDeclaration"/>
     /// <seealso cref="TotalClassifierTests.LocalFunctionDeclarationAndUse"/>
     [Theory, CombinatorialData]
-    public async Task LocalFunctionUse(TestHost testHost)
-    {
-        await TestAsync(
+    public Task LocalFunctionUse(TestHost testHost)
+        => TestAsync(
             """
             using System;
 
@@ -3899,7 +3537,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Method("M"),
             Method("staticLocalFunction"),
             Static("staticLocalFunction"));
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/744813")]
     public async Task TestCreateWithBufferNotInWorkspace()

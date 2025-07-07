@@ -116,9 +116,8 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllProject()
-    {
-        await new VerifyCS.Test
+    public Task FixAllProject()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -183,14 +182,12 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllSolution()
-    {
-        await new VerifyCS.Test
+    public Task FixAllSolution()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -291,5 +288,4 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 }
             }
         }.RunAsync();
-    }
 }

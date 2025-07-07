@@ -35,10 +35,8 @@ internal sealed class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryS
 
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor => WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor;
 
-    async Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
-    {
-        await _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
-    }
+    Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
+        => _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {

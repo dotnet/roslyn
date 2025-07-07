@@ -31,9 +31,8 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
     #region Convert To Block Scoped
 
     [Fact]
-    public async Task TestConvertToBlockScopedInCSharp9()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedInCSharp9()
+        => new VerifyCS.Test
         {
             TestCode = """
             [|{|CS8773:namespace|} N;|]
@@ -49,12 +48,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedInCSharp9_NotSilent()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedInCSharp9_NotSilent()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|CS8773:namespace|} [|N|];
@@ -70,12 +67,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoConvertToBlockScopedInCSharp10WithBlockScopedPreference()
-    {
-        await new VerifyCS.Test
+    public Task TestNoConvertToBlockScopedInCSharp10WithBlockScopedPreference()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N {}
@@ -86,13 +81,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockScopedInCSharp10WithFileScopedPreference(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedInCSharp10WithFileScopedPreference(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             [|namespace N;|]{{endOfDocumentSequence}}
@@ -108,13 +101,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockScopedInCSharp10WithDirectives1(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedInCSharp10WithDirectives1(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             [|namespace N;|]
@@ -135,13 +126,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockScopedInCSharp10WithDirectives2(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedInCSharp10WithDirectives2(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             [|namespace N;|]
@@ -162,13 +151,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockWithMultipleNamespaces(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithMultipleNamespaces(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             [|namespace N;|]
@@ -191,13 +178,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockWithNestedNamespaces1(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithNestedNamespaces1(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             [|namespace N;|]
@@ -219,13 +204,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockWithNestedNamespaces2(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithNestedNamespaces2(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             namespace N
@@ -247,13 +230,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockWithNestedNamespaces3(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithNestedNamespaces3(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             namespace N
@@ -275,13 +256,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue & ~NewLineBeforeOpenBracePlacement.Types },
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockWithNestedNamespaces4(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithNestedNamespaces4(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             namespace N
@@ -308,13 +287,11 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
-    public async Task TestConvertToBlockWithNestedNamespaces5(string endOfDocumentSequence)
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithNestedNamespaces5(string endOfDocumentSequence)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             namespace N
@@ -341,12 +318,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockWithTopLevelStatement1()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithTopLevelStatement1()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|CS8805:int i = 0;|}
@@ -366,12 +341,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockWithTopLevelStatement2()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockWithTopLevelStatement2()
+        => new VerifyCS.Test
         {
             TestCode = """
             [|namespace N;|]
@@ -390,12 +363,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedWithUsing1()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedWithUsing1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -415,12 +386,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedWithUsing2()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedWithUsing2()
+        => new VerifyCS.Test
         {
             TestCode = """
             [|namespace N;|]
@@ -439,12 +408,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedWithClass()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedWithClass()
+        => new VerifyCS.Test
         {
             TestCode = """
             [|namespace N;|]
@@ -467,12 +434,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedWithClassWithDocComment()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedWithClassWithDocComment()
+        => new VerifyCS.Test
         {
             TestCode = """
             [|namespace N;|]
@@ -497,12 +462,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedWithMissingCloseBrace()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedWithMissingCloseBrace()
+        => new VerifyCS.Test
         {
             TestCode = """
             [|namespace N;|]
@@ -526,12 +489,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedWithCommentOnSemicolon()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedWithCommentOnSemicolon()
+        => new VerifyCS.Test
         {
             TestCode = """
             [|namespace N;|] // comment
@@ -554,12 +515,10 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScopedWithLeadingComment()
-    {
-        await new VerifyCS.Test
+    public Task TestConvertToBlockScopedWithLeadingComment()
+        => new VerifyCS.Test
         {
             TestCode = """
             // copyright
@@ -584,7 +543,6 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
                 { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped }
             }
         }.RunAsync();
-    }
 
     #endregion
 }

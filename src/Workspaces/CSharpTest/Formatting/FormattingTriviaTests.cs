@@ -1802,26 +1802,20 @@ class F
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39351")]
-    public async Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
-    {
-        await AssertNoFormattingChangesAsync(@"class Program { }
+    public Task SingleLineComment_AtEndOfFile_DoesNotAddNewLine()
+        => AssertNoFormattingChangesAsync(@"class Program { }
 
 // Test");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39351")]
-    public async Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
-    {
-        await AssertNoFormattingChangesAsync(@"class Program { }
+    public Task MultiLineComment_AtEndOfFile_DoesNotAddNewLine()
+        => AssertNoFormattingChangesAsync(@"class Program { }
 
 /* Test */");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39351")]
-    public async Task DocComment_AtEndOfFile_DoesNotAddNewLine()
-    {
-        await AssertNoFormattingChangesAsync(@"class Program { }
+    public Task DocComment_AtEndOfFile_DoesNotAddNewLine()
+        => AssertNoFormattingChangesAsync(@"class Program { }
 
 /// Test");
-    }
 }

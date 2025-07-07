@@ -27,19 +27,16 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task NoItemsForEmptyFile(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "", async w =>
+    public Task NoItemsForEmptyFile(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "", async w =>
         {
             Assert.Empty(await _aggregator.GetItemsAsync("Hello"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindClass(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
             """
             class Goo
             {
@@ -49,13 +46,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPrivate);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindNestedClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindNestedClass(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -71,13 +66,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("DogBed")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "DogBed", "[|DogBed|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindMemberInANestedClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindMemberInANestedClass(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -96,13 +89,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Method")).Single();
             VerifyNavigateToResultItem(item, "Method", "[|Method|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo.Bar.DogBed", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindGenericClassWithConstraints(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindGenericClassWithConstraints(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  using System.Collections;
 
@@ -114,13 +105,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]<T>", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassPrivate);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindGenericMethodWithConstraints(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindGenericMethodWithConstraints(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  using System;
 
@@ -135,13 +124,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Bar")).Single();
             VerifyNavigateToResultItem(item, "Bar", "[|Bar|]<T>(T)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo<U>", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindPartialClass(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindPartialClass(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  public partial class Goo
  {
@@ -161,13 +148,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems(expecteditems, items);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindTypesInMetadata(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindTypesInMetadata(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  using System;
 
@@ -177,13 +162,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var items = await _aggregator.GetItemsAsync("FileStyleUriParser");
             Assert.Equal(0, items.Count());
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindClassInNamespace(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindClassInNamespace(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  namespace Bar
  {
@@ -196,13 +179,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindStruct(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindStruct(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  struct Bar
  {
@@ -212,13 +193,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("B")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Structure, Glyph.StructurePrivate);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindEnum(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindEnum(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  enum Colors
  {
@@ -231,13 +210,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Colors")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "Colors", "[|Colors|]", PatternMatchKind.Exact, NavigateToItemKind.Enum, Glyph.EnumPrivate);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindEnumMember(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindEnumMember(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  enum Colors
  {
@@ -250,13 +227,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("R")).Single();
             VerifyNavigateToResultItem(item, "Red", "[|R|]ed", PatternMatchKind.Prefix, NavigateToItemKind.EnumItem, Glyph.EnumMemberPublic);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindConstField(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindConstField(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -267,13 +242,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("ba")).Single();
             VerifyNavigateToResultItem(item, "bar", "[|ba|]r", PatternMatchKind.Prefix, NavigateToItemKind.Constant, Glyph.ConstantPrivate);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindVerbatimIdentifier(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindVerbatimIdentifier(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -284,7 +257,6 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("string")).Single();
             VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
@@ -312,9 +284,8 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindAutoProperty(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindAutoProperty(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -325,13 +296,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("B")).Single();
             VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Property, Glyph.PropertyPrivate, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindMethod(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindMethod(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -342,13 +311,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("DS")).Single();
             VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething()", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindParameterizedMethod(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindParameterizedMethod(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -361,13 +328,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("DS")).Single();
             VerifyNavigateToResultItem(item, "DoSomething", "[|D|]o[|S|]omething(int, string)", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindConstructor(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindConstructor(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -380,13 +345,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindParameterizedConstructor(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindParameterizedConstructor(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -399,13 +362,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method);
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|](int)", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindStaticConstructor(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindStaticConstructor(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class Goo
  {
@@ -418,13 +379,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(t => t.Kind == NavigateToItemKind.Method && t.Name != ".ctor");
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|].static Goo()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindPartialMethods(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "partial class Goo { partial void Bar(); } partial class Goo { partial void Bar() { Console.Write(\"hello\"); } }", async w =>
+    public Task FindPartialMethods(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "partial class Goo { partial void Bar(); } partial class Goo { partial void Bar() { Console.Write(\"hello\"); } }", async w =>
         {
             var expecteditem1 = new NavigateToItem("Bar", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null);
             var expecteditems = new List<NavigateToItem> { expecteditem1, expecteditem1 };
@@ -433,13 +392,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems(expecteditems, items);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindPartialMethodDefinitionOnly(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindPartialMethodDefinitionOnly(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  partial class Goo
  {
@@ -450,7 +407,6 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("Bar")).Single();
             VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, string.Format(FeaturesResources.in_0_1_2, "Goo", "test1.cs", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
@@ -484,9 +440,8 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindInterface(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindInterface(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  public interface IGoo
  {
@@ -496,13 +451,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("IG")).Single();
             VerifyNavigateToResultItem(item, "IGoo", "[|IG|]oo", PatternMatchKind.Prefix, NavigateToItemKind.Interface, Glyph.InterfacePublic);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindDelegateInNamespace(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindDelegateInNamespace(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  namespace Goo
  {
@@ -513,13 +466,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("DoStuff")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "DoStuff", "[|DoStuff|]", PatternMatchKind.Exact, NavigateToItemKind.Delegate, Glyph.DelegateInternal);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task FindLambdaExpression(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task FindLambdaExpression(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  using System;
 
@@ -532,13 +483,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             var item = (await _aggregator.GetItemsAsync("sqr")).Single();
             VerifyNavigateToResultItem(item, "sqr", "[|sqr|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task OrderingOfConstructorsAndTypes(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition,
+    public Task OrderingOfConstructorsAndTypes(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  class C1
  {
@@ -571,14 +520,11 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             items.Sort(CompareNavigateToItems);
             VerifyNavigateToResultItems(expecteditems, items);
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]
-    public async Task StartStopSanity(TestHost testHost, Composition composition)
-    {
-        // Verify that multiple calls to start/stop and dispose don't blow up
-        await TestAsync(testHost, composition,
+    public Task StartStopSanity(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition,
 """
  public class Goo
  {
@@ -596,7 +542,6 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
             // Dispose the provider
             _provider.Dispose();
         });
-    }
 
     [WpfTheory]
     [CombinatorialData]

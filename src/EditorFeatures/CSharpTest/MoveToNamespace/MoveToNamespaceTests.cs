@@ -1311,11 +1311,8 @@ expectedNamespaceName: "A.Complex.Namespace");
 
     [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
     [MemberData(nameof(SupportedKeywords))]
-    public async Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
-    {
-        // We will not get "" as target namespace in VS, but the refactoring should be able
-        // to handle it w/o crashing.
-        await TestMoveToNamespaceAsync(
+    public Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
+        => TestMoveToNamespaceAsync(
             $$"""
             namespace A
             {
@@ -1333,7 +1330,6 @@ expectedNamespaceName: "A.Complex.Namespace");
             }
             """,
             targetNamespace: "");
-    }
 
     [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
     [MemberData(nameof(SupportedKeywords))]

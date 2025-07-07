@@ -1298,9 +1298,8 @@ End Class",
         }
 
         [Fact, WorkItem(4469, "https://github.com/dotnet/roslyn-analyzers/issues/4469")]
-        public async Task RS1024_SymbolEqualityComparerDefaultAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS1024_SymbolEqualityComparerDefaultAsync()
+            => new VerifyCS.Test
             {
                 TestState =
                 {
@@ -1328,14 +1327,12 @@ public class C
                     },
                 },
             }.RunAsync();
-        }
 
         [Fact]
         [WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
         [WorkItem(4568, "https://github.com/dotnet/roslyn-analyzers/issues/4568")]
-        public async Task RS1024_InvocationArgumentTypeIsNullAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS1024_InvocationArgumentTypeIsNullAsync()
+            => new VerifyCS.Test
             {
                 TestState =
                 {
@@ -1355,12 +1352,10 @@ public class C
                     },
                 },
             }.RunAsync();
-        }
 
         [Fact, WorkItem(4413, "https://github.com/dotnet/roslyn-analyzers/issues/4413")]
-        public async Task RS1024_SourceCollectionIsSymbolButLambdaIsNotAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS1024_SourceCollectionIsSymbolButLambdaIsNotAsync()
+            => new VerifyCS.Test
             {
                 TestState =
                 {
@@ -1388,12 +1383,10 @@ public class C
                     },
                 },
             }.RunAsync();
-        }
 
         [Fact, WorkItem(4956, "https://github.com/dotnet/roslyn-analyzers/issues/4956")]
-        public async Task RS1024_StringGetHashCodeAsync()
-        {
-            await new VerifyCS.Test
+        public Task RS1024_StringGetHashCodeAsync()
+            => new VerifyCS.Test
             {
                 TestState =
                 {
@@ -1415,7 +1408,6 @@ class C
                     ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
                 }
             }.RunAsync();
-        }
 
         [Fact]
         public async Task RS1024_GetHashCodeOnInt64Async()

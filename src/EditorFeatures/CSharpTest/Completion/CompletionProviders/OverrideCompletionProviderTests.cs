@@ -39,9 +39,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     #region "CompletionItem tests"
 
     [WpfFact]
-    public async Task InheritedVirtualPublicMethod()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InheritedVirtualPublicMethod()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public virtual void goo() { }
@@ -52,12 +51,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo()");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
-    public async Task InheritedParameterDefaultValue1()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InheritedParameterDefaultValue1()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public virtual void goo(int x = 42) { }
@@ -68,12 +65,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo(int x = 42)", "void a.goo([int x = 42])");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543799")]
-    public async Task InheritedParameterDefaultValue2()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InheritedParameterDefaultValue2()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public virtual void goo(int x, int y = 42) { }
@@ -84,12 +79,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo(int x, int y = 42)", "void a.goo(int x, [int y = 42])");
-    }
 
     [WpfFact]
-    public async Task InheritedAbstractPublicMethod()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InheritedAbstractPublicMethod()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public abstract void goo();
@@ -100,12 +93,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo()");
-    }
 
     [WpfFact]
-    public async Task NotPrivateInheritedMethod()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotPrivateInheritedMethod()
+        => VerifyItemIsAbsentAsync("""
             public class a
             {
                 private virtual void goo() { }
@@ -116,7 +107,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo()");
-    }
 
     [WpfFact]
     public async Task MatchReturnType()
@@ -160,9 +150,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact]
-    public async Task NotAlreadyImplementedMethods()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotAlreadyImplementedMethods()
+        => VerifyItemIsAbsentAsync("""
             public class a
             {
                 protected virtual void goo() { }
@@ -177,12 +166,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo()");
-    }
 
     [WpfFact]
-    public async Task NotSealed()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotSealed()
+        => VerifyItemIsAbsentAsync("""
             public class a
             {
                 protected sealed void goo() { }
@@ -193,12 +180,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public override $$
             }
             """, "goo()");
-    }
 
     [WpfFact]
-    public async Task ShowEvent()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ShowEvent()
+        => VerifyItemExistsAsync("""
             using System;
             public class a
             {
@@ -210,12 +195,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public override $$
             }
             """, "goo");
-    }
 
     [WpfFact]
-    public async Task NotIfTokensAfterPosition()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotIfTokensAfterPosition()
+        => VerifyNoItemsExistAsync("""
             public class a
             {
                 public virtual void goo() { }
@@ -226,12 +209,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public override $$ void
             }
             """);
-    }
 
     [WpfFact]
-    public async Task NotIfNameAfterPosition()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotIfNameAfterPosition()
+        => VerifyNoItemsExistAsync("""
             public class a
             {
                 public virtual void goo() { }
@@ -242,12 +223,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public override void $$ bar
             }
             """);
-    }
 
     [WpfFact]
-    public async Task NotIfStatic()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotIfStatic()
+        => VerifyNoItemsExistAsync("""
             public class a
             {
                 public virtual void goo() { }
@@ -258,12 +237,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public static override $$
             }
             """);
-    }
 
     [WpfFact]
-    public async Task AfterSingleLineMethodDeclaration()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task AfterSingleLineMethodDeclaration()
+        => VerifyNoItemsExistAsync("""
             public class a
             {
                 public virtual void goo() { }
@@ -274,12 +251,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 void bar() { } override $$
             }
             """);
-    }
 
     [WpfFact]
-    public async Task SuggestProperty()
-    {
-        await VerifyItemExistsAsync("""
+    public Task SuggestProperty()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public virtual int goo { }
@@ -290,12 +265,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  override $$
             }
             """, "goo");
-    }
 
     [WpfFact]
-    public async Task NotSuggestSealed()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotSuggestSealed()
+        => VerifyItemIsAbsentAsync("""
             public class a
             {
                 public sealed int goo { }
@@ -306,12 +279,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  override $$
             }
             """, "goo");
-    }
 
     [WpfFact]
-    public async Task GatherModifiers()
-    {
-        await VerifyItemExistsAsync("""
+    public Task GatherModifiers()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public abstract extern unsafe int goo { }
@@ -322,12 +293,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  override $$
             }
             """, "goo");
-    }
 
     [WpfFact]
-    public async Task IgnorePartial()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task IgnorePartial()
+        => VerifyNoItemsExistAsync("""
             public class a
             {
                 public virtual partial goo() { }
@@ -338,12 +307,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  override partial $$
             }
             """);
-    }
 
     [WpfFact]
-    public async Task IgnoreSealed()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task IgnoreSealed()
+        => VerifyItemIsAbsentAsync("""
             public class a
             {
                 public virtual sealed int goo() { }
@@ -354,12 +321,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  override $$
             }
             """, "goo()");
-    }
 
     [WpfFact]
-    public async Task IgnoreIfTokenAfter()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task IgnoreIfTokenAfter()
+        => VerifyNoItemsExistAsync("""
             public class a
             {
                 public virtual int goo() { }
@@ -370,12 +335,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  override $$ int
             }
             """);
-    }
 
     [WpfFact]
-    public async Task SuggestAfterUnsafeAbstractExtern()
-    {
-        await VerifyItemExistsAsync("""
+    public Task SuggestAfterUnsafeAbstractExtern()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public virtual int goo() { }
@@ -386,12 +349,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  unsafe abstract extern override $$
             }
             """, "goo()");
-    }
 
     [WpfFact]
-    public async Task SuggestAfterSealed()
-    {
-        await VerifyItemExistsAsync("""
+    public Task SuggestAfterSealed()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 public virtual int goo() { }
@@ -402,7 +363,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                  sealed override $$
             }
             """, "goo()");
-    }
 
     [WpfFact]
     public async Task NoAccessibility()
@@ -4131,20 +4091,17 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47941")]
-    public async Task OverrideInRecordWithoutExplicitOverriddenMember()
-    {
-        await VerifyItemExistsAsync("""
+    public Task OverrideInRecordWithoutExplicitOverriddenMember()
+        => VerifyItemExistsAsync("""
             record Program
             {
                 override $$
             }
             """, "ToString()");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47941")]
-    public async Task OverrideInRecordWithExplicitOverriddenMember()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task OverrideInRecordWithExplicitOverriddenMember()
+        => VerifyItemIsAbsentAsync("""
             record Program
             {
                 public override string ToString() => ";
@@ -4152,7 +4109,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "ToString()");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47973")]
     public async Task NoCloneInOverriddenRecord()
@@ -4175,15 +4131,13 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48640")]
-    public async Task ObjectEqualsInClass()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ObjectEqualsInClass()
+        => VerifyItemExistsAsync("""
             class Program 
             {
                 override $$
             }
             """, "Equals(object obj)");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48640")]
     public async Task NoObjectEqualsInOverriddenRecord1()
@@ -4227,9 +4181,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64887")]
-    public async Task WithAttribute1()
-    {
-        await VerifyItemExistsAsync("""
+    public Task WithAttribute1()
+        => VerifyItemExistsAsync("""
             abstract class C
             {
                 public abstract void M();
@@ -4241,12 +4194,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$;
             }
             """, "M()");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64887")]
-    public async Task WithAttribute2()
-    {
-        await VerifyItemExistsAsync("""
+    public Task WithAttribute2()
+        => VerifyItemExistsAsync("""
             abstract class C
             {
                 public abstract void M();
@@ -4259,12 +4210,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$;
             }
             """, "M()");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64887")]
-    public async Task NotWhenMultilineModifiers()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotWhenMultilineModifiers()
+        => VerifyItemIsAbsentAsync("""
             abstract class C
             {
                 public abstract void M();
@@ -4276,12 +4225,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$;
             }
             """, "M()");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64887")]
-    public async Task NotWhenMultilineModifiersAndAttribute()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotWhenMultilineModifiersAndAttribute()
+        => VerifyItemIsAbsentAsync("""
             abstract class C
             {
                 public abstract void M();
@@ -4294,28 +4241,23 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$;
             }
             """, "M()");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6308")]
-    public async Task NoOverrideItemsWhenNotInTypeDeclaration()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NoOverrideItemsWhenNotInTypeDeclaration()
+        => VerifyNoItemsExistAsync("""
             namespace NS
             {
                 override $$
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6308")]
-    public async Task NoOverrideItemsAtTopLevel()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NoOverrideItemsAtTopLevel()
+        => VerifyNoItemsExistAsync("""
             System.Console.WriteLine();
             
             override $$
             """);
-    }
 
     private Task VerifyItemExistsAsync(string markup, string expectedItem)
     {

@@ -2222,9 +2222,8 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
     }
 
     [Fact]
-    public async Task TestNotOnNamedType1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnNamedType1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2236,5 +2235,4 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 }

@@ -39,10 +39,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newSource, string newShippedApiText, string newUnshippedApiText)
-        {
-            await VerifyAdditionalFileFixAsync(source, oldShippedApiText, oldUnshippedApiText, newSource, newShippedApiText, newUnshippedApiText);
-        }
+        private Task VerifyCSharpAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newSource, string newShippedApiText, string newUnshippedApiText)
+            => VerifyAdditionalFileFixAsync(source, oldShippedApiText, oldUnshippedApiText, newSource, newShippedApiText, newUnshippedApiText);
 
         private async Task VerifyAdditionalFileFixAsync(string source, string oldShippedApiText, string oldUnshippedApiText, string newSource, string newShippedApiText, string newUnshippedApiText)
         {

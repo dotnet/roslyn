@@ -19,9 +19,8 @@ public sealed class AsyncAnonymousFunctionHighlighterTests : AbstractCSharpKeywo
         => typeof(AsyncAwaitHighlighter);
 
     [Fact]
-    public async Task TestSimpleLambda()
-    {
-        await TestAsync(
+    public Task TestSimpleLambda()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -47,12 +46,10 @@ public sealed class AsyncAnonymousFunctionHighlighterTests : AbstractCSharpKeywo
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParenthesizedLambda()
-    {
-        await TestAsync(
+    public Task TestParenthesizedLambda()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -78,12 +75,10 @@ public sealed class AsyncAnonymousFunctionHighlighterTests : AbstractCSharpKeywo
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAnonymousMethod()
-    {
-        await TestAsync(
+    public Task TestAnonymousMethod()
+        => TestAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -109,5 +104,4 @@ public sealed class AsyncAnonymousFunctionHighlighterTests : AbstractCSharpKeywo
                 }
             }
             """);
-    }
 }

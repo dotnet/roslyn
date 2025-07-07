@@ -48,9 +48,8 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
     }
 
     [Fact]
-    public async Task NotOnEmptyAnonymousType()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotOnEmptyAnonymousType()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -59,12 +58,10 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotOnSingleFieldAnonymousType()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotOnSingleFieldAnonymousType()
+        => TestMissingInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -73,7 +70,6 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task ConvertSingleAnonymousTypeWithInferredName()
@@ -486,9 +482,8 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34749")]
-    public async Task NotInExpressionTree()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NotInExpressionTree()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Linq.Expressions;
 
             class C
@@ -500,7 +495,6 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
     public async Task RemoveTrailingComma()

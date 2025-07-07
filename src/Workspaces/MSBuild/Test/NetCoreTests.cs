@@ -473,19 +473,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [UseCulture("en-EN", "en-EN")]
-    public async Task TestBuildHostLocale_EN()
-    {
-        await AssertInvalidTfmDiagnosticMessageContains("The TargetFramework value 'Invalid' was not recognized. It may be misspelled.");
-    }
+    public Task TestBuildHostLocale_EN()
+        => AssertInvalidTfmDiagnosticMessageContains("The TargetFramework value 'Invalid' was not recognized. It may be misspelled.");
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
     [UseCulture("de-DE", "de-DE")]
-    public async Task TestBuildHostLocale_DE()
-    {
-        await AssertInvalidTfmDiagnosticMessageContains("Der TargetFramework-Wert \"Invalid\" wurde nicht erkannt. Unter Umständen ist die Schreibweise nicht korrekt.");
-    }
+    public Task TestBuildHostLocale_DE()
+        => AssertInvalidTfmDiagnosticMessageContains("Der TargetFramework-Wert \"Invalid\" wurde nicht erkannt. Unter Umständen ist die Schreibweise nicht korrekt.");
 
     private async Task AssertInvalidTfmDiagnosticMessageContains(string expected)
     {

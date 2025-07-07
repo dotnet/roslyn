@@ -1347,9 +1347,8 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
     }
 
     [Theory, CombinatorialData]
-    public async Task TestEncapsulateEscapedIdentifier(TestHost host)
-    {
-        await TestAllOptionsOffAsync(host, """
+    public Task TestEncapsulateEscapedIdentifier(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C
             {
                 int [|@class|];
@@ -1373,12 +1372,10 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestEncapsulateEscapedIdentifierAndQualifiedAccess(TestHost host)
-    {
-        await TestAllOptionsOffAsync(host, """
+    public Task TestEncapsulateEscapedIdentifierAndQualifiedAccess(TestHost host)
+        => TestAllOptionsOffAsync(host, """
             class C
             {
                 int [|@class|];
@@ -1402,12 +1399,10 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """, options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/7090"), CombinatorialData]
-    public async Task ApplyCurrentThisPrefixStyle(TestHost host)
-    {
-        await TestAllOptionsOffAsync(host,
+    public Task ApplyCurrentThisPrefixStyle(TestHost host)
+        => TestAllOptionsOffAsync(host,
             """
             class C
             {
@@ -1433,7 +1428,6 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """, options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error));
-    }
 
     [Theory, CombinatorialData, CompilerTrait(CompilerFeature.Tuples)]
     public async Task TestTuple(TestHost host)
@@ -1650,9 +1644,8 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75210")]
-    public async Task PrimaryConstructor(TestHost host, bool andUseProperty)
-    {
-        await TestAllOptionsOffAsync(host, """
+    public Task PrimaryConstructor(TestHost host, bool andUseProperty)
+        => TestAllOptionsOffAsync(host, """
             public class C(object o)
             {
                 public readonly int [|A|] = 1;
@@ -1672,5 +1665,4 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
             }
             """,
             index: andUseProperty ? 0 : 1);
-    }
 }

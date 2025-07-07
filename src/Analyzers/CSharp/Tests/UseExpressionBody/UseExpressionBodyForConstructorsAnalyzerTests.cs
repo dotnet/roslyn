@@ -21,26 +21,22 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
 public sealed class UseExpressionBodyForConstructorsAnalyzerTests
 {
-    private static async Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             LanguageVersion = version,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ExpressionBodyPreference.WhenPossible } }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseBlockBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, ExpressionBodyPreference.Never } }
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseExpressionBody1()

@@ -74,9 +74,8 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     #region Error Cases
 
     [Fact]
-    public async Task NotOnFieldDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnFieldDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -85,12 +84,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 [|var|] _myfield = 5;
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnFieldLikeEvents()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnFieldLikeEvents()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -99,7 +96,6 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 public event [|var|] _myevent;
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
     public async Task OnAnonymousMethodExpression()
@@ -170,9 +166,8 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task NotOnDeclarationWithMultipleDeclarators()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnDeclarationWithMultipleDeclarators()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -184,12 +179,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnDeclarationWithoutInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnDeclarationWithoutInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -201,12 +194,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotDuringConflicts()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotDuringConflicts()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -222,12 +213,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotIfAlreadyExplicitlyTyped()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotIfAlreadyExplicitlyTyped()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -239,12 +228,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
-    public async Task NotIfRefTypeAlreadyExplicitlyTyped()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotIfRefTypeAlreadyExplicitlyTyped()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -257,12 +244,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 ref Program Ref() => throw null;
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnRHS()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnRHS()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -278,12 +263,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task NotOnErrorSymbol()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnErrorSymbol()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -295,12 +278,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
-    public async Task NotOnErrorConvertedType_ForEachVariableStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnErrorConvertedType_ForEachVariableStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -317,12 +298,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29718")]
-    public async Task NotOnErrorConvertedType_AssignmentExpressionStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnErrorConvertedType_AssignmentExpressionStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -337,7 +316,6 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     #endregion
 
@@ -1186,9 +1164,8 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task NotOnDynamic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnDynamic()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1200,12 +1177,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnForEachVarWithAnonymousType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnForEachVarWithAnonymousType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Linq;
@@ -1223,12 +1198,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
-    public async Task OnDeconstructionVarParens()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnDeconstructionVarParens()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1250,12 +1223,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out string s) { i = 1; s = "hello"; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task OnDeconstructionVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnDeconstructionVar()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1277,12 +1248,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out string s) { i = 1; s = "hello"; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
-    public async Task OnNestedDeconstructionVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnNestedDeconstructionVar()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1304,12 +1273,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out Program s) { i = 1; s = null; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
-    public async Task OnBadlyFormattedNestedDeconstructionVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnBadlyFormattedNestedDeconstructionVar()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1331,12 +1298,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out Program s) { i = 1; s = null; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
-    public async Task OnForeachNestedDeconstructionVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnForeachNestedDeconstructionVar()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1358,12 +1323,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out Program s) { i = 1; s = null; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
-    public async Task OnNestedDeconstructionVarWithTrivia()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnNestedDeconstructionVarWithTrivia()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1385,12 +1348,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out Program s) { i = 1; s = null; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
-    public async Task OnDeconstructionVarWithDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnDeconstructionVarWithDiscard()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1412,12 +1373,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out string s) { i = 1; s = "hello"; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23752")]
-    public async Task OnDeconstructionVarWithErrorType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnDeconstructionVarWithErrorType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class Program
@@ -1439,12 +1398,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 void Deconstruct(out int i, out Error s) { i = 1; s = null; }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task OnForEachVarWithExplicitType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OnForEachVarWithExplicitType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Linq;
@@ -1479,12 +1436,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task NotOnAnonymousType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnAnonymousType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1496,12 +1451,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnArrayOfAnonymousType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnArrayOfAnonymousType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1513,12 +1466,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnEnumerableOfAnonymousTypeFromAQueryExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnEnumerableOfAnonymousTypeFromAQueryExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1540,12 +1491,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 public int Price { get; set; }
             }
             """);
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeString()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnLocalWithIntrinsicTypeString()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1568,12 +1517,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnIntrinsicType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnIntrinsicType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1596,12 +1543,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnFrameworkType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnFrameworkType()
+        => TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
 
@@ -1624,12 +1569,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnUserDefinedType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnUserDefinedType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1652,12 +1595,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnGenericType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnGenericType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1680,12 +1621,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnSingleDimensionalArrayTypeWithNewOperator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnSingleDimensionalArrayTypeWithNewOperator()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1708,12 +1647,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnSingleDimensionalArrayTypeWithNewOperator2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnSingleDimensionalArrayTypeWithNewOperator2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1736,12 +1673,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnSingleDimensionalJaggedArrayType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnSingleDimensionalJaggedArrayType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1770,12 +1705,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnDeclarationWithObjectInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnDeclarationWithObjectInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1808,12 +1741,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnDeclarationWithCollectionInitializer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnDeclarationWithCollectionInitializer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1838,12 +1769,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnDeclarationWithCollectionAndObjectInitializers()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnDeclarationWithCollectionAndObjectInitializers()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1884,12 +1813,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnForStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnForStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1916,12 +1843,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnForeachStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnForeachStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1952,12 +1877,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnQueryExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnQueryExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2002,12 +1925,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeInUsingStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeInUsingStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2050,12 +1971,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnInterpolatedString()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnInterpolatedString()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2078,12 +1997,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnExplicitConversion()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnExplicitConversion()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2108,12 +2025,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnConditionalAccessExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnConditionalAccessExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2148,12 +2063,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeInCheckedExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeInCheckedExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2178,12 +2091,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeInAwaitExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeInAwaitExpression()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2218,12 +2129,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeInBuiltInNumericType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeInBuiltInNumericType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2246,12 +2155,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeForBuiltInTypesOnly());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeInBuiltInCharType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeInBuiltInCharType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2278,14 +2185,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 public char GetChar() => 'c';
             }
             """, options: ExplicitTypeForBuiltInTypesOnly());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeInBuiltInType_string()
-    {
-        // though string isn't an intrinsic type per the compiler
-        // we in the IDE treat it as an intrinsic type for this feature.
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeInBuiltInType_string()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2308,14 +2211,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeForBuiltInTypesOnly());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeInBuiltInType_object()
-    {
-        // object isn't an intrinsic type per the compiler
-        // we in the IDE treat it as an intrinsic type for this feature.
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeInBuiltInType_object()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2340,7 +2239,6 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """, options: ExplicitTypeForBuiltInTypesOnly());
-    }
 
     [Fact]
     public async Task SuggestExplicitTypeNotificationLevelSilent()
@@ -2423,9 +2321,8 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2445,12 +2342,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             }
             """,
 options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2470,12 +2365,10 @@ options: ExplicitTypeEverywhere());
             }
             """,
 options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2495,12 +2388,10 @@ options: ExplicitTypeEverywhere());
             }
             """,
 options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20437")]
-    public async Task SuggestExplicitTypeOnDeclarationExpressionSyntax()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SuggestExplicitTypeOnDeclarationExpressionSyntax()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2524,12 +2415,10 @@ options: ExplicitTypeEverywhere());
             }
             """,
 options: ExplicitTypeEverywhere());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2541,12 +2430,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2560,12 +2447,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2577,12 +2462,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames4()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2598,12 +2481,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames5()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2616,12 +2497,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames6()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames6()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2634,12 +2513,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames7()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames7()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2652,12 +2529,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames8()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames8()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -2675,12 +2550,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames9()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames9()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2693,12 +2566,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames10()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames10()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2712,12 +2583,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20244")]
-    public async Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames11()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExplicitTypeOnPredefinedTypesByTheirMetadataNames11()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2730,12 +2599,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
-    public async Task NoSuggestionOnForeachCollectionExpression()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NoSuggestionOnForeachCollectionExpression()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2751,13 +2618,10 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact]
-    public async Task NotOnConstVar()
-    {
-        // This error case is handled by a separate code fix (UseExplicitTypeForConst).
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnConstVar()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2767,7 +2631,6 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ExplicitTypeEverywhere()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
     public async Task WithNormalFuncSynthesizedLambdaType()
@@ -2815,9 +2678,8 @@ options: ExplicitTypeEverywhere());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58404")]
-    public async Task TestLambdaNaturalType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestLambdaNaturalType()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2840,5 +2702,4 @@ options: ExplicitTypeEverywhere());
                 }
             }
             """, options: ExplicitTypeEverywhere());
-    }
 }

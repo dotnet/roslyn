@@ -45,12 +45,11 @@ public sealed class UseExpressionBodyForAccessorsTests
         await test.RunAsync();
     }
 
-    private static async Task TestWithUseExpressionBodyIncludingPropertiesAndIndexers(
+    private static Task TestWithUseExpressionBodyIncludingPropertiesAndIndexers(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion version = LanguageVersion.CSharp8)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
             TestCode = code,
@@ -63,14 +62,12 @@ public sealed class UseExpressionBodyForAccessorsTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenPossible },
             }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBodyIncludingPropertiesAndIndexers(
+    private static Task TestWithUseBlockBodyIncludingPropertiesAndIndexers(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion version = LanguageVersion.CSharp8)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = version == LanguageVersion.CSharp9 ? ReferenceAssemblies.Net.Net50 : ReferenceAssemblies.Default,
             TestCode = code,
@@ -83,7 +80,6 @@ public sealed class UseExpressionBodyForAccessorsTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
             }
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseExpressionBody1()
@@ -270,9 +266,8 @@ public sealed class UseExpressionBodyForAccessorsTests
     }
 
     [Fact]
-    public async Task TestMissingWithOnlySetter()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TestMissingWithOnlySetter()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class C
             {
                 void Bar() { }
@@ -283,12 +278,10 @@ public sealed class UseExpressionBodyForAccessorsTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithOnlyInit()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithOnlyInit()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             TestCode = """
@@ -304,7 +297,6 @@ public sealed class UseExpressionBodyForAccessorsTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseExpressionBody3()
@@ -565,9 +557,8 @@ public sealed class UseExpressionBodyForAccessorsTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31308")]
-    public async Task TestUseBlockBody5()
-    {
-        await new VerifyCS.Test
+    public Task TestUseBlockBody5()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -585,7 +576,6 @@ public sealed class UseExpressionBodyForAccessorsTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59255")]
     public async Task TestUseBlockBody6()
@@ -700,9 +690,8 @@ public sealed class UseExpressionBodyForAccessorsTests
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
-    public async Task TestAccessorListFormatting_FixAll2()
-    {
-        await new VerifyCS.Test
+    public Task TestAccessorListFormatting_FixAll2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -763,14 +752,12 @@ public sealed class UseExpressionBodyForAccessorsTests
                 }
             },
         }.RunAsync();
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
-    public async Task TestAccessorListFormatting_FixAll3()
-    {
-        await new VerifyCS.Test
+    public Task TestAccessorListFormatting_FixAll3()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -831,7 +818,6 @@ public sealed class UseExpressionBodyForAccessorsTests
                 }
             },
         }.RunAsync();
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/20350")]

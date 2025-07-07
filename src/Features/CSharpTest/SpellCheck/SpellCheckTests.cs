@@ -435,9 +435,8 @@ class C
     }
 
     [Fact]
-    public async Task TestTestObjectConstruction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTestObjectConstruction()
+        => TestInRegularAndScriptAsync(
 @"class AwesomeClass
 {
     void M()
@@ -452,14 +451,11 @@ class C
         var goo = new AwesomeClass();
     }
 }");
-    }
 
     [Fact]
-    public async Task TestTestMissingName()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestTestMissingName()
+        => TestMissingInRegularAndScriptAsync(
 @"[assembly: Microsoft.CodeAnalysis.[||]]");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12990")]
     public async Task TestTrivia1()
@@ -488,9 +484,8 @@ class C
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
-    public async Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNotMissingOnKeywordWhichIsAlsoASnippet()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -507,12 +502,10 @@ class C
         for;
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18626")]
-    public async Task TestForExplicitInterfaceTypeName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestForExplicitInterfaceTypeName()
+        => TestInRegularAndScriptAsync(
 @"interface IProjectConfigurationsService
 {
     void Method();
@@ -537,12 +530,10 @@ class Program : IProjectConfigurationsService
 
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
-    public async Task TestMissingOnKeywordWhichIsOnlyASnippet()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnKeywordWhichIsOnlyASnippet()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M()
@@ -551,12 +542,10 @@ class Program : IProjectConfigurationsService
         var v = [|goo|];
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15733")]
-    public async Task TestMissingOnVar()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnVar()
+        => TestMissingInRegularAndScriptAsync(
 @"
 namespace bar { }
 
@@ -568,24 +557,20 @@ class C
         [|var|]
     }
 }");
-    }
 
     [Fact]
-    public async Task TestUnmanagedConstraint()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnmanagedConstraint()
+        => TestInRegularAndScriptAsync(
 @"class C<T> where T : [|umanaged|]
 {
 }",
 @"class C<T> where T : unmanaged
 {
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28244")]
-    public async Task TestMisspelledConstructor()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMisspelledConstructor()
+        => TestInRegularAndScriptAsync(
 @"public class SomeClass
 {
     public [|SomeClss|]() { }
@@ -594,7 +579,6 @@ class C
 {
     public SomeClass() { }
 }");
-    }
 
     [Fact]
     public async Task TestInExplicitInterfaceImplementation1()
@@ -649,14 +633,12 @@ class Program : IInterface
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
-    public async Task TestMisspelledWordThatIsAlsoSnippetName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMisspelledWordThatIsAlsoSnippetName()
+        => TestInRegularAndScriptAsync(
 @"public [|interfacce|] IWhatever
 {
 }",
 @"public interface IWhatever
 {
 }");
-    }
 }

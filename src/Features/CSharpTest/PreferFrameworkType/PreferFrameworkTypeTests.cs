@@ -56,9 +56,8 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
         };
 
     [Fact]
-    public async Task NotWhenOptionsAreNotSet()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotWhenOptionsAreNotSet()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -70,12 +69,10 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: NoFrameworkType));
-    }
 
     [Fact]
-    public async Task NotOnDynamic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnDynamic()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -87,12 +84,10 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: FrameworkTypeInDeclaration));
-    }
 
     [Fact]
-    public async Task NotOnSystemVoid()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnSystemVoid()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -103,12 +98,10 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: FrameworkTypeEverywhere));
-    }
 
     [Fact]
-    public async Task NotOnUserdefinedType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnUserdefinedType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -120,12 +113,10 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: FrameworkTypeEverywhere));
-    }
 
     [Fact]
-    public async Task NotOnFrameworkType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnFrameworkType()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -137,12 +128,10 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: FrameworkTypeInDeclaration));
-    }
 
     [Fact]
-    public async Task NotOnQualifiedTypeSyntax()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnQualifiedTypeSyntax()
+        => TestMissingInRegularAndScriptAsync(
             """
             class Program
             {
@@ -152,12 +141,10 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: FrameworkTypeInDeclaration));
-    }
 
     [Fact]
-    public async Task NotOnFrameworkTypeWithNoPredefinedKeywordEquivalent()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnFrameworkTypeWithNoPredefinedKeywordEquivalent()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -169,12 +156,10 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: FrameworkTypeInDeclaration));
-    }
 
     [Fact]
-    public async Task NotOnIdentifierThatIsNotTypeSyntax()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnIdentifierThatIsNotTypeSyntax()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -186,7 +171,6 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: FrameworkTypeInDeclaration));
-    }
 
     [Fact]
     public async Task QualifiedReplacementWhenNoUsingFound()
@@ -299,9 +283,8 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
     [InlineData(LanguageVersion.CSharp10)]
     [InlineData(LanguageVersion.CSharp11)]
-    public async Task TestNint_WithoutNumericIntPtr(LanguageVersion version)
-    {
-        await TestMissingInRegularAndScriptAsync($$"""
+    public Task TestNint_WithoutNumericIntPtr(LanguageVersion version)
+        => TestMissingInRegularAndScriptAsync($$"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" LanguageVersion="{{version.ToDisplayString()}}">
                     <Document>using System;
@@ -312,7 +295,6 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 </Project>
             </Workspace>
             """, new TestParameters(options: FrameworkTypeInDeclaration));
-    }
 
     [Fact]
     public async Task FieldDeclarationWithInitializer()

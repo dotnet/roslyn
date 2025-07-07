@@ -2425,9 +2425,8 @@ using System.Collections;";
     }
 
     [Theory, CombinatorialData]
-    public async Task TestHiddenLocationSymbol(TestHost testHost)
-    {
-        await VerifyNoItemForDocumentAsync(@"
+    public Task TestHiddenLocationSymbol(TestHost testHost)
+        => VerifyNoItemForDocumentAsync(@"
 public class {|target2:B|} : C
 {
 }
@@ -2438,7 +2437,6 @@ public class {|target1:C|}
 }",
             LanguageNames.CSharp,
             testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1988154/")]

@@ -19,9 +19,8 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
     internal override Type GetCompletionProviderType() => typeof(TupleNameCompletionProvider);
 
     [Fact]
-    public async Task AfterOpenParen()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AfterOpenParen()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -30,12 +29,10 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "word", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task AfterOpenParenWithBraceCompletion()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AfterOpenParenWithBraceCompletion()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -44,12 +41,10 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "word", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task AfterOpenParenInTupleExpression()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AfterOpenParenInTupleExpression()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -58,12 +53,10 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "word", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task AfterOpenParenInTupleExpressionWithBraceCompletion()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AfterOpenParenInTupleExpressionWithBraceCompletion()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -72,12 +65,10 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "word", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task AfterComma()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AfterComma()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -86,12 +77,10 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "zword", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task AfterCommaWithBraceCompletion()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AfterCommaWithBraceCompletion()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -100,12 +89,10 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "zword", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task InTupleAsArgument()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InTupleAsArgument()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 static void Main((int word, int zword) args)
@@ -114,7 +101,6 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "word", displayTextSuffix: ":");
-    }
 
     [Fact]
     public async Task MultiplePossibleTuples()

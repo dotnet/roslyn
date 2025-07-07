@@ -242,9 +242,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task ObjectInitializer()
-    {
-        await AssertFormatAsync("""
+    public Task ObjectInitializer()
+        => AssertFormatAsync("""
             public class C
             {
                 public C()
@@ -275,12 +274,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AnonymousType()
-    {
-        await AssertFormatAsync("""
+    public Task AnonymousType()
+        => AssertFormatAsync("""
             class C
             {
                 C()
@@ -313,12 +310,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MultilineLambda()
-    {
-        await AssertFormatAsync("""
+    public Task MultilineLambda()
+        => AssertFormatAsync("""
             class C
             {
                 C()
@@ -351,12 +346,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AnonymousMethod()
-    {
-        await AssertFormatAsync("""
+    public Task AnonymousMethod()
+        => AssertFormatAsync("""
             class C
             {
                 C()
@@ -379,12 +372,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen1()
-    {
-        await AssertFormatAsync("""
+    public Task Scen1()
+        => AssertFormatAsync("""
             namespace Namespace1
             {
                 class Program
@@ -450,12 +441,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen2()
-    {
-        await AssertFormatAsync("""
+    public Task Scen2()
+        => AssertFormatAsync("""
             namespace MyNamespace
             {
                 class Class1
@@ -750,12 +739,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen3()
-    {
-        await AssertFormatAsync("""
+    public Task Scen3()
+        => AssertFormatAsync("""
             namespace Namespace1
             {
                 class Program
@@ -778,12 +765,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen4()
-    {
-        await AssertFormatAsync("""
+    public Task Scen4()
+        => AssertFormatAsync("""
             class Class1
             {
                 //	public void goo()
@@ -802,12 +787,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             //	}
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen5()
-    {
-        await AssertFormatAsync("""
+    public Task Scen5()
+        => AssertFormatAsync("""
             class Class1
             {
                 public void Method()
@@ -830,12 +813,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen6()
-    {
-        await AssertFormatAsync("""
+    public Task Scen6()
+        => AssertFormatAsync("""
             namespace Namespace1
             {
                 class OuterClass
@@ -856,12 +837,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen7()
-    {
-        await AssertFormatAsync("""
+    public Task Scen7()
+        => AssertFormatAsync("""
             class Class1
             {
                 public void Method()
@@ -896,12 +875,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact]
-    public async Task Scen8()
-    {
-        await AssertFormatAsync("""
+    public Task Scen8()
+        => AssertFormatAsync("""
             class Class1
             {
                 public void Method()
@@ -918,12 +895,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                    }
             }
             """);
-    }
 
     [Fact]
-    public async Task IndentStatementsInMethod()
-    {
-        await AssertFormatAsync("""
+    public Task IndentStatementsInMethod()
+        => AssertFormatAsync("""
             class C
             {
                 void Goo()
@@ -944,12 +919,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task IndentFieldsInClass()
-    {
-        await AssertFormatAsync("""
+    public Task IndentFieldsInClass()
+        => AssertFormatAsync("""
             class C
             {
                 int a = 10;
@@ -964,12 +937,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
               int c;
             }
             """);
-    }
 
     [Fact]
-    public async Task IndentUserDefaultSettingTest()
-    {
-        await AssertFormatAsync("""
+    public Task IndentUserDefaultSettingTest()
+        => AssertFormatAsync("""
             class Class2
             {
                 public void nothing()
@@ -1048,7 +1019,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766133")]
     public async Task RelativeIndentationToFirstTokenInBaseTokenWithObjectInitializers()
@@ -1605,9 +1575,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task TestWrappingDefault()
-    {
-        await AssertFormatAsync("""
+    public Task TestWrappingDefault()
+        => AssertFormatAsync("""
             class Class5
             {
                 delegate void Del(int x);
@@ -1646,7 +1615,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }
             """);
-    }
 
     [Fact]
     public async Task TestWrappingNonDefault_FormatBlock()
@@ -1908,9 +1876,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
-    public async Task NewLineForOpenBracesDefault()
-    {
-        await AssertFormatAsync("""
+    public Task NewLineForOpenBracesDefault()
+        => AssertFormatAsync("""
             class f00
             {
                 void br()
@@ -2040,7 +2007,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact, WorkItem("https://developercommunity.visualstudio.com/content/problem/8808/c-structure-guide-lines-for-unsafe-fixed.html")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
@@ -2175,9 +2141,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task NewLineForKeywordDefault()
-    {
-        await AssertFormatAsync("""
+    public Task NewLineForKeywordDefault()
+        => AssertFormatAsync("""
             class c
             {
                 void f00()
@@ -2233,7 +2198,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact]
     public async Task NewLineForKeywordNonDefault()
@@ -2342,9 +2306,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task NewLineForExpressionDefault()
-    {
-        await AssertFormatAsync("""
+    public Task NewLineForExpressionDefault()
+        => AssertFormatAsync("""
             class f00
             {
                 void br()
@@ -2410,7 +2373,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task NewLineForExpressionNonDefault()
@@ -2483,9 +2445,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task Enums_Bug2586()
-    {
-        await AssertFormatAsync("""
+    public Task Enums_Bug2586()
+        => AssertFormatAsync("""
             enum E
             {
                 a = 10,
@@ -2500,16 +2461,14 @@ public sealed class FormattingTests : CSharpFormattingTestBase
               c
             }
             """);
-    }
 
     [Fact]
     public async Task DoNotInsertLineBreaksInSingleLineEnum()
         => await AssertFormatAsync(@"enum E { a = 10, b, c }", @"enum E { a = 10, b, c }");
 
     [Fact]
-    public async Task AlreadyFormattedSwitchIsNotFormatted_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task AlreadyFormattedSwitchIsNotFormatted_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2534,12 +2493,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task BreaksAreAlignedInSwitchCasesFormatted_Bug2587()
-    {
-        await AssertFormatAsync("""
+    public Task BreaksAreAlignedInSwitchCasesFormatted_Bug2587()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2564,12 +2521,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task BreaksAndBracesAreAlignedInSwitchCasesWithBracesFormatted_Bug2587()
-    {
-        await AssertFormatAsync("""
+    public Task BreaksAndBracesAreAlignedInSwitchCasesWithBracesFormatted_Bug2587()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2598,12 +2553,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LineBreaksAreNotInsertedForSwitchCasesOnASingleLine1()
-    {
-        await AssertFormatAsync("""
+    public Task LineBreaksAreNotInsertedForSwitchCasesOnASingleLine1()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2628,12 +2581,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LineBreaksAreNotInsertedForSwitchCasesOnASingleLine2()
-    {
-        await AssertFormatAsync("""
+    public Task LineBreaksAreNotInsertedForSwitchCasesOnASingleLine2()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2658,12 +2609,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatLabelAndGoto1_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task FormatLabelAndGoto1_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2682,12 +2631,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatLabelAndGoto2_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task FormatLabelAndGoto2_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2708,12 +2655,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatNestedLabelAndGoto1_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task FormatNestedLabelAndGoto1_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2738,12 +2683,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatNestedLabelAndGoto2_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task FormatNestedLabelAndGoto2_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2770,12 +2713,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AlreadyFormattedGotoLabelIsNotFormatted1_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task AlreadyFormattedGotoLabelIsNotFormatted1_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2794,12 +2735,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AlreadyFormattedGotoLabelIsNotFormatted2_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task AlreadyFormattedGotoLabelIsNotFormatted2_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2816,12 +2755,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AlreadyFormattedGotoLabelIsNotFormatted3_Bug2588()
-    {
-        await AssertFormatAsync("""
+    public Task AlreadyFormattedGotoLabelIsNotFormatted3_Bug2588()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2842,12 +2779,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotAddLineBreakBeforeWhere1_Bug2582()
-    {
-        await AssertFormatAsync("""
+    public Task DoNotAddLineBreakBeforeWhere1_Bug2582()
+        => AssertFormatAsync("""
             class C
             {
                 void M<T>() where T : I
@@ -2862,12 +2797,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotAddLineBreakBeforeWhere2_Bug2582()
-    {
-        await AssertFormatAsync("""
+    public Task DoNotAddLineBreakBeforeWhere2_Bug2582()
+        => AssertFormatAsync("""
             class C<T> where T : I
             {
             }
@@ -2876,12 +2809,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotAddSpaceAfterUnaryMinus()
-    {
-        await AssertFormatAsync("""
+    public Task DoNotAddSpaceAfterUnaryMinus()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2898,12 +2829,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotAddSpaceAfterUnaryPlus()
-    {
-        await AssertFormatAsync("""
+    public Task DoNotAddSpaceAfterUnaryPlus()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -2920,7 +2849,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545909")]
     public async Task DoNotAddSpaceAfterIncrement()
@@ -2983,9 +2911,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task Anchoring()
-    {
-        await AssertFormatAsync("""
+    public Task Anchoring()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -3006,12 +2933,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Exclamation()
-    {
-        await AssertFormatAsync("""
+    public Task Exclamation()
+        => AssertFormatAsync("""
             class C
             {
                 void M()
@@ -3028,12 +2953,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task StartAndEndTrivia()
-    {
-        await AssertFormatAsync("""
+    public Task StartAndEndTrivia()
+        => AssertFormatAsync("""
 
 
 
@@ -3054,12 +2977,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                                 
 
             """);
-    }
 
     [Fact]
-    public async Task FirstTriviaAndAnchoring1()
-    {
-        await AssertFormatAsync("""
+    public Task FirstTriviaAndAnchoring1()
+        => AssertFormatAsync("""
 
             namespace N
             {
@@ -3095,12 +3016,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
 
             """);
-    }
 
     [Fact]
-    public async Task FirstTriviaAndAnchoring2()
-    {
-        await AssertFormatAsync("""
+    public Task FirstTriviaAndAnchoring2()
+        => AssertFormatAsync("""
 
             namespace N
             {
@@ -3131,12 +3050,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
 
             """);
-    }
 
     [Fact]
-    public async Task FirstTriviaAndAnchoring3()
-    {
-        await AssertFormatAsync("""
+    public Task FirstTriviaAndAnchoring3()
+        => AssertFormatAsync("""
 
 
             class C
@@ -3164,12 +3081,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
 
 
             """);
-    }
 
     [Fact]
-    public async Task Base1()
-    {
-        await AssertFormatAsync("""
+    public Task Base1()
+        => AssertFormatAsync("""
             class C
             {
                 C() : base()
@@ -3184,12 +3099,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                         }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task This1()
-    {
-        await AssertFormatAsync("""
+    public Task This1()
+        => AssertFormatAsync("""
             class C
             {
                 C(int i) : this()
@@ -3208,12 +3121,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     C       (           )               {                       }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task QueryExpression1()
-    {
-        await AssertFormatAsync("""
+    public Task QueryExpression1()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3232,12 +3143,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task QueryExpression2()
-    {
-        await AssertFormatAsync("""
+    public Task QueryExpression2()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3260,12 +3169,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task QueryExpression3()
-    {
-        await AssertFormatAsync("""
+    public Task QueryExpression3()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3294,12 +3201,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task QueryExpression4()
-    {
-        await AssertFormatAsync("""
+    public Task QueryExpression4()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3324,12 +3229,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label1()
-    {
-        await AssertFormatAsync("""
+    public Task Label1()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3346,12 +3249,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label2()
-    {
-        await AssertFormatAsync("""
+    public Task Label2()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3370,12 +3271,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label3()
-    {
-        await AssertFormatAsync("""
+    public Task Label3()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3396,12 +3295,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label4()
-    {
-        await AssertFormatAsync("""
+    public Task Label4()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3422,12 +3319,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label5()
-    {
-        await AssertFormatAsync("""
+    public Task Label5()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3446,12 +3341,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label6()
-    {
-        await AssertFormatAsync("""
+    public Task Label6()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3472,12 +3365,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label7()
-    {
-        await AssertFormatAsync("""
+    public Task Label7()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3500,12 +3391,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task Label8()
-    {
-        await AssertFormatAsync("""
+    public Task Label8()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3526,12 +3415,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact]
-    public async Task AutoProperty()
-    {
-        await AssertFormatAsync("""
+    public Task AutoProperty()
+        => AssertFormatAsync("""
             class Class
             {
                 private int Age { get; set; }
@@ -3544,12 +3431,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                         public string Names                     {                        get;                      set;}
             }
             """);
-    }
 
     [Fact]
-    public async Task NormalPropertyGet()
-    {
-        await AssertFormatAsync("""
+    public Task NormalPropertyGet()
+        => AssertFormatAsync("""
             class Class
             {
                 private string name;
@@ -3574,12 +3459,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NormalPropertyBoth()
-    {
-        await AssertFormatAsync("""
+    public Task NormalPropertyBoth()
+        => AssertFormatAsync("""
             class Class
             {
                 private string name;
@@ -3612,12 +3495,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ErrorHandling1()
-    {
-        await AssertFormatAsync("""
+    public Task ErrorHandling1()
+        => AssertFormatAsync("""
             class C
             {
                 int Method()
@@ -3634,12 +3515,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     }
                 }           
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537763")]
-    public async Task NullableType()
-    {
-        await AssertFormatAsync("""
+    public Task NullableType()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3656,12 +3535,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537766")]
-    public async Task SuppressWrappingOnBraces()
-    {
-        await AssertFormatAsync("""
+    public Task SuppressWrappingOnBraces()
+        => AssertFormatAsync("""
             class Class1
             { }
 
@@ -3670,12 +3547,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             {}
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537824")]
-    public async Task DoWhile()
-    {
-        await AssertFormatAsync("""
+    public Task DoWhile()
+        => AssertFormatAsync("""
             public class Class1
             {
                 void Goo()
@@ -3698,12 +3573,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537774")]
-    public async Task SuppressWrappingBug()
-    {
-        await AssertFormatAsync("""
+    public Task SuppressWrappingBug()
+        => AssertFormatAsync("""
             class Class1
             {
                 int Goo()
@@ -3721,12 +3594,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537768")]
-    public async Task PreserveLineForAttribute()
-    {
-        await AssertFormatAsync("""
+    public Task PreserveLineForAttribute()
+        => AssertFormatAsync("""
             class Class1
             {
                 [STAThread]
@@ -3745,12 +3616,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537878")]
-    public async Task NoFormattingOnMissingTokens()
-    {
-        await AssertFormatAsync("""
+    public Task NoFormattingOnMissingTokens()
+        => AssertFormatAsync("""
             namespace ClassLibrary1
             {
                 class Class1
@@ -3775,12 +3644,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537783")]
-    public async Task UnaryExpression()
-    {
-        await AssertFormatAsync("""
+    public Task UnaryExpression()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3801,12 +3668,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
-    public async Task Pointer()
-    {
-        await AssertFormatAsync("""
+    public Task Pointer()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3825,7 +3690,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50723")]
     public async Task TuplePointer()
@@ -3845,9 +3709,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]
-    public async Task Tild()
-    {
-        await AssertFormatAsync("""
+    public Task Tild()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3868,12 +3731,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-    public async Task ArrayInitializer1()
-    {
-        await AssertFormatAsync("""
+    public Task ArrayInitializer1()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3896,12 +3757,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-    public async Task ArrayInitializer2()
-    {
-        await AssertFormatAsync("""
+    public Task ArrayInitializer2()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3924,12 +3783,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-    public async Task ImplicitArrayInitializer()
-    {
-        await AssertFormatAsync("""
+    public Task ImplicitArrayInitializer()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3952,12 +3809,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
-    public async Task StackAllocArrayInitializer0()
-    {
-        await AssertFormatAsync("""
+    public Task StackAllocArrayInitializer0()
+        => AssertFormatAsync("""
             F(stackalloc int[]
                 {
                     1,
@@ -3970,12 +3825,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     2,
                 }                );
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
-    public async Task StackAllocArrayInitializer0_Implicit()
-    {
-        await AssertFormatAsync("""
+    public Task StackAllocArrayInitializer0_Implicit()
+        => AssertFormatAsync("""
             F(stackalloc[]
                 {
                     1,
@@ -3990,12 +3843,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             );
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
-    public async Task StackAllocArrayInitializer1()
-    {
-        await AssertFormatAsync("""
+    public Task StackAllocArrayInitializer1()
+        => AssertFormatAsync("""
             F(
                 stackalloc int[]
                 {
@@ -4012,12 +3863,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             );
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
-    public async Task StackAllocArrayInitializer1_Implicit()
-    {
-        await AssertFormatAsync("""
+    public Task StackAllocArrayInitializer1_Implicit()
+        => AssertFormatAsync("""
             F(
                 stackalloc[]
                 {
@@ -4034,12 +3883,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             );
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
-    public async Task StackAllocArrayInitializer2()
-    {
-        await AssertFormatAsync("""
+    public Task StackAllocArrayInitializer2()
+        => AssertFormatAsync("""
             var x = (stackalloc int[] {1,2,
                  3
             });
@@ -4048,12 +3895,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                  3
             });
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
-    public async Task StackAllocArrayInitializer2_Implicit()
-    {
-        await AssertFormatAsync("""
+    public Task StackAllocArrayInitializer2_Implicit()
+        => AssertFormatAsync("""
             var x = (stackalloc[]
             {1,
                 2, 3
@@ -4064,12 +3909,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 2, 3
             });
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
-    public async Task CollectionInitializer()
-    {
-        await AssertFormatAsync("""
+    public Task CollectionInitializer()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -4092,12 +3935,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537916")]
-    public async Task AddressOfOperator()
-    {
-        await AssertFormatAsync("""
+    public Task AddressOfOperator()
+        => AssertFormatAsync("""
             unsafe class Class1
             {
                 void Method()
@@ -4118,12 +3959,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537885")]
-    public async Task DereferenceOperator()
-    {
-        await AssertFormatAsync("""
+    public Task DereferenceOperator()
+        => AssertFormatAsync("""
             unsafe class Class1
             {
                 void Method()
@@ -4146,21 +3985,17 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537905")]
-    public async Task Namespaces()
-    {
-        await AssertFormatAsync("""
+    public Task Namespaces()
+        => AssertFormatAsync("""
             using System;
             using System.Data;
             """, @"using System; using System.Data;");
-    }
 
     [Fact]
-    public async Task NamespaceDeclaration()
-    {
-        await AssertFormatAsync("""
+    public Task NamespaceDeclaration()
+        => AssertFormatAsync("""
             namespace N
             {
             }
@@ -4169,12 +4004,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537902")]
-    public async Task DoWhile1()
-    {
-        await AssertFormatAsync("""
+    public Task DoWhile1()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -4193,12 +4026,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NewConstraint()
-    {
-        await AssertFormatAsync("""
+    public Task NewConstraint()
+        => AssertFormatAsync("""
             class Program
             {
                 void Test<T>(T t) where T : new()
@@ -4213,12 +4044,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task UnaryExpressionWithInitializer()
-    {
-        await AssertFormatAsync("""
+    public Task UnaryExpressionWithInitializer()
+        => AssertFormatAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4249,12 +4078,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Attributes1()
-    {
-        await AssertFormatAsync("""
+    public Task Attributes1()
+        => AssertFormatAsync("""
             class Program
             {
                 [Flags] public void Method() { }
@@ -4265,12 +4092,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                     [   Flags       ]       public       void       Method      (       )           {           }
             }
             """);
-    }
 
     [Fact]
-    public async Task Attributes2()
-    {
-        await AssertFormatAsync("""
+    public Task Attributes2()
+        => AssertFormatAsync("""
             class Program
             {
                 [Flags]
@@ -4283,12 +4108,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             public       void       Method      (       )           {           }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538288")]
-    public async Task ColonColon1()
-    {
-        await AssertFormatAsync("""
+    public Task ColonColon1()
+        => AssertFormatAsync("""
             class Program
             {
                 public void Method()
@@ -4304,12 +4127,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
-    public async Task BugFix3939()
-    {
-        await AssertFormatAsync("""
+    public Task BugFix3939()
+        => AssertFormatAsync("""
             using
                   System.
                       Collections.
@@ -4320,16 +4141,14 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                                         Collections.
                                             Generic;
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")]
     public async Task Tab1()
         => await AssertFormatAsync(@"using System;", @"			using System;");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538329")]
-    public async Task SuppressLinkBreakInIfElseStatement()
-    {
-        await AssertFormatAsync("""
+    public Task SuppressLinkBreakInIfElseStatement()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -4350,12 +4169,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538464")]
-    public async Task BugFix4087()
-    {
-        await AssertFormatAsync("""
+    public Task BugFix4087()
+        => AssertFormatAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -4372,7 +4189,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538511")]
     public async Task AttributeTargetSpecifier()
@@ -9170,9 +8986,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100920")]
-    public async Task NoLineOperationAroundInterpolationSyntax()
-    {
-        await AssertFormatAsync("""
+    public Task NoLineOperationAroundInterpolationSyntax()
+        => AssertFormatAsync("""
             class Program
             {
                 static string F(int a, int b, int c)
@@ -9189,7 +9004,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62")]
     public async Task SpaceAfterWhenInExceptionFilter()
@@ -10095,9 +9909,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4720")]
-    public async Task KeepAccessorWithAttributeOnSingleLine()
-    {
-        await AssertFormatAsync("""
+    public Task KeepAccessorWithAttributeOnSingleLine()
+        => AssertFormatAsync("""
 
             class Program
             {
@@ -10118,7 +9931,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6905")]
     public async Task KeepConstructorBodyInSameLineAsBaseConstructorInitializer()
@@ -10155,9 +9967,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6905")]
-    public async Task KeepConstructorBodyInSameLineAsThisConstructorInitializerAdjustSpace()
-    {
-        await AssertFormatAsync("""
+    public Task KeepConstructorBodyInSameLineAsThisConstructorInitializerAdjustSpace()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10178,12 +9989,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4720")]
-    public async Task OneSpaceBetweenAccessorsAndAttributes()
-    {
-        await AssertFormatAsync("""
+    public Task OneSpaceBetweenAccessorsAndAttributes()
+        => AssertFormatAsync("""
 
             class Program
             {
@@ -10196,12 +10005,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 public int SomeProperty {    [SomeAttribute] get;    [SomeAttribute] private set; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
-    public async Task FormatEmbeddedStatementInsideLockStatement()
-    {
-        await AssertFormatAsync("""
+    public Task FormatEmbeddedStatementInsideLockStatement()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10222,12 +10029,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7900")]
-    public async Task FormatEmbeddedStatementInsideLockStatementDifferentLine()
-    {
-        await AssertFormatAsync("""
+    public Task FormatEmbeddedStatementInsideLockStatementDifferentLine()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10250,7 +10055,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task PropertyDeclarationSimple()
@@ -10380,9 +10184,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6628")]
-    public async Task FormatElseBlockBracesOnDifferentLineToNewLines()
-    {
-        await AssertFormatAsync("""
+    public Task FormatElseBlockBracesOnDifferentLineToNewLines()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10410,7 +10213,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6628")]
     public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_1()
@@ -10432,9 +10234,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11572")]
-    public async Task FormatAttributeOnSameLineAsField()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnSameLineAsField()
+        => AssertFormatAsync(
             """
 
             class C
@@ -10448,12 +10249,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 [Attr]   int   i;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21789")]
-    public async Task FormatMultipleAttributeOnSameLineAsField1()
-    {
-        await AssertFormatAsync(
+    public Task FormatMultipleAttributeOnSameLineAsField1()
+        => AssertFormatAsync(
             """
 
             class C
@@ -10471,12 +10270,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 [Attr3][Attr4]   int   i;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21789")]
-    public async Task FormatMultipleAttributesOnSameLineAsField2()
-    {
-        await AssertFormatAsync(
+    public Task FormatMultipleAttributesOnSameLineAsField2()
+        => AssertFormatAsync(
             """
 
             class C
@@ -10493,12 +10290,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 [Attr3][Attr4]   int   i;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21789")]
-    public async Task FormatMultipleAttributeOnSameLineAndFieldOnNewLine()
-    {
-        await AssertFormatAsync(
+    public Task FormatMultipleAttributeOnSameLineAndFieldOnNewLine()
+        => AssertFormatAsync(
             """
 
             class C
@@ -10515,7 +10310,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 int   i;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6628")]
     public async Task FormatOnElseBlockBracesOnSameLineRemainsInSameLine_2()
@@ -10542,9 +10336,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
         => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
     [Fact]
-    public async Task FormatIndexExpression()
-    {
-        await AssertFormatAsync("""
+    public Task FormatIndexExpression()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10565,12 +10358,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatRangeExpression_NoOperands()
-    {
-        await AssertFormatAsync("""
+    public Task FormatRangeExpression_NoOperands()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10591,12 +10382,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatRangeExpression_RightOperand()
-    {
-        await AssertFormatAsync("""
+    public Task FormatRangeExpression_RightOperand()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10617,12 +10406,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatRangeExpression_LeftOperand()
-    {
-        await AssertFormatAsync("""
+    public Task FormatRangeExpression_LeftOperand()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10643,12 +10430,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task FormatRangeExpression_BothOperands()
-    {
-        await AssertFormatAsync("""
+    public Task FormatRangeExpression_BothOperands()
+        => AssertFormatAsync("""
 
             class C
             {
@@ -10669,12 +10454,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32113")]
-    public async Task FormatCommaAfterCloseBrace_CommaRemainIntheSameLine()
-    {
-        await AssertFormatAsync(
+    public Task FormatCommaAfterCloseBrace_CommaRemainIntheSameLine()
+        => AssertFormatAsync(
             """
 
             public class Test
@@ -10703,12 +10486,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32113")]
-    public async Task FormatCommaAfterCloseBrace_SpaceSurroundWillBeRemoved()
-    {
-        await AssertFormatAsync(
+    public Task FormatCommaAfterCloseBrace_SpaceSurroundWillBeRemoved()
+        => AssertFormatAsync(
             """
 
             public class Test
@@ -10737,7 +10518,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31571")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33910")]
@@ -10830,9 +10610,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task ClassConstraint()
-    {
-        await AssertFormatAsync(
+    public Task ClassConstraint()
+        => AssertFormatAsync(
             """
 
             class Program<T>
@@ -10847,12 +10626,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             {
             }
             """);
-    }
 
     [Fact]
-    public async Task SingleLinePropertyPattern1()
-    {
-        await AssertFormatAsync(
+    public Task SingleLinePropertyPattern1()
+        => AssertFormatAsync(
             """
 
             using System.Collections.Generic;
@@ -10881,12 +10658,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SingleLinePropertyPattern2()
-    {
-        await AssertFormatAsync(
+    public Task SingleLinePropertyPattern2()
+        => AssertFormatAsync(
             """
 
             using System.Collections.Generic;
@@ -10909,7 +10684,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37030")]
     public async Task SpaceAroundEnumMemberDeclarationIgnored()
@@ -10964,9 +10738,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38895")]
-    public async Task FormattingNbsp()
-    {
-        await AssertFormatAsync(
+    public Task FormattingNbsp()
+        => AssertFormatAsync(
             """
 
             class C
@@ -10987,7 +10760,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 };
             }
             """.Replace("&nbsp;", "\u00A0"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47438")]
     public async Task IndentationForMultilineWith()
@@ -11210,9 +10982,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36913")]
-    public async Task NewLinesForBraces_SwitchExpression_Default()
-    {
-        await AssertFormatAsync(
+    public Task NewLinesForBraces_SwitchExpression_Default()
+        => AssertFormatAsync(
             """
 
             class A
@@ -11238,7 +11009,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36913")]
     public async Task NewLinesForBraces_SwitchExpression_NonDefault()
@@ -11276,9 +11046,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/discussions/49725")]
-    public async Task NewLinesForBraces_RecordWithInitializer_Default()
-    {
-        await AssertFormatAsync(
+    public Task NewLinesForBraces_RecordWithInitializer_Default()
+        => AssertFormatAsync(
             """
 
             record R(int X);
@@ -11306,7 +11075,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/discussions/49725")]
     public async Task NewLinesForBraces_RecordWithInitializer_NonDefault()
@@ -11400,9 +11168,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52413")]
-    public async Task NewLinesForBraces_PropertyPatternClauses_Default()
-    {
-        await AssertFormatAsync(
+    public Task NewLinesForBraces_PropertyPatternClauses_Default()
+        => AssertFormatAsync(
             """
 
             class A
@@ -11432,7 +11199,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52413")]
     public async Task NewLinesForBraces_PropertyPatternClauses_NonDefault()
@@ -11539,9 +11305,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task RecordClass()
-    {
-        await AssertFormatAsync(
+    public Task RecordClass()
+        => AssertFormatAsync(
             """
 
             record class R(int X);
@@ -11552,12 +11317,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             record  class  R(int X);
 
             """);
-    }
 
     [Fact]
-    public async Task Class()
-    {
-        await AssertFormatAsync(
+    public Task Class()
+        => AssertFormatAsync(
             """
 
             class R(int X);
@@ -11568,12 +11331,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             class  R(int X)  ;
 
             """);
-    }
 
     [Fact]
-    public async Task Interface()
-    {
-        await AssertFormatAsync(
+    public Task Interface()
+        => AssertFormatAsync(
             """
 
             interface R(int X);
@@ -11584,12 +11345,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             interface  R(int X)  ;
 
             """);
-    }
 
     [Fact]
-    public async Task RecordStruct()
-    {
-        await AssertFormatAsync(
+    public Task RecordStruct()
+        => AssertFormatAsync(
             """
 
             record struct R(int X);
@@ -11600,12 +11359,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             record  struct  R(int X);
 
             """);
-    }
 
     [Fact]
-    public async Task Struct()
-    {
-        await AssertFormatAsync(
+    public Task Struct()
+        => AssertFormatAsync(
             """
 
             struct R(int X);
@@ -11616,7 +11373,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             struct  R(int X)  ;
 
             """);
-    }
 
     [Fact]
     public async Task FormatListPattern()
@@ -11971,9 +11727,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task LambdaReturnType_01()
-    {
-        await AssertFormatAsync(
+    public Task LambdaReturnType_01()
+        => AssertFormatAsync(
             """
             class Program
             {
@@ -11986,12 +11741,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 Delegate D = void  ()  =>  {  };
             }
             """);
-    }
 
     [Fact]
-    public async Task LambdaReturnType_02()
-    {
-        await AssertFormatAsync(
+    public Task LambdaReturnType_02()
+        => AssertFormatAsync(
             """
             class Program
             {
@@ -12004,12 +11757,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 Delegate D = A.B()=>{  };
             }
             """);
-    }
 
     [Fact]
-    public async Task LambdaReturnType_03()
-    {
-        await AssertFormatAsync(
+    public Task LambdaReturnType_03()
+        => AssertFormatAsync(
             """
             class Program
             {
@@ -12022,12 +11773,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 Delegate D = A < B >  ( x ) => x;
             }
             """);
-    }
 
     [Fact]
-    public async Task LambdaReturnType_04()
-    {
-        await AssertFormatAsync(
+    public Task LambdaReturnType_04()
+        => AssertFormatAsync(
             """
             class Program
             {
@@ -12040,7 +11789,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 object F = Func((A,B)((A,B)t)=>t);
             }
             """);
-    }
 
     [Fact]
     public async Task LineSpanDirective()
@@ -12068,9 +11816,8 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     }
 
     [Fact]
-    public async Task FileScopedNamespace()
-    {
-        await AssertFormatAsync(
+    public Task FileScopedNamespace()
+        => AssertFormatAsync(
             expected: """
 
             namespace NS;
@@ -12085,12 +11832,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
                 class C { }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67400")]
-    public async Task FileScopedNamespaceNewline()
-    {
-        await AssertFormatAsync(
+    public Task FileScopedNamespaceNewline()
+        => AssertFormatAsync(
             expected: """
             namespace Some.Namespace;
 
@@ -12104,12 +11849,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewInImplicitObjectCreation()
-    {
-        await AssertFormatAsync(
+    public Task NewInImplicitObjectCreation()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12131,12 +11874,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewInTupleArrayCreation()
-    {
-        await AssertFormatAsync(
+    public Task NewInTupleArrayCreation()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12158,12 +11899,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewInArrayCreation()
-    {
-        await AssertFormatAsync(
+    public Task NewInArrayCreation()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12185,12 +11924,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewInImplicitArrayCreation()
-    {
-        await AssertFormatAsync(
+    public Task NewInImplicitArrayCreation()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12212,12 +11949,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewInConstructorConstraint()
-    {
-        await AssertFormatAsync(
+    public Task NewInConstructorConstraint()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12237,12 +11972,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewMethodOverloadWithTupleReturnType()
-    {
-        await AssertFormatAsync(
+    public Task NewMethodOverloadWithTupleReturnType()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12259,12 +11992,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewPropertyWithTupleReturnType()
-    {
-        await AssertFormatAsync(
+    public Task NewPropertyWithTupleReturnType()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12281,12 +12012,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56498")]
-    public async Task NewIndexerWithTupleReturnType()
-    {
-        await AssertFormatAsync(
+    public Task NewIndexerWithTupleReturnType()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12303,12 +12032,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnLambda()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnLambda()
+        => AssertFormatAsync(
             expected: """
 
             var f = [Attribute] () => { };
@@ -12319,12 +12046,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             var f =  [Attribute] () => { };
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnLambda_TwoAttributes()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnLambda_TwoAttributes()
+        => AssertFormatAsync(
             expected: """
 
             var f = [Attribute][Attribute2] () => { };
@@ -12335,12 +12060,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             var f =  [Attribute]  [Attribute2] () => { };
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnMethod_TwoAttributes()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnMethod_TwoAttributes()
+        => AssertFormatAsync(
             expected: """
 
             [Attribute][Attribute2]
@@ -12355,12 +12078,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             { }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnTypeParameter_TwoAttributes()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnTypeParameter_TwoAttributes()
+        => AssertFormatAsync(
             expected: """
 
             class C<[Attribute][Attribute2] T> { }
@@ -12371,12 +12092,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             class C<  [Attribute]  [Attribute2]  T  > { }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnTypeParameter_TwoAttributes_Method()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnTypeParameter_TwoAttributes_Method()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12393,12 +12112,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnParameter_TwoAttributes()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnParameter_TwoAttributes()
+        => AssertFormatAsync(
             expected: """
 
             class C
@@ -12415,12 +12132,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnLambdaWithExplicitType()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnLambdaWithExplicitType()
+        => AssertFormatAsync(
             expected: """
 
             var f = [Attribute] int () => 1;
@@ -12431,12 +12146,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             var f =  [Attribute] int () => 1;
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56543")]
-    public async Task FormatAttributeOnLambdaInInvocation()
-    {
-        await AssertFormatAsync(
+    public Task FormatAttributeOnLambdaInInvocation()
+        => AssertFormatAsync(
             expected: """
 
             f([Attribute] () => { });
@@ -12447,22 +12160,18 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             f( [Attribute] () => { });
 
             """);
-    }
 
     [Fact]
-    public async Task FormatAttributeOnLambdaParameter()
-    {
-        await AssertFormatAsync(expected: """
+    public Task FormatAttributeOnLambdaParameter()
+        => AssertFormatAsync(expected: """
             var f = ([Attribute] int x = 1) => x;
             """, code: """
             var f = (  [ Attribute ]int x=1)=>x;
             """);
-    }
 
     [Fact]
-    public async Task FormatRawStringInterpolation()
-    {
-        await AssertFormatAsync(
+    public Task FormatRawStringInterpolation()
+        => AssertFormatAsync(
             expected: """"
 
             var s = $"""{s}"""
@@ -12473,12 +12182,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             var s = $"""{s}"""
 
             """");
-    }
 
     [Fact]
-    public async Task FormatRawStringInterpolation2()
-    {
-        await AssertFormatAsync(
+    public Task FormatRawStringInterpolation2()
+        => AssertFormatAsync(
             expected: """"
 
             var s = $"""{s,0: x }"""
@@ -12489,12 +12196,10 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             var s = $"""{s, 0 : x }"""
 
             """");
-    }
 
     [Fact]
-    public async Task FormatUsingAliasToType1()
-    {
-        await AssertFormatAsync(
+    public Task FormatUsingAliasToType1()
+        => AssertFormatAsync(
             expected: """
 
             f([Attribute] () => { });
@@ -12505,7 +12210,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             f( [Attribute] () => { });
 
             """);
-    }
 
     [Theory]
     [InlineData("using X=int ;", "using X = int;")]
@@ -12518,27 +12222,22 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     [InlineData("global   using  unsafe  X=int * ;", "global using unsafe X = int*;")]
     [InlineData("using X=int ?;", "using X = int?;")]
     [InlineData("using X=delegate * <int,int> ;", "using X = delegate*<int, int>;")]
-    public async Task TestNormalizeUsingAlias(string text, string expected)
-    {
-        await AssertFormatAsync(expected, text);
-    }
+    public Task TestNormalizeUsingAlias(string text, string expected)
+        => AssertFormatAsync(expected, text);
 
     [Fact]
-    public async Task FormatNullConditionalAssignment()
-    {
-        await AssertFormatAsync(
+    public Task FormatNullConditionalAssignment()
+        => AssertFormatAsync(
             expected: """
             x?.y = z;
             """,
             code: """
              x ? . y  =  z ;
             """);
-    }
 
     [Fact]
-    public async Task TestExtension1()
-    {
-        await AssertFormatAsync(
+    public Task TestExtension1()
+        => AssertFormatAsync(
             """
             static class C
             {
@@ -12562,5 +12261,4 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
-    }
 }

@@ -252,9 +252,8 @@ class MyClass
     }
 
     [Fact]
-    public async Task TestIncrementalFixesFullLine()
-    {
-        await new Verify.Test
+    public Task TestIncrementalFixesFullLine()
+        => new Verify.Test
         {
             TestCode = @"
 class MyClass
@@ -275,7 +274,6 @@ class MyClass
             // require changes so the number of incremental iterations is exactly 2.
             NumberOfIncrementalIterations = 2,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestEditorConfigUsed()

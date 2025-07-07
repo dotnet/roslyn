@@ -40,10 +40,8 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
         public class C [|{|]
         [|}|]$$
         """)]
-    public async Task TestCurlies(string testCase)
-    {
-        await TestBraceHighlightingAsync(testCase);
-    }
+    public Task TestCurlies(string testCase)
+        => TestBraceHighlightingAsync(testCase);
 
     [WpfTheory]
     [InlineData("""
@@ -81,10 +79,8 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
           public void Goo()[|{|][|}|]$$
         }
         """)]
-    public async Task TestTouchingItems(string testCase)
-    {
-        await TestBraceHighlightingAsync(testCase);
-    }
+    public Task TestTouchingItems(string testCase)
+        => TestBraceHighlightingAsync(testCase);
 
     [WpfTheory]
     [InlineData("/// $$<summary>Goo</summary>")]
@@ -105,10 +101,8 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
     [InlineData("unsafe class C { delegate*$$[|<|] int, int[|>|] functionPointer; }")]
     [InlineData("unsafe class C { delegate*[|<|]int, int[|>$$|] functionPointer; }")]
     [InlineData("unsafe class C { delegate*<int, delegate*[|<|]int, int[|>|]$$> functionPointer; }")]
-    public async Task TestAngles(string testCase)
-    {
-        await TestBraceHighlightingAsync(testCase);
-    }
+    public Task TestAngles(string testCase)
+        => TestBraceHighlightingAsync(testCase);
 
     [WpfFact]
     public async Task TestNoHighlightingOnOperators()
@@ -644,10 +638,8 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
     [InlineData(@" [|/*|] goo [|*$$/|] public class C { }")]
     [InlineData(@" [|/*|] goo [|*/|]$$ public class C { }")]
     [InlineData(@" /* goo */ $$public class C { }")]
-    public async Task TestBlockComments(string input)
-    {
-        await TestBraceHighlightingAsync(input);
-    }
+    public Task TestBlockComments(string input)
+        => TestBraceHighlightingAsync(input);
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/32791")]
     [InlineData(@"$$ /** goo */ public class C { }")]
@@ -661,8 +653,6 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
     [InlineData(@" [|/**|] goo [|*$$/|] public class C { }")]
     [InlineData(@" [|/**|] goo [|*/|]$$ public class C { }")]
     [InlineData(@" /** goo */ $$public class C { }")]
-    public async Task TestDocCommentBlockComments(string input)
-    {
-        await TestBraceHighlightingAsync(input);
-    }
+    public Task TestDocCommentBlockComments(string input)
+        => TestBraceHighlightingAsync(input);
 }

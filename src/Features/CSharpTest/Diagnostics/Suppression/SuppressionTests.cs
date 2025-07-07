@@ -51,9 +51,8 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 => Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
 
             [Fact]
-            public async Task TestPragmaWarningDirective()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirective()
+                => TestAsync(
     @"
 class Class
 {
@@ -72,12 +71,10 @@ class Class
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
-            }
 
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26015")]
-            public async Task TestPragmaWarningDirectiveAroundMultiLineStatement()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundMultiLineStatement()
+                => TestAsync(
     @"
 class Class
 {
@@ -98,12 +95,10 @@ line"";
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
-            }
 
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56165")]
-            public async Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
+                => TestAsync(
         @"
 using System;
 
@@ -136,12 +131,10 @@ hi {{new Session()}}
 #pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
     }}
 }}");
-            }
 
             [Fact]
-            public async Task TestMultilineStatementPragmaWarningDirective()
-            {
-                await TestAsync(
+            public Task TestMultilineStatementPragmaWarningDirective()
+                => TestAsync(
     @"
 class Class
 {
@@ -162,12 +155,10 @@ class Class
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
-            }
 
             [Fact]
-            public async Task TestMultilineStatementPragmaWarningDirective2()
-            {
-                await TestAsync(
+            public Task TestMultilineStatementPragmaWarningDirective2()
+                => TestAsync(
     @"
 class Class
 {
@@ -188,12 +179,10 @@ class Class
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
-            }
 
             [Fact]
-            public async Task TestPragmaWarningDirectiveWithExistingTrivia()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveWithExistingTrivia()
+                => TestAsync(
     @"
 class Class
 {
@@ -217,12 +206,10 @@ class Class
         /* End comment next line */
     }}
 }}");
-            }
 
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16681")]
-            public async Task TestPragmaWarningDirectiveWithDocumentationComment1()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveWithDocumentationComment1()
+                => TestAsync(
     @"
 sealed class Class
 {
@@ -241,12 +228,10 @@ sealed class Class
     {{
     }}
 }}");
-            }
 
             [Fact]
-            public async Task TestPragmaWarningExpressionBodiedMember1()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningExpressionBodiedMember1()
+                => TestAsync(
     @"
 sealed class Class
 {
@@ -259,12 +244,10 @@ sealed class Class
     protected int Method() => 1;
 #pragma warning restore CS0628 // {CSharpResources.WRN_ProtectedInSealed_Title}
 }}");
-            }
 
             [Fact]
-            public async Task TestPragmaWarningExpressionBodiedMember2()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningExpressionBodiedMember2()
+                => TestAsync(
         @"
 using System;
 
@@ -293,12 +276,10 @@ class Class
         "";
 #pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
 }}");
-            }
 
             [Fact]
-            public async Task TestPragmaWarningExpressionBodiedLocalFunction()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningExpressionBodiedLocalFunction()
+                => TestAsync(
         @"
 using System;
 
@@ -333,12 +314,10 @@ class Class
 #pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
     }}
 }}");
-            }
 
             [Fact]
-            public async Task TestPragmaWarningExpressionBodiedLambda()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningExpressionBodiedLambda()
+                => TestAsync(
         @"
 using System;
 
@@ -373,12 +352,10 @@ class Class
 #pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
     }}
 }}");
-            }
 
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16681")]
-            public async Task TestPragmaWarningDirectiveWithDocumentationComment2()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveWithDocumentationComment2()
+                => TestAsync(
     @"
 sealed class Class
 {
@@ -404,12 +381,10 @@ sealed class Class
     {{
     }}
 }}", new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose));
-            }
 
             [Fact]
-            public async Task TestMultipleInstancesOfPragmaWarningDirective()
-            {
-                await TestAsync(
+            public Task TestMultipleInstancesOfPragmaWarningDirective()
+                => TestAsync(
     @"
 class Class
 {
@@ -428,7 +403,6 @@ class Class
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
-            }
 
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3311")]
             public async Task TestNoDuplicateSuppressionCodeFixes()
@@ -480,9 +454,8 @@ class Class
             }
 
             [Fact]
-            public async Task TestErrorAndWarningScenario()
-            {
-                await TestAsync(
+            public Task TestErrorAndWarningScenario()
+                => TestAsync(
     @"
 class Class
 {
@@ -503,22 +476,18 @@ class Class
 #pragma warning restore CS0162 // {CSharpResources.WRN_UnreachableCode_Title}
     }}
 }}");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/956453")]
-            public async Task TestWholeFilePragmaWarningDirective()
-            {
-                await TestAsync(
+            public Task TestWholeFilePragmaWarningDirective()
+                => TestAsync(
     @"class Class { void Method() { [|int x = 0;|] } }",
     $@"#pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
 class Class {{ void Method() {{ int x = 0; }} }}
 #pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/970129")]
-            public async Task TestSuppressionAroundSingleToken()
-            {
-                await TestAsync(
+            public Task TestSuppressionAroundSingleToken()
+                => TestAsync(
     @"
 using System;
 [Obsolete]
@@ -543,12 +512,10 @@ class Program
 #pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
     }}
 }}");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-            public async Task TestPragmaWarningDirectiveAroundTrivia1()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundTrivia1()
+                => TestAsync(
     @"
 class Class
 {
@@ -581,32 +548,26 @@ class Class
 
 
 }}");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-            public async Task TestPragmaWarningDirectiveAroundTrivia2()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundTrivia2()
+                => TestAsync(
     @"[|#pragma abcde|]",
     $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-            public async Task TestPragmaWarningDirectiveAroundTrivia3()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundTrivia3()
+                => TestAsync(
     @"[|#pragma abcde|]  ",
     $@"#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 #pragma abcde  
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-            public async Task TestPragmaWarningDirectiveAroundTrivia4()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundTrivia4()
+                => TestAsync(
     @"
 
 [|#pragma abc|]
@@ -621,12 +582,10 @@ class C {{ }}
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 
 ");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-            public async Task TestPragmaWarningDirectiveAroundTrivia5()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundTrivia5()
+                => TestAsync(
     @"class C1 { }
 [|#pragma abc|]
 class C2 { }
@@ -637,12 +596,10 @@ class C3 { }",
 class C2 {{ }}
 #pragma warning restore CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
 class C3 {{ }}");
-            }
 
             [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1066576")]
-            public async Task TestPragmaWarningDirectiveAroundTrivia6()
-            {
-                await TestAsync(
+            public Task TestPragmaWarningDirectiveAroundTrivia6()
+                => TestAsync(
     @"class C1 { }
 class C2 { } /// <summary><see [|cref=""abc""|]/></summary>
 class C3 { } // comment
@@ -656,7 +613,6 @@ class
 C3 {{ }} // comment
   // comment
 // comment", CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
-            }
         }
 
         public sealed class UserHiddenDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
@@ -668,9 +624,8 @@ C3 {{ }} // comment
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public async Task TestHiddenDiagnosticCannotBeSuppressed()
-            {
-                await TestMissingAsync(
+            public Task TestHiddenDiagnosticCannotBeSuppressed()
+                => TestMissingAsync(
     @"
 using System;
 
@@ -682,7 +637,6 @@ int Method()
     return x;
 }
 }");
-            }
         }
 
         public sealed partial class UserInfoDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
@@ -717,9 +671,8 @@ int Method()
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public async Task TestInfoDiagnosticSuppressed()
-            {
-                await TestAsync(
+            public Task TestInfoDiagnosticSuppressed()
+                => TestAsync(
         @"
 using System;
 
@@ -742,7 +695,6 @@ class Class
         int x = 0;
     }
 }");
-            }
         }
 
         public sealed partial class FormattingDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
@@ -767,9 +719,8 @@ class Class
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem("https://github.com/dotnet/roslyn/issues/38587")]
-            public async Task TestFormattingDiagnosticSuppressed()
-            {
-                await TestAsync(
+            public Task TestFormattingDiagnosticSuppressed()
+                => TestAsync(
         @"
 using System;
 
@@ -792,7 +743,6 @@ class Class
 #pragma warning restore format
     }
 }");
-            }
         }
 
         public sealed class UserErrorDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
@@ -827,9 +777,8 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public async Task TestErrorDiagnosticCanBeSuppressed()
-            {
-                await TestAsync(
+            public Task TestErrorDiagnosticCanBeSuppressed()
+                => TestAsync(
         @"
 using System;
 
@@ -852,7 +801,6 @@ class Class
         int x = 0;
     }
 }");
-            }
         }
 
         public sealed class DiagnosticWithBadIdSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
@@ -890,10 +838,8 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public async Task TestDiagnosticWithBadIdSuppressed()
-            {
-                // Diagnostics with bad/invalid ID are not reported.
-                await TestMissingAsync(
+            public Task TestDiagnosticWithBadIdSuppressed()
+                => TestMissingAsync(
         @"
 using System;
 
@@ -904,7 +850,6 @@ using System;
         int x = 0;
     }
 }");
-            }
         }
     }
 
@@ -941,9 +886,8 @@ using System;
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/2764")]
-        public async Task TestPragmaWarningDirectiveAroundMultilineDiagnostic()
-        {
-            await TestAsync(
+        public Task TestPragmaWarningDirectiveAroundMultilineDiagnostic()
+            => TestAsync(
 @"
 [|class Class
 {
@@ -956,7 +900,6 @@ class Class
 }}
 #pragma warning restore {UserDiagnosticAnalyzer.Decsciptor.Id} // {UserDiagnosticAnalyzer.Decsciptor.Title}
 ");
-        }
     }
     #endregion
 
@@ -972,10 +915,8 @@ class Class
                 => Tuple.Create<DiagnosticAnalyzer, IConfigurationFixProvider>(null, new CSharpSuppressionCodeFixProvider());
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public async Task TestCompilerDiagnosticsCannotBeSuppressed()
-            {
-                // Another test verifies we have a pragma warning action for this source, this verifies there are no other suppression actions.
-                await TestActionCountAsync(
+            public Task TestCompilerDiagnosticsCannotBeSuppressed()
+                => TestActionCountAsync(
     @"
 class Class
 {
@@ -984,7 +925,6 @@ class Class
         [|int x = 0;|]
     }
 }", 1);
-            }
         }
 
         public sealed class FormattingDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
@@ -1009,10 +949,8 @@ class Class
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem("https://github.com/dotnet/roslyn/issues/38587")]
-            public async Task TestCompilerDiagnosticsCannotBeSuppressed()
-            {
-                // Another test verifies we have a pragma warning action for this source, this verifies there are no other suppression actions.
-                await TestActionCountAsync(
+            public Task TestCompilerDiagnosticsCannotBeSuppressed()
+                => TestActionCountAsync(
     @"
 class Class
 {
@@ -1021,7 +959,6 @@ class Class
         [|int x = 0 ;|]
     }
 }", 1);
-            }
         }
 
         public sealed class UserHiddenDiagnosticSuppressionTests : CSharpGlobalSuppressMessageSuppressionTests
@@ -1033,9 +970,8 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public async Task TestHiddenDiagnosticsCannotBeSuppressed()
-            {
-                await TestMissingAsync(
+            public Task TestHiddenDiagnosticsCannotBeSuppressed()
+                => TestMissingAsync(
     @"
 using System;
 class Class
@@ -1045,7 +981,6 @@ class Class
         [|System.Int32 x = 0;|]
     }
 }");
-            }
         }
 
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
@@ -2471,9 +2406,8 @@ namespace ClassLibrary10
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073825")]
-        public async Task TestDiagnosticWithoutLocationCanBeSuppressed()
-        {
-            await TestAsync(
+        public Task TestDiagnosticWithoutLocationCanBeSuppressed()
+            => TestAsync(
     @"[||]
 using System;
 
@@ -2493,7 +2427,6 @@ using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""NoLocationDiagnostic"", ""NoLocationDiagnostic:NoLocationDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
 ");
-        }
     }
 
     #endregion

@@ -21,9 +21,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseRangeOperatorTests
 {
     [Fact]
-    public async Task TestNotInCSharp7()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp7()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -37,7 +36,6 @@ public sealed class UseRangeOperatorTests
             """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestWithMissingReference()
@@ -77,9 +75,8 @@ public sealed class UseRangeOperatorTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36909")]
-    public async Task TestNotWithoutSystemRange()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithoutSystemRange()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
             TestCode = """
@@ -93,7 +90,6 @@ public sealed class UseRangeOperatorTests
             """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestNotWithInaccessibleSystemRange()
@@ -133,9 +129,8 @@ public sealed class UseRangeOperatorTests
     }
 
     [Fact]
-    public async Task TestSimple()
-    {
-        await new VerifyCS.Test
+    public Task TestSimple()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -157,7 +152,6 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
     public async Task TestMultipleDefinitions()
@@ -205,9 +199,8 @@ public sealed class UseRangeOperatorTests
     }
 
     [Fact]
-    public async Task TestComplexSubstraction()
-    {
-        await new VerifyCS.Test
+    public Task TestComplexSubstraction()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -229,12 +222,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSubstringOneArgument()
-    {
-        await new VerifyCS.Test
+    public Task TestSubstringOneArgument()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -256,12 +247,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSliceOneArgument()
-    {
-        await new VerifyCS.Test
+    public Task TestSliceOneArgument()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -285,12 +274,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExpressionOneArgument()
-    {
-        await new VerifyCS.Test
+    public Task TestExpressionOneArgument()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -312,12 +299,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConstantSubtraction1()
-    {
-        await new VerifyCS.Test
+    public Task TestConstantSubtraction1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -339,12 +324,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithoutSubtraction()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithoutSubtraction()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -358,12 +341,10 @@ public sealed class UseRangeOperatorTests
             """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonStringType()
-    {
-        await new VerifyCS.Test
+    public Task TestNonStringType()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -387,12 +368,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonStringTypeWithoutRangeIndexer()
-    {
-        await new VerifyCS.Test
+    public Task TestNonStringTypeWithoutRangeIndexer()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -416,12 +395,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNonStringType_Assignment()
-    {
-        await new VerifyCS.Test
+    public Task TestNonStringType_Assignment()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -445,12 +422,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMethodToMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestMethodToMethod()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -474,15 +449,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAllInvocationToElementAccess1()
-    {
-        // Note: once the IOp tree has support for range operators, this should 
-        // simplify even further.
-
-        await new VerifyCS.Test
+    public Task TestFixAllInvocationToElementAccess1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -504,15 +474,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAllInvocationToElementAccess2()
-    {
-        // Note: once the IOp tree has support for range operators, this should 
-        // simplify even further.
-
-        await new VerifyCS.Test
+    public Task TestFixAllInvocationToElementAccess2()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -534,12 +499,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithTypeWithActualSliceMethod1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithTypeWithActualSliceMethod1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -563,12 +526,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithTypeWithActualSliceMethod2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithTypeWithActualSliceMethod2()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -592,12 +553,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43202")]
-    public async Task TestWritableType()
-    {
-        await new VerifyCS.Test
+    public Task TestWritableType()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -617,11 +576,9 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
     [Fact]
-    public async Task TestReturnByRef()
-    {
-        await new VerifyCS.Test
+    public Task TestReturnByRef()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -645,12 +602,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43202")]
-    public async Task TestIntWritableType()
-    {
-        await new VerifyCS.Test
+    public Task TestIntWritableType()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -686,12 +641,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43202")]
-    public async Task TestReadWriteProperty()
-    {
-        await new VerifyCS.Test
+    public Task TestReadWriteProperty()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -727,12 +680,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithTypeWithActualSliceMethod3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithTypeWithActualSliceMethod3()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -756,12 +707,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36997")]
-    public async Task TestExpressionWithAddOperatorArgument()
-    {
-        await new VerifyCS.Test
+    public Task TestExpressionWithAddOperatorArgument()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -783,12 +732,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExpressionWithElementAccessShouldNotAddParentheses()
-    {
-        await new VerifyCS.Test
+    public Task TestExpressionWithElementAccessShouldNotAddParentheses()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -810,12 +757,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47183")]
-    public async Task TestExpressionWithNullConditionalAccess()
-    {
-        await new VerifyCS.Test
+    public Task TestExpressionWithNullConditionalAccess()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -835,12 +780,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47183")]
-    public async Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
-    {
-        await new VerifyCS.Test
+    public Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -858,7 +801,6 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47183")]
     [InlineData(
@@ -876,9 +818,8 @@ public sealed class UseRangeOperatorTests
     [InlineData(
         "c?.Prop?.Substring([|42|])",
         "c?.Prop?[42..]")]
-    public async Task TestExpressionWithNullConditionalAccessVariations(string subStringCode, string rangeCode)
-    {
-        await new VerifyCS.Test
+    public Task TestExpressionWithNullConditionalAccessVariations(string subStringCode, string rangeCode)
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = $$"""
@@ -904,12 +845,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38055")]
-    public async Task TestStringMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestStringMethod()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = new ReferenceAssemblies("nostdlib"),
             TestCode = """
@@ -967,12 +906,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38055")]
-    public async Task TestSliceOnThis()
-    {
-        await new VerifyCS.Test
+    public Task TestSliceOnThis()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -994,12 +931,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
-    public async Task TestStartingFromZero()
-    {
-        await new VerifyCS.Test
+    public Task TestStartingFromZero()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1021,12 +956,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
-    public async Task TestStartingFromAribtraryPosition()
-    {
-        await new VerifyCS.Test
+    public Task TestStartingFromAribtraryPosition()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1048,12 +981,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
-    public async Task TestStartingFromZeroToArbitraryEnd()
-    {
-        await new VerifyCS.Test
+    public Task TestStartingFromZeroToArbitraryEnd()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1075,12 +1006,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56269")]
-    public async Task TestStartingFromZeroGoingToLength()
-    {
-        await new VerifyCS.Test
+    public Task TestStartingFromZeroGoingToLength()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1102,12 +1031,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40438")]
-    public async Task TestStartingFromZeroGoingToLengthMinus1()
-    {
-        await new VerifyCS.Test
+    public Task TestStartingFromZeroGoingToLengthMinus1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1129,12 +1056,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49347")]
-    public async Task TestNotInExpressionTree()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInExpressionTree()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1150,12 +1075,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(60988, "https://github.com/dotnet/roslyn/issues/60988")]
-    public async Task TestCheckedExpression()
-    {
-        await new VerifyCS.Test
+    public Task TestCheckedExpression()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode =
@@ -1189,12 +1112,10 @@ public sealed class UseRangeOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestRemoveFromZeroToArbitraryLocation()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveFromZeroToArbitraryLocation()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1216,12 +1137,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestRemoveFromZeroToArbitraryLocation1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveFromZeroToArbitraryLocation1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1243,12 +1162,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestRemoveFromZeroToLengthMinusSomeAmount()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveFromZeroToLengthMinusSomeAmount()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1270,12 +1187,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestRemoveFromZeroToLengthMinusSomeAmount1()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveFromZeroToLengthMinusSomeAmount1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1297,12 +1212,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestRemoveFromPositionToLengthMinusThatPosition()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveFromPositionToLengthMinusThatPosition()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1324,12 +1237,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestRemoveFromLengthMinusPositionToPosition()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveFromLengthMinusPositionToPosition()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1351,12 +1262,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestRemoveFromLengthMinusPositionToPosition2()
-    {
-        await new VerifyCS.Test
+    public Task TestRemoveFromLengthMinusPositionToPosition2()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1378,12 +1287,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestOneArgRemove()
-    {
-        await new VerifyCS.Test
+    public Task TestOneArgRemove()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1405,12 +1312,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestOneArgRemove1()
-    {
-        await new VerifyCS.Test
+    public Task TestOneArgRemove1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1432,12 +1337,10 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76091")]
-    public async Task TestOneArgFromEnd()
-    {
-        await new VerifyCS.Test
+    public Task TestOneArgFromEnd()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -1459,5 +1362,4 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
-    }
 }

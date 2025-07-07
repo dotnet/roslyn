@@ -29,9 +29,8 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
         => (new CSharpSimplifyThisOrMeDiagnosticAnalyzer(), new CSharpSimplifyThisOrMeCodeFixProvider());
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
-    public async Task TestSimplifyDiagnosticId()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimplifyDiagnosticId()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -56,13 +55,11 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/6682")]
-    public async Task TestThisWithNoType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestThisWithNoType()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -85,12 +82,10 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
-    public async Task TestAppropriateDiagnosticOnMissingQualifier()
-    {
-        await TestDiagnosticInfoAsync(
+    public Task TestAppropriateDiagnosticOnMissingQualifier()
+        => TestDiagnosticInfoAsync(
             """
             class C
             {
@@ -105,7 +100,6 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
             options: Option(CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Warning),
             diagnosticId: IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]

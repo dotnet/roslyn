@@ -256,9 +256,8 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
     }
 
     [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-    public async Task TestChangeToIEnumerableProperty()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestChangeToIEnumerableProperty()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -335,12 +334,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-    public async Task TestChangeToIEnumerableOperator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestChangeToIEnumerableOperator()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections;
@@ -373,12 +370,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-    public async Task TestChangeToIEnumerableIndexer()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestChangeToIEnumerableIndexer()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -413,5 +408,4 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 }

@@ -161,16 +161,14 @@ internal sealed partial class WorkspaceInProcess
         await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);
     }
 
-    public async Task WaitForRenameAsync(CancellationToken cancellationToken)
-    {
-        await WaitForAllAsyncOperationsAsync(
+    public Task WaitForRenameAsync(CancellationToken cancellationToken)
+        => WaitForAllAsyncOperationsAsync(
             [
                 FeatureAttribute.Rename,
                 FeatureAttribute.RenameTracking,
                 FeatureAttribute.InlineRenameFlyout,
             ],
             cancellationToken);
-    }
 
     /// <summary>
     /// This event listener is an adapter to expose asynchronous file save operations to Roslyn via its standard

@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
     public class TypeConversionAllocationAnalyzerTests
     {
         [Fact]
-        public async Task TypeConversionAllocation_ArgumentSyntaxAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TypeConversionAllocation_ArgumentSyntaxAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -45,7 +44,6 @@ public class MyObject
                 VerifyCS.Diagnostic(TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule).WithLocation(19, 26)
 #pragma warning restore RS0030 // Do not use banned APIs
             );
-        }
 
         [Fact]
         public async Task TypeConversionAllocation_ArgumentSyntax_WithDelegatesAsync()

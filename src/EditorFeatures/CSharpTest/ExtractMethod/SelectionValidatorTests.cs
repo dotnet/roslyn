@@ -702,9 +702,8 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
     }
 
     [Fact]
-    public async Task SelectIfWithReturn()
-    {
-        await TestExtractMethodAsync("""
+    public Task SelectIfWithReturn()
+        => TestExtractMethodAsync("""
             class A
             {
                 public void Method1()
@@ -737,7 +736,6 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task SelectConstIfWithReturn()
@@ -758,9 +756,8 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
     }
 
     [Fact]
-    public async Task SelectReturnButNotAllCodePathsContainAReturn()
-    {
-        await TestExtractMethodAsync("""
+    public Task SelectReturnButNotAllCodePathsContainAReturn()
+        => TestExtractMethodAsync("""
             class A
             {
                 public void Method1(bool b1, bool b2)
@@ -799,12 +796,10 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task SelectIfBranchWhereNotAllPathsReturn()
-    {
-        await TestExtractMethodAsync("""
+    public Task SelectIfBranchWhereNotAllPathsReturn()
+        => TestExtractMethodAsync("""
             class A
             {
                 int Method8(int i)
@@ -856,7 +851,6 @@ public sealed class SelectionValidatorTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task SelectCatchFilterClause()

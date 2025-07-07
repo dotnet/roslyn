@@ -236,9 +236,8 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     }
 
     [Fact]
-    public async Task TestInvocationSpan1()
-    {
-        await TestAsync(
+    public Task TestInvocationSpan1()
+        => TestAsync(
             """
             using System;
 
@@ -250,12 +249,10 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInvocationSpan2()
-    {
-        await TestAsync(
+    public Task TestInvocationSpan2()
+        => TestAsync(
             """
             using System;
 
@@ -267,12 +264,10 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInvocationSpan3()
-    {
-        await TestAsync(
+    public Task TestInvocationSpan3()
+        => TestAsync(
             """
             using System;
 
@@ -286,7 +281,6 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
                 }
             }
             """);
-    }
 
     #endregion
 

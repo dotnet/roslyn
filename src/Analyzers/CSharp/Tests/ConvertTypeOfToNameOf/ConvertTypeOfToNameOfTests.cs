@@ -235,9 +235,8 @@ public sealed partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact]
-    public async Task GenericType_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task GenericType_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -253,12 +252,10 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task GenericType_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task GenericType_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -274,12 +271,10 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task UnboundGenericType_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task UnboundGenericType_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -295,12 +290,10 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task UnboundGenericType_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task UnboundGenericType_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class Test
@@ -316,7 +309,6 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
     public async Task NestedInGenericType()
@@ -355,9 +347,8 @@ public sealed partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType2_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType2_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -385,12 +376,10 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType2_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType2_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -418,12 +407,10 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType_UnboundTypeof_CSharp13()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType_UnboundTypeof_CSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -439,12 +426,10 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
-    public async Task NestedInGenericType_UnboundTypeof_CSharp14()
-    {
-        await new VerifyCS.Test
+    public Task NestedInGenericType_UnboundTypeof_CSharp14()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -472,7 +457,6 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = CSharp14,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54233")]
     public async Task NotOnVoid()
@@ -490,9 +474,8 @@ public sealed partial class ConvertTypeOfToNameOfTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47128")]
-    public async Task TestNint()
-    {
-        await new VerifyCS.Test
+    public Task TestNint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -518,5 +501,4 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 }

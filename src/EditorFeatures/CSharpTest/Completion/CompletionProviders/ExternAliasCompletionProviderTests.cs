@@ -20,15 +20,13 @@ public sealed class ExternAliasCompletionProviderTests : AbstractCSharpCompletio
         => typeof(ExternAliasCompletionProvider);
 
     [Fact]
-    public async Task NoAliases()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NoAliases()
+        => VerifyNoItemsExistAsync("""
             extern alias $$
             class C
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     public async Task ExternAlias()

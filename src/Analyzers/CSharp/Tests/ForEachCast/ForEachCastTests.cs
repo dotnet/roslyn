@@ -18,10 +18,9 @@ using VerifyCS = CSharpCodeFixVerifier<
 
 public sealed class ForEachCastTests
 {
-    private static async Task TestWorkerAsync(
+    private static Task TestWorkerAsync(
         string testCode, string fixedCode, string optionValue, ReferenceAssemblies? referenceAssemblies)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
@@ -31,7 +30,6 @@ public sealed class ForEachCastTests
             """ + optionValue,
             ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
         }.RunAsync();
-    }
 
     private static Task TestAlwaysAsync(string markup, string alwaysMarkup, ReferenceAssemblies? referenceAssemblies = null)
         => TestWorkerAsync(markup, alwaysMarkup, "always", referenceAssemblies);

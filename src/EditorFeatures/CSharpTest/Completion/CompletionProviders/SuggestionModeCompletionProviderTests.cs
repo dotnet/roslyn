@@ -22,18 +22,12 @@ public sealed class SuggestionModeCompletionProviderTests : AbstractCSharpComple
         => typeof(CSharpSuggestionModeCompletionProvider);
 
     [Fact]
-    public async Task AfterFirstExplicitArgument()
-    {
-        // The right-hand-side parses like a possible deconstruction or tuple type
-        await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
-    }
+    public Task AfterFirstExplicitArgument()
+        => VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (int x, i $$"));
 
     [Fact]
-    public async Task AfterFirstImplicitArgument()
-    {
-        // The right-hand-side parses like a possible deconstruction or tuple type
-        await VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
-    }
+    public Task AfterFirstImplicitArgument()
+        => VerifyBuilderAsync(AddInsideMethod(@"Func<int, int, int> f = (x, i $$"));
 
     [Fact]
     public async Task AfterFirstImplicitArgumentInMethodCall()

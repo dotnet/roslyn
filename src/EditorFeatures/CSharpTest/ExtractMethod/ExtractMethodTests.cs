@@ -1854,12 +1854,8 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/868414")]
-    public async Task ExtractMethodWithLeadingTrivia()
-    {
-        // ensure that the extraction doesn't result in trivia moving up a line:
-        //        // a        //b
-        //        NewMethod();
-        await TestExtractMethodAsync(
+    public Task ExtractMethodWithLeadingTrivia()
+        => TestExtractMethodAsync(
             """
             class C
             {
@@ -1887,7 +1883,6 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632351")]
     public async Task ExtractMethodFailForTypeInFromClause()
@@ -7702,9 +7697,8 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
-    public async Task Bug6313_1()
-    {
-        await TestExtractMethodAsync("""
+    public Task Bug6313_1()
+        => TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7745,12 +7739,10 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
-    public async Task Bug6313_2()
-    {
-        await TestExtractMethodAsync("""
+    public Task Bug6313_2()
+        => TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -7789,7 +7781,6 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
     public async Task Bug6313_3()
@@ -7983,9 +7974,8 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540154")]
-    public async Task Bug6313_6()
-    {
-        await TestExtractMethodAsync("""
+    public Task Bug6313_6()
+        => TestExtractMethodAsync("""
             using System;
 
             class Program
@@ -8033,7 +8023,6 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540170")]
     public async Task Bug6333()
@@ -8520,9 +8509,8 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541668")]
-    public async Task BreakInSelection()
-    {
-        await TestExtractMethodAsync(
+    public Task BreakInSelection()
+        => TestExtractMethodAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -8600,7 +8588,6 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541671")]
     public async Task UnreachableCodeWithReturnStatement()
@@ -11032,9 +11019,8 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
-    public async Task TestAsyncMethodWithRefOrOutParameters()
-    {
-        await TestExtractMethodAsync(
+    public Task TestAsyncMethodWithRefOrOutParameters()
+        => TestExtractMethodAsync(
             """
             using System.Threading.Tasks;
 
@@ -11072,12 +11058,10 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574576")]
-    public async Task TestAsyncLocalFunctionWithRefOrOutParameters()
-    {
-        await TestExtractMethodAsync(
+    public Task TestAsyncLocalFunctionWithRefOrOutParameters()
+        => TestExtractMethodAsync(
             """
             using System.Threading.Tasks;
 
@@ -11115,12 +11099,10 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """, localFunction: true);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
-    public async Task TestAsyncMethodWithWellKnownValueType1()
-    {
-        await TestExtractMethodAsync(
+    public Task TestAsyncMethodWithWellKnownValueType1()
+        => TestExtractMethodAsync(
             """
             using System;
             using System.Threading;
@@ -11174,12 +11156,10 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1025272")]
-    public async Task TestAsyncMethodWithWellKnownValueType2()
-    {
-        await TestExtractMethodAsync(
+    public Task TestAsyncMethodWithWellKnownValueType2()
+        => TestExtractMethodAsync(
             """
             using System;
             using System.Threading;
@@ -11235,7 +11215,6 @@ public sealed partial class ExtractMethodTests : ExtractMethodBase
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestDoNotPutOutOrRefForStructOn()

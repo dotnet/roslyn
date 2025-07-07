@@ -1645,9 +1645,8 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
 
     #region Test Ifs
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMultiline_IfElseIfElseSelection1()
-    {
-        await TestAsync<IfStatementSyntax>(
+    public Task TestMultiline_IfElseIfElseSelection1()
+        => TestAsync<IfStatementSyntax>(
             """
             class A
             {
@@ -1668,12 +1667,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMultiline_IfElseIfElseSelection2()
-    {
-        await TestAsync<IfStatementSyntax>(
+    public Task TestMultiline_IfElseIfElseSelection2()
+        => TestAsync<IfStatementSyntax>(
             """
             class A
             {
@@ -1694,12 +1691,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingMultiline_IfElseIfElseSelection()
-    {
-        await TestMissingAsync<IfStatementSyntax>(
+    public Task TestMissingMultiline_IfElseIfElseSelection()
+        => TestMissingAsync<IfStatementSyntax>(
             """
             class A
             {
@@ -1720,12 +1715,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78749")]
-    public async Task TestMalformedIfBlock1()
-    {
-        await TestAsync<IfStatementSyntax>(
+    public Task TestMalformedIfBlock1()
+        => TestAsync<IfStatementSyntax>(
             """
             {
                 {|result:[||]if (devsBad)
@@ -1733,12 +1726,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 else return;|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78749")]
-    public async Task TestMalformedIfBlock2()
-    {
-        await TestAsync<IfStatementSyntax>(
+    public Task TestMalformedIfBlock2()
+        => TestAsync<IfStatementSyntax>(
             """
             {
                 if (devsBad)
@@ -1746,7 +1737,6 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 else return;|]|}
             }
             """);
-    }
 
     #endregion
 

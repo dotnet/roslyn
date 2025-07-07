@@ -62,10 +62,8 @@ namespace Text.Analyzers.UnitTests
         [InlineData("class Program { void Member(string name) { } }")]
         [InlineData("class Program { delegate int GetNumber(string name); }")]
         [InlineData("class Program<TResource> { }")]
-        public async Task NoMisspellings_Verify_NoDiagnosticsAsync(string source)
-        {
-            await VerifyCSharpAsync(source);
-        }
+        public Task NoMisspellings_Verify_NoDiagnosticsAsync(string source)
+            => VerifyCSharpAsync(source);
 
         [Fact]
         public async Task MisspellingAllowedByGlobalXmlDictionary_Verify_NoDiagnosticsAsync()
@@ -238,14 +236,12 @@ namespace Text.Analyzers.UnitTests
         [InlineData("namespace MyNamespace { enum {|#0:MyEnim|} {} }", "Enim", "MyNamespace.MyEnim")]
         [InlineData("namespace MyNamespace { interface {|#0:IMyFase|} {} }", "Fase", "MyNamespace.IMyFase")]
         [InlineData("namespace MyNamespace { delegate int {|#0:MyDelegete|}(); }", "Delegete", "MyNamespace.MyDelegete")]
-        public async Task TypeMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string typeName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string typeName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeRule)
                     .WithLocation(0)
                     .WithArguments(misspelling, typeName));
-        }
 
         [Theory]
         [InlineData("class {|#0:A|} {}", "A")]
@@ -253,25 +249,21 @@ namespace Text.Analyzers.UnitTests
         [InlineData("enum {|#0:C|} {}", "C")]
         [InlineData("interface {|#0:ID|} {}", "D")]
         [InlineData("delegate int {|#0:E|}();", "E")]
-        public async Task TypeUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments(typeName));
-        }
 
         [Theory]
         [MemberData(nameof(MisspelledMembers))]
-        public async Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
-        {
-            await VerifyCSharpAsync(
+        public Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberRule)
                     .WithLocation(0)
                     .WithArguments(misspelling, memberName));
-        }
 
         [Fact]
         public async Task MemberOverrideMisspelled_Verify_EmitsDiagnosticOnlyAtDefinitionAsync()
@@ -310,14 +302,12 @@ namespace Text.Analyzers.UnitTests
 
         [Theory]
         [MemberData(nameof(UnmeaningfulMembers))]
-        public async Task MemberUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string memberName)
-        {
-            await VerifyCSharpAsync(
+        public Task MemberUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string memberName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments(memberName));
-        }
 
         [Fact]
         public async Task VariableMisspelled_Verify_EmitsDiagnosticAsync()
@@ -340,14 +330,12 @@ namespace Text.Analyzers.UnitTests
 
         [Theory]
         [MemberData(nameof(MisspelledMemberParameters))]
-        public async Task MemberParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string parameterName, string memberName)
-        {
-            await VerifyCSharpAsync(
+        public Task MemberParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string parameterName, string memberName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
                     .WithLocation(0)
                     .WithArguments(memberName, misspelling, parameterName));
-        }
 
         [Fact]
         public async Task MemberParameterUnmeaningful_Verify_EmitsDiagnosticAsync()
@@ -690,28 +678,24 @@ namespace Text.Analyzers.UnitTests
         [InlineData("interface IInterface<{|#0:TWroong|}> { }", "IInterface<TWroong>", "Wroong", "TWroong")]
         [InlineData("delegate int MyDelegate<{|#0:TWroong|}>();", "MyDelegate<TWroong>", "Wroong", "TWroong")]
 
-        public async Task TypeTypeParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string typeName, string misspelling, string typeParameterName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeTypeParameterMisspelled_Verify_EmitsDiagnosticAsync(string source, string typeName, string misspelling, string typeParameterName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeTypeParameterRule)
                     .WithLocation(0)
                     .WithArguments(typeName, misspelling, typeParameterName));
-        }
 
         [Theory]
         [InlineData("class MyClass<{|#0:A|}> { }", "MyClass<A>", "A")]
         [InlineData("struct MyStructure<{|#0:B|}> { }", "MyStructure<B>", "B")]
         [InlineData("interface IInterface<{|#0:C|}> { }", "IInterface<C>", "C")]
         [InlineData("delegate int MyDelegate<{|#0:D|}>();", "MyDelegate<D>", "D")]
-        public async Task TypeTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName, string typeParameterName)
-        {
-            await VerifyCSharpAsync(
+        public Task TypeTypeParameterUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName, string typeParameterName)
+            => VerifyCSharpAsync(
                 source,
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeTypeParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments(typeName, typeParameterName));
-        }
 
         [Fact]
         public async Task MethodTypeParameterMisspelled_Verify_EmitsDiagnosticAsync()

@@ -904,9 +904,8 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     }
 
     [Fact]
-    public async Task AddAsyncInDelegate()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AddAsyncInDelegate()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -937,12 +936,10 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddAsyncInDelegate2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AddAsyncInDelegate2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -973,12 +970,10 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AddAsyncInDelegate3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AddAsyncInDelegate3()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1009,12 +1004,10 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
-    public async Task NullNodeCrash()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NullNodeCrash()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Threading.Tasks;
 
@@ -1032,7 +1025,6 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17470")]
@@ -1126,9 +1118,8 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14133")]
-    public async Task AddAsyncInLocalFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AddAsyncInLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             using System.Threading.Tasks;
 
@@ -1167,13 +1158,11 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14133")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
-    public async Task AddAsyncInLocalFunctionKeepVoidReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AddAsyncInLocalFunctionKeepVoidReturn()
+        => TestInRegularAndScriptAsync(
             """
             using System.Threading.Tasks;
 
@@ -1213,7 +1202,6 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
             }
             """,
 index: 1);
-    }
 
     [Theory]
     [InlineData(0, "void", "Task", "M2Async")]
@@ -1222,9 +1210,8 @@ index: 1);
     [InlineData(0, "Task", "Task", "M2")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
-    public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn, string expectedName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn, string expectedName)
+        => TestInRegularAndScriptAsync(
             $$"""
             using System.Threading.Tasks;
 
@@ -1266,7 +1253,6 @@ index: 1);
             }
             """,
             index: codeFixIndex);
-    }
 
     [Theory]
     [InlineData("", 0, "Task", "M2Async")]
@@ -1275,9 +1261,8 @@ index: 1);
     [InlineData("public", 1, "void", "M2")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18307")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
-    public async Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn, string expectedName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn, string expectedName)
+        => TestInRegularAndScriptAsync(
             $$"""
             using System.Threading.Tasks;
 
@@ -1313,12 +1298,10 @@ index: 1);
             }
             """,
             index: codeFixIndex);
-    }
 
     [Fact]
-    public async Task MethodWithAwaitUsing()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodWithAwaitUsing()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1343,12 +1326,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodWithRegularUsing()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodWithRegularUsing()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1360,12 +1341,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodWithAwaitForEach()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodWithAwaitForEach()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1390,12 +1369,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodWithRegularForEach()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodWithRegularForEach()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1407,12 +1384,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodWithAwaitForEachVariable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodWithAwaitForEachVariable()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1437,12 +1412,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodWithRegularForEachVariable()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodWithRegularForEachVariable()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1454,12 +1427,10 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MethodWithNullableReturn()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodWithNullableReturn()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
             using System.Threading.Tasks;
@@ -1484,7 +1455,6 @@ index: 1);
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task EnumerableMethodWithNullableType()

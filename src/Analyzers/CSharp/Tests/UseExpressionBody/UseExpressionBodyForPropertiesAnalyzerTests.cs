@@ -24,12 +24,11 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
 public sealed class UseExpressionBodyForPropertiesAnalyzerTests
 {
-    private static async Task TestWithUseExpressionBody(
+    private static Task TestWithUseExpressionBody(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion version = LanguageVersion.CSharp8)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
@@ -41,13 +40,11 @@ public sealed class UseExpressionBodyForPropertiesAnalyzerTests
             },
             MarkupOptions = MarkupOptions.None,
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBody(
+    private static Task TestWithUseBlockBody(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
@@ -58,7 +55,6 @@ public sealed class UseExpressionBodyForPropertiesAnalyzerTests
             },
             MarkupOptions = MarkupOptions.None,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseExpressionBody1()
@@ -242,9 +238,8 @@ public sealed class UseExpressionBodyForPropertiesAnalyzerTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
-    public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
-    {
-        await new VerifyCS.Test
+    public Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -274,7 +269,6 @@ public sealed class UseExpressionBodyForPropertiesAnalyzerTests
             NumberOfFixAllIterations = 2,
             NumberOfIncrementalIterations = 2,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseBlockBody3()

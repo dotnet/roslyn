@@ -17,15 +17,13 @@ using VerifyCS = CSharpCodeFixVerifier<CSharpUseNullCheckOverTypeCheckDiagnostic
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
 public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
 {
-    private static async Task VerifyAsync(string source, string fixedSource, LanguageVersion languageVersion)
-    {
-        await new VerifyCS.Test
+    private static Task VerifyAsync(string source, string fixedSource, LanguageVersion languageVersion)
+        => new VerifyCS.Test
         {
             TestCode = source,
             FixedCode = fixedSource,
             LanguageVersion = languageVersion,
         }.RunAsync();
-    }
 
     private static async Task VerifyCSharp9Async(string source, string fixedSource)
         => await VerifyAsync(source, fixedSource, LanguageVersion.CSharp9);

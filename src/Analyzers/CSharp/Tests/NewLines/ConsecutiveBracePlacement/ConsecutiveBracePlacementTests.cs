@@ -18,49 +18,40 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class ConsecutiveBracePlacementTests
 {
     [Fact]
-    public async Task NotForBracesOnSameLineDirectlyTouching()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineDirectlyTouching()
+        => new VerifyCS.Test
         {
             TestCode = @"class C { void M() { }}",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSameLineWithSpace()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineWithSpace()
+        => new VerifyCS.Test
         {
             TestCode = @"class C { void M() { } }",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSameLineWithComment()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineWithComment()
+        => new VerifyCS.Test
         {
             TestCode = @"class C { void M() { }/*goo*/}",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSameLineWithCommentAndSpaces()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSameLineWithCommentAndSpaces()
+        => new VerifyCS.Test
         {
             TestCode = @"class C { void M() { } /*goo*/ }",
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLines_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSubsequentLines_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -72,12 +63,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesWithComment1_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSubsequentLinesWithComment1_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -89,12 +78,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesWithComment2_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSubsequentLinesWithComment2_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -106,12 +93,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesIndented()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSubsequentLinesIndented()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -126,12 +111,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesIndentedWithComment1()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSubsequentLinesIndentedWithComment1()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -146,12 +129,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesOnSubsequentLinesIndentedWithComment2()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesOnSubsequentLinesIndentedWithComment2()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -166,12 +147,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween1_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesWithBlankLinesIfCommentBetween1_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -186,12 +165,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween2_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesWithBlankLinesIfCommentBetween2_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -206,12 +183,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfDirectiveBetween1_TopLeve()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesWithBlankLinesIfDirectiveBetween1_TopLeve()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -227,12 +202,10 @@ public sealed class ConsecutiveBracePlacementTests
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween1_Nested()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesWithBlankLinesIfCommentBetween1_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -250,12 +223,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfCommentBetween2_Nested()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesWithBlankLinesIfCommentBetween2_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -273,12 +244,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotForBracesWithBlankLinesIfDirectiveBetween_Nested()
-    {
-        await new VerifyCS.Test
+    public Task NotForBracesWithBlankLinesIfDirectiveBetween_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -297,12 +266,10 @@ public sealed class ConsecutiveBracePlacementTests
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OneBlankLineBetweenBraces_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task OneBlankLineBetweenBraces_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -323,12 +290,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OneBlankLineBetweenBraces_TopLevel_OptionDisabled()
-    {
-        await new VerifyCS.Test
+    public Task OneBlankLineBetweenBraces_TopLevel_OptionDisabled()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -341,12 +306,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.TrueWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TwoBlankLinesBetweenBraces_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task TwoBlankLinesBetweenBraces_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -368,12 +331,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ThreeBlankLinesBetweenBraces_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task ThreeBlankLinesBetweenBraces_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -396,12 +357,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_LeadingComment_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task BlankLinesBetweenBraces_LeadingComment_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -424,12 +383,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_TrailingComment_TopLevel()
-    {
-        await new VerifyCS.Test
+    public Task BlankLinesBetweenBraces_TrailingComment_TopLevel()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -452,12 +409,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task OneBlankLineBetweenBraces_Nested()
-    {
-        await new VerifyCS.Test
+    public Task OneBlankLineBetweenBraces_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -484,12 +439,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TwoBlankLinesBetweenBraces_Nested()
-    {
-        await new VerifyCS.Test
+    public Task TwoBlankLinesBetweenBraces_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -517,12 +470,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ThreeBlankLinesBetweenBraces_Nested()
-    {
-        await new VerifyCS.Test
+    public Task ThreeBlankLinesBetweenBraces_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -551,12 +502,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_LeadingComment_Nested()
-    {
-        await new VerifyCS.Test
+    public Task BlankLinesBetweenBraces_LeadingComment_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -585,12 +534,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task BlankLinesBetweenBraces_TrailingComment_Nested()
-    {
-        await new VerifyCS.Test
+    public Task BlankLinesBetweenBraces_TrailingComment_Nested()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -619,12 +566,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll1()
-    {
-        await new VerifyCS.Test
+    public Task FixAll1()
+        => new VerifyCS.Test
         {
             TestCode = """
             namespace N
@@ -652,12 +597,10 @@ public sealed class ConsecutiveBracePlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task RealCode1()
-    {
-        await new VerifyCS.Test
+    public Task RealCode1()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -694,12 +637,10 @@ public sealed class ConsecutiveBracePlacementTests
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task RealCode2()
-    {
-        await new VerifyCS.Test
+    public Task RealCode2()
+        => new VerifyCS.Test
         {
             TestCode = """
             #define CODE_STYLE
@@ -737,5 +678,4 @@ public sealed class ConsecutiveBracePlacementTests
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 }

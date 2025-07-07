@@ -2270,9 +2270,8 @@ public sealed class ConvertTupleToStructTests
     }
 
     [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
-    public async Task TestDuplicatedName(TestHost host)
-    {
-        await new VerifyCS.Test
+    public Task TestDuplicatedName(TestHost host)
+        => new VerifyCS.Test
         {
             TestCode = """
             class Test
@@ -2405,7 +2404,6 @@ public sealed class ConvertTupleToStructTests
             },
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
     public async Task TestInLambda1(TestHost host)

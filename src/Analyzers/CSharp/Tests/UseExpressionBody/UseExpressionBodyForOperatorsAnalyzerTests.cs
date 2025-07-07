@@ -19,25 +19,21 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
 public sealed class UseExpressionBodyForOperatorsAnalyzerTests
 {
-    private static async Task TestWithUseExpressionBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseExpressionBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ExpressionBodyPreference.WhenPossible } }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseBlockBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ExpressionBodyPreference.Never } }
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseExpressionBody1()

@@ -36,9 +36,8 @@ public sealed partial class UseObjectInitializerTests
     }
 
     [Fact]
-    public async Task TestOnVariableDeclarator()
-    {
-        await new VerifyCS.Test
+    public Task TestOnVariableDeclarator()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -73,48 +72,40 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotForField1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 C c = new C();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 C c = new C() { };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 C c = new C { };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField4()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -122,12 +113,10 @@ public sealed partial class UseObjectInitializerTests
                 C c = new C() { P = 1 };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotForField5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotForField5()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -135,12 +124,10 @@ public sealed partial class UseObjectInitializerTests
                 C c = new C { P = 1 };
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
-    {
-        await new VerifyCS.Test
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue1Async()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -177,12 +164,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue2Async()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue2Async()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -195,12 +180,10 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
-    {
-        await new VerifyCS.Test
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue3Async()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -239,12 +222,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotUpdateAssignmentThatReferencesInitializedValue4Async()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotUpdateAssignmentThatReferencesInitializedValue4Async()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -258,12 +239,10 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAssignmentExpression()
-    {
-        await new VerifyCS.Test
+    public Task TestOnAssignmentExpression()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -300,12 +279,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestStopOnDuplicateMember()
-    {
-        await new VerifyCS.Test
+    public Task TestStopOnDuplicateMember()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -342,12 +319,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestComplexInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestComplexInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -386,12 +361,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnCompoundAssignment()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnCompoundAssignment()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -430,12 +403,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExistingInitializer()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -473,12 +444,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializerComma()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExistingInitializerComma()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -519,12 +488,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")]
-    public async Task TestWithExistingInitializerNotIfAlreadyInitialized()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExistingInitializerNotIfAlreadyInitialized()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -567,12 +534,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingBeforeCSharp3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingBeforeCSharp3()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -586,12 +551,10 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """, LanguageVersion.CSharp2);
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument1()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInDocument1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -645,12 +608,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument2()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInDocument2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -698,12 +659,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAllInDocument3()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAllInDocument3()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -752,12 +711,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -794,12 +751,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46670")]
-    public async Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
-    {
-        await new VerifyCS.Test
+    public Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -843,12 +798,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15459")]
-    public async Task TestMissingInNonTopLevelObjectInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInNonTopLevelObjectInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C {
             	int a;
@@ -859,12 +812,10 @@ public sealed partial class UseObjectInitializerTests
             	}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17853")]
-    public async Task TestMissingForDynamic()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingForDynamic()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Dynamic;
 
@@ -877,12 +828,10 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-    public async Task TestMissingAcrossPreprocessorDirective()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingAcrossPreprocessorDirective()
+        => TestMissingInRegularAndScriptAsync(
             """
             public class Goo
             {
@@ -897,12 +846,10 @@ public sealed partial class UseObjectInitializerTests
                 public string Value { get; set; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17953")]
-    public async Task TestAvailableInsidePreprocessorDirective()
-    {
-        await new VerifyCS.Test
+    public Task TestAvailableInsidePreprocessorDirective()
+        => new VerifyCS.Test
         {
             TestCode = """
             public class Goo
@@ -941,12 +888,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19253")]
-    public async Task TestKeepBlankLinesAfter()
-    {
-        await new VerifyCS.Test
+    public Task TestKeepBlankLinesAfter()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Goo
@@ -991,12 +936,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")]
-    public async Task TestWithExplicitImplementedInterfaceMembers1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithExplicitImplementedInterfaceMembers1()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface IExample {
                 string Name { get; set; }
@@ -1015,12 +958,10 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")]
-    public async Task TestWithExplicitImplementedInterfaceMembers2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestWithExplicitImplementedInterfaceMembers2()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface IExample {
                 string Name { get; set; }
@@ -1042,12 +983,10 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")]
-    public async Task TestWithExplicitImplementedInterfaceMembers3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithExplicitImplementedInterfaceMembers3()
+        => new VerifyCS.Test
         {
             TestCode = """
             interface IExample {
@@ -1100,12 +1039,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37675")]
-    public async Task TestDoNotOfferForUsingDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDoNotOfferForUsingDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C : System.IDisposable
             {
@@ -1122,12 +1059,10 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestImplicitObject()
-    {
-        await new VerifyCS.Test
+    public Task TestImplicitObject()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -1162,12 +1097,10 @@ public sealed partial class UseObjectInitializerTests
             """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
-    public async Task TestInTopLevelStatements()
-    {
-        await new VerifyCS.Test
+    public Task TestInTopLevelStatements()
+        => new VerifyCS.Test
         {
             TestCode = """
             MyClass cl = {|#1:{|#0:new|}()|};
@@ -1197,7 +1130,6 @@ public sealed partial class UseObjectInitializerTests
             LanguageVersion = LanguageVersion.CSharp12,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
         }.RunAsync();
-    }
 
     [Theory]
     [CombinatorialData]
@@ -1354,9 +1286,8 @@ public sealed partial class UseObjectInitializerTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions1()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1394,12 +1325,10 @@ public sealed partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions2()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1441,12 +1370,10 @@ public sealed partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions3()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1484,12 +1411,10 @@ public sealed partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46665")]
-    public async Task TestIndentationOfMultiLineExpressions4()
-    {
-        await new VerifyCS.Test
+    public Task TestIndentationOfMultiLineExpressions4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -1531,5 +1456,4 @@ public sealed partial class UseObjectInitializerTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 }

@@ -207,9 +207,8 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
     }
 
     [Fact]
-    public async Task OnEmptyAnonymousType()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnEmptyAnonymousType()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -244,12 +243,10 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                 }
             }
             """, parseOptions: CSharp8);
-    }
 
     [Fact]
-    public async Task OnEmptyAnonymousType_CSharp9()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnEmptyAnonymousType_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -270,12 +267,10 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
             internal record NewRecord();
 
             """);
-    }
 
     [Fact]
-    public async Task OnSingleFieldAnonymousType()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnSingleFieldAnonymousType()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -314,12 +309,10 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
                 }
             }
             """, parseOptions: CSharp8);
-    }
 
     [Fact]
-    public async Task OnSingleFieldAnonymousType_CSharp9()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task OnSingleFieldAnonymousType_CSharp9()
+        => TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -340,7 +333,6 @@ public sealed class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionT
             internal record NewRecord(int A);
 
             """);
-    }
 
     [Fact]
     public async Task ConvertSingleAnonymousTypeWithInferredName()

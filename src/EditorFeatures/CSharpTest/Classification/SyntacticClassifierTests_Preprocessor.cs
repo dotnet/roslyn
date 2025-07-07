@@ -325,24 +325,20 @@ public partial class SyntacticClassifierTests
     }
 
     [Theory, CombinatorialData]
-    public async Task PP_If1(TestHost testHost)
-    {
-        await TestAsync("#if goo",
+    public Task PP_If1(TestHost testHost)
+        => TestAsync("#if goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
             Identifier("goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_If2(TestHost testHost)
-    {
-        await TestAsync(" #if goo",
+    public Task PP_If2(TestHost testHost)
+        => TestAsync(" #if goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
             Identifier("goo"));
-    }
 
     [Theory, CombinatorialData]
     public async Task PP_If3(TestHost testHost)
@@ -511,67 +507,54 @@ public partial class SyntacticClassifierTests
     }
 
     [Theory, CombinatorialData]
-    public async Task PP_Region1(TestHost testHost)
-    {
-        await TestAsync("#region Goo",
+    public Task PP_Region1(TestHost testHost)
+        => TestAsync("#region Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("region"),
             PPText("Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_Region2(TestHost testHost)
-    {
-        await TestAsync("   #region goo",
+    public Task PP_Region2(TestHost testHost)
+        => TestAsync("   #region goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("region"),
             PPText("goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_EndRegion1(TestHost testHost)
-    {
-        await TestAsync("#endregion",
+    public Task PP_EndRegion1(TestHost testHost)
+        => TestAsync("#endregion",
             testHost,
             PPKeyword("#"),
             PPKeyword("endregion"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_EndRegion2(TestHost testHost)
-    {
-        await TestAsync("   #endregion",
+    public Task PP_EndRegion2(TestHost testHost)
+        => TestAsync("   #endregion",
             testHost,
             PPKeyword("#"),
             PPKeyword("endregion"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_EndRegion3(TestHost testHost)
-    {
-        await TestAsync("#endregion adsf",
+    public Task PP_EndRegion3(TestHost testHost)
+        => TestAsync("#endregion adsf",
             testHost,
             PPKeyword("#"),
             PPKeyword("endregion"),
             PPText("adsf"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_EndRegion4(TestHost testHost)
-    {
-        await TestAsync("   #endregion adsf",
+    public Task PP_EndRegion4(TestHost testHost)
+        => TestAsync("   #endregion adsf",
             testHost,
             PPKeyword("#"),
             PPKeyword("endregion"),
             PPText("adsf"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_RegionEndRegion1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_RegionEndRegion1(TestHost testHost)
+        => TestAsync(
             """
             #region
             #endregion
@@ -581,12 +564,10 @@ public partial class SyntacticClassifierTests
             PPKeyword("region"),
             PPKeyword("#"),
             PPKeyword("endregion"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_CommentAfterRegion1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_CommentAfterRegion1(TestHost testHost)
+        => TestAsync(
             """
             #region adsf //comment
             #endregion
@@ -597,12 +578,10 @@ public partial class SyntacticClassifierTests
             PPText("adsf //comment"),
             PPKeyword("#"),
             PPKeyword("endregion"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_CommentAfterRegion2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_CommentAfterRegion2(TestHost testHost)
+        => TestAsync(
             """
             #region //comment
             #endregion
@@ -613,12 +592,10 @@ public partial class SyntacticClassifierTests
             PPText("//comment"),
             PPKeyword("#"),
             PPKeyword("endregion"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_CommentAfterEndRegion1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_CommentAfterEndRegion1(TestHost testHost)
+        => TestAsync(
             """
             #region
             #endregion adsf //comment
@@ -629,12 +606,10 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword("endregion"),
             PPText("adsf //comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_CommentAfterEndRegion2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_CommentAfterEndRegion2(TestHost testHost)
+        => TestAsync(
             """
             #region
             #endregion //comment
@@ -645,12 +620,10 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword("endregion"),
             Comment("//comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_DeclarationDirectives(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_DeclarationDirectives(TestHost testHost)
+        => TestAsync(
             """
             #define A
             #undef B
@@ -662,7 +635,6 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword("undef"),
             Identifier("B"));
-    }
 
     [Theory, CombinatorialData]
     public async Task PP_IfElseEndIfDirectives(TestHost testHost)
@@ -1072,21 +1044,18 @@ public partial class SyntacticClassifierTests
     }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaChecksum1(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_PragmaChecksum1(TestHost testHost)
+        => TestAsync(
 @"#pragma checksum stuff",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
             PPKeyword("checksum"),
             PPText("stuff"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaChecksum2(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_PragmaChecksum2(TestHost testHost)
+        => TestAsync(
             """
             #pragma checksum "file.txt" "{00000000-0000-0000-0000-000000000000}" "2453"
             """,
@@ -1103,12 +1072,10 @@ public partial class SyntacticClassifierTests
             String("""
                 "2453"
                 """));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaChecksum3(TestHost testHost)
-    {
-        await TestAsync(
+    public Task PP_PragmaChecksum3(TestHost testHost)
+        => TestAsync(
 @"#pragma checksum ""file.txt"" ""{00000000-0000-0000-0000-000000000000}"" ""2453"" // Goo",
             testHost,
             PPKeyword("#"),
@@ -1124,7 +1091,6 @@ public partial class SyntacticClassifierTests
                 "2453"
                 """),
             Comment("// Goo"));
-    }
 
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningDisableOne(TestHost testHost)
@@ -1310,104 +1276,84 @@ public partial class SyntacticClassifierTests
     }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInOutDeclaration(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DiscardInOutDeclaration(TestHost testHost)
+        => TestInMethodAsync(
             code: @"M2(out var _);",
             testHost: testHost,
 expected: Classifications(Identifier("M2"), Punctuation.OpenParen, Keyword("out"), Identifier("var"),
                 Keyword("_"), Punctuation.CloseParen, Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInCasePattern(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DiscardInCasePattern(TestHost testHost)
+        => TestInMethodAsync(
             code: @"switch (1) { case int _: }",
             testHost: testHost,
 expected: Classifications(ControlKeyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
                 Punctuation.OpenCurly, ControlKeyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInDeconstruction(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DiscardInDeconstruction(TestHost testHost)
+        => TestInMethodAsync(
             code: @"var (x, _) = (1, 2);",
             testHost: testHost,
 expected: Classifications(Identifier("var"), Punctuation.OpenParen, Local("x"), Punctuation.Comma,
                 Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
                 Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInDeconstruction2(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DiscardInDeconstruction2(TestHost testHost)
+        => TestInMethodAsync(
             code: @"(var _, var _) = (1, 2);",
             testHost: testHost,
 expected: Classifications(Punctuation.OpenParen, Identifier("var"), Keyword("_"), Punctuation.Comma,
                 Identifier("var"), Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen,
                 Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ShortDiscardInDeconstruction(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task ShortDiscardInDeconstruction(TestHost testHost)
+        => TestInMethodAsync(
             code: @"int x; (_, x) = (1, 2);",
             testHost: testHost,
 expected: Classifications(Keyword("int"), Local("x"), Punctuation.Semicolon, Punctuation.OpenParen,
                 Identifier("_"), Punctuation.Comma, Identifier("x"), Punctuation.CloseParen, Operators.Equals,
                 Punctuation.OpenParen, Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen,
                 Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ShortDiscardInOutDeclaration(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task ShortDiscardInOutDeclaration(TestHost testHost)
+        => TestInMethodAsync(
             code: @"M2(out _);",
             testHost: testHost,
 expected: Classifications(Identifier("M2"), Punctuation.OpenParen, Keyword("out"), Identifier("_"), Punctuation.CloseParen,
                 Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task ShortDiscardInAssignment(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task ShortDiscardInAssignment(TestHost testHost)
+        => TestInMethodAsync(
             code: @"_ = 1;",
             testHost: testHost,
 expected: Classifications(Identifier("_"), Operators.Equals, Number("1"), Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task UnderscoreInLambda(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task UnderscoreInLambda(TestHost testHost)
+        => TestInMethodAsync(
             code: @"x = (_) => 1;",
             testHost: testHost,
 expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.CloseParen,
                 Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DiscardInLambda(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DiscardInLambda(TestHost testHost)
+        => TestInMethodAsync(
             code: @"x = (_, _) => 1;",
             testHost: testHost,
 expected: Classifications(Identifier("x"), Operators.Equals, Punctuation.OpenParen, Parameter("_"), Punctuation.Comma, Parameter("_"), Punctuation.CloseParen,
                 Operators.EqualsGreaterThan, Number("1"), Punctuation.Semicolon));
-    }
 
     [Theory, CombinatorialData]
-    public async Task UnderscoreInAssignment(TestHost testHost)
-    {
-        await TestInMethodAsync(code: @"int _; _ = 1;",
+    public Task UnderscoreInAssignment(TestHost testHost)
+        => TestInMethodAsync(code: @"int _; _ = 1;",
             testHost: testHost,
 expected: Classifications(Keyword("int"), Local("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
                 Number("1"), Punctuation.Semicolon));
-    }
 }

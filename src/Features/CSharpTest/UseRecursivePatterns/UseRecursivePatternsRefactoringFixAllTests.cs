@@ -18,9 +18,8 @@ public sealed class UseRecursivePatternsRefactoringFixAllTests : AbstractCSharpC
         => new UseRecursivePatternsCodeRefactoringProvider();
 
     [Fact]
-    public async Task UseRecursivePatterns_FixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task UseRecursivePatterns_FixAllInDocument()
+        => TestInRegularAndScriptAsync(@"
 namespace NS
 {
     class C : B
@@ -119,12 +118,10 @@ namespace NS
         public C m() { return null; }
     }
 }");
-    }
 
     [Fact]
-    public async Task UseRecursivePatterns_FixAllInProject()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task UseRecursivePatterns_FixAllInProject()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -296,12 +293,10 @@ namespace NS
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task UseRecursivePatterns_FixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task UseRecursivePatterns_FixAllInSolution()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -473,12 +468,10 @@ namespace NS
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task UseRecursivePatterns_FixAllInContainingMember()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task UseRecursivePatterns_FixAllInContainingMember()
+        => TestInRegularAndScriptAsync(@"
 namespace NS
 {
     class C : B
@@ -577,12 +570,10 @@ namespace NS
         public C m() { return null; }
     }
 }");
-    }
 
     [Fact]
-    public async Task UseRecursivePatterns_FixAllInContainingType()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task UseRecursivePatterns_FixAllInContainingType()
+        => TestInRegularAndScriptAsync(@"
 namespace NS
 {
     class C : B
@@ -687,5 +678,4 @@ namespace NS
         public C m() { return null; }
     }
 }");
-    }
 }

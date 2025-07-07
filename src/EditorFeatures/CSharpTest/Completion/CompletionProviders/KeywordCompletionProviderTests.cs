@@ -881,31 +881,23 @@ $@"class C
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
     [MemberData(nameof(TypeDeclarationKeywords))]
-    public async Task TestTypeDeclarationKeywordsNotAfterUsingUnsafe(string keyword)
-    {
-        await VerifyItemIsAbsentAsync("using unsafe $$", keyword);
-    }
+    public Task TestTypeDeclarationKeywordsNotAfterUsingUnsafe(string keyword)
+        => VerifyItemIsAbsentAsync("using unsafe $$", keyword);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
     [MemberData(nameof(TypeDeclarationKeywords))]
-    public async Task TestTypeDeclarationKeywordsNotAfterUsingStaticUnsafe(string keyword)
-    {
-        await VerifyItemIsAbsentAsync("using static unsafe $$", keyword);
-    }
+    public Task TestTypeDeclarationKeywordsNotAfterUsingStaticUnsafe(string keyword)
+        => VerifyItemIsAbsentAsync("using static unsafe $$", keyword);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
     [MemberData(nameof(TypeDeclarationKeywords))]
-    public async Task TestTypeDeclarationKeywordsNotAfterGlobalUsingUnsafe(string keyword)
-    {
-        await VerifyItemIsAbsentAsync("global using unsafe $$", keyword);
-    }
+    public Task TestTypeDeclarationKeywordsNotAfterGlobalUsingUnsafe(string keyword)
+        => VerifyItemIsAbsentAsync("global using unsafe $$", keyword);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
     [MemberData(nameof(TypeDeclarationKeywords))]
-    public async Task TestTypeDeclarationKeywordsNotAfterGlobalUsingStaticUnsafe(string keyword)
-    {
-        await VerifyItemIsAbsentAsync("global using static unsafe $$", keyword);
-    }
+    public Task TestTypeDeclarationKeywordsNotAfterGlobalUsingStaticUnsafe(string keyword)
+        => VerifyItemIsAbsentAsync("global using static unsafe $$", keyword);
 
     public static IEnumerable<object[]> TypeDeclarationKeywords()
     {

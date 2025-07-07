@@ -42,9 +42,8 @@ public sealed class RemoveRedundantEqualityTests
     }
 
     [Fact]
-    public async Task TestSimpleCaseForEqualsFalse_NoDiagnostics()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSimpleCaseForEqualsFalse_NoDiagnostics()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -61,7 +60,6 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestSimpleCaseForNotEqualsFalse()
@@ -88,9 +86,8 @@ public sealed class RemoveRedundantEqualityTests
     }
 
     [Fact]
-    public async Task TestSimpleCaseForNotEqualsTrue()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSimpleCaseForNotEqualsTrue()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -107,7 +104,6 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestNullable_NoDiagnostics()

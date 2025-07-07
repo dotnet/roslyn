@@ -4479,9 +4479,8 @@ public sealed class ConvertToRecordCodeRefactoringTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72067")]
-    public async Task TestMovePropertiesAndRefactorInitializer_SourceGeneratedDocuments()
-    {
-        await new RefactoringTestWithGenerator
+    public Task TestMovePropertiesAndRefactorInitializer_SourceGeneratedDocuments()
+        => new RefactoringTestWithGenerator
         {
             TestCode = """
                 namespace N
@@ -4511,7 +4510,6 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78664")]
     public async Task TestDoesNotCrashOnAbstractMethod()

@@ -62,9 +62,8 @@ public class MyClass
         }
 
         [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
-        public async Task EmptyParamsWithNetFramework45Async()
-        {
-            await new VerifyCS.Test
+        public Task EmptyParamsWithNetFramework45Async()
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net45.Default,
                 TestState =
@@ -97,7 +96,6 @@ public class MyClass
                     },
                 },
             }.RunAsync();
-        }
 
         [Fact]
         public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStructAsync()

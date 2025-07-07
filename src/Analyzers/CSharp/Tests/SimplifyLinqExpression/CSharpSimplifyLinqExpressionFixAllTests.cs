@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public partial class CSharpSimplifyLinqExpressionTests
 {
     [Fact]
-    public async Task FixAllInDocument()
-    {
-        await new VerifyCS.Test
+    public Task FixAllInDocument()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -60,7 +59,6 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task FixAllInDocumentExplicitCall()
@@ -106,10 +104,8 @@ public partial class CSharpSimplifyLinqExpressionTests
     }
 
     [Fact]
-    public async Task NestedInDocument()
-    {
-
-        await new VerifyCS.Test
+    public Task NestedInDocument()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -150,5 +146,4 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """,
         }.RunAsync();
-    }
 }

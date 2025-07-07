@@ -17,23 +17,20 @@ using VerifyCS = CSharpCodeFixVerifier<MakeAnonymousFunctionStaticDiagnosticAnal
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeAnonymousFunctionStatic)]
 public sealed class MakeAnonymousFunctionStaticTests
 {
-    private static async Task TestWithCSharp9Async(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithCSharp9Async(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             LanguageVersion = LanguageVersion.CSharp9
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("i => { }")]
     [InlineData("(i) => { }")]
     [InlineData("delegate (int i) { }")]
-    public async Task TestBelowCSharp9(string anonymousFunctionSyntax)
-    {
-        await new VerifyCS.Test
+    public Task TestBelowCSharp9(string anonymousFunctionSyntax)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -52,15 +49,13 @@ public sealed class MakeAnonymousFunctionStaticTests
             """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("i => { }")]
     [InlineData("(i) => { }")]
     [InlineData("delegate (int i) { }")]
-    public async Task TestWithOptionOff(string anonymousFunctionSyntax)
-    {
-        await new VerifyCS.Test
+    public Task TestWithOptionOff(string anonymousFunctionSyntax)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -83,7 +78,6 @@ public sealed class MakeAnonymousFunctionStaticTests
                 { CSharpCodeStyleOptions.PreferStaticAnonymousFunction, false }
             }
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData("i => { }")]

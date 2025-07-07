@@ -26,9 +26,8 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
         => FlattenActions(actions);
 
     [Fact]
-    public async Task SimpleVariableDeclaration()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimpleVariableDeclaration()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -53,12 +52,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task SimpleVariableDeclarationWithFunctionInnvocation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimpleVariableDeclarationWithFunctionInnvocation()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -93,12 +90,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ReturnStatementWithObject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ReturnStatementWithObject()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -123,12 +118,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ReturnStatementWithIEnumerable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ReturnStatementWithIEnumerable()
+        => TestInRegularAndScriptAsync(
         """
         using System.Collections.Generic;
         class Program
@@ -155,12 +148,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ReturnStatementWithIEnumerator()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ReturnStatementWithIEnumerator()
+        => TestInRegularAndScriptAsync(
         """
         using System.Collections.Generic;
         class Program
@@ -187,12 +178,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ReturnStatementWithFunctionInnvocation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ReturnStatementWithFunctionInnvocation()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -225,12 +214,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task SimpleFunctionArgumentsWithObject1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimpleFunctionArgumentsWithObject1()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -269,12 +256,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task SimpleFunctionArgumentsWithObject2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimpleFunctionArgumentsWithObject2()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -313,12 +298,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task SimpleFunctionArgumentsWithFunctionInvocation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimpleFunctionArgumentsWithFunctionInvocation()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -355,12 +338,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task YieldReturnStatementWithObject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task YieldReturnStatementWithObject()
+        => TestInRegularAndScriptAsync(
         """
         using System.Collections.Generic;
         class Program
@@ -387,12 +368,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task SimpleConstructorArgumentsWithObject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SimpleConstructorArgumentsWithObject()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -423,12 +402,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ReturnTypeWithTask()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ReturnTypeWithTask()
+        => TestInRegularAndScriptAsync(
         """
         using System.Threading.Tasks;
 
@@ -457,12 +434,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task VariableDeclarationWithPublicFieldMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task VariableDeclarationWithPublicFieldMember()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -497,12 +472,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task VariableDeclarationWithPrivateFieldMember()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task VariableDeclarationWithPrivateFieldMember()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -520,12 +493,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task PublicMemberFunctionArgument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task PublicMemberFunctionArgument1()
+        => TestInRegularAndScriptAsync(
         """
         using System.Collections.Generic;
 
@@ -556,12 +527,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task PublicMemberFunctionArgument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task PublicMemberFunctionArgument2()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -594,12 +563,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task PrivateMemberFunctionArgument()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task PrivateMemberFunctionArgument()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -616,12 +583,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MemberFunctions()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MemberFunctions()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -656,12 +621,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task BaseConstructorArgument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task BaseConstructorArgument()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -688,12 +651,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ThisConstructorArgument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ThisConstructorArgument()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -716,12 +677,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LambdaFunction1()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -746,12 +705,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LambdaFunction2()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -782,12 +739,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LambdaFunction3()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -818,12 +773,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LambdaFunction4()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -854,12 +807,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction5_ReturnStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task LambdaFunction5_ReturnStatement()
+        => TestMissingInRegularAndScriptAsync(
         """
         using System;
 
@@ -873,12 +824,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction6_Arguments()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LambdaFunction6_Arguments()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -909,12 +858,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction7_Arguments()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task LambdaFunction7_Arguments()
+        => TestMissingInRegularAndScriptAsync(
         """
         using System;
 
@@ -930,12 +877,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction8_Arguments()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LambdaFunction8_Arguments()
+        => TestInRegularAndScriptAsync(
         """
         using System;
 
@@ -966,12 +911,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task LambdaFunction9_Arguments()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task LambdaFunction9_Arguments()
+        => TestMissingInRegularAndScriptAsync(
         """
         using System;
 
@@ -987,12 +930,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task InheritInterfaces1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InheritInterfaces1()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1017,12 +958,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task InheritInterfaces2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InheritInterfaces2()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1049,12 +988,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task InheritInterfaces3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InheritInterfaces3()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1077,12 +1014,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task InheritInterfaces4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InheritInterfaces4()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1105,12 +1040,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task InheritInterfaces5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task InheritInterfaces5()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1141,12 +1074,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task GenericType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenericType()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         class Program
@@ -1175,12 +1106,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task GenericType2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenericType2()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         class Program
@@ -1211,12 +1140,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task GenericType3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenericType3()
+        => TestInRegularAndScriptAsync(
         """
         using System;
         class Program
@@ -1243,12 +1170,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task GenericType4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenericType4()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1281,12 +1206,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             public class B<T> : A<T> where T : CB { }
         }
         """);
-    }
 
     [Fact]
-    public async Task GenericType5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task GenericType5()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1303,12 +1226,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             public class B<T> : A<T> where T : IB { }
         }
         """);
-    }
 
     [Fact]
-    public async Task GenericType6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task GenericType6()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1341,12 +1262,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             public class B<T, U> : A<T, U> where T : IB { }
         }
         """);
-    }
 
     [Fact]
-    public async Task ObjectInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ObjectInitializer()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1362,12 +1281,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ObjectInitializer2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ObjectInitializer2()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1398,12 +1315,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ObjectInitializer3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ObjectInitializer3()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1418,12 +1333,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ObjectInitializer4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ObjectInitializer4()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1452,12 +1365,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ObjectInitializer5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ObjectInitializer5()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1473,12 +1384,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ObjectInitializer6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ObjectInitializer6()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1509,12 +1418,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ObjectInitializer7()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ObjectInitializer7()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1530,12 +1437,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task RedundantCast1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantCast1()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1558,12 +1463,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task RedundantCast2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantCast2()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1588,12 +1491,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task RedundantCast3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantCast3()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1618,12 +1519,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task RedundantCast4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantCast4()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1650,12 +1549,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ExactMethodCandidate()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ExactMethodCandidate()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1676,12 +1573,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates1_ArgumentsInOrder_NoLabels()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates1_ArgumentsInOrder_NoLabels()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1714,12 +1609,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates2_ArgumentsInOrder_NoLabels()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates2_ArgumentsInOrder_NoLabels()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1756,12 +1649,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates3_ArgumentsInOrder_NoLabels_Params()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates3_ArgumentsInOrder_NoLabels_Params()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1798,12 +1689,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates4_ArgumentsInOrder_NoLabels_Params()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates4_ArgumentsInOrder_NoLabels_Params()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1840,12 +1729,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates5_ArgumentsInOrder_NoLabels_Params()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates5_ArgumentsInOrder_NoLabels_Params()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1882,12 +1769,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates6_ArgumentsInOrder_NoLabels_Params()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates6_ArgumentsInOrder_NoLabels_Params()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1922,12 +1807,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates7_ArgumentsInOrder_NoLabels_Params()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates7_ArgumentsInOrder_NoLabels_Params()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -1962,12 +1845,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates8_ArgumentsInOrder_NoLabels()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates8_ArgumentsInOrder_NoLabels()
+        => TestInRegularAndScriptAsync(
         """
         namespace ExtensionMethods
         {
@@ -2012,12 +1893,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates9_ArgumentsOutOfOrder_NoLabels()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodCandidates9_ArgumentsOutOfOrder_NoLabels()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2035,12 +1914,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates10_ArgumentsInOrder_SomeLabels()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates10_ArgumentsInOrder_SomeLabels()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2075,12 +1952,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates11_ArgumentsInOrder_SomeLabels_Params()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates11_ArgumentsInOrder_SomeLabels_Params()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2117,12 +1992,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates12_ArgumentsInOrder_SomeLabels_Params()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates12_ArgumentsInOrder_SomeLabels_Params()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2159,12 +2032,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates13_ArgumentsOutOfOrder_SomeLabels()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodCandidates13_ArgumentsOutOfOrder_SomeLabels()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2183,12 +2054,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates14_ArgumentsOutOfOrder_AllLabels()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates14_ArgumentsOutOfOrder_AllLabels()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2225,12 +2094,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates15_ArgumentsOutOfOrder_AllLabels()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodCandidates15_ArgumentsOutOfOrder_AllLabels()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2249,12 +2116,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates17_ArgumentsInOrder_SomeLabels()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates17_ArgumentsInOrder_SomeLabels()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2289,12 +2154,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates18_ArgumentsInOrder_SomeLabels()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MethodCandidates18_ArgumentsInOrder_SomeLabels()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2331,12 +2194,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates19_ArgumentsInOrder_NoLabels_Params()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodCandidates19_ArgumentsInOrder_NoLabels_Params()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2355,12 +2216,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates20_ArgumentsInOrder_NoLabels_Params()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodCandidates20_ArgumentsInOrder_NoLabels_Params()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2379,12 +2238,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates21_ArgumentsInOrder_Labels()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodCandidates21_ArgumentsInOrder_Labels()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2400,12 +2257,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MethodCandidates22_ArgumentsInOrder()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MethodCandidates22_ArgumentsInOrder()
+        => TestMissingInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2424,12 +2279,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ConstructorCandidates1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConstructorCandidates1()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2472,12 +2325,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ConstructorCandidates2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConstructorCandidates2()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2524,12 +2375,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task ConstructorCandidates3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConstructorCandidates3()
+        => TestInRegularAndScriptAsync(
         """
         class Program
         {
@@ -2560,7 +2409,6 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
     public async Task MultipleOptions1()
@@ -3089,9 +2937,8 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task MultipleErrors1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MultipleErrors1()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3124,12 +2971,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MultipleErrors2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MultipleErrors2()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3162,12 +3007,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ErrorType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ErrorType()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C 
             {
@@ -3178,12 +3021,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task AttributeArgument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AttributeArgument()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C 
@@ -3208,12 +3049,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50493")]
-    public async Task ArrayAccess()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ArrayAccess()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3236,12 +3075,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RemoveExistingCast1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveExistingCast1()
+        => TestInRegularAndScriptAsync(
             """
             class Program
             {
@@ -3266,12 +3103,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
-    public async Task CompoundAssignment1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompoundAssignment1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3294,12 +3129,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
-    public async Task CompoundAssignment2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompoundAssignment2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3322,12 +3155,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
-    public async Task CompoundAssignment3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompoundAssignment3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3350,12 +3181,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
-    public async Task CompoundAssignment4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompoundAssignment4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3378,12 +3207,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
-    public async Task CompoundAssignment5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompoundAssignment5()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3406,5 +3233,4 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 }

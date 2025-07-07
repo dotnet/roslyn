@@ -22,36 +22,30 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
 public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 {
-    private static async Task TestWithUseExpressionBody(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseExpressionBody(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenPossible } }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseExpressionBodyWhenOnSingleLine(string code, string fixedCode)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseExpressionBodyWhenOnSingleLine(string code, string fixedCode)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenOnSingleLine } }
         }.RunAsync();
-    }
 
-    private static async Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
-    {
-        await new VerifyCS.Test
+    private static Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
+        => new VerifyCS.Test
         {
             TestCode = code,
             FixedCode = fixedCode,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.Never } },
             ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestUseExpressionBody1()
@@ -883,9 +877,8 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57570")]
-    public async Task TestUseExpressionBodyTopLevelStatment()
-    {
-        await new VerifyCS.Test
+    public Task TestUseExpressionBodyTopLevelStatment()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -912,12 +905,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.WhenPossible } },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57570")]
-    public async Task TestUseBlockBodyTopLevelStatment()
-    {
-        await new VerifyCS.Test
+    public Task TestUseBlockBodyTopLevelStatment()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -941,5 +932,4 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.Never } },
         }.RunAsync();
-    }
 }

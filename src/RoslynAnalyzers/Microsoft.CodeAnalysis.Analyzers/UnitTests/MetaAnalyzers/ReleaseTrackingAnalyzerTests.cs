@@ -1069,16 +1069,12 @@ class MyAnalyzer : DiagnosticAnalyzer
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText)
-        {
-            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, ImmutableArray<DiagnosticResult>.Empty, ImmutableArray<DiagnosticResult>.Empty);
-        }
+        private Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText)
+            => VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, ImmutableArray<DiagnosticResult>.Empty, ImmutableArray<DiagnosticResult>.Empty);
 
-        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText,
+        private Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText,
             ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInInput, ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInResult)
-        {
-            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, additionalExpectedDiagnosticsInInput, additionalExpectedDiagnosticsInResult);
-        }
+            => VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, additionalExpectedDiagnosticsInInput, additionalExpectedDiagnosticsInResult);
 
         private async Task VerifyAdditionalFileFixAsync(string language, string source, string shippedText, string oldUnshippedText, string newUnshippedText,
             ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInInput, ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInResult)

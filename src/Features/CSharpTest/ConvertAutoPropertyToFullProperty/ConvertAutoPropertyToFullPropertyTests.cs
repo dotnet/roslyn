@@ -1318,9 +1318,8 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
     }
 
     [Fact]
-    public async Task NullBackingField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NullBackingField()
+        => TestInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1339,12 +1338,10 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 string? Name { get => name; set => name = value; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29021")]
-    public async Task ConstructorInitializerIndentation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConstructorInitializerIndentation()
+        => TestInRegularAndScriptAsync(
             """
             internal class EvaluationCommandLineHandler
             {
@@ -1372,12 +1369,10 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 public Dictionary<string, IImmutableDictionary<string, string>> Files => files;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75547")]
-    public async Task ConvertField1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertField1()
+        => TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1413,7 +1408,6 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             }
             """,
             parseOptions: CSharp14);
-    }
 
     [Theory]
     [InlineData("set"), InlineData("init")]

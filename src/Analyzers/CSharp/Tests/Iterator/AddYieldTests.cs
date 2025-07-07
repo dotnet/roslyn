@@ -16,15 +16,11 @@ using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpAddYieldCo
 [Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
 public sealed class AddYieldTests
 {
-    private static async Task TestMissingInRegularAndScriptAsync(string code)
-    {
-        await VerifyCS.VerifyCodeFixAsync(code, code);
-    }
+    private static Task TestMissingInRegularAndScriptAsync(string code)
+        => VerifyCS.VerifyCodeFixAsync(code, code);
 
-    private static async Task TestInRegularAndScriptAsync(string code, string fixedCode)
-    {
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-    }
+    private static Task TestInRegularAndScriptAsync(string code, string fixedCode)
+        => VerifyCS.VerifyCodeFixAsync(code, fixedCode);
 
     [Fact]
     public async Task TestAddYieldIEnumerableReturnNull()

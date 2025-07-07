@@ -352,9 +352,8 @@ class C1 : CodeFixProvider
         }
 
         [Fact, WorkItem(3475, "https://github.com/dotnet/roslyn-analyzers/issues/3475")]
-        public async Task CSharp_CodeActionCreateNestedActions_NoDiagnosticsAsync()
-        {
-            await new VerifyCS.Test
+        public Task CSharp_CodeActionCreateNestedActions_NoDiagnosticsAsync()
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.Default.AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.3.0"))),
                 TestCode = @"
@@ -408,7 +407,6 @@ class C1 : CodeFixProvider
                     VerifyCS.Diagnostic(FixerWithFixAllAnalyzer.CreateCodeActionEquivalenceKeyRule).WithLocation(1).WithArguments("equivalenceKey"),
                 }
             }.RunAsync();
-        }
 
         #endregion
 

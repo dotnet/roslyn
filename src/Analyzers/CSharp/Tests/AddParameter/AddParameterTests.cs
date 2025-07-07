@@ -29,9 +29,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
         => FlattenActions(actions);
 
     [Fact]
-    public async Task TestMissingWithImplicitConstructor()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithImplicitConstructor()
+        => TestMissingAsync(
             """
             class C
             {
@@ -45,12 +44,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnEmptyConstructor()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnEmptyConstructor()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -79,12 +76,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNamedArg()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNamedArg()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -113,12 +108,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWithConstructorWithSameNumberOfParams()
-    {
-        await TestMissingAsync(
+    public Task TestMissingWithConstructorWithSameNumberOfParams()
+        => TestMissingAsync(
             """
             class C
             {
@@ -133,12 +126,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddBeforeMatchingArg()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddBeforeMatchingArg()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -167,12 +158,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddAfterMatchingConstructorParam()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAddAfterMatchingConstructorParam()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -201,12 +190,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParams1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestParams1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -235,12 +222,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestParams2()
-    {
-        await TestMissingAsync(
+    public Task TestParams2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -255,12 +240,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
-    public async Task TestMultiLineParameters1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineParameters1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -292,12 +275,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
-    public async Task TestMultiLineParameters2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineParameters2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -329,12 +310,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
-    public async Task TestMultiLineParameters3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineParameters3()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -366,12 +345,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
-    public async Task TestMultiLineParameters4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineParameters4()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -405,12 +382,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
-    public async Task TestMultiLineParameters5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineParameters5()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -444,12 +419,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20708")]
-    public async Task TestMultiLineParameters6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestMultiLineParameters6()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -483,12 +456,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
-    public async Task TestNullArg1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullArg1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -517,12 +488,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
-    public async Task TestNullArg2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNullArg2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -551,12 +520,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
-    public async Task TestDefaultArg1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDefaultArg1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -585,12 +552,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20973")]
-    public async Task TestDefaultArg2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDefaultArg2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -619,12 +584,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationInstanceMethod1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationInstanceMethod1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -651,12 +614,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationInheritedMethodGetFixed()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationInheritedMethodGetFixed()
+        => TestInRegularAndScriptAsync(
             """
             class Base
             {
@@ -689,12 +650,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationInheritedMethodInMetadatGetsNotFixed()
-    {
-        await TestMissingAsync(
+    public Task TestInvocationInheritedMethodInMetadatGetsNotFixed()
+        => TestMissingAsync(
             """
             class C1
             {
@@ -705,12 +664,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationLocalFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             class C1
             {
@@ -731,13 +688,11 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     [Trait("TODO", "Fix broken")]
-    public async Task TestInvocationLambda1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestInvocationLambda1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             class C1
@@ -749,13 +704,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-        //Should be Action<int> a = (int v) => { };
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationStaticMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationStaticMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C1
             {
@@ -780,7 +732,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     public async Task TestInvocationExtensionMethod()
@@ -1075,9 +1026,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     [Trait("TODO", "Fix broken")]
-    public async Task TestInvocationGenericMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationGenericMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C1
             {
@@ -1098,12 +1048,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationRecursion()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestInvocationRecursion()
+        => TestInRegularAndScriptAsync(
             """
             class C1
             {
@@ -1122,7 +1070,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     public async Task TestInvocationOverloads1()
@@ -2664,9 +2611,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39270")]
-    public async Task TestWithArgThatHasImplicitConversionToParamType1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithArgThatHasImplicitConversionToParamType1()
+        => TestInRegularAndScriptAsync(
             """
             class BaseClass { }
 
@@ -2699,7 +2645,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 void MyFunc(BaseClass param1, int newparam) { }
             }
             """);
-    }
 
     [Fact]
     public async Task TestOnExtensionGetEnumerator()
@@ -2792,9 +2737,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44271")]
-    public async Task TopLevelStatement()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TopLevelStatement()
+        => TestInRegularAndScriptAsync("""
             [|local|](1, 2, 3);
 
             void local(int x, int y)
@@ -2808,12 +2752,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             {
             }
             """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44271")]
-    public async Task TopLevelStatement_Nested()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TopLevelStatement_Nested()
+        => TestInRegularAndScriptAsync("""
             void outer()
             {
                 [|local|](1, 2, 3);
@@ -2833,12 +2775,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42559")]
-    public async Task TestAddParameter_ImplicitObjectCreation()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddParameter_ImplicitObjectCreation()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 C(int i) { }
@@ -2860,12 +2800,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48042")]
-    public async Task TestNamedArgOnExtensionMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNamedArgOnExtensionMethod()
+        => TestInRegularAndScriptAsync(
             """
             namespace r
             {
@@ -2892,12 +2830,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
-    public async Task TestPositionalRecord()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestPositionalRecord()
+        => TestInRegularAndScriptAsync("""
             var b = "B";
             var r = [|new R(1, b)|];
 
@@ -2918,12 +2854,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 public static class IsExternalInit { }
             }
             """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact]
-    public async Task Test_PrimaryConstructor_Class()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task Test_PrimaryConstructor_Class()
+        => TestInRegularAndScriptAsync("""
             var b = "B";
             var r = [|new R(1, b)|];
 
@@ -2934,12 +2868,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
             class R(int A, string b);
             """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54408")]
-    public async Task TestPositionalRecordStruct()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestPositionalRecordStruct()
+        => TestInRegularAndScriptAsync("""
             var b = "B";
             var r = [|new R(1, b)|];
 
@@ -2960,12 +2892,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 public static class IsExternalInit { }
             }
             """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact]
-    public async Task Test_PrimaryConstructor_Struct()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task Test_PrimaryConstructor_Struct()
+        => TestInRegularAndScriptAsync("""
             var b = "B";
             var r = [|new R(1, b)|];
 
@@ -2976,12 +2906,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
             struct R(int A, string b);
             """, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
-    public async Task TestRecordsNamingConventions()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestRecordsNamingConventions()
+        => TestInRegularAndScript1Async("""
             [|new Test("repro")|];
 
             record Test();
@@ -2992,12 +2920,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             record Test(string V);
 
             """);
-    }
 
     [Fact]
-    public async Task TestNamingConventions_PrimaryConstructor_Class()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestNamingConventions_PrimaryConstructor_Class()
+        => TestInRegularAndScript1Async("""
             [|new Test("repro")|];
 
             class Test();
@@ -3006,12 +2932,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
             class Test(string v);
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56952")]
-    public async Task TestRecordsNamingConventions_RecordStruct()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestRecordsNamingConventions_RecordStruct()
+        => TestInRegularAndScript1Async("""
             [|new Test("repro")|];
 
             record struct Test();
@@ -3022,12 +2946,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             record struct Test(string V);
 
             """);
-    }
 
     [Fact]
-    public async Task TestNamingConventions_PrimaryConstructor_Struct()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestNamingConventions_PrimaryConstructor_Struct()
+        => TestInRegularAndScript1Async("""
             [|new Test("repro")|];
 
             struct Test();
@@ -3036,12 +2958,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
 
             struct Test(string v);
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
-    public async Task TestMethodGroup1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestMethodGroup1()
+        => TestInRegularAndScript1Async("""
             public class Example
             {
                 public void Add(int x)
@@ -3074,12 +2994,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
-    public async Task TestMethodGroup2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestMethodGroup2()
+        => TestInRegularAndScript1Async("""
             public class Example
             {
                 public void Add(int x, string y)
@@ -3112,12 +3030,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61715")]
-    public async Task TestMethodGroup3()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestMethodGroup3()
+        => TestInRegularAndScript1Async("""
             public class Example
             {
                 public int Add(int x, string y)
@@ -3152,12 +3068,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
-    public async Task TestAddConstructorParameterWithExistingField_BlockInitialize()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddConstructorParameterWithExistingField_BlockInitialize()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -3203,12 +3117,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
-    public async Task TestAddConstructorParameterWithExistingField_ExpressionBodyInitialize()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddConstructorParameterWithExistingField_ExpressionBodyInitialize()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -3248,12 +3160,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
-    public async Task TestAddConstructorParameterWithExistingField_TupleInitialize()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddConstructorParameterWithExistingField_TupleInitialize()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -3296,12 +3206,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
-    public async Task TestAddConstructorParameterWithExistingField_UnderscoreName()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddConstructorParameterWithExistingField_UnderscoreName()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -3339,12 +3247,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
-    public async Task TestAddConstructorParameterWithExistingField_PrimaryConstructor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddConstructorParameterWithExistingField_PrimaryConstructor()
+        => TestInRegularAndScript1Async(
             """
             class C()
             {
@@ -3373,12 +3279,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
-    public async Task TestAddConstructorParameterWithExistingProperty_PrimaryConstructor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddConstructorParameterWithExistingProperty_PrimaryConstructor()
+        => TestInRegularAndScript1Async(
             """
             class C()
             {
@@ -3407,12 +3311,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71428")]
-    public async Task TestAddConstructorParameterWithExistingThrowingProperty_PrimaryConstructor()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestAddConstructorParameterWithExistingThrowingProperty_PrimaryConstructor()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -3445,5 +3347,4 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 }

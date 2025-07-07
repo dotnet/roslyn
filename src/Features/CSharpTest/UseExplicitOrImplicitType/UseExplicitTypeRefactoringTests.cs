@@ -303,10 +303,8 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
     }
 
     [Fact]
-    public async Task NotOnConstVar()
-    {
-        // This error case is handled by a separate code fix (UseExplicitTypeForConst).
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotOnConstVar()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -316,7 +314,6 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestWithTopLevelNullability()

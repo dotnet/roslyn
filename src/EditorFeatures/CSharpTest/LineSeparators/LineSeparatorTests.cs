@@ -485,9 +485,8 @@ public sealed class LineSeparatorTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
-    public async Task ExpressionBodiedProperty()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task ExpressionBodiedProperty()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 int Prop => 3;
@@ -497,12 +496,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 0, 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
-    public async Task ExpressionBodiedIndexer()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task ExpressionBodiedIndexer()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 int this[int i] => 3;
@@ -512,14 +509,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 0, 2);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
-    public async Task ExpressionBodiedEvent()
-    {
-        // This is not valid code, and parses all wrong, but just in case a user writes it.  Note
-        // the 3 is because there is a skipped } in the event declaration.
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task ExpressionBodiedEvent()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 event EventHandler MyEvent => 3;
@@ -529,7 +522,6 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 3);
-    }
 
     #region Negative (incomplete) tests
 
@@ -570,11 +562,8 @@ public sealed class LineSeparatorTests
     }
 
     [Fact]
-    public async Task IncompleteOperator()
-    {
-        // top level operators not supported in script code
-        await AssertTagsOnBracesOrSemicolonsTokensAsync(@"C operator +(C lhs, C rhs) {", [], Options.Regular);
-    }
+    public Task IncompleteOperator()
+        => AssertTagsOnBracesOrSemicolonsTokensAsync(@"C operator +(C lhs, C rhs) {", [], Options.Regular);
 
     [Fact]
     public async Task IncompleteConversionOperator()

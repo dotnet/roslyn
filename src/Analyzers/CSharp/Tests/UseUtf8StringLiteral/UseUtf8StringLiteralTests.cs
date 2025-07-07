@@ -20,9 +20,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseUtf8StringLiteralTests
 {
     [Fact]
-    public async Task TestNotInAttribute()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInAttribute()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -44,12 +43,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInCSharp10()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp10()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -63,12 +60,10 @@ public sealed class UseUtf8StringLiteralTests
             """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenNoReadOnlySpan()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenNoReadOnlySpan()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -83,12 +78,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net20.Default,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithoutInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithoutInitializer()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -103,12 +96,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInExpressionTree()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInExpressionTree()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -130,12 +121,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenNotByteArray()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenNotByteArray()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -150,12 +139,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenOptionNotSet()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenOptionNotSet()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -174,12 +161,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenNonLiteralElement()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenNonLiteralElement()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -196,12 +181,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenMultidimensionalArray()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenMultidimensionalArray()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -216,12 +199,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleByteArray()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleByteArray()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -247,12 +228,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConstant()
-    {
-        await new VerifyCS.Test
+    public Task TestConstant()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -280,12 +259,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplicitArray()
-    {
-        await new VerifyCS.Test
+    public Task TestImplicitArray()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -311,12 +288,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestExplicitCast()
-    {
-        await new VerifyCS.Test
+    public Task TestExplicitCast()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -342,12 +317,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestHexLiteral()
-    {
-        await new VerifyCS.Test
+    public Task TestHexLiteral()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -373,12 +346,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestBinaryExpression()
-    {
-        await new VerifyCS.Test
+    public Task TestBinaryExpression()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -404,12 +375,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyArray()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyArray()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -434,12 +403,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -465,12 +432,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia2()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -496,12 +461,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultiple()
-    {
-        await new VerifyCS.Test
+    public Task TestMultiple()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -531,12 +494,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEscapeChars()
-    {
-        await new VerifyCS.Test
+    public Task TestEscapeChars()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -562,12 +523,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmoji()
-    {
-        await new VerifyCS.Test
+    public Task TestEmoji()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -593,12 +552,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestHalfEmoji1()
-    {
-        await new VerifyCS.Test
+    public Task TestHalfEmoji1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -614,12 +571,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestHalfEmoji2()
-    {
-        await new VerifyCS.Test
+    public Task TestHalfEmoji2()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -635,12 +590,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestHalfEmoji3()
-    {
-        await new VerifyCS.Test
+    public Task TestHalfEmoji3()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -656,15 +609,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUnicodeReplacementChar()
-    {
-        // The unicode replacement character is what is returned when, for example, an unpaired
-        // surrogate is converted to a UTF-8 string. This test just ensures that the presence of
-        // that character isn't being used to detect a failure state of some kind.
-        await new VerifyCS.Test
+    public Task TestUnicodeReplacementChar()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -690,12 +638,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCollectionInitializer()
-    {
-        await new VerifyCS.Test
+    public Task TestCollectionInitializer()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -771,14 +717,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUsingWithParamArray()
-    {
-        // From: https://github.com/dotnet/roslyn/blob/0c7c0b33f0871fc4308eb2d75d77b87fc9293290/src/Compilers/CSharp/Test/IOperation/IOperation/IOperationTests_IUsingStatement.cs#L1189-L1194
-        // There is an array creation operation for the param array
-        await new VerifyCS.Test
+    public Task TestUsingWithParamArray()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -799,7 +741,6 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Theory]
     // Standard C# escape characters
@@ -817,9 +758,8 @@ public sealed class UseUtf8StringLiteralTests
     [InlineData(new byte[] { 0x3f, 0x01 })]
     // DaysInMonth365 from https://github.com/dotnet/runtime/blob/b5a8ece073110140e2d9696cdfdc047ec78c2fa1/src/libraries/System.Private.CoreLib/src/System/DateTime.cs
     [InlineData(new byte[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })]
-    public async Task TestInvalidUtf8Strings(byte[] bytes)
-    {
-        await new VerifyCS.Test
+    public Task TestInvalidUtf8Strings(byte[] bytes)
+        => new VerifyCS.Test
         {
             TestCode =
             $$"""
@@ -832,14 +772,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoesNotOfferForControlCharacters()
-    {
-        // Copied from https://github.com/dotnet/runtime/blob/6a889d234267a4c96ed21d0e1660dce787d78a38/src/libraries/Microsoft.CSharp/src/Microsoft/CSharp/RuntimeBinder/Semantics/Conversion.cs
-
-        await new VerifyCS.Test
+    public Task TestDoesNotOfferForControlCharacters()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -886,12 +822,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray1()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -917,12 +851,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray2()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray2()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -948,12 +880,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray3()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray3()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -979,12 +909,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray4()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray4()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1010,12 +938,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray5()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray5()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1041,12 +967,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray6()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray6()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1072,12 +996,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray7()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray7()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1092,12 +1014,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray8()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray8()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1123,12 +1043,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray9()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray9()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1154,12 +1072,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray10()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray10()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1185,12 +1101,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray11()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray11()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1216,12 +1130,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray12()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray12()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1247,12 +1159,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray13()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray13()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1288,12 +1198,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray14()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray14()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1343,12 +1251,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray15()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray15()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1432,12 +1338,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray16()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray16()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1463,12 +1367,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestParamArray17()
-    {
-        await new VerifyCS.Test
+    public Task TestParamArray17()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1494,12 +1396,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultidimensionalArray()
-    {
-        await new VerifyCS.Test
+    public Task TestMultidimensionalArray()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1525,12 +1425,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTargettingReadOnlySpan1()
-    {
-        await new VerifyCS.Test
+    public Task TestTargettingReadOnlySpan1()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1560,12 +1458,10 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTargettingReadOnlySpan2()
-    {
-        await new VerifyCS.Test
+    public Task TestTargettingReadOnlySpan2()
+        => new VerifyCS.Test
         {
             TestCode =
             """
@@ -1595,5 +1491,4 @@ public sealed class UseUtf8StringLiteralTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12
         }.RunAsync();
-    }
 }

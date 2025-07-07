@@ -22,13 +22,12 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryLambdaExpression)]
 public sealed class RemoveUnnecessaryLambdaExpressionTests
 {
-    private static async Task TestInRegularAndScriptAsync(
+    private static Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion version = LanguageVersion.CSharp12,
         OutputKind? outputKind = null)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = testCode,
             FixedCode = fixedCode,
@@ -38,7 +37,6 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 OutputKind = outputKind,
             }
         }.RunAsync();
-    }
 
     private static Task TestMissingInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
@@ -47,9 +45,8 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
         => TestInRegularAndScriptAsync(testCode, testCode, version, outputKind);
 
     [Fact]
-    public async Task TestMissingInCSharp10()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingInCSharp10()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -64,12 +61,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i) => default;
             }
             """, LanguageVersion.CSharp10);
-    }
 
     [Fact]
-    public async Task TestBasicCase()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestBasicCase()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -98,12 +93,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithOptionOff()
-    {
-        await new VerifyCS.Test
+    public Task TestWithOptionOff()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -122,12 +115,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             LanguageVersion = LanguageVersion.CSharp12,
             Options = { { CSharpCodeStyleOptions.PreferMethodGroupConversion, new CodeStyleOption2<bool>(false, NotificationOption2.None) } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnStaticLambda()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnStaticLambda()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -142,12 +133,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithOptionalParameter()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithOptionalParameter()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -162,12 +151,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(int i, int j = 0) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithParams1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithParams1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -182,12 +169,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(int i, params int[] j) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithParams2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithParams2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -202,12 +187,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(params object[] j) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithParams1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithParams1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -236,12 +219,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(params object[] o) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithRefChange1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithRefChange1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -256,12 +237,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(ref int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotWithRefChange2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithRefChange2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -278,12 +257,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithSameRef()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithSameRef()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -317,12 +294,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(ref int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnConversionToObject()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotOnConversionToObject()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -337,12 +312,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 static string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithParenthesizedLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithParenthesizedLambda()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -371,12 +344,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithAnonymousMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithAnonymousMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -405,12 +376,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithAnonymousMethodNoParameterList()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithAnonymousMethodNoParameterList()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -439,12 +408,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux() => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixCoContravariance1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixCoContravariance1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -473,12 +440,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(object o) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixCoContravariance2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixCoContravariance2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -507,12 +472,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(object o) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixCoContravariance3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestFixCoContravariance3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -527,12 +490,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 object Quux(object o) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixCoContravariance4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestFixCoContravariance4()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -547,12 +508,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(string o) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixCoContravariance5()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestFixCoContravariance5()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -567,12 +526,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 object Quux(string o) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTwoArgs()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTwoArgs()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -601,12 +558,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i, bool b) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleArgIncorrectPassing1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMultipleArgIncorrectPassing1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -621,12 +576,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i, int b) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleArgIncorrectPassing2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMultipleArgIncorrectPassing2()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -641,12 +594,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i, int b) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMultipleArgIncorrectPassing3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMultipleArgIncorrectPassing3()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -661,12 +612,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i, bool b) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReturnStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReturnStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -697,12 +646,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i, bool b) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReturnStatement2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestReturnStatement2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -733,12 +680,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i, bool b) => default;
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-    public async Task TestMissingOnAmbiguity1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnAmbiguity1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -762,7 +707,6 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
     public async Task TestWithConstraint1()
@@ -844,9 +788,8 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-    public async Task TestMissingOnLambdaWithDynamic_1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnLambdaWithDynamic_1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -877,12 +820,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
-    public async Task TestWithLambdaWithDynamic()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithLambdaWithDynamic()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -953,7 +894,6 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
     public async Task ParenthesizeIfParseChanges()
@@ -996,9 +936,8 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
-    public async Task TestNotWithSideEffects()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithSideEffects()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1010,12 +949,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545994")]
-    public async Task TestExpressionStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestExpressionStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1040,12 +977,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTaskOfT1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTaskOfT1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1076,12 +1011,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task<string> Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTaskOfT1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTaskOfT1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1112,12 +1045,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task<string> Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTaskOfT2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTaskOfT2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1148,12 +1079,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task<string> Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncNoAwait1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestAsyncNoAwait1()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1169,12 +1098,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTaskOfT1_Return()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTaskOfT1_Return()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1205,12 +1132,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task<string> Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTaskOfT1_Return()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTaskOfT1_Return()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1241,12 +1166,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task<string> Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTaskOfT2_Return()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTaskOfT2_Return()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1277,12 +1200,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task<string> Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncNoAwait1_Return()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestAsyncNoAwait1_Return()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1298,12 +1219,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTask1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTask1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1334,12 +1253,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTask1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTask1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1370,12 +1287,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTask2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTask2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1406,12 +1321,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTask1_ExpressionStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestTask1_ExpressionStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1427,12 +1340,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTask1_ExpressionStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTask1_ExpressionStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1463,12 +1374,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncTask2_ExpressionStatement()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncTask2_ExpressionStatement()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1499,12 +1408,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 Task Quux(int i) => default;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAsyncNoAwait1_ExpressionStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestAsyncNoAwait1_ExpressionStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Threading.Tasks;
@@ -1520,12 +1427,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 void Quux(int i) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExplicitGenericCall()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestExplicitGenericCall()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1552,12 +1457,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 void Quux<T>() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestImplicitGenericCall()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestImplicitGenericCall()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -1571,12 +1474,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 void Quux<T>(T t) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityChanges()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNullabilityChanges()
+        => TestMissingInRegularAndScriptAsync(
             """
             #nullable enable
 
@@ -1613,12 +1514,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -1647,12 +1546,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string Quux(int i) => default;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63465")]
-    public async Task TestNotWithPartialDefinition()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestNotWithPartialDefinition()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Diagnostics;
@@ -1669,12 +1566,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 private static void M2(Action<string> a) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63465")]
-    public async Task TestWithPartialDefinitionAndImplementation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithPartialDefinitionAndImplementation()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             using System.Diagnostics;
@@ -1709,12 +1604,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 private static void M2(Action<string> a) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63464")]
-    public async Task TestNotWithConditionalAttribute()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestNotWithConditionalAttribute()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Diagnostics;
 
@@ -1731,12 +1624,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 private static void M2(Action<string> a) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
-    public async Task TestNotWithAssignmentOfInvokedExpression1()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestNotWithAssignmentOfInvokedExpression1()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -1758,12 +1649,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             }
             
             """, outputKind: OutputKind.ConsoleApplication);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
-    public async Task TestWithoutAssignmentOfInvokedExpression1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithoutAssignmentOfInvokedExpression1()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -1805,12 +1694,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             
             """,
             outputKind: OutputKind.ConsoleApplication);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
-    public async Task TestNotWithAssignmentOfInvokedExpression2()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestNotWithAssignmentOfInvokedExpression2()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -1838,12 +1725,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             }
             
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
-    public async Task TestWithoutAssignmentOfInvokedExpression2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithoutAssignmentOfInvokedExpression2()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -1896,12 +1781,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             }
             
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69094")]
-    public async Task TestWithoutAssignmentOfInvokedExpression3()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithoutAssignmentOfInvokedExpression3()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -1968,12 +1851,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             }
             
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71300")]
-    public async Task TestWithWriteInOtherMethod()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithWriteInOtherMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Linq;
 
@@ -2033,12 +1914,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71300")]
-    public async Task PreserveComment()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task PreserveComment()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class C
@@ -2073,12 +1952,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66950")]
-    public async Task TestMissingWithMutableStructs()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingWithMutableStructs()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2098,12 +1975,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public void M() { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66950")]
-    public async Task TestWithNonReadonlyStructAndReadonlyMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithNonReadonlyStructAndReadonlyMethod()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2142,12 +2017,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public readonly void M() { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66950")]
-    public async Task TestWithReadonlyStruct()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestWithReadonlyStruct()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -2186,5 +2059,4 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public void M() { }
             }
             """);
-    }
 }
