@@ -22,24 +22,24 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("System.ComponentModel.Composition")]
         public async Task SingleExpectedConstructor_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+            var source = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -56,25 +56,25 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
         [InlineData("System.ComponentModel.Composition")]
         public async Task SingleExpectedConstructor_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+            var source = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
 
             await new VerifyVB.Test
             {
@@ -91,42 +91,42 @@ End Namespace
         [InlineData("System.ComponentModel.Composition")]
         public async Task ObsoleteButNotError_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+            var source = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: false)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: false)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
-            var fixedSource = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
+            var fixedSource = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -148,44 +148,44 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
         [InlineData("System.ComponentModel.Composition")]
         public async Task ObsoleteButNotError_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+            var source = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(MefConstruction.ImportingConstructorMessage, False)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(MefConstruction.ImportingConstructorMessage, False)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
-            var fixedSource = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
+            var fixedSource = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
 
             await new VerifyVB.Test
             {
@@ -207,40 +207,40 @@ End Namespace
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsolete_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using System;
-using {mefNamespace};
+            var source = $$"""
+                using System;
+                using {{mefNamespace}};
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
-            var fixedSource = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
+            var fixedSource = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -262,42 +262,42 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsolete_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports System
-Imports {mefNamespace}
+            var source = $"""
+                Imports System
+                Imports {mefNamespace}
 
-<Export>
-Class C
-    <ImportingConstructor>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
-            var fixedSource = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
+            var fixedSource = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(ImportingConstructorMessage, True)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(ImportingConstructorMessage, True)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
 
             await new VerifyVB.Test
             {
@@ -319,34 +319,34 @@ End Namespace
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsoleteAddImports_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using {mefNamespace};
+            var source = $$"""
+                using {{mefNamespace}};
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    public C() {{ }}
-}}
-";
-            var helperSource = $@"
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
-            var fixedSource = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    public C() { }
+                }
+                """;
+            var helperSource = $$"""
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
+            var fixedSource = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public C() {{ }}
-}}
-";
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                    public C() { }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -368,42 +368,42 @@ class C {{
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotMarkedObsoleteAddImports_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports {mefNamespace}
+            var source = $"""
+                Imports {mefNamespace}
 
-<Export>
-Class C
-    <ImportingConstructor>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
-            var fixedSource = $@"
-Imports System
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
+            var fixedSource = $"""
+                Imports System
 
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(ImportingConstructorMessage, True)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(ImportingConstructorMessage, True)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
 
             await new VerifyVB.Test
             {
@@ -425,41 +425,41 @@ End Namespace
         [InlineData("System.ComponentModel.Composition")]
         public async Task MessageArgumentOmitted_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using System;
-using {mefNamespace};
+            var source = $$"""
+                using System;
+                using {{mefNamespace}};
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
-            var fixedSource = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
+            var fixedSource = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -481,43 +481,43 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
         [InlineData("System.ComponentModel.Composition")]
         public async Task MessageArgumentOmitted_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports System
-Imports {mefNamespace}
+            var source = $"""
+                Imports System
+                Imports {mefNamespace}
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
-            var fixedSource = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
+            var fixedSource = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(ImportingConstructorMessage, True)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(ImportingConstructorMessage, True)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
 
             await new VerifyVB.Test
             {
@@ -539,42 +539,42 @@ End Namespace
         [InlineData("System.ComponentModel.Composition")]
         public async Task ErrorArgumentOmitted_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+            var source = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
-            var fixedSource = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
+            var fixedSource = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -596,44 +596,44 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
         [InlineData("System.ComponentModel.Composition")]
         public async Task ErrorArgumentOmitted_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+            var source = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(MefConstruction.ImportingConstructorMessage)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(MefConstruction.ImportingConstructorMessage)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
-            var fixedSource = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
+            var fixedSource = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef.MefConstruction
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
 
             await new VerifyVB.Test
             {
@@ -655,41 +655,41 @@ End Namespace
         [InlineData("System.ComponentModel.Composition")]
         public async Task IncorrectMessage_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using System;
-using {mefNamespace};
+            var source = $$"""
+                using System;
+                using {{mefNamespace}};
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(""INCORRECT MESSAGE"")]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete("INCORRECT MESSAGE")]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
-            var fixedSource = $@"
-using System;
-using {mefNamespace};
-using Microsoft.CodeAnalysis.Host.Mef;
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
+            var fixedSource = $$"""
+                using System;
+                using {{mefNamespace}};
+                using Microsoft.CodeAnalysis.Host.Mef;
 
-[Export]
-class C {{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public C() {{ }}
-}}
+                [Export]
+                class C {
+                    [ImportingConstructor]
+                    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                    public C() { }
+                }
 
-namespace Microsoft.CodeAnalysis.Host.Mef {{
-    static class MefConstruction {{
-        internal const string ImportingConstructorMessage = ""This exported object must be obtained through the MEF export provider."";
-    }}
-}}
-";
+                namespace Microsoft.CodeAnalysis.Host.Mef {
+                    static class MefConstruction {
+                        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+                    }
+                }
+                """;
 
             await new VerifyCS.Test
             {
@@ -713,43 +713,43 @@ namespace Microsoft.CodeAnalysis.Host.Mef {{
         [InlineData("System.ComponentModel.Composition")]
         public async Task IncorrectMessage_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports System
-Imports {mefNamespace}
+            var source = $"""
+                Imports System
+                Imports {mefNamespace}
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(""INCORRECT MESSAGE"")>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete("INCORRECT MESSAGE")>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
-            var fixedSource = $@"
-Imports System
-Imports {mefNamespace}
-Imports Microsoft.CodeAnalysis.Host.Mef
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
+            var fixedSource = $"""
+                Imports System
+                Imports {mefNamespace}
+                Imports Microsoft.CodeAnalysis.Host.Mef
 
-<Export>
-Class C
-    <ImportingConstructor>
-    <Obsolete(ImportingConstructorMessage, True)>
-    Public Sub New()
-    End Sub
-End Class
+                <Export>
+                Class C
+                    <ImportingConstructor>
+                    <Obsolete(ImportingConstructorMessage, True)>
+                    Public Sub New()
+                    End Sub
+                End Class
 
-Namespace Global.Microsoft.CodeAnalysis.Host.Mef
-    Module MefConstruction
-        Friend Const ImportingConstructorMessage As String = ""This exported object must be obtained through the MEF export provider.""
-    End Module
-End Namespace
-";
+                Namespace Global.Microsoft.CodeAnalysis.Host.Mef
+                    Module MefConstruction
+                        Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
+                    End Module
+                End Namespace
+                """;
 
             await new VerifyVB.Test
             {
