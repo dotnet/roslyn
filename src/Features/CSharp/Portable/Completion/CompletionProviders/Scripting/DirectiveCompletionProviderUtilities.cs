@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
 internal static class DirectiveCompletionProviderUtilities
 {
-    internal static bool TryGetStringLiteralToken(SyntaxTree tree, int position, SyntaxKind directiveKind, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
+    internal static bool TryGetStringLiteralToken(SyntaxTree tree, int position, SyntaxKind directiveKind, [NotNullWhen(true)] out string? literalValue, out TextSpan textSpan, CancellationToken cancellationToken)
     {
         if (tree.IsEntirelyWithinStringLiteral(position, cancellationToken))
         {
@@ -21,12 +23,14 @@ internal static class DirectiveCompletionProviderUtilities
 
             if (token.Kind() == SyntaxKind.StringLiteralToken && token.Parent!.Kind() == directiveKind)
             {
-                stringLiteral = token;
+                literalValue = token.ToString();
+                textSpan = token.Span;
                 return true;
             }
         }
 
-        stringLiteral = default;
+        literalValue = null;
+        textSpan = default;
         return false;
     }
 }
