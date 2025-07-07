@@ -156,8 +156,8 @@ namespace Roslyn.Utilities
         internal string Add(string chars, int start, int len)
             => Add(chars.AsSpan(start, len));
 
-        internal unsafe string Add(char chars)
-            => Add(new ReadOnlySpan<char>(&chars, 1));
+        internal string Add(char chars)
+            => Add([chars]);
 
         internal string Add(StringBuilder chars)
         {
@@ -269,8 +269,8 @@ namespace Roslyn.Utilities
             return e;
         }
 
-        private static unsafe string? FindSharedEntry(char chars, int hashCode)
-            => FindSharedEntry(new ReadOnlySpan<char>(&chars, 1), hashCode);
+        private static string? FindSharedEntry(char chars, int hashCode)
+            => FindSharedEntry([chars], hashCode);
 
         private static string? FindSharedEntry(StringBuilder chars, int hashCode)
         {
@@ -327,8 +327,8 @@ namespace Roslyn.Utilities
             return text;
         }
 
-        private unsafe string AddItem(char chars, int hashCode)
-            => AddItem(new ReadOnlySpan<char>(&chars, 1), hashCode);
+        private string AddItem(char chars, int hashCode)
+            => AddItem([chars], hashCode);
 
         private string AddItem(StringBuilder chars, int hashCode)
         {
