@@ -6,12 +6,13 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Roslyn.Diagnostics.Analyzers;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpImportingConstructorShouldBeObsoleteCodeFixProvider)), Shared]
 [method: ImportingConstructor]
@@ -19,6 +20,9 @@ namespace Roslyn.Diagnostics.Analyzers;
 internal sealed class CSharpImportingConstructorShouldBeObsoleteCodeFixProvider() :
     AbstractImportingConstructorShouldBeObsoleteCodeFixProvider
 {
-    private protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-    private protected override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
+    protected override bool IsPrimaryConstructorTypeDeclaration(SyntaxNode node)
+        => node is TypeDeclarationSyntax { ParameterList: not null };
+
+    protected override SyntaxNode MethodTargetingAttributeList(SyntaxNode attribute)
+        => AttributeList(AttributeTargetSpecifier(MethodKeyword), [(AttributeSyntax)attribute]);
 }

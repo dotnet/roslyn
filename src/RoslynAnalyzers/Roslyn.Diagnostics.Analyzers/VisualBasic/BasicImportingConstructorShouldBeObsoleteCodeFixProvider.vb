@@ -5,10 +5,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
 Namespace Roslyn.Diagnostics.Analyzers
     <ExportCodeFixProvider(LanguageNames.VisualBasic, NameOf(BasicImportingConstructorShouldBeObsoleteCodeFixProvider)), [Shared]>
@@ -20,8 +16,12 @@ Namespace Roslyn.Diagnostics.Analyzers
         Public Sub New()
         End Sub
 
-        Private Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Protected Overrides Function IsPrimaryConstructorTypeDeclaration(node As SyntaxNode) As Boolean
+            Return False
+        End Function
 
-        Private Protected Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
+        Protected Overrides Function MethodTargetingAttributeList(attribute As SyntaxNode) As SyntaxNode
+            Return attribute
+        End Function
     End Class
 End Namespace

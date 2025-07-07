@@ -22,10 +22,10 @@ namespace Roslyn.Diagnostics.Analyzers;
 
 public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvider() : CodeFixProvider
 {
-    private protected abstract ISyntaxFacts SyntaxFacts { get; }
-    private protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [ImportingConstructorShouldBeObsolete.Rule.Id];
+
+    protected abstract bool IsPrimaryConstructorTypeDeclaration(SyntaxNode node);
+    protected abstract SyntaxNode MethodTargetingAttributeList(SyntaxNode attribute);
 
     public override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
@@ -92,12 +92,10 @@ public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvide
             return document;
 
         var constructor = root.FindNode(sourceSpan, getInnermostNodeForTie: true);
-        var syntaxFacts = this.SyntaxFacts;
 
         var generator = SyntaxGenerator.GetGenerator(document);
-        var generatorInternal = this.SyntaxGeneratorInternal;
 
-        var isPrimaryConstructorTypeDeclaration = syntaxFacts.IsTypeDeclaration(constructor);
+        var isPrimaryConstructorTypeDeclaration = this.IsPrimaryConstructorTypeDeclaration(constructor);
         var declaration = isPrimaryConstructorTypeDeclaration
             ? constructor
             : generator.TryGetContainingDeclaration(constructor, DeclarationKind.Constructor);
@@ -111,8 +109,7 @@ public abstract class AbstractImportingConstructorShouldBeObsoleteCodeFixProvide
                 GenerateErrorArgument(generator, allowNamedArgument: document.Project.Language == LanguageNames.CSharp),
             ]);
 
-        var attributeList = generatorInternal.AttributeList(
-            obsoleteAttribute, methodTarget: isPrimaryConstructorTypeDeclaration);
+        var attributeList = isPrimaryConstructorTypeDeclaration ? this.MethodTargetingAttributeList(obsoleteAttribute) : obsoleteAttribute;
 
         var newDeclaration = generator.AddAttributes(declaration, attributeList);
         return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDeclaration));
