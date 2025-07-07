@@ -358,21 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
 
-                    BoundExpression argument = placeholder;
-                    if (!argumentConversion.IsIdentity)
+                    BoundExpression argument = CreateConversion(placeholder, argumentConversion, destination: method.Parameters[0].Type, diagnostics);
+
+                    if (argument is BoundConversion)
                     {
-                        argument = new BoundConversion(
-                            expression.Syntax,
-                            placeholder,
-                            argumentConversion,
-                            this.CheckOverflowAtRuntime,
-                            explicitCastInCode: false,
-                            conversionGroupOpt: null,
-                            constantValueOpt: null,
-                            method.Parameters[0].Type)
-                        {
-                            WasCompilerGenerated = true
-                        };
+                        argument.WasCompilerGenerated = true;
                     }
 
                     runtimeAwaitCall = new BoundCall(
