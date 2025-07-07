@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis;
 
-public record struct WorkspaceEventOptions(bool RequiresMainThread)
+internal record struct WorkspaceEventOptions(bool RequiresMainThread)
 {
     public static readonly WorkspaceEventOptions DefaultOptions = new(RequiresMainThread: false);
     public static readonly WorkspaceEventOptions RequiresMainThreadOptions = new(RequiresMainThread: true);

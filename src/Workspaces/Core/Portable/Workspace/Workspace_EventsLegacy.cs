@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -20,8 +19,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event raised whenever the current solution is changed.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete($"Use {nameof(RegisterWorkspaceChangedHandler)} instead, which by default will no longer run on the UI thread.", error: false)]
     public event EventHandler<WorkspaceChangeEventArgs> WorkspaceChanged
     {
         add => AddLegacyEventHandler(value, WorkspaceEventType.WorkspaceChange);
@@ -32,8 +29,6 @@ public abstract partial class Workspace
     /// An event raised whenever the workspace or part of its solution model
     /// fails to access a file or other external resource.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete($"Use {nameof(RegisterWorkspaceFailedHandler)} instead, which by default will no longer run on the UI thread.", error: false)]
     public event EventHandler<WorkspaceDiagnosticEventArgs> WorkspaceFailed
     {
         add => AddLegacyEventHandler(value, WorkspaceEventType.WorkspaceFailed);
@@ -43,8 +38,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when a <see cref="Document"/> is opened in the editor.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete($"Use {nameof(RegisterDocumentOpenedHandler)} instead, which by default will no longer run on the UI thread.", error: false)]
     public event EventHandler<DocumentEventArgs> DocumentOpened
     {
         add => AddLegacyEventHandler(value, WorkspaceEventType.DocumentOpened);
@@ -54,8 +47,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is opened in the editor.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete($"Use {nameof(RegisterTextDocumentOpenedHandler)} instead, which by default will no longer run on the UI thread.", error: false)]
     public event EventHandler<TextDocumentEventArgs> TextDocumentOpened
     {
         add => AddLegacyEventHandler(value, WorkspaceEventType.TextDocumentOpened);
@@ -65,8 +56,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when a <see cref="Document"/> is closed in the editor.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete($"Use {nameof(RegisterDocumentClosedHandler)} instead, which by default will no longer run on the UI thread.", error: false)]
     public event EventHandler<DocumentEventArgs> DocumentClosed
     {
         add => AddLegacyEventHandler(value, WorkspaceEventType.DocumentClosed);
@@ -76,8 +65,6 @@ public abstract partial class Workspace
     /// <summary>
     /// An event that is fired when any <see cref="TextDocument"/> is closed in the editor.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete($"Use {nameof(RegisterTextDocumentClosedHandler)} instead, which by default will no longer run on the UI thread.", error: false)]
     public event EventHandler<TextDocumentEventArgs> TextDocumentClosed
     {
         add => AddLegacyEventHandler(value, WorkspaceEventType.TextDocumentClosed);
@@ -88,8 +75,6 @@ public abstract partial class Workspace
     /// An event that is fired when the active context document associated with a buffer 
     /// changes.
     /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete($"Use {nameof(RegisterDocumentActiveContextChangedHandler)} instead, which by default will no longer run on the UI thread.", error: false)]
     public event EventHandler<DocumentActiveContextChangedEventArgs> DocumentActiveContextChanged
     {
         add => AddLegacyEventHandler(value, WorkspaceEventType.DocumentActiveContextChanged);
