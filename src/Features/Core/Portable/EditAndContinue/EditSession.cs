@@ -888,7 +888,7 @@ internal sealed class EditSession
         Solution solution,
         ActiveStatementSpanProvider solutionActiveStatementSpanProvider,
         UpdateId updateId,
-        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects,
         CancellationToken cancellationToken)
     {
         var projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();

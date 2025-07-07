@@ -141,7 +141,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// Remote API.
     /// </summary>
     public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
-        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
+        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectOptions> runningProjects, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
