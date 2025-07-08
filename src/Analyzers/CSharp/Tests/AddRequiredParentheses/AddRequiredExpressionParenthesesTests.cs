@@ -479,7 +479,7 @@ public sealed partial class AddRequiredExpressionParenthesesTests(ITestOutputHel
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79286")]
     public async Task TestCoalescePrecedence4()
     {
-        await TestMissingAsync( 
+        await TestMissingAsync(
             """
             class C
             {
