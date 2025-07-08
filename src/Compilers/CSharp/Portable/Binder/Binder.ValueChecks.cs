@@ -4505,8 +4505,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var increment = (BoundIncrementOperator)expr;
                     if (increment.MethodOpt is { IsStatic: true } incrementMethod)
                     {
-                        var prefix = increment.OperatorKind is UnaryOperatorKind.UserDefinedPrefixIncrement or UnaryOperatorKind.UserDefinedPrefixDecrement;
-                        Debug.Assert(prefix || increment.OperatorKind is UnaryOperatorKind.UserDefinedPostfixIncrement or UnaryOperatorKind.UserDefinedPostfixDecrement);
+                        Debug.Assert(increment.OperatorKind.IsUserDefined());
+
+                        var prefix = increment.OperatorKind.Operator() is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement;
+                        Debug.Assert(prefix || increment.OperatorKind.Operator() is UnaryOperatorKind.PostfixIncrement or UnaryOperatorKind.PostfixDecrement);
 
                         // Prefix increment can be analyzed like the underlying method call since that's what it returns.
                         // Postfix increment is better analyzed as only the operand since that's what it returns.
@@ -5323,8 +5325,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var increment = (BoundIncrementOperator)expr;
                     if (increment.MethodOpt is { IsStatic: true } incrementMethod)
                     {
-                        var prefix = increment.OperatorKind is UnaryOperatorKind.UserDefinedPrefixIncrement or UnaryOperatorKind.UserDefinedPrefixDecrement;
-                        Debug.Assert(prefix || increment.OperatorKind is UnaryOperatorKind.UserDefinedPostfixIncrement or UnaryOperatorKind.UserDefinedPostfixDecrement);
+                        Debug.Assert(increment.OperatorKind.IsUserDefined());
+
+                        var prefix = increment.OperatorKind.Operator() is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement;
+                        Debug.Assert(prefix || increment.OperatorKind.Operator() is UnaryOperatorKind.PostfixIncrement or UnaryOperatorKind.PostfixDecrement);
 
                         // Prefix increment can be analyzed like the underlying method call since that's what it returns.
                         // Postfix increment is better analyzed as only the operand since that's what it returns.

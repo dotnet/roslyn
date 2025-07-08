@@ -10688,6 +10688,36 @@ public struct Vec4
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void UserDefinedIncrementOperator_RefStruct_Scoped_Prefix_Arg([CombinatorialValues("++", "--")] string op)
+        {
+            //      F2(out var r1, ++r2); return r1;
+            // is equivalent to
+            //      var tmp = R.op_Increment(r2);
+            //      r2 = tmp;
+            //      F2(out var r1, tmp); return r1;
+            // which is ref safe
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator {{op}}(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F1(scoped R r2)
+                    {
+                        F2(out var r1, {{op}}r2);
+                        return r1;
+                    }
+                    static void F2(out R r1, R r2) => r1 = r2;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
         public void UserDefinedIncrementOperator_RefStruct_Scoped_Postfix([CombinatorialValues("++", "--")] string op)
         {
             //      r1 = r2++;
@@ -10716,6 +10746,39 @@ public struct Vec4
                 // (11,14): error CS8352: Cannot use variable 'scoped R r2' in this context because it may expose referenced variables outside of their declaration scope
                 //         r1 = r2++;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, $"r2{op}").WithArguments("scoped R r2").WithLocation(11, 14));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78964")]
+        public void UserDefinedIncrementOperator_RefStruct_Scoped_Postfix_Arg([CombinatorialValues("++", "--")] string op)
+        {
+            //      F2(out var r1, r2++); return r1;
+            // is equivalent to
+            //      var tmp = r2;
+            //      r2 = R.op_Increment(r2);
+            //      F2(out var r1, tmp); return r1;
+            // which is *not* ref safe (r1 is inferred as scoped from r2 but scoped r1 cannot be returned)
+            var source = $$"""
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator {{op}}(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F1(scoped R r2)
+                    {
+                        F2(out var r1, r2{{op}});
+                        return r1;
+                    }
+                    static void F2(out R r1, R r2) => r1 = r2;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (12,16): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
