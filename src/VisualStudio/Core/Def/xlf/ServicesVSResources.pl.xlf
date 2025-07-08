@@ -422,6 +422,11 @@
         <target state="translated">Błąd podczas pomijania aktualizacji: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Experimental_feature">
+        <source>Experimental feature</source>
+        <target state="new">Experimental feature</target>
+        <note>This is used by the settings UI to mark experimental features.</note>
+      </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
         <target state="translated">Źródła zewnętrzne</target>
