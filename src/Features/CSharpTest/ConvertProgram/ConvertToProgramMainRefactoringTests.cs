@@ -22,15 +22,14 @@ public sealed class ConvertToProgramMainRefactoringTests
     [Fact]
     public async Task TestNotOnFileWithNoGlobalStatements()
     {
-        var code = @"
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 $$
 class C
 {
 }
-";
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+",
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             ExpectedDiagnostics =
@@ -44,12 +43,11 @@ class C
     [Fact]
     public async Task TestNotOnEmptyFile()
     {
-        var code = @"
-$$
-";
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"
+$$
+",
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             ExpectedDiagnostics =
@@ -85,12 +83,11 @@ internal class Program
     [Fact]
     public async Task TestNotOfferedInLibrary()
     {
-        var code = @"
-$${|CS8805:System.Console.WriteLine(0);|}
-";
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"
+$${|CS8805:System.Console.WriteLine(0);|}
+",
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -124,12 +121,11 @@ internal class Program
     [Fact]
     public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSuggestion()
     {
-        var code = @"
-$$System.Console.WriteLine(0);
-";
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"
+$$System.Console.WriteLine(0);
+",
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =
@@ -142,12 +138,11 @@ $$System.Console.WriteLine(0);
     [Fact]
     public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSilent()
     {
-        var code = @"
-$$System.Console.WriteLine(0);
-";
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"
+$$System.Console.WriteLine(0);
+",
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             Options =

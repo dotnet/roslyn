@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData("LockStatementSyntax")]
         public Task Diagnostic(string type)
         {
-            var code = $@"
+            return new VerifyCS.Test
+            {
+                TestCode = $@"
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -32,11 +34,7 @@ public class Test {{
     public void M(SemanticModel semanticModel, {type} syntax) {{
         var x = {{|#0:semanticModel.GetDeclaredSymbol(syntax)|}};
     }}
-}}";
-
-            return new VerifyCS.Test
-            {
-                TestCode = code,
+}}",
                 ExpectedDiagnostics = { new DiagnosticResult(CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer.DiagnosticDescriptor).WithLocation(0).WithArguments(type) }
             }.RunAsync();
         }
@@ -47,7 +45,9 @@ public class Test {{
         [InlineData("EventFieldDeclarationSyntax")]
         public Task Field_Diagnostic(string type)
         {
-            var code = $@"
+            return new VerifyCS.Test
+            {
+                TestCode = $@"
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -55,11 +55,7 @@ public class Test {{
     public void M(SemanticModel semanticModel, {type} syntax) {{
         var x = {{|#0:semanticModel.GetDeclaredSymbol(syntax)|}};
     }}
-}}";
-
-            return new VerifyCS.Test
-            {
-                TestCode = code,
+}}",
                 ExpectedDiagnostics = { new DiagnosticResult(CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer.FieldDiagnosticDescriptor).WithLocation(0).WithArguments(type) }
             }.RunAsync();
         }

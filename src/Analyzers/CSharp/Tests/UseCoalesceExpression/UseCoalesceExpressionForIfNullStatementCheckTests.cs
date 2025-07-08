@@ -185,7 +185,9 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
     [Fact]
     public async Task TestLocalDeclaration_NotWithWrongItemChecked()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(C item1)
@@ -197,18 +199,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithWrongCondition()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -220,18 +220,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithWrongPattern()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -243,11 +241,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -255,7 +249,9 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
     [Fact]
     public async Task TestLocalDeclaration_NotWithWrongAssignment()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(C item1)
@@ -267,18 +263,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithElseBlock()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(C item1)
@@ -292,18 +286,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithMultipleWhenTrueStatements()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(C item1)
@@ -318,18 +310,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithNoWhenTrueStatements()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M(C item1)
@@ -342,18 +332,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithThrowWithoutExpression()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -371,18 +359,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithLocalWithoutInitializer()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -394,18 +380,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithValueTypeInitializer()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -417,18 +401,16 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestLocalDeclaration_NotWithReferenceToVariableInThrow()
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -440,11 +422,7 @@ public sealed class UseCoalesceExpressionForIfNullStatementCheckTests
 
                 object FindItem() => null;
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }

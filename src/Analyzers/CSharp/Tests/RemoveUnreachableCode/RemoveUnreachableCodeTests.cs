@@ -899,23 +899,21 @@ public sealed class RemoveUnreachableCodeTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
     public async Task TestTopLevel_EndingWithNewLine()
     {
-        var code = """
-            throw new System.Exception();
-            [|System.Console.ReadLine();
-            |]
-            """;
-        var fixedCode = """
-            throw new System.Exception();
-
-            """;
         await new VerifyCS.Test
         {
             TestState =
             {
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            throw new System.Exception();
+            [|System.Console.ReadLine();
+            |]
+            """,
+            FixedCode = """
+            throw new System.Exception();
+
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -923,22 +921,20 @@ public sealed class RemoveUnreachableCodeTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
     public async Task TestTopLevel_NotEndingWithNewLine()
     {
-        var code = """
-            throw new System.Exception();
-            [|System.Console.ReadLine();|]
-            """;
-        var fixedCode = """
-            throw new System.Exception();
-
-            """;
         await new VerifyCS.Test
         {
             TestState =
             {
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            throw new System.Exception();
+            [|System.Console.ReadLine();|]
+            """,
+            FixedCode = """
+            throw new System.Exception();
+
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -946,24 +942,22 @@ public sealed class RemoveUnreachableCodeTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
     public async Task TestTopLevel_MultipleUnreachableStatements()
     {
-        var code = """
-            throw new System.Exception();
-            [|System.Console.ReadLine();
-            |][|System.Console.ReadLine();
-            |]
-            """;
-        var fixedCode = """
-            throw new System.Exception();
-
-            """;
         await new VerifyCS.Test
         {
             TestState =
             {
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            throw new System.Exception();
+            [|System.Console.ReadLine();
+            |][|System.Console.ReadLine();
+            |]
+            """,
+            FixedCode = """
+            throw new System.Exception();
+
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -971,7 +965,13 @@ public sealed class RemoveUnreachableCodeTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
     public async Task TestTopLevel_MultipleUnreachableStatements_HasClassDeclarationInBetween()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            TestCode = """
             throw new System.Exception();
             [|System.Console.ReadLine();
             |]
@@ -979,22 +979,14 @@ public sealed class RemoveUnreachableCodeTests
             public class C { }
             [|
             {|CS8803:System.Console.ReadLine();|}|]
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             throw new System.Exception();
 
 
             public class C { }
 
-            """;
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                OutputKind = OutputKind.ConsoleApplication,
-            },
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -1002,27 +994,25 @@ public sealed class RemoveUnreachableCodeTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
     public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration1()
     {
-        var code = """
-            throw new System.Exception();
-
-            public class C { }
-            [|
-            {|CS8803:System.Console.ReadLine();|}|]
-            """;
-        var fixedCode = """
-            throw new System.Exception();
-
-            public class C { }
-
-            """;
         await new VerifyCS.Test
         {
             TestState =
             {
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            throw new System.Exception();
+
+            public class C { }
+            [|
+            {|CS8803:System.Console.ReadLine();|}|]
+            """,
+            FixedCode = """
+            throw new System.Exception();
+
+            public class C { }
+
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -1030,26 +1020,24 @@ public sealed class RemoveUnreachableCodeTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61810")]
     public async Task TestTopLevel_MultipleUnreachableStatements_AfterClassDeclaration2()
     {
-        var code = """
-            public class C { }
-
-            {|CS8803:throw new System.Exception();|}
-            [|System.Console.ReadLine();|]
-            """;
-        var fixedCode = """
-            public class C { }
-
-            {|CS8803:throw new System.Exception();|}
-
-            """;
         await new VerifyCS.Test
         {
             TestState =
             {
                 OutputKind = OutputKind.ConsoleApplication,
             },
-            TestCode = code,
-            FixedCode = fixedCode,
+            TestCode = """
+            public class C { }
+
+            {|CS8803:throw new System.Exception();|}
+            [|System.Console.ReadLine();|]
+            """,
+            FixedCode = """
+            public class C { }
+
+            {|CS8803:throw new System.Exception();|}
+
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }

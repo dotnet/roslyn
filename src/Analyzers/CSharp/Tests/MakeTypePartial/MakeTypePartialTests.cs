@@ -357,7 +357,9 @@ public sealed class MakeTypePartialTests
     [MemberData(nameof(AllValidDeclarationTypes))]
     public async Task NotInDifferentNamespaces(string declarationType)
     {
-        var markup = $$"""
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
             namespace TestNamespace1
             {
                 partial {{declarationType}} Declaration
@@ -371,11 +373,7 @@ public sealed class MakeTypePartialTests
                 {
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = markup,
+            """,
             LanguageVersion = LanguageVersion.CSharp10
         }.RunAsync();
     }

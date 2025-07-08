@@ -32,7 +32,10 @@ public sealed class AddParameterCheckTests
     [Fact]
     public async Task TestSimpleReferenceType_AlreadyNullChecked1()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp11,
+            TestCode = """
             using System;
 
             class C
@@ -45,11 +48,7 @@ public sealed class AddParameterCheckTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp11,
-            TestCode = testCode
+            """
         }.RunAsync();
     }
 
@@ -296,7 +295,10 @@ public sealed class AddParameterCheckTests
     [InlineData(LanguageVersion.CSharp8)]
     public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = languageVersion,
+            TestCode = """
             using System;
 
             partial class C
@@ -307,18 +309,17 @@ public sealed class AddParameterCheckTests
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = languageVersion,
-            TestCode = code
+            """
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestNotOnExtendedPartialMethodDefinition1()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestCode = """
             using System;
 
             partial class C
@@ -329,11 +330,7 @@ public sealed class AddParameterCheckTests
                 {
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code
+            """
         }.RunAsync();
     }
 
@@ -342,7 +339,10 @@ public sealed class AddParameterCheckTests
     [InlineData(LanguageVersion.CSharp8)]
     public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = languageVersion,
+            TestCode = """
             using System;
 
             partial class C
@@ -353,18 +353,17 @@ public sealed class AddParameterCheckTests
 
                 partial void M([||]string s);
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = languageVersion,
-            TestCode = code
+            """
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestNotOnExtendedPartialMethodDefinition2()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestCode = """
             using System;
 
             partial class C
@@ -375,11 +374,7 @@ public sealed class AddParameterCheckTests
 
                 public partial void M([||]string s);
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp9,
-            TestCode = code
+            """
         }.RunAsync();
     }
 
@@ -1792,7 +1787,10 @@ public sealed class AddParameterCheckTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20983")]
     public async Task TestOnDiscardLambdaParameter2()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp11,
+            TestCode = """
             using System;
 
             class C
@@ -1802,11 +1800,7 @@ public sealed class AddParameterCheckTests
                     Func<string, string, int> f = ([||]_, _) => { return 0; };
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = LanguageVersion.CSharp11,
-            TestCode = testCode
+            """
         }.RunAsync();
     }
 
@@ -1904,7 +1898,9 @@ public sealed class AddParameterCheckTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63307")]
     public async Task TestNotOnIndexerParameterInRecordWithParameter()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             record R(string S)
             {
                 int this[[||]string s]
@@ -1915,10 +1911,7 @@ public sealed class AddParameterCheckTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -3065,39 +3058,36 @@ public sealed class AddParameterCheckTests
     [InlineData(LanguageVersion.CSharp11)]
     public async Task TestNotInRecord(LanguageVersion version)
     {
-        var code = """
-            record C([||]string s) { public string s; }
-            """;
         await new VerifyCS.Test
         {
             LanguageVersion = version,
-            TestCode = code,
+            TestCode = """
+            record C([||]string s) { public string s; }
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestNotInClass()
     {
-        var code = """
-            class C([||]string s) { public string s; }
-            """;
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp12,
-            TestCode = code,
+            TestCode = """
+            class C([||]string s) { public string s; }
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestNotInStruct()
     {
-        var code = """
-            struct C([||]string s) { public string s; }
-            """;
         await new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp12,
-            TestCode = code,
+            TestCode = """
+            struct C([||]string s) { public string s; }
+            """,
         }.RunAsync();
     }
 

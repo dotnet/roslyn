@@ -537,13 +537,11 @@ class Example
     [InlineData(NullableContextOptions.Enable)]
     public async Task DisabledIfSetInProject(NullableContextOptions nullableContextOptions)
     {
-        var code = @"
-#nullable enable$$
-";
-
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"
+#nullable enable$$
+",
             SolutionTransforms =
             {
                 (solution, projectId) =>

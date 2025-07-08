@@ -241,19 +241,6 @@ End Class
         [InlineData("!=")]
         public async Task TestCalledAsStaticMethod_CSAsync(string @operator)
         {
-            var source =
-$@"using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
-class C
-{{
-    bool Method(SyntaxNode node)
-    {{
-        return [|Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(node)|] {@operator} SyntaxKind.None;
-    }}
-}}
-";
-
             var prefix = @operator switch
             {
                 "==" => "",
@@ -276,7 +263,17 @@ class C
 
             await new VerifyCS.Test
             {
-                TestCode = source,
+                TestCode = $@"using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+class C
+{{
+    bool Method(SyntaxNode node)
+    {{
+        return [|Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind(node)|] {@operator} SyntaxKind.None;
+    }}
+}}
+",
                 FixedState =
                 {
                     Sources = { fixedSource },
@@ -294,17 +291,6 @@ class C
         [InlineData("<>")]
         public async Task TestCalledAsStaticMethod_VBAsync(string @operator)
         {
-            var source =
-$@"Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
-
-Class C
-    Function Method(node As SyntaxNode) As Boolean
-        Return [|Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(node)|] {@operator} SyntaxKind.None
-    End Function
-End Class
-";
-
             var prefix = @operator switch
             {
                 "=" => "",
@@ -325,7 +311,15 @@ End Class
 
             await new VerifyVB.Test
             {
-                TestCode = source,
+                TestCode = $@"Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
+
+Class C
+    Function Method(node As SyntaxNode) As Boolean
+        Return [|Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind(node)|] {@operator} SyntaxKind.None
+    End Function
+End Class
+",
                 FixedState =
                 {
                     Sources = { fixedSource },

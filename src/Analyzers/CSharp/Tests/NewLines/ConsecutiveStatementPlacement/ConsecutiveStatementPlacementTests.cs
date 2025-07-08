@@ -20,18 +20,15 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterPropertyBlock()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 int X { get; }
                 int Y { get; }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -39,18 +36,15 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterMethodBlock()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void X() { }
                 void Y() { }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -58,8 +52,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsOnSingleLine()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -67,11 +62,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     if (true) { } return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -79,8 +70,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsOnSingleLineWithComment()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -88,11 +80,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     if (true) { }/*x*/return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -100,8 +88,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsOnMultipleLinesWithCommentBetween1()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -112,11 +101,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     /*x*/ return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -124,8 +109,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsOnMultipleLinesWithCommentBetween2()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -136,11 +122,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     /*x*/ return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -148,8 +130,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsWithSingleBlankLines()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -161,11 +144,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -173,8 +152,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsWithSingleBlankLinesWithSpaces()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -186,11 +166,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -198,8 +174,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsWithMultipleBlankLines()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -211,11 +188,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -223,8 +196,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotAfterStatementsOnMultipleLinesWithPPDirectiveBetween1()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -236,11 +210,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -248,8 +218,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotBetweenBlockAndElseClause()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -262,11 +233,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     }
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -274,8 +241,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotBetweenBlockAndOuterBlocker()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -287,11 +255,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     }
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -299,8 +263,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotBetweenBlockAndCase()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -316,11 +281,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     }
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -362,7 +323,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestNotBetweenBlockAndStatement1_WhenOptionOff()
     {
-        var code = """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -373,11 +336,7 @@ public sealed class ConsecutiveStatementPlacementTests
                     return;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -564,7 +523,9 @@ public sealed class ConsecutiveStatementPlacementTests
     [Fact]
     public async Task TestSA1513NegativeCases()
     {
-        var code = """
+        await new Verify.Test
+        {
+            TestCode = """
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -922,11 +883,7 @@ public sealed class ConsecutiveStatementPlacementTests
                         : new Dictionary<string, string>();
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }

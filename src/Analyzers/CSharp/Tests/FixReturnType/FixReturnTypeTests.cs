@@ -484,7 +484,9 @@ public sealed class FixReturnTypeTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64901")]
     public async Task ReturnString_CustomTaskType()
     {
-        var markup = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System.Runtime.CompilerServices;
             
             [AsyncMethodBuilder(typeof(C))]
@@ -495,11 +497,7 @@ public sealed class FixReturnTypeTests
                     {|CS1997:return|} "";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = markup,
+            """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();
     }

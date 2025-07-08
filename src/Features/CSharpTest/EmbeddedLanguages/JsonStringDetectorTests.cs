@@ -106,7 +106,9 @@ public sealed class JsonStringDetectorTests
     [Fact]
     public async Task TestNotWithExistingComment()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void Goo()
@@ -114,17 +116,16 @@ public sealed class JsonStringDetectorTests
                     var j = /*lang=json,strict*/ "{ \"a\": 0 }";
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task TestNotOnUnlikelyJson()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 void Goo()
@@ -132,10 +133,7 @@ public sealed class JsonStringDetectorTests
                     var j = "[1, 2, 3]";
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
         }.RunAsync();
     }
 }

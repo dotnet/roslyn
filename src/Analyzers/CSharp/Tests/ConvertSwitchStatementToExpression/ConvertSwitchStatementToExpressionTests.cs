@@ -609,7 +609,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact]
     public async Task TestMissingOnMultiCaseSectionWithWhenClause_CSharp9()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 void M(int i)
@@ -625,11 +627,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     throw null;
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = CSharp9,
         }.RunAsync();
     }
@@ -637,7 +635,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task TestOnMultiCaseSection_CSharp9()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 void M(int i)
@@ -653,8 +653,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     throw null;
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class Program
             {
                 void M(int i)
@@ -666,12 +666,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = CSharp9,
         }.RunAsync();
     }
@@ -862,8 +857,11 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36086")]
     public async Task TestSeverity()
     {
-        var source =
-            """
+        var analyzer = new ConvertSwitchStatementToExpressionDiagnosticAnalyzer();
+        var descriptor = analyzer.SupportedDiagnostics.First(descriptor => descriptor.Id == IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId);
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 int M(int i)
@@ -881,13 +879,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-
-        var analyzer = new ConvertSwitchStatementToExpressionDiagnosticAnalyzer();
-        var descriptor = analyzer.SupportedDiagnostics.First(descriptor => descriptor.Id == IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId);
-        await new VerifyCS.Test
-        {
-            TestCode = source,
+            """,
             ExpectedDiagnostics =
             {
                 // Test0.cs(5,9): warning IDE0066: Use 'switch' expression
@@ -1124,39 +1116,6 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37872")]
     public async Task TestMissingFixAllOnDirectives()
     {
-        var code = """
-            class Program
-            {
-                static void Main() { }
-
-                static int GetValue(int input)
-                {
-                    [|switch|] (input)
-                    {
-                        case 1:
-                            return 42;
-                        default:
-                            return 80;
-                    }
-
-                    [|switch|] (input)
-                    {
-                        case 1:
-                            return 42;
-                        case 2:
-            #if PLATFORM_UNIX
-                            return 50;
-            #else
-                            return 51;
-            #endif
-                        case 3:
-                            return 79;
-                        default:
-                            return 80;
-                    }
-                }
-            }
-            """;
         var fixedCode = """
             class Program
             {
@@ -1190,7 +1149,39 @@ public sealed class ConvertSwitchStatementToExpressionTests
 
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            class Program
+            {
+                static void Main() { }
+
+                static int GetValue(int input)
+                {
+                    [|switch|] (input)
+                    {
+                        case 1:
+                            return 42;
+                        default:
+                            return 80;
+                    }
+
+                    [|switch|] (input)
+                    {
+                        case 1:
+                            return 42;
+                        case 2:
+            #if PLATFORM_UNIX
+                            return 50;
+            #else
+                            return 51;
+            #endif
+                        case 3:
+                            return 79;
+                        default:
+                            return 80;
+                    }
+                }
+            }
+            """,
             FixedState =
             {
                 Sources = { fixedCode },
@@ -1271,8 +1262,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestExplicitDeclaration_Interfaces()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class Program
@@ -1301,9 +1293,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class Program
@@ -1326,12 +1317,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
@@ -1342,8 +1328,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestExplicitDeclaration_Interfaces2()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class Program
@@ -1372,9 +1359,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class Program
@@ -1397,12 +1383,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
@@ -1413,8 +1394,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestExplicitDeclaration_Interfaces3()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class Program
@@ -1443,9 +1425,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class Program
@@ -1468,12 +1449,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
@@ -1484,8 +1460,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestExplicitDeclaration_ClassInheritance()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class Program
@@ -1518,9 +1495,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class Program
@@ -1547,12 +1523,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
@@ -1563,8 +1534,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestExplicitDeclaration_ClassInheritance2()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class Program
@@ -1593,9 +1565,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class Program
@@ -1618,12 +1589,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
@@ -1634,8 +1600,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestImplicitDeclaration_ClassInheritance()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class Program
@@ -1664,9 +1631,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class Program
@@ -1689,12 +1655,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
@@ -1705,8 +1666,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestImplicitDeclaration_ClassInheritance2()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
 
             class Program
@@ -1735,9 +1697,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             using System;
 
             class Program
@@ -1760,12 +1721,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarElsewhere, true, NotificationOption2.Silent },
@@ -1776,8 +1732,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38771")]
     public async Task TestExplicitDeclaration_AllCasesDefaultLiteral()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 public static void Test()
@@ -1795,9 +1752,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class Program
             {
                 public static void Test()
@@ -1810,12 +1766,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
@@ -1826,8 +1777,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact]
     public async Task TestExplicitDeclaration_MixedDefaultLiteralDefaultParameter()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 public static void Test()
@@ -1845,8 +1797,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected = """
+            """,
+            FixedCode = """
             class Program
             {
                 public static void Test()
@@ -1859,12 +1811,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
@@ -1875,8 +1822,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact]
     public async Task TestImplicitDeclaration_AllCasesDefaultParameter()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 public static void Test()
@@ -1894,9 +1842,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class Program
             {
                 public static void Test()
@@ -1909,12 +1856,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
@@ -1925,8 +1867,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact]
     public async Task TestExplicitDeclaration_AllCasesDefaultParameter()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 public static void Test()
@@ -1944,9 +1887,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class Program
             {
                 public static void Test()
@@ -1959,12 +1901,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, false, NotificationOption2.Silent },
@@ -1975,8 +1912,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact]
     public async Task TestExplicitDeclaration_DeclarationTypeDifferentFromAllCaseTypes()
     {
-        var input =
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 public static void Test()
@@ -1994,9 +1932,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var expected =
-            """
+            """,
+            FixedCode = """
             class Program
             {
                 public static void Test()
@@ -2009,12 +1946,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
-            FixedCode = expected,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.VarForBuiltInTypes, true, NotificationOption2.Silent },
@@ -2141,17 +2073,6 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     return 7;
             }
             """;
-
-        var fixedSource = """
-            int i = 0;
-            return i switch
-            {
-                1 => 4,
-                _ => 7,
-            };
-
-            """;
-
         var test = new VerifyCS.Test
         {
             TestState =
@@ -2159,7 +2080,15 @@ public sealed class ConvertSwitchStatementToExpressionTests
                 OutputKind = OutputKind.ConsoleApplication,
                 Sources = { source },
             },
-            FixedCode = fixedSource,
+            FixedCode = """
+            int i = 0;
+            return i switch
+            {
+                1 => 4,
+                _ => 7,
+            };
+
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         };
 
@@ -2184,8 +2113,13 @@ public sealed class ConvertSwitchStatementToExpressionTests
             }
             throw null;
             """;
-
-        var fixedSource = """
+        var test = new VerifyCS.Test
+        {
+            TestState = {
+                Sources = { source },
+                OutputKind = OutputKind.ConsoleApplication,
+            },
+            FixedCode = """
             int i = 0;
             int j;
             j = i switch
@@ -2195,15 +2129,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                 _ => throw null,
             };
 
-            """;
-
-        var test = new VerifyCS.Test
-        {
-            TestState = {
-                Sources = { source },
-                OutputKind = OutputKind.ConsoleApplication,
-            },
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         };
 
@@ -2213,7 +2139,9 @@ public sealed class ConvertSwitchStatementToExpressionTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48006")]
     public async Task TestOnMultiCaseSection_String_CSharp9()
     {
-        var testCode = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Program
             {
                 bool M(string s)
@@ -2229,8 +2157,8 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     }
                 }
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class Program
             {
                 bool M(string s)
@@ -2242,12 +2170,7 @@ public sealed class ConvertSwitchStatementToExpressionTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = testCode,
-            FixedCode = fixedCode,
+            """,
             LanguageVersion = CSharp9,
         }.RunAsync();
     }
