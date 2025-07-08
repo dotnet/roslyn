@@ -762,7 +762,10 @@ public struct S
     }
 }
 ";
-            CreateCompilation(program).VerifyDiagnostics();
+            CreateCompilation(program).VerifyDiagnostics(
+                // (6,9): warning CS0162: Unreachable code detected
+                //         throw Goo();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "throw").WithLocation(6, 9));
         }
 
         [WorkItem(542585, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542585")]

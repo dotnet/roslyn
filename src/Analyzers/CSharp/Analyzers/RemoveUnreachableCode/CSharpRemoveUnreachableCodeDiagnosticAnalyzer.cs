@@ -115,7 +115,7 @@ internal sealed class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBu
         // fix off of.
         var firstStatementLocation = root.SyntaxTree.GetLocation(firstUnreachableStatement.FullSpan);
 
-        // 'additionalLocations' is how we always pass along the locaiton of the first unreachable
+        // 'additionalLocations' is how we always pass along the location of the first unreachable
         // statement in this group.
         var additionalLocations = ImmutableArray.Create(firstStatementLocation);
 
