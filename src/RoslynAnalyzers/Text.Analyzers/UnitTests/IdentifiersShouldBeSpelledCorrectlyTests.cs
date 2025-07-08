@@ -25,34 +25,34 @@ namespace Text.Analyzers.UnitTests
         }
 
         public static IEnumerable<object[]> MisspelledMembers
-            => new[]
-            {
+            =>
+            [
                 new object[] { CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: false), "Clazz", "Clazz.Clazz()" },
                 [CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: true), "Clazz", "Clazz.Clazz()"],
                 [CreateTypeWithField("Program", "{|#0:_fild|}"), "fild", "Program._fild"],
                 [CreateTypeWithEvent("Program", "{|#0:Evt|}"), "Evt", "Program.Evt"],
                 [CreateTypeWithProperty("Program", "{|#0:Naem|}"), "Naem", "Program.Naem"],
                 [CreateTypeWithMethod("Program", "{|#0:SomeMathod|}"), "Mathod", "Program.SomeMathod()"],
-            };
+            ];
 
         public static IEnumerable<object[]> UnmeaningfulMembers
-            => new[]
-            {
+            =>
+            [
                 new object[] { CreateTypeWithConstructor("A", constructorName: "{|#0:A|}", isStatic: false), "A" },
                 [CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B"],
                 [CreateTypeWithField("Program", "{|#0:_c|}"), "c"],
                 [CreateTypeWithEvent("Program", "{|#0:D|}"), "D"],
                 [CreateTypeWithProperty("Program", "{|#0:E|}"), "E"],
                 [CreateTypeWithMethod("Program", "{|#0:F|}"), "F"],
-            };
+            ];
 
         public static IEnumerable<object[]> MisspelledMemberParameters
-            => new[]
-            {
+            =>
+            [
                 new object[] { CreateTypeWithConstructor("Program", parameter: "int {|#0:yourNaem|}", isStatic: false), "Naem", "yourNaem", "Program.Program(int)" },
                 [CreateTypeWithMethod("Program", "Method", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.Method(int)"],
                 [CreateTypeWithIndexer("Program", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.this[int]"],
-            };
+            ];
 
         [Theory]
         [InlineData("namespace Bar { }")]
@@ -70,7 +70,7 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task MisspellingAllowedByGlobalXmlDictionary_Verify_NoDiagnosticsAsync()
         {
-            var dictionary = CreateXmlDictionary(new[] { "clazz" });
+            var dictionary = CreateXmlDictionary(["clazz"]);
 
             await VerifyCSharpAsync("class Clazz { }", dictionary);
         }
@@ -78,7 +78,7 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task MisspellingAllowedByGlobalDicDictionary_Verify_NoDiagnosticsAsync()
         {
-            var dictionary = CreateDicDictionary(new[] { "clazz" });
+            var dictionary = CreateDicDictionary(["clazz"]);
 
             await VerifyCSharpAsync("class Clazz { }", dictionary);
         }
@@ -86,8 +86,8 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task MisspellingsAllowedByMultipleGlobalDictionaries_Verify_NoDiagnosticsAsync()
         {
-            var xmlDictionary = CreateXmlDictionary(new[] { "clazz" });
-            var dicDictionary = CreateDicDictionary(new[] { "naem" });
+            var xmlDictionary = CreateXmlDictionary(["clazz"]);
+            var dicDictionary = CreateDicDictionary(["naem"]);
 
             await VerifyCSharpAsync(@"class Clazz { const string Naem = ""foo""; }", [xmlDictionary, dicDictionary]);
         }
@@ -95,7 +95,7 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task CorrectWordDisallowedByGlobalXmlDictionary_Verify_EmitsDiagnosticAsync()
         {
-            var dictionary = CreateXmlDictionary(null, new[] { "program" });
+            var dictionary = CreateXmlDictionary(null, ["program"]);
 
             await VerifyCSharpAsync(
                 "class {|#0:Program|} { }",
@@ -108,7 +108,7 @@ namespace Text.Analyzers.UnitTests
         [Fact]
         public async Task MisspellingAllowedByProjectDictionary_Verify_NoDiagnosticsAsync()
         {
-            var dictionary = CreateDicDictionary(new[] { "clazz" });
+            var dictionary = CreateDicDictionary(["clazz"]);
 
             await VerifyCSharpAsync("class Clazz {}", dictionary);
         }
@@ -117,7 +117,7 @@ namespace Text.Analyzers.UnitTests
         public async Task MisspellingAllowedByDifferentProjectDictionary_Verify_EmitsDiagnosticAsync()
         {
             var source = "class {|#0:Clazz|} {}";
-            var dictionary = CreateDicDictionary(new[] { "clazz" });
+            var dictionary = CreateDicDictionary(["clazz"]);
             var test = new VerifyCS.Test
             {
                 TestState =
