@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
@@ -262,6 +263,7 @@ public static void Main(string[] args)
     [InlineData("32")]
     [InlineData("64")]
     [InlineData("core")]
+    [UseCulture("en-US")]
     public async Task WorkspaceClearedAfterReset(string environment)
     {
         await TestServices.InteractiveWindow.SubmitTextAsync($"#reset {environment}", HangMitigatingCancellationToken);
