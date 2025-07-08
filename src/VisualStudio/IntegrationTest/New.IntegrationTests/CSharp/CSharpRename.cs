@@ -652,7 +652,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
 
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
-            class program$$
+            class p$$rogram
             {
                 static void Main(string[] args)
                 {
