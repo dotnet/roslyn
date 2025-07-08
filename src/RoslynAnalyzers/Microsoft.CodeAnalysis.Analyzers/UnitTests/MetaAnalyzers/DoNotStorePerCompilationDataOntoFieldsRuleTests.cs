@@ -61,8 +61,8 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetCSharpExpectedDiagnostic(19, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
                 GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
                 GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
@@ -70,7 +70,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName),
                 GetCSharpExpectedDiagnostic(24, 29, violatingTypeName: typeof(ISymbol).FullName),
                 GetCSharpExpectedDiagnostic(25, 29, violatingTypeName: typeof(IOperation).FullName)
-            };
+            ];
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
@@ -114,8 +114,8 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetBasicExpectedDiagnostic(19, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
                 GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
                 GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
@@ -123,7 +123,7 @@ End Class
                 GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName),
                 GetBasicExpectedDiagnostic(24, 35, violatingTypeName: typeof(ISymbol).FullName),
                 GetBasicExpectedDiagnostic(25, 35, violatingTypeName: typeof(IOperation).FullName)
-            };
+            ];
 
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }

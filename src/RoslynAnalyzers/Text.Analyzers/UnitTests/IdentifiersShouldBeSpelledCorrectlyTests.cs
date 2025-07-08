@@ -28,30 +28,30 @@ namespace Text.Analyzers.UnitTests
             => new[]
             {
                 new object[] { CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: false), "Clazz", "Clazz.Clazz()" },
-                new object[] { CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: true), "Clazz", "Clazz.Clazz()" },
-                new object[] { CreateTypeWithField("Program", "{|#0:_fild|}"), "fild", "Program._fild" },
-                new object[] { CreateTypeWithEvent("Program", "{|#0:Evt|}"), "Evt", "Program.Evt" },
-                new object[] { CreateTypeWithProperty("Program", "{|#0:Naem|}"), "Naem", "Program.Naem" },
-                new object[] { CreateTypeWithMethod("Program", "{|#0:SomeMathod|}"), "Mathod", "Program.SomeMathod()" },
+                [CreateTypeWithConstructor("Clazz", constructorName: "{|#0:Clazz|}", isStatic: true), "Clazz", "Clazz.Clazz()"],
+                [CreateTypeWithField("Program", "{|#0:_fild|}"), "fild", "Program._fild"],
+                [CreateTypeWithEvent("Program", "{|#0:Evt|}"), "Evt", "Program.Evt"],
+                [CreateTypeWithProperty("Program", "{|#0:Naem|}"), "Naem", "Program.Naem"],
+                [CreateTypeWithMethod("Program", "{|#0:SomeMathod|}"), "Mathod", "Program.SomeMathod()"],
             };
 
         public static IEnumerable<object[]> UnmeaningfulMembers
             => new[]
             {
                 new object[] { CreateTypeWithConstructor("A", constructorName: "{|#0:A|}", isStatic: false), "A" },
-                new object[] { CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B" },
-                new object[] { CreateTypeWithField("Program", "{|#0:_c|}"), "c" },
-                new object[] { CreateTypeWithEvent("Program", "{|#0:D|}"), "D" },
-                new object[] { CreateTypeWithProperty("Program", "{|#0:E|}"), "E" },
-                new object[] { CreateTypeWithMethod("Program", "{|#0:F|}"), "F" },
+                [CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B"],
+                [CreateTypeWithField("Program", "{|#0:_c|}"), "c"],
+                [CreateTypeWithEvent("Program", "{|#0:D|}"), "D"],
+                [CreateTypeWithProperty("Program", "{|#0:E|}"), "E"],
+                [CreateTypeWithMethod("Program", "{|#0:F|}"), "F"],
             };
 
         public static IEnumerable<object[]> MisspelledMemberParameters
             => new[]
             {
                 new object[] { CreateTypeWithConstructor("Program", parameter: "int {|#0:yourNaem|}", isStatic: false), "Naem", "yourNaem", "Program.Program(int)" },
-                new object[] { CreateTypeWithMethod("Program", "Method", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.Method(int)" },
-                new object[] { CreateTypeWithIndexer("Program", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.this[int]" },
+                [CreateTypeWithMethod("Program", "Method", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.Method(int)"],
+                [CreateTypeWithIndexer("Program", "int {|#0:yourNaem|}"), "Naem", "yourNaem", "Program.this[int]"],
             };
 
         [Theory]
@@ -92,7 +92,7 @@ namespace Text.Analyzers.UnitTests
             var xmlDictionary = CreateXmlDictionary(new[] { "clazz" });
             var dicDictionary = CreateDicDictionary(new[] { "naem" });
 
-            await VerifyCSharpAsync(source, new[] { xmlDictionary, dicDictionary });
+            await VerifyCSharpAsync(source, [xmlDictionary, dicDictionary]);
         }
 
         [Fact]
@@ -794,7 +794,7 @@ namespace Text.Analyzers.UnitTests
             => VerifyCSharpAsync(source, Array.Empty<(string Path, string Text)>(), expected);
 
         private Task VerifyCSharpAsync(string source, (string Path, string Text) additionalText, params DiagnosticResult[] expected)
-            => VerifyCSharpAsync(source, new[] { additionalText }, expected);
+            => VerifyCSharpAsync(source, [additionalText], expected);
 
         private async Task VerifyCSharpAsync(string source, (string Path, string Text)[] additionalTexts, params DiagnosticResult[] expected)
         {
