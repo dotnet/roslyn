@@ -26,19 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using static CSharpSyntaxTokens;
 
 [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
-internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 {
     // A bit hacky, but we need to actually run ParseToken on the "nameof" text as there's no
     // other way to get a token back that has the appropriate internal bit set that indicates
     // this has the .ContextualKind of SyntaxKind.NameOfKeyword.
     private static readonly IdentifierNameSyntax s_nameOfIdentifier =
         SyntaxFactory.IdentifierName(SyntaxFactory.ParseToken("nameof"));
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
-    public CSharpSyntaxGenerator()
-    {
-    }
 
     internal override SyntaxTrivia ElasticMarker => SyntaxFactory.ElasticMarker;
 
@@ -2343,13 +2339,10 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         return (TNode)rewriter.Visit(node);
     }
 
-    private sealed class AddMissingTokensRewriter : CSharpSyntaxRewriter
+    private sealed class AddMissingTokensRewriter(bool recurse) : CSharpSyntaxRewriter
     {
-        private readonly bool _recurse;
+        private readonly bool _recurse = recurse;
         private bool _firstVisit = true;
-
-        public AddMissingTokensRewriter(bool recurse)
-            => _recurse = recurse;
 
         [return: NotNullIfNotNull(nameof(node))]
         public override SyntaxNode? Visit(SyntaxNode? node)
