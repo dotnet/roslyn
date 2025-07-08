@@ -129,7 +129,7 @@ public sealed class CSharpEditAndContinueAnalyzerTests
     [Fact]
     public void ErrorSpans_TopLevel()
     {
-        var source = @"
+        TestSpans(@"
 /*<span>*/extern alias A;/*</span>*/
 /*<span>*/using Z = Goo.Bar;/*</span>*/
 
@@ -201,14 +201,16 @@ public sealed class CSharpEditAndContinueAnalyzerTests
     [A]/*<span>*/operator +(Z d, int x)/*</span>*/ { return 1; }
     
 }
-";
-        TestSpans(source, SyntaxComparer.TopLevel.HasLabel);
+", SyntaxComparer.TopLevel.HasLabel);
     }
 
     [Fact]
     public void ErrorSpans_StatementLevel_Update()
     {
-        var source = @"
+        // TODO: test
+        // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
+        // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
+        TestSpans(@"
 class C
 {
     void M()
@@ -254,11 +256,7 @@ class C
         F(from a in b /*<span>*/group/*</span>*/ a by b select d);
     }
 }
-";
-        // TODO: test
-        // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
-        // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
-        TestSpans(source, SyntaxComparer.Statement.HasLabel);
+", SyntaxComparer.Statement.HasLabel);
     }
 
     /// <summary>

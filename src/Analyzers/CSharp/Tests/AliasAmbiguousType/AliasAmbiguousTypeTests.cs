@@ -253,7 +253,7 @@ class D
         c.M();
     }
 }";
-        var expectedMarkup0 = @"
+        await TestInRegularAndScriptAsync(initialMarkup, @"
 using static Static<string>;
 using static Static<int>;
 using Nested = Static<string>.Nested;
@@ -273,8 +273,8 @@ class D
         var c = new Nested();
         c.M();
     }
-}";
-        var expectedMarkup1 = @"
+}", index: 0);
+        await TestInRegularAndScriptAsync(initialMarkup, @"
 using static Static<string>;
 using static Static<int>;
 using Nested = Static<int>.Nested;
@@ -294,9 +294,7 @@ class D
         var c = new Nested();
         c.M();
     }
-}";
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
+}", index: 1);
         await TestSmartTagTextAsync(initialMarkup, "using Nested = Static<string>.Nested;");
     }
 

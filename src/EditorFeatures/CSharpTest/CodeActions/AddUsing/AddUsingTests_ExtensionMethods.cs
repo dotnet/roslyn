@@ -887,8 +887,7 @@ parseOptions: null);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
     public async Task InExtensionMethodUnderConditionalAccessExpression()
     {
-        var initialText =
-@"<Workspace>
+        await TestInRegularAndScriptAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 namespace Sample
@@ -916,10 +915,7 @@ namespace Sample.Extensions
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expectedText =
-@"
+</Workspace>", @"
 using Sample.Extensions;
 
 namespace Sample
@@ -933,15 +929,13 @@ namespace Sample
         }
     }
 }
-       ";
-        await TestInRegularAndScriptAsync(initialText, expectedText);
+       ");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
     public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions()
     {
-        var initialText =
-@"<Workspace>
+        await TestInRegularAndScriptAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -965,10 +959,7 @@ namespace Sample.Extensions
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expectedText =
-@"
+</Workspace>", @"
 using Sample.Extensions;
 
 public class C
@@ -978,15 +969,13 @@ public class C
         return F(new C())?.F(new C())?.Extn();
     }
 }
-       ";
-        await TestInRegularAndScriptAsync(initialText, expectedText);
+       ");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
     public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions2()
     {
-        var initialText =
-@"<Workspace>
+        await TestInRegularAndScriptAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -1010,10 +999,7 @@ namespace Sample.Extensions
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expectedText =
-@"
+</Workspace>", @"
 using Sample.Extensions;
 
 public class C
@@ -1023,8 +1009,7 @@ public class C
         return F(new C())?.F(new C()).Extn()?.F(newC());
     }
 }
-       ";
-        await TestInRegularAndScriptAsync(initialText, expectedText);
+       ");
     }
 
     [Fact]

@@ -2436,8 +2436,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             Assert.Equal(2, actions.Length);
         }
 
-        var expect_0 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { }
@@ -2452,12 +2451,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Test(string s, Derived2 d, int i) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+            """, index: 0,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
-
-        var expect_1 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { }
@@ -2472,8 +2468,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Test(string s, Derived2 d, int i) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+            """, index: 1,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
     }
 
@@ -2504,8 +2499,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             Assert.Equal(2, actions.Length);
         }
 
-        var expect_0 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { }
@@ -2520,12 +2514,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Test(string s, int i, Derived2 d) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+            """, index: 0,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
-
-        var expect_1 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { }
@@ -2540,8 +2531,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Test(string s, int i, Derived2 d) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+            """, index: 1,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
 
     }
@@ -2549,8 +2539,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
     [Fact]
     public async Task MultipleOptions3()
     {
-        var initialMarkup =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 class Base { }
@@ -2565,9 +2554,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Test(string s, Derived d, int i, params object[] list)) { }
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class Program
             {
                 class Base { }
@@ -2582,15 +2569,13 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Test(string s, Derived d, int i, params object[] list)) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expected);
+            """);
     }
 
     [Fact]
     public async Task MultipleOptions4()
     {
-        var initialMarkup =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 class Base { }
@@ -2608,9 +2593,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo("", 1, i:1, d: [||]b);
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             class Program
             {
                 class Base { }
@@ -2628,8 +2611,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo("", 1, i:1, d: (Derived)b);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expected);
+            """);
     }
 
     [Fact]
@@ -2661,8 +2643,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             Assert.Equal(2, actions.Length);
         }
 
-        var expect_0 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { }
@@ -2680,12 +2661,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo("", d: (Derived)b, list: strlist, i: 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+            """, index: 0,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
-
-        var expect_1 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { }
@@ -2703,8 +2681,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo("", d: (Derived2)b, list: strlist, i: 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+            """, index: 1,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
     }
 
@@ -2740,8 +2717,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             Assert.Equal(3, actions.Length);
         }
 
-        var expect_0 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { 
@@ -2762,12 +2738,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo("", d: (string)b, i: 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_0, index: 0,
+            """, index: 0,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "string"));
-
-        var expect_1 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { 
@@ -2788,12 +2761,9 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo("", d: (Derived)b, i: 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_1, index: 1,
+            """, index: 1,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived"));
-
-        var expect_2 =
-            """
+        await TestInRegularAndScriptAsync(initialMarkup, """
             class Program
             {
                 class Base { 
@@ -2814,16 +2784,14 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo("", d: (Derived2)b, i: 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initialMarkup, expect_2, index: 2,
+            """, index: 2,
             title: string.Format(CodeFixesResources.Convert_type_to_0, "Derived2"));
     }
 
     [Fact]
     public async Task MultipleOptions7()
     {
-        var initialMarkup =
-        """
+        await TestInRegularAndScriptAsync("""
         class Program
         {
             class Base { }
@@ -2842,9 +2810,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 Goo(s1:"", 1, d: [||]b);
             }
         }
-        """;
-        var expected =
-        """
+        """, """
         class Program
         {
             class Base { }
@@ -2863,15 +2829,13 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 Goo(s1:"", 1, d: (Derived)b);
             }
         }
-        """;
-        await TestInRegularAndScriptAsync(initialMarkup, expected);
+        """);
     }
 
     [Fact]
     public async Task MultipleOptions8()
     {
-        var initialMarkup =
-        """
+        await TestInRegularAndScriptAsync("""
         class Program
         {
             class Base { }
@@ -2889,9 +2853,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 Foo4([||]b, "1", "2", list: strlist);
             }
         }
-        """;
-        var expected =
-        """
+        """, """
         class Program
         {
             class Base { }
@@ -2909,15 +2871,13 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 Foo4((Derived)b, "1", "2", list: strlist);
             }
         }
-        """;
-        await TestInRegularAndScriptAsync(initialMarkup, expected);
+        """);
     }
 
     [Fact]
     public async Task MultipleOptions9()
     {
-        var initialMarkup =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 class Base { }
@@ -2932,8 +2892,7 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                     Goo([||]new Base());
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initialMarkup);
+            """);
     }
 
     [Fact]

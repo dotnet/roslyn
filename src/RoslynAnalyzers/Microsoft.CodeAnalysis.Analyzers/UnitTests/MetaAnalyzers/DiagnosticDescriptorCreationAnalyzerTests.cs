@@ -619,7 +619,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ";
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -628,14 +633,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -700,8 +698,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }" + CSharpDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -710,14 +712,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
@@ -763,7 +758,12 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -772,14 +772,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -831,8 +824,12 @@ Class MyAnalyzer
     End Sub
 End Class
 " + VisualBasicDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -841,14 +838,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
@@ -914,7 +904,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ";
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -923,13 +918,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -996,8 +985,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }" + CSharpDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1006,13 +999,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) }
+") }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
@@ -1051,7 +1038,12 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1060,14 +1052,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -1117,8 +1102,12 @@ Class MyAnalyzer
     End Sub
 End Class
 " + VisualBasicDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1127,14 +1116,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) }
+") }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
@@ -1189,7 +1171,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ";
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1216,14 +1203,7 @@ DuplicateCategory2: Prefix100-Prefix199
 
 # Illegal: Different prefixes in ID range
 {|#15:CategoryWithBadId5: Prefix000-DifferentPrefix099|}
-";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1021ExpectedDiagnostic(6, "Category with spaces", AdditionalFileName),

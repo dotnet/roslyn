@@ -270,7 +270,7 @@ public sealed class ForEachCastTests
     [Fact]
     public async Task NonGenericObjectCollection_Always()
     {
-        var test = """
+        await TestAlwaysAsync("""
             using System.Collections;
             namespace ConsoleApplication1
             {
@@ -285,8 +285,7 @@ public sealed class ForEachCastTests
                     }
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Collections;
             using System.Linq;
             namespace ConsoleApplication1
@@ -302,9 +301,7 @@ public sealed class ForEachCastTests
                     }
                 }
             }
-            """;
-
-        await TestAlwaysAsync(test, fixedCode);
+            """);
     }
 
     [Fact]

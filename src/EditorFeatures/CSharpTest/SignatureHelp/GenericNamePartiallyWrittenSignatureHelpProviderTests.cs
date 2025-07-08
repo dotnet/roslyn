@@ -25,7 +25,12 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     [Fact]
     public async Task NestedGenericUnterminated()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class G<T> { };
 
             class C
@@ -35,20 +40,18 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     G<G<int>$$
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task NestedGenericUnterminatedWithAmbiguousShift()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class G<T> { };
 
             class C
@@ -60,20 +63,18 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     x = x;
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task NestedGenericUnterminatedWithAmbiguousUnsignedShift()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class G<T> { };
 
             class C
@@ -85,20 +86,18 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     x = x;
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
     public async Task DeclaringGenericTypeWith1ParameterUnterminated()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class G<T> { };
 
             class C
@@ -108,20 +107,19 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     [|G<$$
                 |]}
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("G<T>", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task CallingGenericAsyncMethod()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<int> Program.Goo<T>()", methodDocumentation: string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        // TODO: Enable the script case when we have support for extension methods in scripts
+        await TestAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -134,15 +132,7 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     return Goo<T>();
                 }
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<int> Program.Goo<T>()", methodDocumentation: string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        // TODO: Enable the script case when we have support for extension methods in scripts
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);
+            """, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -306,7 +296,14 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     [Fact]
     public async Task GenericExtensionMethod()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("void IGoo.Bar<T>()", currentParameterIndex: 0),
+            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IGoo.Bar<T1, T2>()", currentParameterIndex: 0),
+        };
+
+        // Extension methods are supported in Interactive/Script (yet).
+        await TestAsync("""
             interface IGoo
             {
                 void Bar<T>();
@@ -325,22 +322,19 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     f.[|Bar<$$
                 |]}
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void IGoo.Bar<T>()", currentParameterIndex: 0),
-            new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IGoo.Bar<T1, T2>()", currentParameterIndex: 0),
-        };
-
-        // Extension methods are supported in Interactive/Script (yet).
-        await TestAsync(markup, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
+            """, expectedOrderedItems, sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544088")]
     public async Task InvokingGenericMethodWith1ParameterUnterminated()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("void C.Goo<T>()",
+                "Method Goo", "Method type parameter", currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class C
             {
                 /// <summary>
@@ -354,21 +348,18 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     [|Goo<$$
                 |]}
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("void C.Goo<T>()",
-                "Method Goo", "Method type parameter", currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems);
+            """, expectedOrderedItems);
     }
 
     [Fact]
     public async Task TestInvocationOnTriggerBracket()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 0)
+        };
+
+        await TestAsync("""
             class G<S, T> { };
 
             class C
@@ -378,20 +369,18 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     [|G<$$
                 |]}
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 0)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            """, expectedOrderedItems, usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TestInvocationOnTriggerComma()
     {
-        var markup = """
+        var expectedOrderedItems = new List<SignatureHelpTestItem>
+        {
+            new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 1)
+        };
+
+        await TestAsync("""
             class G<S, T> { };
 
             class C
@@ -401,23 +390,14 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
                     [|G<int,$$
                 |]}
             }
-            """;
-
-        var expectedOrderedItems = new List<SignatureHelpTestItem>
-        {
-            new SignatureHelpTestItem("G<S, T>", string.Empty, string.Empty, currentParameterIndex: 1)
-        };
-
-        await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
+            """, expectedOrderedItems, usePreviousCharAsTrigger: true);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
     public async Task InvokedWithNoToken()
     {
-        var markup = """
+        await TestAsync("""
             // goo<$$
-            """;
-
-        await TestAsync(markup);
+            """);
     }
 }

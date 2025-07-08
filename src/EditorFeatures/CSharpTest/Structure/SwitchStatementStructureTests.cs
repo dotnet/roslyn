@@ -19,7 +19,7 @@ public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact]
     public async Task TestSwitchStatement1()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -29,16 +29,14 @@ public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStru
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestSwitchStatement2()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -58,9 +56,7 @@ public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStru
                         }|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: false));

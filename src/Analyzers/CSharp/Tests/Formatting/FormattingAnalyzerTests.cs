@@ -32,7 +32,7 @@ public sealed class FormattingAnalyzerTests
     [Fact]
     public async Task TestMissingSpace()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class TypeName
 {
     void Method()
@@ -40,8 +40,7 @@ class TypeName
         if[||](true)[||]return;
     }
 }
-";
-        var expected = @"
+", @"
 class TypeName
 {
     void Method()
@@ -49,52 +48,46 @@ class TypeName
         if (true) return;
     }
 }
-";
-        await Verify.VerifyCodeFixAsync(testCode, expected);
+");
     }
 
     [Fact]
     public async Task TestAlreadyFormatted()
     {
-        var testCode = @"
+        await Verify.VerifyAnalyzerAsync(@"
 class MyClass
 {
     void MyMethod()
     {
     }
 }
-";
-
-        await Verify.VerifyAnalyzerAsync(testCode);
+");
     }
 
     [Fact]
     public async Task TestNeedsIndentation()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
   $$void MyMethod()
   $${
   $$}
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
     void MyMethod()
     {
     }
 }
-";
-
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
     public async Task TestNeedsIndentationButSuppressed()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
   $$void MyMethod1()
@@ -111,8 +104,7 @@ class MyClass
   $${
   $$}
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
     void MyMethod1()
@@ -129,15 +121,13 @@ class MyClass
     {
     }
 }
-";
-
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
     public async Task TestWhitespaceBetweenMethods1()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
     void MyMethod1()
@@ -148,8 +138,7 @@ class MyClass
     {
     }
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
     void MyMethod1()
@@ -160,15 +149,13 @@ class MyClass
     {
     }
 }
-";
-
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
     public async Task TestWhitespaceBetweenMethods2()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
     void MyMethod1()
@@ -179,8 +166,7 @@ class MyClass
     {
     }
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
     void MyMethod1()
@@ -191,16 +177,13 @@ class MyClass
     {
     }
 }
-";
-
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
     public async Task TestWhitespaceBetweenMethods3()
     {
-        // This example has trailing whitespace on both lines preceding MyMethod2
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
     void MyMethod1()
@@ -211,8 +194,7 @@ class MyClass
     {
     }
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
     void MyMethod1()
@@ -223,32 +205,27 @@ class MyClass
     {
     }
 }
-";
-
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
     public async Task TestOverIndentation()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
     [|    |]void MyMethod()
     [|    |]{
     [|    |]}
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
     void MyMethod()
     {
     }
 }
-";
-
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
@@ -291,12 +268,6 @@ class MyClass {
     }
 }
 ";
-        var editorConfig = @"
-root = true
-[*.cs]
-csharp_new_line_before_open_brace = methods
-";
-
         await new Verify.Test
         {
             TestState =
@@ -304,7 +275,11 @@ csharp_new_line_before_open_brace = methods
                 Sources = { testCode },
                 AnalyzerConfigFiles =
                 {
-                    ("/.editorconfig", editorConfig),
+                    ("/.editorconfig", @"
+root = true
+[*.cs]
+csharp_new_line_before_open_brace = methods
+"),
                 },
             },
             FixedState = { Sources = { fixedCode } },
@@ -340,7 +315,7 @@ class MyClass
     [Fact]
     public async Task TestRegion2()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
 #if true
@@ -363,9 +338,7 @@ class MyClass
     }
 #endif
 }
-";
-
-        var fixedCode = @"
+", @"
 class MyClass
 {
 #if true
@@ -388,14 +361,13 @@ class MyClass
     }
 #endif
 }
-";
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
     public async Task TestRegion3()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
 #if true
@@ -414,8 +386,7 @@ class MyClass
     }
 #endif
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
 #if true
@@ -434,14 +405,13 @@ class MyClass
     }
 #endif
 }
-";
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 
     [Fact]
     public async Task TestRegion4()
     {
-        var testCode = @"
+        await Verify.VerifyCodeFixAsync(@"
 class MyClass
 {
 #if true
@@ -457,8 +427,7 @@ class MyClass
                         #endregion
 #endif
 }
-";
-        var fixedCode = @"
+", @"
 class MyClass
 {
 #if true
@@ -474,7 +443,6 @@ class MyClass
                         #endregion
 #endif
 }
-";
-        await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+");
     }
 }

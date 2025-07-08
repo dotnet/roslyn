@@ -21,16 +21,6 @@ public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
         [CombinatorialValues("<", "<=", ">", ">=")] string operatorText,
         BinaryOperatorSpacingOptions spacing)
     {
-        var content = $@"
-class A
-{{
-    bool Method(int value)
-    {{
-        return value  is  {operatorText}  3  or  {operatorText}  5;
-    }}
-}}
-";
-
         var expectedSingle = $@"
 class A
 {{
@@ -71,7 +61,15 @@ class A
         {
             { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
         };
-        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+        await AssertFormatAsync(expected, $@"
+class A
+{{
+    bool Method(int value)
+    {{
+        return value  is  {operatorText}  3  or  {operatorText}  5;
+    }}
+}}
+", changedOptionSet: changingOptions);
     }
 
     [Theory, CombinatorialData]
@@ -80,16 +78,6 @@ class A
         BinaryOperatorSpacingOptions spacing,
         bool spaceWithinExpressionParentheses)
     {
-        var content = $@"
-class A
-{{
-    bool Method(int value)
-    {{
-        return value  is  (  {operatorText}  3  )  or  (  {operatorText}  5  )  ;
-    }}
-}}
-";
-
         var expectedSingleFalse = $@"
 class A
 {{
@@ -161,22 +149,20 @@ class A
             { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
             { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
         };
-        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+        await AssertFormatAsync(expected, $@"
+class A
+{{
+    bool Method(int value)
+    {{
+        return value  is  (  {operatorText}  3  )  or  (  {operatorText}  5  )  ;
+    }}
+}}
+", changedOptionSet: changingOptions);
     }
 
     [Theory, CombinatorialData]
     public async Task FormatNotPatterns1(BinaryOperatorSpacingOptions spacing)
     {
-        var content = $@"
-class A
-{{
-    bool Method(int value)
-    {{
-        return value  is  not  3  or  not  5;
-    }}
-}}
-";
-
         var expectedSingle = $@"
 class A
 {{
@@ -217,7 +203,15 @@ class A
         {
             { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
         };
-        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+        await AssertFormatAsync(expected, $@"
+class A
+{{
+    bool Method(int value)
+    {{
+        return value  is  not  3  or  not  5;
+    }}
+}}
+", changedOptionSet: changingOptions);
     }
 
     [Theory, CombinatorialData]
@@ -225,16 +219,6 @@ class A
         BinaryOperatorSpacingOptions spacing,
         bool spaceWithinExpressionParentheses)
     {
-        var content = $@"
-class A
-{{
-    bool Method(int value)
-    {{
-        return value  is  (  not  3  )  or  (  not  5  );
-    }}
-}}
-";
-
         var expectedSingleFalse = $@"
 class A
 {{
@@ -306,26 +290,21 @@ class A
             { CSharpFormattingOptions2.SpacingAroundBinaryOperator, spacing },
             { CSharpFormattingOptions2.SpaceBetweenParentheses, CSharpFormattingOptions2.SpaceBetweenParentheses.DefaultValue.WithFlagValue(SpacePlacementWithinParentheses.Expressions, spaceWithinExpressionParentheses) },
         };
-        await AssertFormatAsync(expected, content, changedOptionSet: changingOptions);
+        await AssertFormatAsync(expected, $@"
+class A
+{{
+    bool Method(int value)
+    {{
+        return value  is  (  not  3  )  or  (  not  5  );
+    }}
+}}
+", changedOptionSet: changingOptions);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
     public async Task FormatMultiLinePattern1()
     {
-        var content = @"
-class TypeName
-{
-    bool MethodName(string value)
-    {
-        return value is object
-               && value is
-                 {
-                     Length: 2,
-                 };
-    }
-}
-";
-        var expected = @"
+        await AssertFormatAsync(@"
 class TypeName
 {
     bool MethodName(string value)
@@ -337,15 +316,50 @@ class TypeName
                };
     }
 }
-";
-
-        await AssertFormatAsync(expected, content);
+", @"
+class TypeName
+{
+    bool MethodName(string value)
+    {
+        return value is object
+               && value is
+                 {
+                     Length: 2,
+                 };
+    }
+}
+");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
     public async Task FormatMultiLinePattern2()
     {
-        var content = @"
+        await AssertFormatAsync(@"
+class TypeName
+{
+    private static bool IsCallingConventionModifier(CustomModifier modifier)
+    {
+        var modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
+        return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
+               && modifierType.Name != ""CallConv""
+               && modifierType.Arity == 0
+               && modifierType.Name.StartsWith(""CallConv"", StringComparison.Ordinal)
+               && modifierType.ContainingNamespace is
+               {
+                   Name: ""CompilerServices"",
+                   ContainingNamespace:
+                   {
+                       Name: ""Runtime"",
+                       ContainingNamespace:
+                       {
+                           Name: ""System"",
+                           ContainingNamespace: { IsGlobalNamespace: true }
+                       }
+                   }
+               };
+    }
+}
+", @"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -370,8 +384,13 @@ class TypeName
                   };
     }
 }
-";
-        var expected = @"
+");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
+    public async Task FormatMultiLinePattern3()
+    {
+        await AssertFormatAsync(@"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -396,15 +415,7 @@ class TypeName
                };
     }
 }
-";
-
-        await AssertFormatAsync(expected, content);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
-    public async Task FormatMultiLinePattern3()
-    {
-        var content = @"
+", @"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -429,55 +440,13 @@ ContainingNamespace: { IsGlobalNamespace: true }
 };
     }
 }
-";
-        var expected = @"
-class TypeName
-{
-    private static bool IsCallingConventionModifier(CustomModifier modifier)
-    {
-        var modifierType = ((CSharpCustomModifier)modifier).ModifierSymbol;
-        return (object)modifierType.ContainingAssembly == modifierType.ContainingAssembly.CorLibrary
-               && modifierType.Name != ""CallConv""
-               && modifierType.Arity == 0
-               && modifierType.Name.StartsWith(""CallConv"", StringComparison.Ordinal)
-               && modifierType.ContainingNamespace is
-               {
-                   Name: ""CompilerServices"",
-                   ContainingNamespace:
-                   {
-                       Name: ""Runtime"",
-                       ContainingNamespace:
-                       {
-                           Name: ""System"",
-                           ContainingNamespace: { IsGlobalNamespace: true }
-                       }
-                   }
-               };
-    }
-}
-";
-
-        await AssertFormatAsync(expected, content);
+");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
     public async Task FormatMultiLinePattern4()
     {
-        var content = @"
-class TypeName
-{
-    void MethodName(string value)
-    {
-        if (value is
-                 {
-                     Length: 2,
-                 })
-{
-}
-    }
-}
-";
-        var expected = @"
+        await AssertFormatAsync(@"
 class TypeName
 {
     void MethodName(string value)
@@ -490,29 +459,26 @@ class TypeName
         }
     }
 }
-";
-
-        await AssertFormatAsync(expected, content);
+", @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        if (value is
+                 {
+                     Length: 2,
+                 })
+{
+}
+    }
+}
+");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
     public async Task FormatMultiLinePattern5()
     {
-        var content = @"
-class TypeName
-{
-    void MethodName(string value)
-    {
-        while (value is
-                 {
-                     Length: 2,
-                 })
-{
-}
-    }
-}
-";
-        var expected = @"
+        await AssertFormatAsync(@"
 class TypeName
 {
     void MethodName(string value)
@@ -525,28 +491,26 @@ class TypeName
         }
     }
 }
-";
-
-        await AssertFormatAsync(expected, content);
+", @"
+class TypeName
+{
+    void MethodName(string value)
+    {
+        while (value is
+                 {
+                     Length: 2,
+                 })
+{
+}
+    }
+}
+");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
     public async Task FormatNestedListPattern1()
     {
-        var content = """
-            class C
-            {
-                void M(string[] ss)
-                {
-                    if (ss is [ [  ]  ])
-                    {
-
-                    }
-                }
-            }
-            """;
-
-        var expected = """
+        await AssertFormatAsync("""
             class C
             {
                 void M(string[] ss)
@@ -557,28 +521,24 @@ class TypeName
                     }
                 }
             }
-            """;
-
-        await AssertFormatAsync(expected, content);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatNestedListPattern2()
-    {
-        var content = """
+            """, """
             class C
             {
                 void M(string[] ss)
                 {
-                    if (ss is [ [  ],[ ]     ])
+                    if (ss is [ [  ]  ])
                     {
 
                     }
                 }
             }
-            """;
+            """);
+    }
 
-        var expected = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatNestedListPattern2()
+    {
+        await AssertFormatAsync("""
             class C
             {
                 void M(string[] ss)
@@ -589,28 +549,24 @@ class TypeName
                     }
                 }
             }
-            """;
-
-        await AssertFormatAsync(expected, content);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatNestedListPattern3()
-    {
-        var content = """
+            """, """
             class C
             {
                 void M(string[] ss)
                 {
-                    if (ss is [    [  ],[ ]     , [   ]  ] )
+                    if (ss is [ [  ],[ ]     ])
                     {
 
                     }
                 }
             }
-            """;
+            """);
+    }
 
-        var expected = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatNestedListPattern3()
+    {
+        await AssertFormatAsync("""
             class C
             {
                 void M(string[] ss)
@@ -621,28 +577,24 @@ class TypeName
                     }
                 }
             }
-            """;
-
-        await AssertFormatAsync(expected, content);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatNestedListPattern4()
-    {
-        var content = """
+            """, """
             class C
             {
-                void M(string[][] ss)
+                void M(string[] ss)
                 {
-                    if (ss is [    [ [ ] ] ] )
+                    if (ss is [    [  ],[ ]     , [   ]  ] )
                     {
 
                     }
                 }
             }
-            """;
+            """);
+    }
 
-        var expected = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
+    public async Task FormatNestedListPattern4()
+    {
+        await AssertFormatAsync("""
             class C
             {
                 void M(string[][] ss)
@@ -653,8 +605,17 @@ class TypeName
                     }
                 }
             }
-            """;
+            """, """
+            class C
+            {
+                void M(string[][] ss)
+                {
+                    if (ss is [    [ [ ] ] ] )
+                    {
 
-        await AssertFormatAsync(expected, content);
+                    }
+                }
+            }
+            """);
     }
 }

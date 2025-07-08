@@ -915,7 +915,6 @@ index: 3);
                 object X;
             }
             """;
-
         await TestCodeFixMissingAsync(source);
 
 #if !CODE_STYLE

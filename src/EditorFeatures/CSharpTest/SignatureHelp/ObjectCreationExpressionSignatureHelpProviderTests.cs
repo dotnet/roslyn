@@ -26,7 +26,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task TestInvocationWithoutParameters()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 void goo()
@@ -34,15 +34,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var c = [|new C($$|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
+            """, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestImplicitInvocationWithoutParameters()
     {
-        var markup = """
+        await TestAsync("""
             <Workspace>
                 <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -56,15 +54,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestAsync(markup, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
+            """, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithoutParametersMethodXmlComments()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 /// <summary>
@@ -77,15 +73,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new C($$|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C()", "Summary for C", null, currentParameterIndex: 0)]);
+            """, [new("C()", "Summary for C", null, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersOn1()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -95,15 +89,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new C($$2, 3|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
+            """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestImplicitInvocationWithParametersOn1()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -113,15 +105,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new($$2, 3|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
+            """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlCommentsOn1()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 /// <summary>
@@ -136,15 +126,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new C($$2, 3|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, int b)", "Summary for C", "Param a", currentParameterIndex: 0)]);
+            """, [new("C(int a, int b)", "Summary for C", "Param a", currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersOn2()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -154,15 +142,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new C(2, $$3|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
+            """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
     }
 
     [Fact]
     public async Task TestInvocationWithParametersXmlComentsOn2()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 /// <summary>
@@ -177,15 +163,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new C(2, $$3|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, int b)", "Summary for C", "Param b", currentParameterIndex: 1)]);
+            """, [new("C(int a, int b)", "Summary for C", "Param b", currentParameterIndex: 1)]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickFirst()
     {
-        var markup = """
+        await TestAsync("""
             class D
             {
                 void M()
@@ -196,9 +180,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 D(string i) => throw null;
                 D(int i) => throw null;
             }
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("D(int i)", currentParameterIndex: 0, isSelected: true),
             new("D(string i)", currentParameterIndex: 0),]);
     }
@@ -206,7 +188,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task PickCorrectOverload_PickFirst_ImplicitObjectCreation()
     {
-        var markup = """
+        await TestAsync("""
             class D
             {
                 void M()
@@ -217,9 +199,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 D(string i) => throw null;
                 D(int i) => throw null;
             }
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("D(int i)", currentParameterIndex: 0, isSelected: true),
             new("D(string i)", currentParameterIndex: 0),]);
     }
@@ -227,7 +207,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
     public async Task PickCorrectOverload_PickSecond()
     {
-        var markup = """
+        await TestAsync("""
             class D
             {
                 void M()
@@ -238,9 +218,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 D(string i) => throw null;
                 D(int i) => throw null;
             }
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("D(int i)", currentParameterIndex: 0),
             new("D(string i)", currentParameterIndex: 0, isSelected: true),]);
     }
@@ -248,7 +226,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task PickCorrectOverload_PickSecond_ImplicitObjectCreation()
     {
-        var markup = """
+        await TestAsync("""
             class D
             {
                 void M()
@@ -259,9 +237,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 D(string i) => throw null;
                 D(int i) => throw null;
             }
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("D(int i)", currentParameterIndex: 0),
             new("D(string i)", currentParameterIndex: 0, isSelected: true),]);
     }
@@ -269,7 +245,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task TestInvocationWithoutClosingParen()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 void goo()
@@ -277,15 +253,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var c = [|new C($$
                 |]}
             }
-            """;
-
-        await TestAsync(markup, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
+            """, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithoutClosingParenWithParameters()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -295,15 +269,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new C($$2, 3
                 |]}
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
+            """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
     }
 
     [Fact]
     public async Task TestInvocationWithoutClosingParenWithParametersOn2()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -313,15 +285,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     C c = [|new C(2, $$3
                 |]}
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
+            """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
     }
 
     [Fact]
     public async Task TestInvocationOnLambda()
     {
-        var markup = """
+        await TestAsync("""
             using System;
 
             class C
@@ -331,9 +301,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var bar = [|new Action<int, int>($$
                 |]}
             }
-            """;
-
-        await TestAsync(markup, [new("Action<int, int>(void (int, int) target)", string.Empty, string.Empty, currentParameterIndex: 0, isSelected: true)]);
+            """, [new("Action<int, int>(void (int, int) target)", string.Empty, string.Empty, currentParameterIndex: 0, isSelected: true)]);
     }
 
     #endregion
@@ -343,7 +311,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task TestCurrentParameterName()
     {
-        var markup = """
+        await VerifyCurrentParameterNameAsync("""
             class C
             {
                 C(int a, string b)
@@ -355,9 +323,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var c = [|new C(b: string.Empty, $$a: 2|]);
                 }
             }
-            """;
-
-        await VerifyCurrentParameterNameAsync(markup, "a");
+            """, "a");
     }
 
     #endregion
@@ -367,7 +333,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task TestInvocationOnTriggerParens()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 void goo()
@@ -375,15 +341,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var c = [|new C($$|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C()", string.Empty, null, currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("C()", string.Empty, null, currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TestInvocationOnTriggerComma()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 C(int a, string b)
@@ -395,15 +359,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var c = [|new C(2,$$string.Empty|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, [new("C(int a, string b)", string.Empty, string.Empty, currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
+            """, [new("C(int a, string b)", string.Empty, string.Empty, currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TestNoInvocationOnSpace()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 C(int a, string b)
@@ -415,9 +377,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var c = [|new C(2, $$string.Empty|]);
                 }
             }
-            """;
-
-        await TestAsync(markup, expectedOrderedItemsOrNull: [], usePreviousCharAsTrigger: true);
+            """, expectedOrderedItemsOrNull: [], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -589,7 +549,8 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task FieldUnavailableInOneLinkedFile()
     {
-        var markup = """
+        await VerifyItemWithReferenceWorkerAsync(
+            """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -612,10 +573,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                 </Project>
             </Workspace>
-            """;
-
-        await VerifyItemWithReferenceWorkerAsync(
-            markup, [new($"""
+            """, [new($"""
                 D()
 
                     {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
@@ -628,7 +586,8 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact]
     public async Task ExcludeFilesWithInactiveRegions()
     {
-        var markup = """
+        await VerifyItemWithReferenceWorkerAsync(
+            """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO,BAR">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -657,10 +616,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                 </Project>
             </Workspace>
-            """;
-
-        await VerifyItemWithReferenceWorkerAsync(
-            markup, [new($"""
+            """, [new($"""
                 D()
 
                     {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
@@ -673,17 +629,15 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
     public async Task InvokedWithNoToken()
     {
-        var markup = """
+        await TestAsync("""
             // new goo($$
-            """;
-
-        await TestAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
     public async Task TestSigHelpInIncorrectObjectCreationExpression()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 void goo(C c)
@@ -691,15 +645,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     goo([|new C{$$|]
                 }
             }
-            """;
-
-        await TestAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task TypingTupleDoesNotDismiss1()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -709,15 +661,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
 
             }
-            """;
-
-        await TestAsync(markup, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TypingTupleDoesNotDismiss2()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -727,15 +677,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
 
             }
-            """;
-
-        await TestAsync(markup, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TypingTupleDoesNotDismiss3()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -745,15 +693,13 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
 
             }
-            """;
-
-        await TestAsync(markup, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task TypingTupleDoesNotDismiss4()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -763,9 +709,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
 
             }
-            """;
-
-        await TestAsync(markup, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Theory]
@@ -831,7 +775,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
     public async Task ProtectedConstructor1()
     {
-        var markup = """
+        await TestAsync("""
             public class Derived:BaseClass
             {
                 public void Do()
@@ -845,9 +789,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 public BaseClass(int val) { }
                 protected BaseClass(int val, int val1) { } 
             }
-            """;
-
-        await TestAsync(markup,
+            """,
             [new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0)],
             usePreviousCharAsTrigger: true);
     }
@@ -855,7 +797,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
     public async Task ProtectedConstructor2()
     {
-        var markup = """
+        await TestAsync("""
             public class BaseClass
             {
                 public BaseClass(int val) { }
@@ -869,9 +811,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     }
                 }
             }
-            """;
-
-        await TestAsync(markup, [
+            """, [
                 new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("BaseClass(int val, int val1)", currentParameterIndex: 0),
             ],
@@ -881,7 +821,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
     public async Task ProtectedConstructor3()
     {
-        var markup = """
+        await TestAsync("""
             public class BaseClass
             {
                 public BaseClass(int val) { }
@@ -892,9 +832,7 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                     var baseInstance = new BaseClass($$);
                 }
             }
-            """;
-
-        await TestAsync(markup, [
+            """, [
                 new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0),
                 new SignatureHelpTestItem("BaseClass(int val, int val1)", currentParameterIndex: 0),
             ],

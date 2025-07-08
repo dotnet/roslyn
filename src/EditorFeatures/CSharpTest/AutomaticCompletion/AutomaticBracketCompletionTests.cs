@@ -293,7 +293,9 @@ public sealed class AutomaticBracketCompletionTests : AbstractAutomaticBraceComp
                 }
             }
             """;
-        var expectedBeforeReturn = """
+        using var session = CreateSession(code);
+        CheckStart(session.Session);
+        CheckText(session.Session, """
             class C
             {
                 void M(object o)
@@ -301,8 +303,8 @@ public sealed class AutomaticBracketCompletionTests : AbstractAutomaticBraceComp
                     _ = o is []
                 }
             }
-            """;
-        var expected = """
+            """);
+        CheckReturn(session.Session, 12, """
             class C
             {
                 void M(object o)
@@ -313,11 +315,7 @@ public sealed class AutomaticBracketCompletionTests : AbstractAutomaticBraceComp
                     ]
                 }
             }
-            """;
-        using var session = CreateSession(code);
-        CheckStart(session.Session);
-        CheckText(session.Session, expectedBeforeReturn);
-        CheckReturn(session.Session, 12, expected);
+            """);
     }
 
     internal static Holder CreateSession(string code)

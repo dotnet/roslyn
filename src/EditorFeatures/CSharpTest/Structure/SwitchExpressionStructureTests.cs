@@ -20,7 +20,7 @@ public sealed class SwitchExpressionStructureTests : AbstractCSharpSyntaxNodeStr
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69357")]
     public async Task TestSwitchExpression1()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             class C
             {
                 void M(int i)
@@ -30,9 +30,7 @@ public sealed class SwitchExpressionStructureTests : AbstractCSharpSyntaxNodeStr
                     }|}|}
                 }
             }
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

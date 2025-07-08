@@ -102,7 +102,7 @@ public sealed partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBa
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllInDocument_QualifyWithThis()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -127,9 +127,7 @@ public sealed partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBa
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -154,9 +152,7 @@ public sealed partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBa
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     #endregion

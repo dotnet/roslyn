@@ -23,8 +23,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [InlineData("!=")]
         public async Task TestSimpleReturn_CSAsync(string @operator)
         {
-            var source =
-$@"using Microsoft.CodeAnalysis;
+            var prefix = @operator switch
+            {
+                "==" => "",
+                "!=" => "!",
+                _ => throw new InvalidOperationException(),
+            };
+            await VerifyCS.VerifyCodeFixAsync($@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -34,17 +39,7 @@ class C
         return [|node.Kind()|] {@operator} SyntaxKind.None;
     }}
 }}
-";
-
-            var prefix = @operator switch
-            {
-                "==" => "",
-                "!=" => "!",
-                _ => throw new InvalidOperationException(),
-            };
-
-            var fixedSource =
-$@"using Microsoft.CodeAnalysis;
+", $@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -54,9 +49,7 @@ class C
         return {prefix}node.IsKind(SyntaxKind.None);
     }}
 }}
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Theory]
@@ -64,8 +57,13 @@ class C
         [InlineData("<>")]
         public async Task TestSimpleReturn_VBAsync(string @operator)
         {
-            var source =
-$@"Imports Microsoft.CodeAnalysis
+            var prefix = @operator switch
+            {
+                "=" => "",
+                "<>" => "Not ",
+                _ => throw new InvalidOperationException(),
+            };
+            await VerifyVB.VerifyCodeFixAsync($@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -73,17 +71,7 @@ Class C
         Return [|node.Kind()|] {@operator} SyntaxKind.None
     End Function
 End Class
-";
-
-            var prefix = @operator switch
-            {
-                "=" => "",
-                "<>" => "Not ",
-                _ => throw new InvalidOperationException(),
-            };
-
-            var fixedSource =
-$@"Imports Microsoft.CodeAnalysis
+", $@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -91,16 +79,13 @@ Class C
         Return {prefix}node.IsKind(SyntaxKind.None)
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         public async Task TestCompoundExpression_CSAsync()
         {
-            var source =
-@"using Microsoft.CodeAnalysis;
+            await VerifyCS.VerifyCodeFixAsync(@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -110,9 +95,7 @@ class C
         return [|node.Kind()|] != SyntaxKind.None && [|node.Kind()|] != SyntaxKind.TrueKeyword;
     }
 }
-";
-            var fixedSource =
-@"using Microsoft.CodeAnalysis;
+", @"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -122,16 +105,13 @@ class C
         return !node.IsKind(SyntaxKind.None) && !node.IsKind(SyntaxKind.TrueKeyword);
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         public async Task TestCompoundExpression_VBAsync()
         {
-            var source =
-@"Imports Microsoft.CodeAnalysis
+            await VerifyVB.VerifyCodeFixAsync(@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -139,9 +119,7 @@ Class C
         Return [|node.Kind()|] <> SyntaxKind.None AndAlso [|node.Kind()|] <> SyntaxKind.TrueKeyword
     End Function
 End Class
-";
-            var fixedSource =
-@"Imports Microsoft.CodeAnalysis
+", @"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -149,9 +127,7 @@ Class C
         Return Not node.IsKind(SyntaxKind.None) AndAlso Not node.IsKind(SyntaxKind.TrueKeyword)
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Theory]
@@ -159,8 +135,13 @@ End Class
         [InlineData("!=")]
         public async Task TestCompoundExpression2_CSAsync(string @operator)
         {
-            var source =
-$@"using Microsoft.CodeAnalysis;
+            var prefix = @operator switch
+            {
+                "==" => "",
+                "!=" => "!",
+                _ => throw new InvalidOperationException(),
+            };
+            await VerifyCS.VerifyCodeFixAsync($@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -171,17 +152,7 @@ class C
             [|node.Kind()|] {@operator} SyntaxKind.TrueKeyword;
     }}
 }}
-";
-
-            var prefix = @operator switch
-            {
-                "==" => "",
-                "!=" => "!",
-                _ => throw new InvalidOperationException(),
-            };
-
-            var fixedSource =
-$@"using Microsoft.CodeAnalysis;
+", $@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -192,9 +163,7 @@ class C
             {prefix}node.IsKind(SyntaxKind.TrueKeyword);
     }}
 }}
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Theory]
@@ -202,8 +171,13 @@ class C
         [InlineData("<>")]
         public async Task TestCompoundExpression2_VBAsync(string @operator)
         {
-            var source =
-$@"Imports Microsoft.CodeAnalysis
+            var prefix = @operator switch
+            {
+                "=" => "",
+                "<>" => "Not ",
+                _ => throw new InvalidOperationException(),
+            };
+            await VerifyVB.VerifyCodeFixAsync($@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -212,17 +186,7 @@ Class C
             [|node.Kind()|] {@operator} SyntaxKind.TrueKeyword
     End Function
 End Class
-";
-
-            var prefix = @operator switch
-            {
-                "=" => "",
-                "<>" => "Not ",
-                _ => throw new InvalidOperationException(),
-            };
-
-            var fixedSource =
-$@"Imports Microsoft.CodeAnalysis
+", $@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -231,9 +195,7 @@ Class C
             {prefix}node.IsKind(SyntaxKind.TrueKeyword)
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Theory]
@@ -337,8 +299,13 @@ End Class
         [InlineData("<>")]
         public async Task TestVBWithoutParensAsync(string @operator)
         {
-            var source =
-$@"Imports Microsoft.CodeAnalysis
+            var prefix = @operator switch
+            {
+                "=" => "",
+                "<>" => "Not ",
+                _ => throw new InvalidOperationException(),
+            };
+            await VerifyVB.VerifyCodeFixAsync($@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -346,17 +313,7 @@ Class C
         Return [|node.Kind|] {@operator} SyntaxKind.None
     End Function
 End Class
-";
-
-            var prefix = @operator switch
-            {
-                "=" => "",
-                "<>" => "Not ",
-                _ => throw new InvalidOperationException(),
-            };
-
-            var fixedSource =
-$@"Imports Microsoft.CodeAnalysis
+", $@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -364,9 +321,7 @@ Class C
         Return {prefix}node.IsKind(SyntaxKind.None)
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
@@ -421,8 +376,7 @@ End Class
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
         public async Task TestSingleNullConditionalAccess_CSAsync()
         {
-            var source =
-@"using Microsoft.CodeAnalysis;
+            await VerifyCS.VerifyCodeFixAsync(@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -432,10 +386,7 @@ class C
         return [|node?.Kind()|] == SyntaxKind.None;
     }
 }
-";
-
-            var fixedSource =
-@"using Microsoft.CodeAnalysis;
+", @"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -445,17 +396,14 @@ class C
         return node.IsKind(SyntaxKind.None);
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
         public async Task TestSingleNullConditionalAccess_VBAsync()
         {
-            var source =
-@"Imports Microsoft.CodeAnalysis
+            await VerifyVB.VerifyCodeFixAsync(@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -463,9 +411,7 @@ Class C
         Return [|node?.Kind()|] = SyntaxKind.None
     End Function
 End Class
-";
-            var fixedSource =
-@"Imports Microsoft.CodeAnalysis
+", @"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -473,8 +419,7 @@ Class C
         Return node.IsKind(SyntaxKind.None)
     End Function
 End Class
-";
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]

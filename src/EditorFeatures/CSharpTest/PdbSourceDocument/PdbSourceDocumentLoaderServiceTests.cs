@@ -21,16 +21,14 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
     [Fact]
     public async Task ReturnsSourceFileFromSourceLink()
     {
-        var source = """
+        await RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
@@ -56,16 +54,14 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
     [Fact]
     public async Task NoUrlFoundReturnsNull()
     {
-        var source = """
+        await RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 

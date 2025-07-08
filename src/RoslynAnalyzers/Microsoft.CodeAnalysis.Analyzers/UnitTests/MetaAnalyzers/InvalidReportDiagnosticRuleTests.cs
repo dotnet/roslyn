@@ -20,7 +20,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyDiagnosticAsync()
         {
-            var source = @"
+            DiagnosticResult[] expected = new[]
+            {
+                GetCSharpExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(30, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(35, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(43, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(46, 9, unsupportedDescriptorName: "descriptor2")
+            };
+
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -67,24 +77,19 @@ class MyAnalyzer : DiagnosticAnalyzer
         var diag = Diagnostic.Create(descriptor2, Location.None);
         context.ReportDiagnostic(diag);
     }
-}";
-            DiagnosticResult[] expected = new[]
-            {
-                GetCSharpExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(30, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(35, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(43, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(46, 9, unsupportedDescriptorName: "descriptor2")
-            };
-
-            await VerifyCS.VerifyAnalyzerAsync(source, expected);
+}", expected);
         }
 
         [Fact, WorkItem(1689, "https://github.com/dotnet/roslyn-analyzers/issues/1689")]
         public async Task CSharp_VerifyDiagnostic_PropertyInitializerAsync()
         {
-            var source = @"
+            DiagnosticResult[] expected = new[]
+            {
+                GetCSharpExpectedDiagnostic(21, 9, unsupportedDescriptorName: "descriptor2"),
+                GetCSharpExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2")
+            };
+
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -109,20 +114,23 @@ class MyAnalyzer : DiagnosticAnalyzer
         var diag = Diagnostic.Create(descriptor2, Location.None);
         context.ReportDiagnostic(diag);
     }
-}";
-            DiagnosticResult[] expected = new[]
-            {
-                GetCSharpExpectedDiagnostic(21, 9, unsupportedDescriptorName: "descriptor2"),
-                GetCSharpExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2")
-            };
-
-            await VerifyCS.VerifyAnalyzerAsync(source, expected);
+}", expected);
         }
 
         [Fact]
         public async Task VisualBasic_VerifyDiagnosticAsync()
         {
-            var source = @"
+            DiagnosticResult[] expected = new[]
+            {
+                GetBasicExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(31, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(34, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
+                GetBasicExpectedDiagnostic(41, 9, unsupportedDescriptorName: "descriptor2")
+            };
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -165,24 +173,13 @@ Class MyAnalyzer
         context.ReportDiagnostic(diag)
     End Sub
 End Class
-";
-            DiagnosticResult[] expected = new[]
-            {
-                GetBasicExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(27, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(31, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(34, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(38, 9, unsupportedDescriptorName: "descriptor2"),
-                GetBasicExpectedDiagnostic(41, 9, unsupportedDescriptorName: "descriptor2")
-            };
-
-            await VerifyVB.VerifyAnalyzerAsync(source, expected);
+", expected);
         }
 
         [Fact]
         public async Task CSharp_NoDiagnosticCasesAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -218,15 +215,13 @@ class MyAnalyzer : DiagnosticAnalyzer
         var diag2 = diag;
         context.ReportDiagnostic(diag2);
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+}");
         }
 
         [Fact]
         public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -261,9 +256,7 @@ Class MyAnalyzer
         context.ReportDiagnostic(diag2)
     End Sub
 End Class
-";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
+");
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string unsupportedDescriptorName) =>

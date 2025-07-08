@@ -29,34 +29,28 @@ public sealed partial class CodeGenerationTests
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddNamespace()
         {
-            var input = "Namespace [|N1|]\n End Namespace";
-            var expected = @"Namespace N1
+            await TestAddNamespaceAsync("Namespace [|N1|]\n End Namespace", @"Namespace N1
     Namespace N2
     End Namespace
-End Namespace";
-            await TestAddNamespaceAsync(input, expected,
+End Namespace",
                 name: "N2");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddField()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddFieldAsync("Class [|C|]\n End Class", @"Class C
     Public F As Integer
-End Class";
-            await TestAddFieldAsync(input, expected,
+End Class",
                 type: GetTypeSymbol(typeof(int)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddSharedField()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddFieldAsync("Class [|C|]\n End Class", @"Class C
     Private Shared F As String
-End Class";
-            await TestAddFieldAsync(input, expected,
+End Class",
                 type: GetTypeSymbol(typeof(string)),
                 accessibility: Accessibility.Private,
                 modifiers: new DeclarationModifiers(isStatic: true));
@@ -65,38 +59,33 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddArrayField()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddFieldAsync("Class [|C|]\n End Class", @"Class C
     Public F As Integer()
-End Class";
-            await TestAddFieldAsync(input, expected,
+End Class",
                 type: CreateArrayType(typeof(int)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddConstructor()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddConstructorAsync("Class [|C|]\n End Class", @"Class C
     Public Sub New()
     End Sub
-End Class";
-            await TestAddConstructorAsync(input, expected);
+End Class");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530785")]
         public async Task AddConstructorWithXmlComment()
         {
-            var input = @"
+            await TestAddConstructorAsync(@"
 Public Class [|C|]
 ''' <summary>
 ''' Do Nothing
 ''' </summary>
 Public Sub GetStates()
 End Sub
-End Class";
-            var expected = @"
+End Class", @"
 Public Class C
     Public Sub New()
     End Sub
@@ -105,119 +94,100 @@ Public Class C
     ''' </summary>
     Public Sub GetStates()
 End Sub
-End Class";
-            await TestAddConstructorAsync(input, expected);
+End Class");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddConstructorWithoutBody()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddConstructorAsync("Class [|C|]\n End Class", @"Class C
     Public Sub New()
-End Class";
-            await TestAddConstructorAsync(input, expected,
+End Class",
                 context: new CodeGenerationContext(generateMethodBodies: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddConstructorResolveNamespaceImport()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Imports System.Text
+            await TestAddConstructorAsync("Class [|C|]\n End Class", @"Imports System.Text
 
 Class C
     Public Sub New(s As StringBuilder)
     End Sub
-End Class";
-            await TestAddConstructorAsync(input, expected,
+End Class",
                 parameters: Parameters(Parameter(typeof(StringBuilder), "s")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddSharedConstructor()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddConstructorAsync("Class [|C|]\n End Class", @"Class C
     Shared Sub New()
     End Sub
-End Class";
-            await TestAddConstructorAsync(input, expected,
+End Class",
                 modifiers: new DeclarationModifiers(isStatic: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddChainedConstructor()
         {
-            var input = "Class [|C|]\n Public Sub New(i As Integer)\n End Sub\n End Class";
-            var expected = @"Class C
+            await TestAddConstructorAsync("Class [|C|]\n Public Sub New(i As Integer)\n End Sub\n End Class", @"Class C
     Public Sub New()
         Me.New(42)
     End Sub
 
     Public Sub New(i As Integer)
  End Sub
- End Class";
-            await TestAddConstructorAsync(input, expected,
+ End Class",
                 thisArguments: [VB.SyntaxFactory.ParseExpression("42")]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544476")]
         public async Task AddClass()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public Class C
     End Class
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected);
+End Namespace");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddClassEscapeName()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public Class [Class]
     End Class
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected,
+End Namespace",
                 name: "Class");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddClassUnicodeName()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public Class [Class]
     End Class
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected,
+End Namespace",
                 name: "Class");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
         public async Task AddNotInheritableClass()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public NotInheritable Class C
     End Class
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected,
+End Namespace",
                 modifiers: new DeclarationModifiers(isSealed: true));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
         public async Task AddMustInheritClass()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Friend MustInherit Class C
     End Class
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected,
+End Namespace",
                 accessibility: Accessibility.Internal,
                 modifiers: new DeclarationModifiers(isAbstract: true));
         }
@@ -225,12 +195,10 @@ End Namespace";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddStructure()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Friend Structure S
     End Structure
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected,
+End Namespace",
                 name: "S",
                 accessibility: Accessibility.Internal,
                 typeKind: TypeKind.Struct);
@@ -239,12 +207,10 @@ End Namespace";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
         public async Task AddSealedStructure()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public Structure S
     End Structure
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected,
+End Namespace",
                 name: "S",
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isSealed: true),
@@ -254,12 +220,10 @@ End Namespace";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddInterface()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public Interface I
     End Interface
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected,
+End Namespace",
                 name: "I",
                 typeKind: TypeKind.Interface);
         }
@@ -267,13 +231,11 @@ End Namespace";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544528")]
         public async Task AddEnum()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public Enum E
         F1
     End Enum
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected, "E",
+End Namespace", "E",
                 typeKind: TypeKind.Enum,
                 members: Members(CreateEnumField("F1", null)));
         }
@@ -281,14 +243,12 @@ End Namespace";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
         public async Task AddEnumWithValues()
         {
-            var input = "Namespace [|N|]\n End Namespace";
-            var expected = @"Namespace N
+            await TestAddNamedTypeAsync("Namespace [|N|]\n End Namespace", @"Namespace N
     Public Enum E
         F1 = 1
         F2 = 2
     End Enum
-End Namespace";
-            await TestAddNamedTypeAsync(input, expected, "E",
+End Namespace", "E",
                 typeKind: TypeKind.Enum,
                 members: Members(CreateEnumField("F1", 1), CreateEnumField("F2", 2)));
         }
@@ -296,37 +256,31 @@ End Namespace";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddEnumMember()
         {
-            var input = "Public Enum [|E|]\n F1 = 1\n F2 = 2\n End Enum";
-            var expected = @"Public Enum E
+            await TestAddFieldAsync("Public Enum [|E|]\n F1 = 1\n F2 = 2\n End Enum", @"Public Enum E
  F1 = 1
  F2 = 2
     F3
-End Enum";
-            await TestAddFieldAsync(input, expected,
+End Enum",
                 name: "F3");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddEnumMemberWithValue()
         {
-            var input = "Public Enum [|E|]\n F1 = 1\n F2\n End Enum";
-            var expected = @"Public Enum E
+            await TestAddFieldAsync("Public Enum [|E|]\n F1 = 1\n F2\n End Enum", @"Public Enum E
  F1 = 1
  F2
     F3 = 3
-End Enum";
-            await TestAddFieldAsync(input, expected,
+End Enum",
                 name: "F3", hasConstantValue: true, constantValue: 3);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544529")]
         public async Task AddDelegateType()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddDelegateTypeAsync("Class [|C|]\n End Class", @"Class C
     Public Delegate Function D(s As String) As Integer
-End Class";
-            await TestAddDelegateTypeAsync(input, expected,
+End Class",
                 returnType: typeof(int),
                 parameters: Parameters(Parameter(typeof(string), "s")));
         }
@@ -334,11 +288,9 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
         public async Task AddSealedDelegateType()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddDelegateTypeAsync("Class [|C|]\n End Class", @"Class C
     Public Delegate Function D(s As String) As Integer
-End Class";
-            await TestAddDelegateTypeAsync(input, expected,
+End Class",
                 returnType: typeof(int),
                 modifiers: new DeclarationModifiers(isSealed: true),
                 parameters: Parameters(Parameter(typeof(string), "s")));
@@ -347,65 +299,49 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddEvent()
         {
-            var input = @"
+            await TestAddEventAsync(@"
 Class [|C|]
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public Event E As Action
-End Class";
-            await TestAddEventAsync(input, expected,
+End Class",
                 context: new CodeGenerationContext(addImports: false));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddCustomEventToClassFromSourceSymbol()
         {
-            var sourceGenerated = @"Public Class [|C2|]
-    Public Custom Event Click As EventHandler
-        AddHandler(ByVal value As EventHandler)
-            Events.AddHandler(""ClickEvent"", value)
-        End AddHandler
-        RemoveHandler(ByVal value As EventHandler)
-            Events.RemoveHandler(""ClickEvent"", value)
-        End RemoveHandler
-        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
-            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
-        End RaiseEvent
-    End Event
-End Class";
-            var input = "Class [|C1|]\nEnd Class";
-            var expected = @"Class C1
-    Public Custom Event Click As EventHandler
-        AddHandler(ByVal value As EventHandler)
-            Events.AddHandler(""ClickEvent"", value)
-        End AddHandler
-        RemoveHandler(ByVal value As EventHandler)
-            Events.RemoveHandler(""ClickEvent"", value)
-        End RemoveHandler
-        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
-            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
-        End RaiseEvent
-    End Event
-End Class";
             var context = new CodeGenerationContext(reuseSyntax: true);
-            await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
+            await TestGenerateFromSourceSymbolAsync(@"Public Class [|C2|]
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class", "Class [|C1|]\nEnd Class", @"Class C1
+    Public Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+            Events.AddHandler(""ClickEvent"", value)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+            Events.RemoveHandler(""ClickEvent"", value)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+            CType(Events(""ClickEvent""), EventHandler).Invoke(sender, e)
+        End RaiseEvent
+    End Event
+End Class", onlyGenerateMembers: true, context: context);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddEventWithAccessorAndImplementsClause()
         {
-            var input = "Class [|C|] \n End Class";
-            var expected = @"Class C
-    Public Custom Event E As ComponentModel.PropertyChangedEventHandler Implements ComponentModel.INotifyPropertyChanged.PropertyChanged
-        AddHandler(value As ComponentModel.PropertyChangedEventHandler)
-        End AddHandler
-        RemoveHandler(value As ComponentModel.PropertyChangedEventHandler)
-        End RemoveHandler
-        RaiseEvent(sender As Object, e As ComponentModel.PropertyChangedEventArgs)
-        End RaiseEvent
-    End Event
-End Class";
             static ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
             {
                 return [new CodeGenerationEventSymbol(
@@ -418,7 +354,16 @@ End Class";
                         nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null)];
             }
 
-            await TestAddEventAsync(input, expected,
+            await TestAddEventAsync("Class [|C|] \n End Class", @"Class C
+    Public Custom Event E As ComponentModel.PropertyChangedEventHandler Implements ComponentModel.INotifyPropertyChanged.PropertyChanged
+        AddHandler(value As ComponentModel.PropertyChangedEventHandler)
+        End AddHandler
+        RemoveHandler(value As ComponentModel.PropertyChangedEventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As ComponentModel.PropertyChangedEventArgs)
+        End RaiseEvent
+    End Event
+End Class",
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     [], Accessibility.NotApplicable, []),
                     getExplicitInterfaceImplementations: GetExplicitInterfaceEvent,
@@ -429,10 +374,9 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddEventWithAddAccessor()
         {
-            var input = @"
+            await TestAddEventAsync(@"
 Class [|C|]
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public Custom Event E As Action
         AddHandler(value As Action)
@@ -442,8 +386,7 @@ Class C
         RaiseEvent()
         End RaiseEvent
     End Event
-End Class";
-            await TestAddEventAsync(input, expected,
+End Class",
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol([], Accessibility.NotApplicable, []),
                 context: new CodeGenerationContext(addImports: false));
         }
@@ -451,10 +394,12 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddEventWithAccessors()
         {
-            var input = @"
+            var addStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(0)"));
+            var removeStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(1)"));
+            var raiseStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(2)"));
+            await TestAddEventAsync(@"
 Class [|C|]
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public Custom Event E As Action
         AddHandler(value As Action)
@@ -467,11 +412,7 @@ Class C
             Console.WriteLine(2)
         End RaiseEvent
     End Event
-End Class";
-            var addStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(0)"));
-            var removeStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(1)"));
-            var raiseStatements = ImmutableArray.Create<SyntaxNode>(VB.SyntaxFactory.ParseExecutableStatement("Console.WriteLine(2)"));
-            await TestAddEventAsync(input, expected,
+End Class",
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                     [], Accessibility.NotApplicable, addStatements),
                 removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
@@ -484,42 +425,35 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMethodToClass()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddMethodAsync("Class [|C|]\n End Class", @"Class C
     Public Sub M()
     End Sub
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 returnType: typeof(void));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMethodToClassFromSourceSymbol()
         {
-            var sourceGenerated = @"Public Class [|C2|]
-    Public Function FInt() As Integer
-        Return 0
-    End Function
-End Class";
-            var input = "Class [|C1|]\nEnd Class";
-            var expected = @"Class C1
-    Public Function FInt() As Integer
-        Return 0
-    End Function
-End Class";
             var context = new CodeGenerationContext(reuseSyntax: true);
-            await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
+            await TestGenerateFromSourceSymbolAsync(@"Public Class [|C2|]
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class", "Class [|C1|]\nEnd Class", @"Class C1
+    Public Function FInt() As Integer
+        Return 0
+    End Function
+End Class", onlyGenerateMembers: true, context: context);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMethodToClassEscapedName()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddMethodAsync("Class [|C|]\n End Class", @"Class C
     Protected Friend Sub [Sub]()
     End Sub
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 accessibility: Accessibility.ProtectedOrInternal,
                 name: "Sub",
                 returnType: typeof(void));
@@ -528,13 +462,11 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544477")]
         public async Task AddSharedMethodToStructure()
         {
-            var input = "Structure [|S|]\n End Structure";
-            var expected = @"Structure S
+            await TestAddMethodAsync("Structure [|S|]\n End Structure", @"Structure S
     Public Shared Function M() As Integer
         Return 0
     End Function
-End Structure";
-            await TestAddMethodAsync(input, expected,
+End Structure",
                 modifiers: new DeclarationModifiers(isStatic: true),
                 returnType: typeof(int),
                 statements: "Return 0");
@@ -543,13 +475,11 @@ End Structure";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddNotOverridableOverridesMethod()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddMethodAsync("Class [|C|]\n End Class", @"Class C
     Public NotOverridable Overrides Function GetHashCode() As Integer
         $$
     End Function
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 name: "GetHashCode",
                 modifiers: new DeclarationModifiers(isOverride: true, isSealed: true),
                 returnType: typeof(int),
@@ -559,9 +489,7 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMustOverrideMethod()
         {
-            var input = "MustInherit Class [|C|]\n End Class";
-            var expected = "MustInherit Class C\n    Public MustOverride Sub M()\nEnd Class";
-            await TestAddMethodAsync(input, expected,
+            await TestAddMethodAsync("MustInherit Class [|C|]\n End Class", "MustInherit Class C\n    Public MustOverride Sub M()\nEnd Class",
                 modifiers: new DeclarationModifiers(isAbstract: true),
                 returnType: typeof(void));
         }
@@ -569,11 +497,9 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMethodWithoutBody()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddMethodAsync("Class [|C|]\n End Class", @"Class C
     Public Sub M()
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 returnType: typeof(void),
                 context: new CodeGenerationContext(generateMethodBodies: false));
         }
@@ -581,13 +507,11 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddGenericMethod()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddMethodAsync("Class [|C|]\n End Class", @"Class C
     Public Function M(Of T)() As Integer
         $$
     End Function
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 returnType: typeof(int),
                 typeParameters: [CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")],
                 statements: "Return new T().GetHashCode()");
@@ -596,13 +520,11 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddVirtualMethod()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddMethodAsync("Class [|C|]\n End Class", @"Class C
     Protected Overridable Function M() As Integer
         $$
     End Function
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 accessibility: Accessibility.Protected,
                 modifiers: new DeclarationModifiers(isVirtual: true),
                 returnType: typeof(int),
@@ -612,13 +534,11 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddShadowsMethod()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddMethodAsync("Class [|C|]\n End Class", @"Class C
     Public Shadows Function ToString() As String
         $$
     End Function
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 name: "ToString",
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(isNew: true),
@@ -630,7 +550,7 @@ End Class";
         public async Task AddExplicitImplementation()
         {
             var input = "Interface I\n Sub M(i As Integer)\n End Interface\n Class [|C|]\n Implements I\n End Class";
-            var expected = @"Interface I
+            await TestAddMethodAsync(input, @"Interface I
  Sub M(i As Integer)
  End Interface
  Class C
@@ -638,8 +558,7 @@ End Class";
 
     Public Sub M(i As Integer) Implements I.M
     End Sub
-End Class";
-            await TestAddMethodAsync(input, expected,
+End Class",
                 name: "M",
                 returnType: typeof(void),
                 parameters: Parameters(Parameter(typeof(int), "i")),
@@ -649,11 +568,10 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddTrueFalseOperators()
         {
-            var input = @"
+            await TestAddOperatorsAsync(@"
 Class [|C|]
 End Class
-";
-            var expected = @"
+", @"
 Class C
     Public Shared Operator IsTrue(other As C) As Boolean
         $$
@@ -663,8 +581,7 @@ Class C
         $$
     End Operator
 End Class
-";
-            await TestAddOperatorsAsync(input, expected,
+",
                 [CodeGenerationOperatorKind.True, CodeGenerationOperatorKind.False],
                 parameters: Parameters(Parameter("C", "other")),
                 returnType: typeof(bool),
@@ -674,11 +591,10 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddUnaryOperators()
         {
-            var input = @"
+            await TestAddOperatorsAsync(@"
 Class [|C|]
 End Class
-";
-            var expected = @"
+", @"
 Class C
     Public Shared Operator +(other As C) As Object
         $$
@@ -692,8 +608,7 @@ Class C
         $$
     End Operator
 End Class
-";
-            await TestAddOperatorsAsync(input, expected,
+",
                 [
                     CodeGenerationOperatorKind.UnaryPlus,
                     CodeGenerationOperatorKind.UnaryNegation,
@@ -707,11 +622,10 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddBinaryOperators()
         {
-            var input = @"
+            await TestAddOperatorsAsync(@"
 Class [|C|]
 End Class
-";
-            var expected = @"
+", @"
 Class C
     Public Shared Operator +(a As C, b As C) As Object
         $$
@@ -769,8 +683,7 @@ Class C
         $$
     End Operator
 End Class
-";
-            await TestAddOperatorsAsync(input, expected,
+",
                 [
                     CodeGenerationOperatorKind.Addition,
                     CodeGenerationOperatorKind.Subtraction,
@@ -795,11 +708,10 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddComparisonOperators()
         {
-            var input = @"
+            await TestAddOperatorsAsync(@"
 Class [|C|]
 End Class
-";
-            var expected = @"
+", @"
 Class C
     Public Shared Operator =(a As C, b As C) As Boolean
         $$
@@ -825,8 +737,7 @@ Class C
         $$
     End Operator
 End Class
-";
-            await TestAddOperatorsAsync(input, expected,
+",
                 [
                     CodeGenerationOperatorKind.Equality,
                     CodeGenerationOperatorKind.Inequality,
@@ -843,8 +754,7 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddUnsupportedOperator()
         {
-            var input = "Class [|C|]\n End Class";
-            await TestAddUnsupportedOperatorAsync(input,
+            await TestAddUnsupportedOperatorAsync("Class [|C|]\n End Class",
                 operatorKind: CodeGenerationOperatorKind.Increment,
                 parameters: Parameters(Parameter("C", "other")),
                 returnType: typeof(bool),
@@ -854,13 +764,11 @@ End Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddExplicitConversion()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddConversionAsync("Class [|C|]\n End Class", @"Class C
     Public Shared Narrowing Operator CType(other As C) As Integer
         $$
     End Operator
-End Class";
-            await TestAddConversionAsync(input, expected,
+End Class",
                 toType: typeof(int),
                 fromType: Parameter("C", "other"),
                 statements: "Return 0");
@@ -869,13 +777,11 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddImplicitConversion()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddConversionAsync("Class [|C|]\n End Class", @"Class C
     Public Shared Widening Operator CType(other As C) As Integer
         $$
     End Operator
-End Class";
-            await TestAddConversionAsync(input, expected,
+End Class",
                 toType: typeof(int),
                 fromType: Parameter("C", "other"),
                 isImplicit: true,
@@ -885,50 +791,42 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddStatementsToSub()
         {
-            var input = "Class C\n [|Public Sub M\n Console.WriteLine(1)\n End Sub|]\n End Class";
-            var expected = @"Class C
+            await TestAddStatementsAsync("Class C\n [|Public Sub M\n Console.WriteLine(1)\n End Sub|]\n End Class", @"Class C
  Public Sub M
  Console.WriteLine(1)
 $$ End Sub
- End Class";
-            await TestAddStatementsAsync(input, expected, "Console.WriteLine(2)");
+ End Class", "Console.WriteLine(2)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddStatementsToOperator()
         {
-            var input = "Class C\n [|Shared Operator +(arg As C) As C\n Return arg\n End Operator|]\n End Class";
-            var expected = @"Class C
+            await TestAddStatementsAsync("Class C\n [|Shared Operator +(arg As C) As C\n Return arg\n End Operator|]\n End Class", @"Class C
  Shared Operator +(arg As C) As C
  Return arg
 $$ End Operator
- End Class";
-            await TestAddStatementsAsync(input, expected, "Return Nothing");
+ End Class", "Return Nothing");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddStatementsToPropertySetter()
         {
-            var input = "Imports System\n Class C\n WriteOnly Property P As String\n [|Set\n End Set|]\n End Property\n End Class";
-            var expected = @"Imports System
+            await TestAddStatementsAsync("Imports System\n Class C\n WriteOnly Property P As String\n [|Set\n End Set|]\n End Property\n End Class", @"Imports System
  Class C
  WriteOnly Property P As String
  Set
 $$ End Set
  End Property
- End Class";
-            await TestAddStatementsAsync(input, expected, "Console.WriteLine(\"Setting the value\"");
+ End Class", "Console.WriteLine(\"Setting the value\"");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddParametersToMethod()
         {
-            var input = "Class C\n Public [|Sub M()\n End Sub|]\n End Class";
-            var expected = @"Class C
+            await TestAddParametersAsync("Class C\n Public [|Sub M()\n End Sub|]\n End Class", @"Class C
  Public Sub M(numAs Integer, OptionaltextAs String = ""Hello!"",OptionalfloatingAs Single = 0.5)
  End Sub
- End Class";
-            await TestAddParametersAsync(input, expected,
+ End Class",
                 Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5F)));
         }
 
@@ -936,8 +834,7 @@ $$ End Set
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
         public async Task AddParametersToPropertyBlock()
         {
-            var input = "Class C\n [|Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property|]\n End Class";
-            var expected = @"Class C
+            await TestAddParametersAsync("Class C\n [|Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property|]\n End Class", @"Class C
  Public Property P (numAs Integer) As String
  Get
  Return String.Empty
@@ -945,8 +842,7 @@ $$ End Set
  Set(value As String)
  End Set
  End Property
- End Class";
-            await TestAddParametersAsync(input, expected,
+ End Class",
                 Parameters(Parameter(typeof(int), "num")));
         }
 
@@ -954,8 +850,7 @@ $$ End Set
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
         public async Task AddParametersToPropertyStatement()
         {
-            var input = "Class C\n [|Public Property P As String|]\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
-            var expected = @"Class C
+            await TestAddParametersAsync("Class C\n [|Public Property P As String|]\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class", @"Class C
  Public Property P (numAs Integer) As String
  Get
  Return String.Empty
@@ -963,8 +858,7 @@ $$ End Set
  Set(value As String)
  End Set
  End Property
- End Class";
-            await TestAddParametersAsync(input, expected,
+ End Class",
                 Parameters(Parameter(typeof(int), "num")));
         }
 
@@ -972,9 +866,7 @@ $$ End Set
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
         public async Task AddParametersToPropertyGetter_ShouldNotSucceed()
         {
-            var input = "Class C\n Public Property P As String\n [|Get\n Return String.Empty\n End Get|]\n Set(value As String)\n End Set\n End Property\n End Class";
-            var expected = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
-            await TestAddParametersAsync(input, expected,
+            await TestAddParametersAsync("Class C\n Public Property P As String\n [|Get\n Return String.Empty\n End Get|]\n Set(value As String)\n End Set\n End Property\n End Class", "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class",
                 Parameters(Parameter(typeof(int), "num")));
         }
 
@@ -982,66 +874,55 @@ $$ End Set
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/844460")]
         public async Task AddParametersToPropertySetter_ShouldNotSucceed()
         {
-            var input = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n [|Set(value As String)\n End Set|]\n End Property\n End Class";
-            var expected = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
-            await TestAddParametersAsync(input, expected,
+            await TestAddParametersAsync("Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n [|Set(value As String)\n End Set|]\n End Property\n End Class", "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class",
                 Parameters(Parameter(typeof(int), "num")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddParametersToOperator()
         {
-            var input = "Class C\n [|Shared Operator +(a As C) As C\n Return a\n End Operator|]\n End Class";
-            var expected = @"Class C
+            await TestAddParametersAsync("Class C\n [|Shared Operator +(a As C) As C\n Return a\n End Operator|]\n End Class", @"Class C
  Shared Operator +(a As C,bAs C) As C
  Return a
  End Operator
- End Class";
-            await TestAddParametersAsync(input, expected,
+ End Class",
                 Parameters(Parameter("C", "b")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAutoProperty()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddPropertyAsync("Class [|C|]\n End Class", @"Class C
     Public Property P As Integer
-End Class";
-            await TestAddPropertyAsync(input, expected,
+End Class",
                 type: typeof(int));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddPropertyToClassFromSourceSymbol()
         {
-            var sourceGenerated = @"Public Class [|C2|]
-    Public Property P As Integer
-        Get
-            Return 0
-        End Get
-    End Property
-End Class";
-            var input = "Class [|C1|]\nEnd Class";
-            var expected = @"Class C1
-    Public Property P As Integer
-        Get
-            Return 0
-        End Get
-    End Property
-End Class";
             var context = new CodeGenerationContext(reuseSyntax: true);
-            await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
+            await TestGenerateFromSourceSymbolAsync(@"Public Class [|C2|]
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class", "Class [|C1|]\nEnd Class", @"Class C1
+    Public Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class", onlyGenerateMembers: true, context: context);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddPropertyWithoutAccessorBodies()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddPropertyAsync("Class [|C|]\n End Class", @"Class C
     Public Property P As Integer
-End Class";
-            await TestAddPropertyAsync(input, expected,
+End Class",
                 type: typeof(int),
                 getStatements: "Return 0",
                 setStatements: "Me.P = Value",
@@ -1051,15 +932,13 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddIndexer()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"Class C
+            await TestAddPropertyAsync("Class [|C|]\n End Class", @"Class C
     Default Public ReadOnly Property Item(i As Integer) As String
         Get
             $$
         End Get
     End Property
-End Class";
-            await TestAddPropertyAsync(input, expected,
+End Class",
                 name: "Item",
                 type: typeof(string),
                 parameters: Parameters(Parameter(typeof(int), "i")),
@@ -1070,253 +949,219 @@ End Class";
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToTypes()
         {
-            var input = "Class [|C|]\n End Class";
-            var expected = @"<Serializable>
+            await TestAddAttributeAsync("Class [|C|]\n End Class", @"<Serializable>
 Class C
-End Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromTypes()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 <Serializable>
 Class [|C|]
-End Class";
-            var expected = @"
+End Class", @"
 Class C
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToMethods()
         {
-            var input = "Class C\n Public Sub [|M()|] \n End Sub \n End Class";
-            var expected = @"Class C
+            await TestAddAttributeAsync("Class C\n Public Sub [|M()|] \n End Sub \n End Class", @"Class C
     <Serializable>
     Public Sub M()
     End Sub 
- End Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+ End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromMethods()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Class C
     <Serializable>
     Public Sub [|M()|]
     End Sub
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public Sub M()
     End Sub
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToFields()
         {
-            var input = "Class C\n [|Public F As Integer|]\n End Class";
-            var expected = @"Class C
+            await TestAddAttributeAsync("Class C\n [|Public F As Integer|]\n End Class", @"Class C
     <Serializable>
     Public F As Integer
-End Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromFields()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<FieldDeclarationSyntax>(@"
 Class C
     <Serializable>
     Public [|F|] As Integer
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public F As Integer
-End Class";
-            await TestRemoveAttributeAsync<FieldDeclarationSyntax>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToProperties()
         {
-            var input = "Class C \n Public Property [|P|] As Integer \n End Class";
-            var expected = @"Class C
+            await TestAddAttributeAsync("Class C \n Public Property [|P|] As Integer \n End Class", @"Class C
     <Serializable>
     Public Property P As Integer
-End Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromProperties()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Class C
     <Serializable>
     Public Property [|P|] As Integer
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public Property P As Integer
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToPropertyAccessor()
         {
-            var input = "Class C \n Public ReadOnly Property P As Integer \n [|Get|] \n Return 10 \n End Get \n End Property \n  End Class";
-            var expected = @"Class C 
+            await TestAddAttributeAsync("Class C \n Public ReadOnly Property P As Integer \n [|Get|] \n Return 10 \n End Get \n End Property \n  End Class", @"Class C 
  Public ReadOnly Property P As Integer
         <Serializable>
         Get
             Return 10 
  End Get 
  End Property 
-  End Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+  End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromPropertyAccessor()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Class C
     Public Property P As Integer
         <Serializable>
         [|Get|]
             Return 10
         End Get
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public Property P As Integer
         Get
             Return 10
         End Get
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToEnums()
         {
-            var input = "Module M \n [|Enum C|] \n One \n Two \n End Enum\n End Module";
-            var expected = @"Module M
+            await TestAddAttributeAsync("Module M \n [|Enum C|] \n One \n Two \n End Enum\n End Module", @"Module M
     <Serializable>
     Enum C
         One 
  Two 
  End Enum
- End Module";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+ End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromEnums()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Module M
     <Serializable>
     Enum [|C|]
         One
         Two
     End Enum
-End Module";
-            var expected = @"
+End Module", @"
 Module M
     Enum C
         One
         Two
     End Enum
-End Module";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToEnumMembers()
         {
-            var input = "Module M \n Enum C \n [|One|] \n Two \n End Enum\n End Module";
-            var expected = @"Module M 
+            await TestAddAttributeAsync("Module M \n Enum C \n [|One|] \n Two \n End Enum\n End Module", @"Module M 
  Enum C
         <Serializable>
         One
         Two 
  End Enum
- End Module";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+ End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromEnumMembers()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Module M
     Enum C
         <Serializable>
         [|One|]
         Two
     End Enum
-End Module";
-            var expected = @"
+End Module", @"
 Module M
     Enum C
         One
         Two
     End Enum
-End Module";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToModule()
         {
-            var input = "Module [|M|] \n End Module";
-            var expected = @"<Serializable>
+            await TestAddAttributeAsync("Module [|M|] \n End Module", @"<Serializable>
 Module M
-End Module";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromModule()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 <Serializable>
 Module [|M|]
-End Module";
-            var expected = @"
+End Module", @"
 Module M
-End Module";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToOperator()
         {
-            var input = "Class C \n Public Shared Operator [|+|] (x As C, y As C) As C \n Return New C() \n End Operator \n End Class";
-            var expected = @"Class C
+            await TestAddAttributeAsync("Class C \n Public Shared Operator [|+|] (x As C, y As C) As C \n Return New C() \n End Operator \n End Class", @"Class C
     <Serializable>
     Public Shared Operator +(x As C, y As C) As C
         Return New C() 
  End Operator 
- End Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+ End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromOperator()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Module M
     Class C
         <Serializable>
@@ -1324,197 +1169,166 @@ Module M
             Return New C()
         End Operator
     End Class
-End Module";
-            var expected = @"
+End Module", @"
 Module M
     Class C
         Public Shared Operator +(x As C, y As C) As C
             Return New C()
         End Operator
     End Class
-End Module";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToDelegate()
         {
-            var input = "Module M \n Delegate Sub [|D()|]\n End Module";
-            var expected = "Module M\n    <Serializable>\n    Delegate Sub D()\nEnd Module";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+            await TestAddAttributeAsync("Module M \n Delegate Sub [|D()|]\n End Module", "Module M\n    <Serializable>\n    Delegate Sub D()\nEnd Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromDelegate()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Module M
     <Serializable>
     Delegate Sub [|D()|]
-End Module";
-            var expected = @"
+End Module", @"
 Module M
     Delegate Sub D()
-End Module";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Module", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToParam()
         {
-            var input = "Class C \n Public Sub M([|x As Integer|]) \n End Sub \n End Class";
-            var expected = "Class C \n Public Sub M(<Serializable> x As Integer) \n End Sub \n End Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute));
+            await TestAddAttributeAsync("Class C \n Public Sub M([|x As Integer|]) \n End Sub \n End Class", "Class C \n Public Sub M(<Serializable> x As Integer) \n End Sub \n End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeFromParam()
         {
-            var input = @"
+            await TestRemoveAttributeAsync<SyntaxNode>(@"
 Class C
     Public Sub M(<Serializable> [|x As Integer|])
     End Sub
-End Class";
-            var expected = @"
+End Class", @"
 Class C
     Public Sub M(x As Integer)
     End Sub
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeToCompilationUnit()
         {
-            var input = "[|Class C \n End Class \n Class D \n End Class|]";
-            var expected = "<Assembly: Serializable>\nClass C\nEnd Class\nClass D\nEnd Class";
-            await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.AssemblyKeyword));
+            await TestAddAttributeAsync("[|Class C \n End Class \n Class D \n End Class|]", "<Assembly: Serializable>\nClass C\nEnd Class\nClass D\nEnd Class", typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.AssemblyKeyword));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddAttributeWithWrongTarget()
         {
-            var input = "[|Class C \n End Class \n Class D \n End Class|]";
-            var expected = "<Assembly: Serializable> Class C \n End Class \n Class D \n End Class";
             await Assert.ThrowsAsync<AggregateException>(async () =>
-                await TestAddAttributeAsync(input, expected, typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.ReturnKeyword)));
+                await TestAddAttributeAsync("[|Class C \n End Class \n Class D \n End Class|]", "<Assembly: Serializable> Class C \n End Class \n Class D \n End Class", typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.ReturnKeyword)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeWithTrivia()
         {
-            // With trivia.
-            var input = @"' Comment 1
+            await TestRemoveAttributeAsync<SyntaxNode>(@"' Comment 1
 <System.Serializable> ' Comment 2
 Class [|C|]
-End Class";
-            var expected = @"' Comment 1
+End Class", @"' Comment 1
 Class C
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeWithTrivia_NewLine()
         {
-            // With trivia, redundant newline at end of attribute removed.
-            var input = @"' Comment 1
+            await TestRemoveAttributeAsync<SyntaxNode>(@"' Comment 1
 <System.Serializable>
 Class [|C|]
-End Class";
-            var expected = @"' Comment 1
+End Class", @"' Comment 1
 Class C
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeWithMultipleAttributes()
         {
-            // Multiple attributes.
-            var input = @"' Comment 1
+            await TestRemoveAttributeAsync<SyntaxNode>(@"' Comment 1
 <  System.Serializable   ,  System.Flags> ' Comment 2
 Class [|C|]
-End Class";
-            var expected = @"' Comment 1
+End Class", @"' Comment 1
 <System.Flags> ' Comment 2
 Class C
-End Class";
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeWithMultipleAttributeLists()
         {
-            // Multiple attribute lists.
-            var input = @"' Comment 1
+            await TestRemoveAttributeAsync<SyntaxNode>(@"' Comment 1
 <  System.Serializable   ,  System.Flags> ' Comment 2
 <System.Obsolete> ' Comment 3
 Class [|C|]
-End Class";
-            var expected = @"' Comment 1
+End Class", @"' Comment 1
 <System.Flags> ' Comment 2
 <System.Obsolete> ' Comment 3
 Class C
-End Class";
-
-            await TestRemoveAttributeAsync<SyntaxNode>(input, expected, typeof(SerializableAttribute));
+End Class", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestUpdateModifiers()
         {
-            var input = @"Public Shared Class [|C|] ' Comment 1
-    ' Comment 2
-End Class";
-            var expected = @"Friend Partial NotInheritable Class C ' Comment 1
-    ' Comment 2
-End Class";
             var eol = VB.SyntaxFactory.EndOfLine(@"");
             var newModifiers = new[] { VB.SyntaxFactory.Token(VB.SyntaxKind.FriendKeyword).WithLeadingTrivia(eol) }.Concat(
                 CreateModifierTokens(new DeclarationModifiers(isSealed: true, isPartial: true), LanguageNames.VisualBasic));
 
-            await TestUpdateDeclarationAsync<ClassStatementSyntax>(input, expected, modifiers: newModifiers);
+            await TestUpdateDeclarationAsync<ClassStatementSyntax>(@"Public Shared Class [|C|] ' Comment 1
+    ' Comment 2
+End Class", @"Friend Partial NotInheritable Class C ' Comment 1
+    ' Comment 2
+End Class", modifiers: newModifiers);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestUpdateAccessibility()
         {
-            var input = @"' Comment 0
+            await TestUpdateDeclarationAsync<ClassStatementSyntax>(@"' Comment 0
 Public Shared Class [|C|] ' Comment 1
     ' Comment 2
-End Class";
-            var expected = @"' Comment 0
+End Class", @"' Comment 0
 Protected Friend Shared Class C ' Comment 1
     ' Comment 2
-End Class";
-            await TestUpdateDeclarationAsync<ClassStatementSyntax>(input, expected, accessibility: Accessibility.ProtectedOrFriend);
+End Class", accessibility: Accessibility.ProtectedOrFriend);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestUpdateDeclarationType()
         {
-            var input = @"
+            await TestUpdateDeclarationAsync<MethodStatementSyntax>(@"
 Public Shared Class C
     ' Comment 1
     Public Shared Function [|F|]() As Char
         Return 0
     End Function
-End Class";
-            var expected = @"
+End Class", @"
 Public Shared Class C
     ' Comment 1
     Public Shared Function F() As Integer
         Return 0
     End Function
-End Class";
-            await TestUpdateDeclarationAsync<MethodStatementSyntax>(input, expected, getType: GetTypeSymbol(typeof(int)));
+End Class", getType: GetTypeSymbol(typeof(int)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestUpdateDeclarationMembers()
         {
-            var input = @"
+            var getField = CreateField(Accessibility.Public, new DeclarationModifiers(isStatic: true), typeof(int), "f2");
+            var getMembers = ImmutableArray.Create(getField);
+            await TestUpdateDeclarationAsync<ClassBlockSyntax>(@"
 Public Shared Class [|C|]
     ' Comment 0
     Public Shared {|RetainedMember:f|} As Integer
@@ -1523,37 +1337,30 @@ Public Shared Class [|C|]
     Public Shared Function F() As Char
         Return 0
     End Function
-End Class";
-            var expected = @"
+End Class", @"
 Public Shared Class C
     ' Comment 0
     Public Shared f As Integer
     Public Shared f2 As Integer
-End Class";
-            var getField = CreateField(Accessibility.Public, new DeclarationModifiers(isStatic: true), typeof(int), "f2");
-            var getMembers = ImmutableArray.Create(getField);
-            await TestUpdateDeclarationAsync<ClassBlockSyntax>(input, expected, getNewMembers: getMembers);
+End Class", getNewMembers: getMembers);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
         public async Task SortModules()
         {
-            var generationSource = "Public Class [|C|] \n End Class";
-            var initial = "Namespace [|N|] \n Module M \n End Module \n End Namespace";
-            var expected = @"Namespace N
+            await TestGenerateFromSourceSymbolAsync("Public Class [|C|] \n End Class", "Namespace [|N|] \n Module M \n End Module \n End Namespace", @"Namespace N
     Public Class C
     End Class
 
     Module M 
  End Module 
- End Namespace";
-            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected);
+ End Namespace");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
         public async Task SortOperators()
         {
-            var generationSource = @"
+            await TestGenerateFromSourceSymbolAsync(@"
 Namespace N
     Public Class [|C|]
         ' Unary operators
@@ -1638,9 +1445,7 @@ Namespace N
             Return Nothing
         End Operator
     End Class
-End Namespace";
-            var initial = "Namespace [|N|] \n End Namespace";
-            var expected = @"Namespace N
+End Namespace", "Namespace [|N|] \n End Namespace", @"Namespace N
     Public Class C
         Public Shared Operator +(other As C) As C
         Public Shared Operator +(a As C, b As C) As C
@@ -1669,8 +1474,7 @@ End Namespace";
         Public Shared Operator IsFalse(other As C) As Boolean
         Public Shared Narrowing Operator CType(c As C) As Integer
     End Class
-End Namespace";
-            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+End Namespace",
                 forceLanguage: LanguageNames.VisualBasic,
                 context: new CodeGenerationContext(generateMethodBodies: false));
         }
@@ -1679,7 +1483,7 @@ End Namespace";
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
         public async Task TestConstraints()
         {
-            var generationSource = @"
+            await TestGenerateFromSourceSymbolAsync(@"
 Namespace N
     Public Class [|C|](Of T As Structure, U As Class)
         Public Sub Goo(Of Q As New, R As IComparable)()
@@ -1687,15 +1491,12 @@ Namespace N
         Public Delegate Sub D(Of T1 As Structure, T2 As Class)(t As T1, u As T2)
     End Class
 End Namespace
-";
-            var initial = "Namespace [|N|] \n End Namespace";
-            var expected = @"Namespace N
+", "Namespace [|N|] \n End Namespace", @"Namespace N
     Public Class C(Of T As Structure, U As Class)
         Public Sub Goo(Of Q As New, R As IComparable)()
         Public Delegate Sub D(Of T1 As Structure, T2 As Class)(t As T1, u As T2)
     End Class
-End Namespace";
-            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+End Namespace",
                 context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }

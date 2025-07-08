@@ -23,7 +23,9 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 #pragma warning restore xUnit1019
     public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params(int totalParameters, int[] signature)
     {
-        var markup = """
+        await TestChangeSignatureViaCommandAsync(
+            LanguageNames.CSharp,
+            """
             static class Ext
             {
                 /// <summary>
@@ -64,11 +66,7 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     M(p: new[] { 5 }, y: "four", x: 3, c: true, b: "two", a: 1, o: t);
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(
-            LanguageNames.CSharp,
-            markup,
+            """,
             expectedSuccess: true,
             updatedSignature: signature,
             totalParameters: totalParameters,
@@ -83,7 +81,9 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 #pragma warning restore xUnit1019
     public async Task TestAllSignatureChanges_OnDelegate_3Regular(int totalParameters, int[] signature)
     {
-        var markup = """
+        await TestChangeSignatureViaCommandAsync(
+            LanguageNames.CSharp,
+            """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -170,11 +170,7 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 /// <param name="c"></param>
                 void Goo5(int a, string b, bool c) { }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(
-            LanguageNames.CSharp,
-            markup,
+            """,
             expectedSuccess: true,
             updatedSignature: signature,
             totalParameters: totalParameters,

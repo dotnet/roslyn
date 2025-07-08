@@ -1430,9 +1430,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     [Theory, CombinatorialData]
     public async Task NAQSameFileClass(TestHost testHost)
     {
-        var code = @"class C { static void M() { global::C.M(); } }";
-
-        await TestAsync(code,
+        await TestAsync(@"class C { static void M() { global::C.M(); } }",
             testHost,
             ParseOptions(Options.Regular),
             Class("C"),
@@ -1443,9 +1441,7 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     [Theory, CombinatorialData]
     public async Task InteractiveNAQSameFileClass(TestHost testHost)
     {
-        var code = @"class C { static void M() { global::Script.C.M(); } }";
-
-        await TestAsync(code,
+        await TestAsync(@"class C { static void M() { global::Script.C.M(); } }",
             testHost,
             ParseOptions(Options.Script),
             Class("Script"),
@@ -1938,16 +1934,14 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     [Theory, CombinatorialData]
     public async Task NestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
             class Program
             {
                 class Program { }
                 static void Main(Program p) { }
                 global::Program.Program p;
             }
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             ParseOptions(Options.Regular),
             Class("Program"),
@@ -1958,16 +1952,14 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     [Theory, CombinatorialData]
     public async Task InteractiveNestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
             class Program
             {
                 class Program { }
                 static void Main(Program p) { }
                 global::Script.Program.Program p;
             }
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             ParseOptions(Options.Script),
             Class("Program"),
@@ -2477,13 +2469,11 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
     public async Task DevDiv261049RegressionTest(TestHost testHost)
     {
-        var source = """
+        await TestInMethodAsync(
+            """
             var (a,b) =  Get(out int x, out int y);
             Console.WriteLine($"({a.first}, {a.second})");
-            """;
-
-        await TestInMethodAsync(
-            source,
+            """,
             testHost,
             Keyword("var"), Local("a"), Local("a"));
     }

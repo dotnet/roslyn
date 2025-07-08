@@ -38,133 +38,114 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task InEmptyFile()
     {
-        var markup = "$$";
-
-        await VerifyAnyItemExistsAsync(markup);
+        await VerifyAnyItemExistsAsync("$$");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInInactiveCode()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
             #if false
             $$
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInCharLiteral()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var c = '$$';
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInUnterminatedCharLiteral()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var c = '$$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInUnterminatedCharLiteralAtEndOfFile()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var c = '$$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInString()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var s = "$$";
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInStringInDirective()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             #r "$$"
-            """;
-
-        await VerifyNoItemsExistAsync(markup, SourceCodeKind.Script);
+            """, SourceCodeKind.Script);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInUnterminatedString()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var s = "$$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInUnterminatedStringInDirective()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             #r "$$"
-            """;
-
-        await VerifyNoItemsExistAsync(markup, SourceCodeKind.Script);
+            """, SourceCodeKind.Script);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInUnterminatedStringAtEndOfFile()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var s = "$$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInVerbatimString()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
@@ -172,70 +153,60 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
                     var s = @"
             $$
             ";
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInUnterminatedVerbatimString()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var s = @"
             $$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInUnterminatedVerbatimStringAtEndOfFile()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     var s = @"$$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInSingleLineComment()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     // $$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInSingleLineCommentAtEndOfFile()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             namespace A
             {
             }// $$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task NotInMutliLineComment()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
@@ -243,9 +214,7 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
             /*
                 $$
             */
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -285,22 +254,19 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
     [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task FormattingAfterCompletionCommit_AfterGetAccessorInSingleLineIncompleteProperty()
     {
-        var markupBeforeCommit = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 int P {g$$
                 void Main() { }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "get", """
             class Program
             {
                 int P {get;
                 void Main() { }
             }
-            """;
-        await VerifyProviderCommitAsync(markupBeforeCommit, "get", expectedCodeAfterCommit, commitChar: ';');
+            """, commitChar: ';');
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/7768")]
@@ -308,22 +274,19 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
     [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task FormattingAfterCompletionCommit_AfterBothAccessorsInSingleLineIncompleteProperty()
     {
-        var markupBeforeCommit = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 int P {get;set$$
                 void Main() { }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "set", """
             class Program
             {
                 int P {get;set;
                 void Main() { }
             }
-            """;
-        await VerifyProviderCommitAsync(markupBeforeCommit, "set", expectedCodeAfterCommit, commitChar: ';');
+            """, commitChar: ';');
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/7768")]
@@ -331,22 +294,19 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
     [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task FormattingAfterCompletionCommit_InSingleLineMethod()
     {
-        var markupBeforeCommit = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 public static void Test() { return$$
                 void Main() { }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "return", """
             class Program
             {
                 public static void Test() { return;
                 void Main() { }
             }
-            """;
-        await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';');
+            """, commitChar: ';');
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/14218")]
@@ -390,66 +350,56 @@ public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionPro
     [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task PrivateProtectedModifier()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 private $$
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "protected");
+            """, "protected");
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task ProtectedPrivateModifier()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 protected $$
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "private");
+            """, "private");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
     public async Task DoNotSuggestEventAfterReadonlyInClass()
     {
-        var markup =
-            """
+        await VerifyItemIsAbsentAsync("""
             class C {
                 readonly $$
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "event");
+            """, "event");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
     public async Task DoNotSuggestEventAfterReadonlyInInterface()
     {
-        var markup =
-            """
+        await VerifyItemIsAbsentAsync("""
             interface C {
                 readonly $$
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "event");
+            """, "event");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34774")]
     public async Task SuggestEventAfterReadonlyInStruct()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             struct C {
                 readonly $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "event");
+            """, "event");
     }
 
     [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -576,14 +526,11 @@ $@"{declarationType} C {{
     [WorkItem("https://github.com/dotnet/roslyn/issues/39265")]
     public async Task SuggestReadonlyMethodInStruct()
     {
-
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             struct C {
                 public $$ void M() {}
             }
-            """;
-        await VerifyItemExistsAsync(markup, "readonly");
+            """, "readonly");
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58921"), CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -670,25 +617,21 @@ $@"class C
     [InlineData("record struct")]
     public async Task SuggestRequiredInClassOrStructOrRecord(string type)
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             {{type}} C
             {
                 $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "required");
+            """, "required");
     }
 
     [Fact]
     public async Task DoNotSuggestRequiredInInterface()
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             interface I
             {
                 public $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "required");
+            """, "required");
     }
 
     [Theory]
@@ -697,13 +640,11 @@ $@"class C
     [InlineData("readonly")]
     public async Task DoNotSuggestRequiredOnFilteredKeywordMembers(string keyword)
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             class C 
             {
                 {{keyword}} $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "required");
+            """, "required");
     }
 
     [Theory]
@@ -712,106 +653,90 @@ $@"class C
     [InlineData("readonly")]
     public async Task DoNotSuggestFilteredKeywordsOnRequiredMembers(string keyword)
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             class C 
             {
                 required $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, keyword);
+            """, keyword);
     }
 
     [Fact]
     public async Task DoNotSuggestRequiredOnRequiredMembers()
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             class C 
             {
                 required $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "required");
+            """, "required");
     }
 
     [Fact]
     public async Task SuggestFileOnTypes()
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             $$ class C { }
-            """;
-
-        await VerifyItemExistsAsync(markup, "file");
+            """, "file");
     }
 
     [Fact]
     public async Task DoNotSuggestFileAfterFile()
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             file $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "file");
+            """, "file");
     }
 
     [Fact]
     public async Task SuggestFileAfterReadonly()
     {
         // e.g. 'readonly file struct X { }'
-        var markup = $$"""
-            readonly $$
-            """;
 
-        await VerifyItemExistsAsync(markup, "file");
+        await VerifyItemExistsAsync($$"""
+            readonly $$
+            """, "file");
     }
 
     [Fact]
     public async Task SuggestFileBeforeFileType()
     {
-        var markup = $$"""
-            $$
-
-            file class C { }
-            """;
 
         // it might seem like we want to prevent 'file file class',
         // but it's likely the user is declaring a file-local type above an existing file-local type here.
-        await VerifyItemExistsAsync(markup, "file");
+        await VerifyItemExistsAsync($$"""
+            $$
+
+            file class C { }
+            """, "file");
     }
 
     [Fact]
     public async Task SuggestFileBeforeDelegate()
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             $$ delegate
-            """;
-
-        await VerifyItemExistsAsync(markup, "file");
+            """, "file");
     }
 
     [Fact]
     public async Task DoNotSuggestFileOnNestedTypes()
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             class Outer
             {
                 $$ class C { }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "file");
+            """, "file");
     }
 
     [Fact]
     public async Task DoNotSuggestFileOnNonTypeMembers()
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             class C
             {
                 $$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "file");
+            """, "file");
     }
 
     [Theory]
@@ -821,11 +746,9 @@ $@"class C
     [InlineData("private")]
     public async Task DoNotSuggestFileAfterFilteredKeywords(string keyword)
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             {{keyword}} $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "file");
+            """, "file");
     }
 
     [Theory]
@@ -835,48 +758,40 @@ $@"class C
     [InlineData("private")]
     public async Task DoNotSuggestFilteredKeywordsAfterFile(string keyword)
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             file $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, keyword);
+            """, keyword);
     }
 
     [Fact]
     public async Task SuggestFileInFileScopedNamespace()
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             namespace NS;
 
             $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "file");
+            """, "file");
     }
 
     [Fact]
     public async Task SuggestFileInNamespace()
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             namespace NS
             {
                 $$
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "file");
+            """, "file");
     }
 
     [Fact]
     public async Task SuggestFileAfterClass()
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             file class C { }
 
             $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "file");
+            """, "file");
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]

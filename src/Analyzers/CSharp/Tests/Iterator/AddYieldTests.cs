@@ -25,8 +25,7 @@ public sealed class AddYieldTests
     [Fact]
     public async Task TestAddYieldIEnumerableReturnNull()
     {
-        var initial =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -37,15 +36,13 @@ public sealed class AddYieldTests
                     return null;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldIEnumerableReturnObject()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -56,9 +53,7 @@ public sealed class AddYieldTests
                     return {|CS0266:new object()|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
 
@@ -69,15 +64,13 @@ public sealed class AddYieldTests
                     yield return new object();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldIEnumeratorReturnObject()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -88,9 +81,7 @@ public sealed class AddYieldTests
                     return {|CS0266:new object()|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
 
@@ -101,15 +92,13 @@ public sealed class AddYieldTests
                     yield return new object();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldIEnumeratorReturnGenericList()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -121,9 +110,7 @@ public sealed class AddYieldTests
                     return {|CS0266:new List<T>()|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -135,15 +122,13 @@ public sealed class AddYieldTests
                     yield return new List<T>();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldGenericIEnumeratorReturnObject()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -155,9 +140,7 @@ public sealed class AddYieldTests
                     return {|CS0266:new object()|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -169,15 +152,13 @@ public sealed class AddYieldTests
                     yield return new object();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldGenericIEnumerableReturnObject()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -189,9 +170,7 @@ public sealed class AddYieldTests
                     return {|CS0266:new object()|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -203,15 +182,13 @@ public sealed class AddYieldTests
                     yield return new object();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldIEnumerableReturnGenericList()
     {
-        var initial =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -223,15 +200,13 @@ public sealed class AddYieldTests
                     return new List<T>();
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldGenericIEnumeratorReturnDefault()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -243,9 +218,7 @@ public sealed class AddYieldTests
                    return {|CS0266:default(T)|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -257,15 +230,13 @@ public sealed class AddYieldTests
                     yield return default(T);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldGenericIEnumerableReturnConvertibleToObject()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -277,9 +248,7 @@ public sealed class AddYieldTests
                     return {|CS0029:0|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -291,15 +260,13 @@ public sealed class AddYieldTests
                     yield return 0;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -311,9 +278,7 @@ public sealed class AddYieldTests
                     return {|CS0029:0|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -325,15 +290,13 @@ public sealed class AddYieldTests
                     yield return 0;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldGenericIEnumeratorNonConvertableType()
     {
-        var initial =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -345,15 +308,13 @@ public sealed class AddYieldTests
                     return {|CS0266:new List<int>()|};
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -365,9 +326,7 @@ public sealed class AddYieldTests
                     return {|CS0266:new List<DateTime>()|};
                 }
             }
-            """;
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -379,15 +338,13 @@ public sealed class AddYieldTests
                     yield return new List<DateTime>();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestAddYieldNoTypeArguments()
     {
-        var initial =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.IO;
@@ -433,7 +390,6 @@ public sealed class AddYieldTests
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(initial);
+            """);
     }
 }

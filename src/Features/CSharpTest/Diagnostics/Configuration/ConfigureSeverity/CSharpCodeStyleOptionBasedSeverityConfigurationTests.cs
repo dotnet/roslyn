@@ -37,7 +37,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_Empty_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -56,9 +56,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -80,15 +78,13 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_ExistingRule_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -111,9 +107,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -136,15 +130,13 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_ExistingRuleDotNetHeader_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -167,9 +159,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -192,15 +182,13 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -223,9 +211,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -251,15 +237,13 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -282,9 +266,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -310,9 +292,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
     }
 }

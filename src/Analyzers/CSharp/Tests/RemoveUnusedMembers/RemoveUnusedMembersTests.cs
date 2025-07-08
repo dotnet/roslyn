@@ -1694,15 +1694,13 @@ public sealed class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int {|#0:P|} { get; set; }
                 public void M1() { ++P; }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+            """, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                 .WithLocation(0)
                 .WithArguments("MyClass.P")
@@ -1712,16 +1710,14 @@ public sealed class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int P { get; set; }
                 public void M1() { ++P; }
                 public int M2() => P;
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, []);
+            """, []);
     }
 
     [Fact]
@@ -1769,16 +1765,14 @@ public sealed class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsIncrementedAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int this[int x] { get { return 0; } set { } }
                 public void M1(int x) => ++this[x];
                 public int M2(int x) => this[x];
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, []);
+            """, []);
     }
 
     [Fact]
@@ -1868,15 +1862,13 @@ public sealed class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int {|#0:P|} { get; set; }
                 public void M1(int x) { P += x; }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+            """, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                 .WithLocation(0)
                 .WithArguments("MyClass.P")
@@ -1886,16 +1878,14 @@ public sealed class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int P { get; set; }
                 public void M1(int x) { P += x; }
                 public int M2() => P;
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, []);
+            """, []);
     }
 
     [Fact]
@@ -1929,15 +1919,13 @@ public sealed class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int {|#0:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x, int y) => this[x] += y;
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+            """, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                 .WithLocation(0)
                 .WithArguments("MyClass.this")
@@ -1947,16 +1935,14 @@ public sealed class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int this[int x] { get { return 0; } set { } }
                 public void M1(int x, int y) => this[x] += y;
                 public int M2(int x) => this[x];
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, []);
+            """, []);
     }
 
     [Fact]

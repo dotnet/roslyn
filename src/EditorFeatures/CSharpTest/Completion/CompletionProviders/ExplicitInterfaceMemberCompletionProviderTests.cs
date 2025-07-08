@@ -114,7 +114,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
     public async Task CommitOnNotParen()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 void Goo();
@@ -124,9 +124,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "Goo()", """
             interface IGoo
             {
                 void Goo();
@@ -139,15 +137,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
+            """, null);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
     public async Task CommitOnParen()
     {
-        var markup = """
+        await VerifyCustomCommitProviderAsync("""
             interface IGoo
             {
                 void Goo();
@@ -157,9 +153,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "Goo", """
             interface IGoo
             {
                 void Goo();
@@ -172,9 +166,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markup, "Goo", expected, commitChar: '(');
+            """, commitChar: '(');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19947")]
@@ -317,7 +309,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [Fact]
     public async Task NotNestedType_01()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             interface IGoo
             {
                 public abstract class Goo
@@ -329,15 +321,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Goo");
+            """, "Goo");
     }
 
     [Fact]
     public async Task NotNestedType_02()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             interface IGoo
             {
                 public abstract class Goo
@@ -349,9 +339,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Goo");
+            """, "Goo");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34456")]
@@ -431,7 +419,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [Fact]
     public async Task VerifySignatureCommit_Generic_Tab()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int Generic<K, V>(K key, V value);
@@ -441,9 +429,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "Generic<K, V>(K key, V value)", """
             interface IGoo
             {
                 int Generic<K, V>(K key, V value);
@@ -456,15 +442,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task VerifySignatureCommit_Generic_OpenBrace()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int Generic<K, V>(K key, V value);
@@ -474,9 +458,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "Generic<K, V>(K key, V value)", """
             interface IGoo
             {
                 int Generic<K, V>(K key, V value);
@@ -486,15 +468,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.<
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '<');
+            """, '<');
     }
 
     [Fact]
     public async Task VerifySignatureCommit_Method_Tab()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int Generic(K key, V value);
@@ -504,9 +484,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "Generic(K key, V value)", """
             interface IGoo
             {
                 int Generic(K key, V value);
@@ -519,15 +497,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
+            """, '\t');
     }
 
     [WpfFact]
     public async Task VerifySignatureCommit_Method_OpenBrace()
     {
-        var markup = """
+        await VerifyCustomCommitProviderAsync("""
             interface IGoo
             {
                 int Generic(K key, V value);
@@ -537,9 +513,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "Generic", """
             interface IGoo
             {
                 int Generic(K key, V value);
@@ -552,15 +526,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     [|throw new System.NotImplementedException();|]
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markup, "Generic", expected, commitChar: '(');
+            """, commitChar: '(');
     }
 
     [Fact]
     public async Task VerifySignatureCommit_Indexer_Tab()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int this[K key, V value] { get; }
@@ -570,9 +542,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "this[K key, V value]", """
             interface IGoo
             {
                 int this[K key, V value] { get; }
@@ -582,15 +552,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 int IGoo.this[K key, V value] => throw new System.NotImplementedException();
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task VerifySignatureCommit_Indexer_OpenBrace()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int this[K key, V value] { get; }
@@ -600,9 +568,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "this[K key, V value]", """
             interface IGoo
             {
                 int this[K key, V value] { get; }
@@ -612,15 +578,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.[
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
+            """, '[');
     }
 
     [Fact]
     public async Task VerifySignatureCommit_IndexerGetSet_Tab()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int this[K key, V value] { get; set; }
@@ -630,9 +594,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "this[K key, V value]", """
             interface IGoo
             {
                 int this[K key, V value] { get; set; }
@@ -642,15 +604,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 int IGoo.this[K key, V value] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task VerifySignatureCommit_IndexerGetSet_OpenBrace()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int this[K key, V value] { get; set; }
@@ -660,9 +620,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "this[K key, V value]", """
             interface IGoo
             {
                 int this[K key, V value] { get; set; }
@@ -672,9 +630,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                  void IGoo.[
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
+            """, '[');
     }
 
     [Theory]
@@ -686,7 +642,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [InlineData("scoped ref")]
     public async Task TestWithRefKind(string refKind)
     {
-        var markup = $$"""
+        await VerifyProviderCommitAsync($$"""
             using System;
 
             ref struct S { }
@@ -700,9 +656,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 void I.$$
             }
-            """;
-
-        var expected = $$"""
+            """, $"M({refKind} S s)", $$"""
             using System;
             
             ref struct S { }
@@ -719,15 +673,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, $"M({refKind} S s)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
     public async Task TestStaticAbstractInterfaceMember()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I2<T> where T : I2<T>
             {
                 abstract static implicit operator int(T x);
@@ -737,9 +689,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static implicit I2<Test2>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator int(Test2 x)", """
             interface I2<T> where T : I2<T>
             {
                 abstract static implicit operator int(T x);
@@ -752,15 +702,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
     public async Task TestStaticAbstractInterfaceMember_TrueOperator()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 abstract static bool operator true(T x);
@@ -771,9 +719,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static bool I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator true(C x)", """
             interface I<T> where T : I<T>
             {
                 abstract static bool operator true(T x);
@@ -787,15 +733,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
     public async Task TestStaticAbstractInterfaceMember_UnaryPlusOperator()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 abstract static T operator +(T x);
@@ -805,9 +749,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static C I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator +(C x)", """
             interface I<T> where T : I<T>
             {
                 abstract static T operator +(T x);
@@ -820,15 +762,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53924")]
     public async Task TestStaticAbstractInterfaceMember_BinaryPlusOperator()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 abstract static T operator +(T x, T y);
@@ -838,9 +778,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static C I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator +(C x, C y)", """
             interface I<T> where T : I<T>
             {
                 abstract static T operator +(T x, T y);
@@ -853,15 +791,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator +(C x, C y)", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task TestWithParamsArrayParameter()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I
             {
                 void M(params string[] args);
@@ -871,9 +807,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 void I.$$
             }
-            """;
-
-        var expected = """
+            """, "M(params string[] args)", """
             interface I
             {
                 void M(params string[] args);
@@ -886,15 +820,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72224")]
     public async Task TestWithParamsCollectionParameter()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             using System.Collections.Generic;
 
             interface I
@@ -906,9 +838,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 void I.$$
             }
-            """;
-
-        var expected = """
+            """, "M(params IEnumerable<string> args)", """
             using System.Collections.Generic;
 
             interface I
@@ -923,15 +853,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "M(params IEnumerable<string> args)", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task TestWithNullable()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             #nullable enable
 
             interface I
@@ -943,9 +871,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 void I.$$
             }
-            """;
-
-        var expected = """
+            """, "M<T>(T? x)", """
             #nullable enable
 
             interface I
@@ -960,15 +886,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "M<T>(T? x)", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task TestEscapeIdentifier()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I
             {
                 void M(string @class);
@@ -978,9 +902,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 void I.$$
             }
-            """;
-
-        var expected = """
+            """, "M(string @class)", """
             interface I
             {
                 void M(string @class);
@@ -993,15 +915,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "M(string @class)", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task TestEscapeIdentifier2()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I
             {
                 void M<@class>();
@@ -1011,9 +931,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 void I.$$
             }
-            """;
-
-        var expected = """
+            """, "M<@class>()", """
             interface I
             {
                 void M<@class>();
@@ -1026,15 +944,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "M<@class>()", expected, '\t');
+            """, '\t');
     }
 
     [Fact]
     public async Task TestParameterWithDefaultValue()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I
             {
                 void M(int x = 10);
@@ -1044,9 +960,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 void I.$$
             }
-            """;
-
-        var expected = """
+            """, "M(int x)", """
             interface I
             {
                 void M(int x = 10);
@@ -1059,14 +973,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60215")]
     public async Task TestStaticAbstractCheckedUnaryOperator()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I1<T> where T : I1<T>
             {
                 abstract static T operator checked -(T x);
@@ -1078,9 +991,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static C I1<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator checked -(C x)", """
             interface I1<T> where T : I1<T>
             {
                 abstract static T operator checked -(T x);
@@ -1095,15 +1006,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator checked -(C x)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60215")]
     public async Task TestStaticAbstractCheckedBinaryOperator()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I1<T> where T : I1<T>
             {
                 abstract static T operator checked +(T x, T y);
@@ -1115,9 +1024,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static C I1<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator checked +(C x, C y)", """
             interface I1<T> where T : I1<T>
             {
                 abstract static T operator checked +(T x, T y);
@@ -1132,15 +1039,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator checked +(C x, C y)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60215")]
     public async Task TestStaticAbstractCheckedCastOperator()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I1<T> where T : I1<T>
             {
                 abstract static explicit operator checked string(T x);
@@ -1152,9 +1057,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static C3 I1<C3>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator checked string(C3 x)", """
             interface I1<T> where T : I1<T>
             {
                 abstract static explicit operator checked string(T x);
@@ -1169,15 +1072,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator checked string(C3 x)", expected, '\t');
+            """, '\t');
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70458")]
     public async Task TestExlicitImplementationWithAttributesOnNullableParameters()
     {
-        var markup = """
+        await VerifyCustomCommitProviderAsync("""
             #nullable enable
 
             using Example.Namespace;
@@ -1198,9 +1099,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 public record DecodeError;
             }
-            """;
-
-        var expected = """
+            """, "TryDecode", """
             #nullable enable
 
             using Example.Namespace;
@@ -1224,9 +1123,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 public record DecodeError;
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markup, "TryDecode", expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
@@ -1252,7 +1149,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_02()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             interface IGoo
             {
                 void Goo();
@@ -1265,9 +1162,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     IGoo.$$
                 }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Goo");
+            """, "Goo");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
@@ -1296,7 +1191,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_04()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IGoo
             {
                 int Generic<K, V>(K key, V value);
@@ -1306,9 +1201,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 IGoo.$$
             }
-            """;
-
-        var expected = """
+            """, "Generic<K, V>(K key, V value)", """
             interface IGoo
             {
                 int Generic<K, V>(K key, V value);
@@ -1321,15 +1214,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_05()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 abstract static bool operator true(T x);
@@ -1340,9 +1231,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "operator true(C x)", """
             interface I<T> where T : I<T>
             {
                 abstract static bool operator true(T x);
@@ -1356,15 +1245,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_06()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 abstract static ref bool Goo(ref int a, out int b);
@@ -1374,9 +1261,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "Goo(ref int a, out int b)", """
             interface I<T> where T : I<T>
             {
                 abstract static ref bool Goo(ref int a, out int b);
@@ -1389,15 +1274,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Goo(ref int a, out int b)", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_07()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 abstract static bool Goo { set; }
@@ -1407,9 +1290,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "Goo", """
             interface I<T> where T : I<T>
             {
                 abstract static bool Goo { set; }
@@ -1419,15 +1300,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 static bool I<C>.Goo { set => throw new System.NotImplementedException(); }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_08()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 abstract static event System.Action Goo;
@@ -1437,9 +1316,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "Goo", """
             using System;
 
             interface I<T> where T : I<T>
@@ -1462,15 +1339,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     }
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_09()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 bool Goo { get; set; }
@@ -1480,9 +1355,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "Goo", """
             interface I<T> where T : I<T>
             {
                 bool Goo { get; set; }
@@ -1492,15 +1365,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 bool I<C>.Goo { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_10()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 event System.Action Goo;
@@ -1510,9 +1381,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "Goo", """
             using System;
 
             interface I<T> where T : I<T>
@@ -1535,15 +1404,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     }
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_11()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface I<T> where T : I<T>
             {
                 bool this[int a, T b] { get; set; }
@@ -1553,9 +1420,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 I<C>.$$
             }
-            """;
-
-        var expected = """
+            """, "this[int a, C b]", """
             interface I<T> where T : I<T>
             {
                 bool this[int a, T b] { get; set; }
@@ -1565,9 +1430,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 bool I<C>.this[int a, C b] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "this[int a, C b]", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
@@ -1600,7 +1463,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_13()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IOuter
             {
                 void Method();
@@ -1616,9 +1479,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 IOuter.$$
             }
-            """;
-
-        var expected = """
+            """, "Method()", """
             interface IOuter
             {
                 void Method();
@@ -1637,9 +1498,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Method()", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
@@ -1675,7 +1534,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_15()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             interface IOuter
             {
                 void Method();
@@ -1691,9 +1550,7 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 IOuter.IInner.$$
             }
-            """;
-
-        var expected = """
+            """, "Method1()", """
             interface IOuter
             {
                 void Method();
@@ -1712,15 +1569,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                     throw new System.NotImplementedException();
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "Method1()", expected, '\t');
+            """, '\t');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_16()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             interface IOuter
             {
                 void Method();
@@ -1736,15 +1591,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 IOuter.IInner.$$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Method1", displayTextSuffix: "()");
+            """, "Method1", displayTextSuffix: "()");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_17()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             interface IInterface
             {
                 void Method();
@@ -1754,15 +1607,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 IInterface.$$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+            """, "Method", displayTextSuffix: "()");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_18()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             interface IOuter
             {
                 void Method();
@@ -1778,15 +1629,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 IOuter.$$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+            """, "Method", displayTextSuffix: "()");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_19()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             interface IOuter
             {
                 void Method();
@@ -1802,15 +1651,13 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 IOuter.$$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+            """, "Method", displayTextSuffix: "()");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_20()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Outer
             {
                 public interface IInner
@@ -1824,8 +1671,6 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
             {
                 Outer.IInner.$$
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Method1", displayTextSuffix: "()");
+            """, "Method1", displayTextSuffix: "()");
     }
 }

@@ -19,13 +19,11 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact]
     public async Task TestEnum1()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|hint:$$enum E{|textspan:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
@@ -36,15 +34,13 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("interface")]
     public async Task TestEnum2(string typeKind)
     {
-        var code = $@"
+        await VerifyBlockSpansAsync($@"
 {{|hint:$$enum E{{|textspan:
 {{
 }}|}}|}}
 {typeKind} Following
 {{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+}}",
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
@@ -55,31 +51,27 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("interface")]
     public async Task TestEnum3(string typeKind)
     {
-        var code = $@"
+        await VerifyBlockSpansAsync($@"
 {{|hint:$$enum E{{|textspan:
 {{
 }}|}}|}}
 
 {typeKind} Following
 {{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+}}",
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestEnumWithLeadingComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$enum E{|textspan2:
                 {
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
@@ -87,15 +79,13 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact]
     public async Task TestEnumWithNestedComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|hint1:$$enum E{|textspan1:
                 {
                     {|span2:// Goo
                     // Bar|}
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
     }

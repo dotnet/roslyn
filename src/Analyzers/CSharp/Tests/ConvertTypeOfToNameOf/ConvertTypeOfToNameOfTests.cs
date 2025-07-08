@@ -23,7 +23,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Fact]
     public async Task BasicType()
     {
-        var text = """
+        await VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 void Method()
@@ -31,8 +31,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName = [|typeof(Test).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -40,14 +39,13 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName = nameof(Test);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ClassLibraryType()
     {
-        var text = """
+        await VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 void Method()
@@ -55,8 +53,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName = [|typeof(System.String).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -64,14 +61,13 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName = nameof(System.String);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ClassLibraryTypeWithUsing()
     {
-        var text = """
+        await VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -81,8 +77,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName = [|typeof(String).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -92,14 +87,13 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName = nameof(String);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task NestedCall()
     {
-        var text = """
+        await VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -113,8 +107,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     return 0;
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -128,8 +121,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     return 0;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+            """);
     }
 
     [Fact]
@@ -153,7 +145,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Fact]
     public async Task PrimitiveType()
     {
-        var text = """
+        await VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 void Method()
@@ -161,8 +153,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                         var typeName = [|typeof(int).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -170,14 +161,13 @@ public sealed partial class ConvertTypeOfToNameOfTests
                         var typeName = nameof(System.Int32);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task PrimitiveTypeWithUsing()
     {
-        var text = """
+        await VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -187,8 +177,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                         var typeName = [|typeof(int).Name|];
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -198,8 +187,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                         var typeName = nameof(Int32);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+            """);
     }
 
     [Fact]
@@ -313,7 +301,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]
     public async Task NestedInGenericType()
     {
-        var text = """
+        await VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 class Goo<T> 
@@ -327,8 +315,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 class Goo<T> 
@@ -342,8 +329,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(text, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47129")]

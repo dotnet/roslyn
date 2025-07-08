@@ -256,7 +256,7 @@ public sealed partial class AddFileBannerTests : AbstractCSharpCodeActionTest_No
     [InlineData("file_header_template = defined file header", 0)]
     public async Task TestMissingWhenHandledByAnalyzer(string fileHeaderTemplate, int expectedActionCount)
     {
-        var initialMarkup = $@"
+        await TestActionCountAsync($@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath=""/0/Test0.cs"">[||]using System;
@@ -282,9 +282,7 @@ root = true
 {fileHeaderTemplate}
         </AnalyzerConfigDocument>
     </Project>
-</Workspace>";
-
-        await TestActionCountAsync(initialMarkup, expectedActionCount);
+</Workspace>", expectedActionCount);
     }
 
     [Fact]

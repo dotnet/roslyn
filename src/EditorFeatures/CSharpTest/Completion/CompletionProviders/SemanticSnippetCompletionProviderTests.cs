@@ -25,7 +25,7 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
     [WpfFact]
     public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
     {
-        var markupBeforeCommit = """
+        await VerifyCustomCommitProviderAsync("""
             class Program
             {
                 public void Method()
@@ -33,9 +33,7 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     Wr$$Blah
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, "cw", """
             using System;
 
             class Program
@@ -45,16 +43,13 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     Console.WriteLine($$);
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "cw", expectedCodeAfterCommit);
+            """);
     }
 
     [WpfFact]
     public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifyCustomCommitProviderAsync("""
             class Program
             {
                 public void Method()
@@ -62,10 +57,7 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     _Wr$$Blah_
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, "cw", """
             using System;
 
             class Program
@@ -75,7 +67,6 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                     Console.WriteLine($$);
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, "cw", expectedCodeAfterCommit);
+            """);
     }
 }

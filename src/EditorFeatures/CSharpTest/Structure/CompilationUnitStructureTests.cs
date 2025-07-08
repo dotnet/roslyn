@@ -20,59 +20,51 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact]
     public async Task TestUsings()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|hint:using {|textspan:System;
                 using System.Core;|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestUsingAliases()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|hint:using {|textspan:System;
                 using System.Core;
                 using text = System.Text;
                 using linq = System.Linq;|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestExternAliases()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|hint:extern {|textspan:alias Goo;
                 extern alias Bar;|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestExternAliasesAndUsings()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|hint:extern {|textspan:alias Goo;
                 extern alias Bar;
                 using System;
                 using System.Core;|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:extern {|textspan2:alias Goo;
@@ -83,9 +75,7 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
                 using System.Core;|}|}
                 {|span3:// Goo
                 // Bar|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("span3", "// Goo ...", autoCollapse: true));
@@ -94,14 +84,12 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact]
     public async Task TestUsingsWithComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:using {|textspan2:System;
                 using System.Core;|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -109,14 +97,12 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact]
     public async Task TestExternAliasesWithComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:extern {|textspan2:alias Goo;
                 extern alias Bar;|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -124,25 +110,21 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact]
     public async Task TestWithComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true));
     }
 
     [Fact]
     public async Task TestWithCommentsAtEnd()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|hint1:using {|textspan1:System;|}|}
                 {|span2:// Goo
                 // Bar|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("span2", "// Goo ...", autoCollapse: true));
     }
@@ -150,28 +132,24 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
     public async Task TestUsingKeywordWithSpace()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 $${|hint:using|} {|textspan:|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Theory, CombinatorialData]
     public async Task TestUsingsShouldBeCollapsedByDefault(bool collapseUsingsByDefault)
     {
-        var code = """
-                $${|hint:using {|textspan:System;
-                using System.Core;|}|}
-                """;
-
         var options = GetDefaultOptions() with
         {
             CollapseImportsWhenFirstOpened = collapseUsingsByDefault
         };
 
-        await VerifyBlockSpansAsync(code, options,
+        await VerifyBlockSpansAsync("""
+                $${|hint:using {|textspan:System;
+                using System.Core;|}|}
+                """, options,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true, isDefaultCollapsed: collapseUsingsByDefault));
     }
 }

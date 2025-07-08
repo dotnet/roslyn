@@ -20,37 +20,33 @@ public sealed class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNo
     [Fact]
     public async Task NoCommentsOrAttributes()
     {
-        var code = """
+        await VerifyNoBlockSpansAsync("""
                 enum E
                 {
                     $$Goo,
                     Bar
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
+                """);
     }
 
     [Fact]
     public async Task WithAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 enum E
                 {
                     {|hint:{|textspan:[Blah]
                     |}$$Goo|},
                     Bar
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task WithCommentsAndAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 enum E
                 {
                     {|hint:{|textspan:// Summary:
@@ -59,9 +55,7 @@ public sealed class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNo
                     |}$$Goo|},
                     Bar
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

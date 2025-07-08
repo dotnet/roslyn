@@ -644,12 +644,6 @@ Inner i;
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/7941")]
     public async Task FindDeclarationsInErrorSymbolsDoesntCrash()
     {
-        var source = @"
-' missing `Class` keyword
-Public Class1
-    Public Event MyEvent(ByVal a As String)
-End Class
-";
 
         // create solution
         var pid = ProjectId.CreateNewId();
@@ -658,7 +652,12 @@ End Class
             .AddProject(pid, "VBProject", "VBProject", LanguageNames.VisualBasic)
             .AddMetadataReference(pid, MscorlibRef);
         var did = DocumentId.CreateNewId(pid);
-        solution = solution.AddDocument(did, "VBDocument.vb", SourceText.From(source));
+        solution = solution.AddDocument(did, "VBDocument.vb", SourceText.From(@"
+' missing `Class` keyword
+Public Class1
+    Public Event MyEvent(ByVal a As String)
+End Class
+"));
         var project = solution.Projects.Single();
 
         // perform the search

@@ -18,13 +18,11 @@ public sealed class DelegateDeclarationStructureTests : AbstractCSharpSyntaxNode
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task TestDelegateWithComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|span:// Goo
                 // Bar|}
                 $$public delegate void C();
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Goo ...", autoCollapse: true));
     }
 }

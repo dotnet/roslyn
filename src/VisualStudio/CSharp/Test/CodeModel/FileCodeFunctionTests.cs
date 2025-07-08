@@ -240,20 +240,14 @@ public class Ref<T> where T : Entity
     public void Comment()
     {
         var testObject = GetCodeFunction("C", "MethodB");
-
-        var expected = "This is a short comment.\r\n";
-
-        Assert.Equal(expected, testObject.Comment);
+        Assert.Equal("This is a short comment.\r\n", testObject.Comment);
     }
 
     [WpfFact]
     public void DocComment()
     {
         var testObject = GetCodeFunction("C", "MethodA");
-
-        var expected = "<doc>\r\n<summary>\r\nA short summary.\r\n</summary>\r\n<param name=\"intA\">A parameter.</param>\r\n<returns>An int.</returns>\r\n</doc>";
-
-        Assert.Equal(expected, testObject.DocComment);
+        Assert.Equal("<doc>\r\n<summary>\r\nA short summary.\r\n</summary>\r\n<param name=\"intA\">A parameter.</param>\r\n<returns>An int.</returns>\r\n</doc>", testObject.DocComment);
     }
 
     [WpfFact(Skip = "636860")]

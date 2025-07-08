@@ -26,103 +26,83 @@ public sealed class AbstractStructureTaggerProviderTests
     [Fact]
     public void UsingDirective()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 using System;
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.CSharp);
+", true, LanguageNames.CSharp);
     }
 
     [Fact]
     public void UsingDirectiveInNamespace()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 namespace Goo
 {
     using System;
 }
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.CSharp);
+", true, LanguageNames.CSharp);
     }
 
     [Fact]
     public void UsingStaticDirective()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 using static System;
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.CSharp);
+", true, LanguageNames.CSharp);
     }
 
     [Fact]
     public void UsingAliasDirective()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 using A = System;
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.CSharp);
+", true, LanguageNames.CSharp);
     }
 
     [Fact]
     public void ExternAlias()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 extern alias Goo;
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.CSharp);
+", true, LanguageNames.CSharp);
     }
 
     [Fact]
     public void ImportsStatement()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 Imports System
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.VisualBasic);
+", true, LanguageNames.VisualBasic);
     }
 
     [Fact]
     public void ImportsAliasStatement()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 Imports A = System
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.VisualBasic);
+", true, LanguageNames.VisualBasic);
     }
 
     [Fact]
     public void CSharpRegion1()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
     #region
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.CSharp);
+", true, LanguageNames.CSharp);
     }
 
     [Fact]
     public void CSharpRegion()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
     #region Goo
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.CSharp);
+", true, LanguageNames.CSharp);
     }
 
     [Fact]
     public void VisualBasicRegion()
     {
-        var input = @"
+        TextContainsRegionOrUsing(@"
 #Region Goo
-";
-
-        TextContainsRegionOrUsing(input, true, LanguageNames.VisualBasic);
+", true, LanguageNames.VisualBasic);
     }
 }

@@ -316,8 +316,7 @@ class Class
             }
             else
             {
-                var fixedSource = $@"{pragmas}class Class {{ }}";
-                await TestInRegularAndScriptAsync(source, fixedSource);
+                await TestInRegularAndScriptAsync(source, $@"{pragmas}class Class {{ }}");
             }
         }
 
@@ -841,17 +840,6 @@ class Class
         [Fact]
         public async Task TestRemoveDiagnosticSuppression_DuplicatePragmaAndAttributeSuppression()
         {
-            var source = $@"
-class Class
-{{
-    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
-    void M()
-    {{
-#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId}|]
-        int y;
-#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId}
-    }}
-}}";
             string fixedSource;
             if (IsCompilerDiagnosticsTest)
             {
@@ -884,7 +872,17 @@ class Class
 }}";
             }
 
-            await TestInRegularAndScript1Async(source, fixedSource);
+            await TestInRegularAndScript1Async($@"
+class Class
+{{
+    [|[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{VariableDeclaredButNotUsedDiagnosticId}"")]
+    void M()
+    {{
+#pragma warning disable {VariableDeclaredButNotUsedDiagnosticId}|]
+        int y;
+#pragma warning restore {VariableDeclaredButNotUsedDiagnosticId}
+    }}
+}}", fixedSource);
         }
 
         [Theory, CombinatorialData]

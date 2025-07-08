@@ -279,35 +279,6 @@ class C2
     {
         var fixAllAnnotationForMethods = forMethods ? "{|FixAllInDocument:|}" : string.Empty;
         var fixAllAnnotationForProperties = forMethods ? string.Empty : "{|FixAllInDocument:|}";
-
-        var source = @$"class C
-{{
-    void M1()
-    {{
-        {fixAllAnnotationForMethods}Bar();
-    }}
-
-    void M2()
-    {{
-        Bar();
-    }}
-
-    int P1
-    {{
-        get
-        {{
-            {fixAllAnnotationForProperties}return 0;
-        }}
-    }}
-
-    int P2
-    {{
-        get
-        {{
-            return 0;
-        }}
-    }}
-}}";
         var fixedCodeForMethods = @"class C
 {
     void M1() => Bar();
@@ -348,7 +319,34 @@ class C2
 }";
         var fixedCode = forMethods ? fixedCodeForMethods : fixedCodeForProperties;
 
-        await TestInRegularAndScript1Async(source, fixedCode,
+        await TestInRegularAndScript1Async(@$"class C
+{{
+    void M1()
+    {{
+        {fixAllAnnotationForMethods}Bar();
+    }}
+
+    void M2()
+    {{
+        Bar();
+    }}
+
+    int P1
+    {{
+        get
+        {{
+            {fixAllAnnotationForProperties}return 0;
+        }}
+    }}
+
+    int P2
+    {{
+        get
+        {{
+            return 0;
+        }}
+    }}
+}}", fixedCode,
             parameters: new TestParameters(options: UseBlockBodyForMethodsAndAccessorsAndProperties));
     }
 }

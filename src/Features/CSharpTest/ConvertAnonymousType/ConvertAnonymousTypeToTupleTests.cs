@@ -26,7 +26,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
     [Fact]
     public async Task ConvertSingleAnonymousType()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -34,8 +34,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = [||]new { a = 1, b = 2 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -43,8 +42,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = (a: 1, b: 2);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
@@ -74,7 +72,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
     [Fact]
     public async Task ConvertSingleAnonymousTypeWithInferredName()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int b)
@@ -82,8 +80,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = [||]new { a = 1, b };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int b)
@@ -91,14 +88,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = (a: 1, b);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ConvertMultipleInstancesInSameMethod()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -107,8 +103,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -117,14 +112,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t2 = (a: 3, b: 4);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ConvertMultipleInstancesAcrossMethods()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -139,8 +133,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -155,14 +148,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task OnlyConvertMatchingTypesInSameMethod()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int b)
@@ -173,8 +165,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t4 = new { b = 5, a = 6 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int b)
@@ -185,14 +176,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t4 = new { b = 5, a = 6 };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task TestFixAllInSingleMethod()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method(int b)
@@ -203,8 +193,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t4 = new { b = 5, a = 6 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method(int b)
@@ -215,14 +204,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t4 = (b: 5, a: 6);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, index: 1);
+            """, index: 1);
     }
 
     [Fact]
     public async Task TestFixNotAcrossMethods()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -237,8 +225,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -253,14 +240,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t2 = new { a = 3, b = 4 };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task TestTrivia()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -268,8 +254,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = /*1*/ [||]new /*2*/ { /*3*/ a /*4*/ = /*5*/ 1 /*7*/ , /*8*/ b /*9*/ = /*10*/ 2 /*11*/ } /*12*/ ;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -277,14 +262,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = /*1*/ ( /*3*/ a /*4*/ : /*5*/ 1 /*7*/ , /*8*/ b /*9*/ : /*10*/ 2 /*11*/ ) /*12*/ ;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task TestFixAllNestedTypes()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -292,8 +276,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = [||]new { a = 1, b = new { c = 1, d = 2 } };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -301,14 +284,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = (a: 1, b: (c: 1, d: 2));
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected, index: 1);
+            """, index: 1);
     }
 
     [Fact]
     public async Task ConvertMultipleNestedInstancesInSameMethod()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -316,8 +298,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = [||]new { a = 1, b = (object)new { a = 1, b = default(object) } };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -325,14 +306,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = (a: 1, b: (object)(a: 1, b: default(object)));
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ConvertWithLambda1()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -344,8 +324,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -357,14 +336,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ConvertWithLambda2()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -376,8 +354,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -389,14 +366,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ConvertWithLocalFunction1()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -408,8 +384,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -421,14 +396,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task ConvertWithLocalFunction2()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -440,8 +414,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -453,14 +426,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact]
     public async Task TestIncompleteAnonymousType()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -468,8 +440,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = [||]new { a = , b = };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -477,8 +448,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = (a: , b: );
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34749")]
@@ -499,7 +469,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
     public async Task RemoveTrailingComma()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -507,8 +477,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = [||]new { a = 1, b = 2, };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -516,14 +485,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     var t1 = (a: 1, b: 2);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
     public async Task TestMultiLine1()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -538,8 +506,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -553,14 +520,13 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
     public async Task TestMultiLine2()
     {
-        var text = """
+        await TestInRegularAndScriptAsync("""
             class Test
             {
                 void Method()
@@ -575,8 +541,7 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Test
             {
                 void Method()
@@ -590,7 +555,6 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
                     };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(text, expected);
+            """);
     }
 }

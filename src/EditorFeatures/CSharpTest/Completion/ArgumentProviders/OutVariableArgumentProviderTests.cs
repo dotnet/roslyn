@@ -47,7 +47,7 @@ public sealed class OutVariableArgumentProviderTests : AbstractCSharpArgumentPro
     [InlineData("in")]
     public async Task TestUnsupportedModifiers(string modifier)
     {
-        var markup = $@"
+        await VerifyDefaultValueAsync($@"
 class C
 {{
     void Method()
@@ -57,9 +57,7 @@ class C
 
     bool TryParse({modifier} int value) => throw null;
 }}
-";
-
-        await VerifyDefaultValueAsync(markup, expectedDefaultValue: null);
+", expectedDefaultValue: null);
     }
 
     [Fact]
@@ -83,17 +81,6 @@ class C
     [CombinatorialData]
     public async Task TestDeclareVariableBuiltInType(bool preferVar, bool preferBuiltInType)
     {
-        var markup = $@"
-using System;
-class C
-{{
-    void Method()
-    {{
-        int.TryParse(""x"", $$)
-    }}
-}}
-";
-
         var expected = (preferVar, preferBuiltInType) switch
         {
             (true, _) => "out var result",
@@ -108,7 +95,16 @@ class C
             (false, false) => s_useExplicitMetadataTypeOptions,
         };
 
-        await VerifyDefaultValueAsync(markup, expected, options: options);
+        await VerifyDefaultValueAsync($@"
+using System;
+class C
+{{
+    void Method()
+    {{
+        int.TryParse(""x"", $$)
+    }}
+}}
+", expected, options: options);
     }
 
     [Theory]

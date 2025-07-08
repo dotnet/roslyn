@@ -18,7 +18,8 @@ public sealed partial class QualifyMemberAccessTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllInSolution_QualifyMemberAccess()
     {
-        var input = """
+        await TestInRegularAndScriptAsync(
+            initialMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -53,9 +54,8 @@ public sealed partial class QualifyMemberAccessTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """,
+            expectedMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -90,11 +90,7 @@ public sealed partial class QualifyMemberAccessTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(
-            initialMarkup: input,
-            expectedMarkup: expected,
+            """,
             options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Suggestion));
     }
 }

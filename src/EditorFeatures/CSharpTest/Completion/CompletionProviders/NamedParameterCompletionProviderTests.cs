@@ -62,7 +62,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task InObjectCreation()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Goo
             {
                 public Goo(int a = 42)
@@ -73,15 +73,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     var b = new Goo($$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
+            """, "a", displayTextSuffix: ":");
     }
 
     [Fact]
     public async Task InBaseConstructor()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Goo
             {
                 public Goo(int a = 42)
@@ -92,15 +90,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
             {
                 public DogBed(int b) : base($$
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
+            """, "a", displayTextSuffix: ":");
     }
 
     [Fact]
     public async Task InvocationExpression()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Goo
             {
                 void Bar(int a)
@@ -108,15 +104,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Bar($$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
+            """, "a", displayTextSuffix: ":");
     }
 
     [Fact]
     public async Task InvocationExpressionAfterComma()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Goo
             {
                 void Bar(int a, string b)
@@ -124,15 +118,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Bar(b:"", $$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "a", displayTextSuffix: ":");
+            """, "a", displayTextSuffix: ":");
     }
 
     [Fact]
     public async Task ElementAccessExpression()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class SampleCollection<T>
             {
                 private T[] arr = new T[100];
@@ -157,9 +149,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     stringCollection[$$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "i", displayTextSuffix: ":");
+            """, "i", displayTextSuffix: ":");
     }
 
     [Fact]
@@ -207,7 +197,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task NotAfterColon()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class Goo
             {
                 void Bar(int a, string b)
@@ -215,15 +205,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Bar(a:$$ 
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544292")]
     public async Task NotInCollectionInitializers()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Collections.Generic;
             class Goo
             {
@@ -232,9 +220,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Bar(integers: new List<int> { 10, 11,$$ 12 });
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
@@ -379,7 +365,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
     public async Task VerbatimIdentifierNotAKeyword()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 void Goo(int @integer)
@@ -387,14 +373,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Goo(@i$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "integer", displayTextSuffix: ":");
+            """, "integer", displayTextSuffix: ":");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
     public async Task DescriptionStringInMethodOverloads()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Class1
             {
                 void Test()
@@ -408,15 +393,14 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 void Goo(bool boolean = false, Class1 obj = default(Class1))
                 { }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "obj", displayTextSuffix: ":",
+            """, "obj", displayTextSuffix: ":",
             expectedDescriptionOrNull: $"({FeaturesResources.parameter}) Class1 obj = default(Class1)");
     }
 
     [Fact]
     public async Task InDelegates()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public delegate void Del(string message);
 
             class Program
@@ -432,14 +416,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     handler($$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
+            """, "message", displayTextSuffix: ":");
     }
 
     [Fact]
     public async Task InDelegateInvokeSyntax()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public delegate void Del(string message);
 
             class Program
@@ -455,14 +438,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     handler.Invoke($$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "message", displayTextSuffix: ":");
+            """, "message", displayTextSuffix: ":");
     }
 
     [Fact]
     public async Task NotInComment()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             public class Test
             {
             static void Main()
@@ -472,14 +454,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
             }
             static void M(int x, int y) { }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task CommitWithColonWordFullyTyped()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -487,9 +468,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Main(args$$)
                 }
             }
-            """;
-
-        var expected = """
+            """, "args:", """
             class Program
             {
                 static void Main(string[] args)
@@ -497,14 +476,13 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Main(args:)
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "args:", expected, ':');
+            """, ':');
     }
 
     [Fact]
     public async Task CommitWithColonWordPartiallyTyped()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -512,9 +490,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Main(arg$$)
                 }
             }
-            """;
-
-        var expected = """
+            """, "args:", """
             class Program
             {
                 static void Main(string[] args)
@@ -522,7 +498,6 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                     Main(args:)
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "args:", expected, ':');
+            """, ':');
     }
 }

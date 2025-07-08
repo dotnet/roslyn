@@ -20,12 +20,6 @@ public sealed partial class MetadataAsSourceTests
         [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")]
         public async Task TestGenerateTypeInModule(bool signaturesOnly)
         {
-            var metadataSource = @"
-Module M
-    Public Class D
-    End Class
-End Module";
-
             var expected = signaturesOnly switch
             {
                 true => $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
@@ -64,20 +58,22 @@ internal sealed class M
 #endif",
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(@"
+Module M
+    Public Class D
+    End Class
+End Module", "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/60253")]
         public async Task TestReferenceAssembly(bool signaturesOnly)
         {
-            var metadataSource = @"
+            await GenerateAndVerifySourceAsync(@"
 <Assembly: System.Runtime.CompilerServices.ReferenceAssembly>
 Module M
     Public Class D
     End Class
-End Module";
-
-            var expected = $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+End Module", "M+D", LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -85,9 +81,7 @@ Friend Module M
     Public Class [|D|]
         Public Sub New()
     End Class
-End Module";
-
-            await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
+End Module", signaturesOnly: signaturesOnly);
         }
 
         // This test depends on the version of mscorlib used by the TestWorkspace and may 
@@ -183,14 +177,11 @@ public sealed class [|ObsoleteAttribute|] : Attribute
             var docCommentText = @"''' <summary>
 ''' I am the very model of a modern major general.
 ''' </summary>";
-
-            var expectedXMLFragment = @" <summary>
- I am the very model of a modern major general.
- </summary>";
-
             var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText, "'''");
 
-            Assert.Equal(expectedXMLFragment, extractedXMLFragment);
+            Assert.Equal(@" <summary>
+ I am the very model of a modern major general.
+ </summary>", extractedXMLFragment);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]

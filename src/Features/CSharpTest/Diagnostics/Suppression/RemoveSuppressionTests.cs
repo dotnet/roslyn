@@ -268,7 +268,7 @@ class Class
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument_RemovePragmaSuppressions()
         {
-            var input = @"
+            await TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -311,9 +311,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -352,9 +350,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
+</Workspace>");
         }
 
         [Fact]
@@ -362,7 +358,7 @@ class Class2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject_RemovePragmaSuppressions()
         {
-            var input = @"
+            await TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -407,9 +403,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -448,9 +442,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
+</Workspace>");
         }
 
         [Fact]
@@ -458,7 +450,7 @@ class Class2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
-            var input = @"
+            await TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -507,9 +499,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            var expected = @"
+</Workspace>", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -548,9 +538,7 @@ class Class2
 }
         </Document>
     </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
+</Workspace>");
         }
 
         #endregion

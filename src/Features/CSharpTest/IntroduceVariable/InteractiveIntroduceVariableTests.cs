@@ -61,27 +61,15 @@ public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest_No
     [Fact]
     public async Task TestFieldFix1()
     {
-        var code =
-@"int i = ([|1 + 1|]) + (1 + 1);";
-
-        var expected =
-@"private const int {|Rename:V|} = 1 + 1;
-int i = V + (1 + 1);";
-
-        await TestAsync(code, expected, index: 0);
+        await TestAsync(@"int i = ([|1 + 1|]) + (1 + 1);", @"private const int {|Rename:V|} = 1 + 1;
+int i = V + (1 + 1);", index: 0);
     }
 
     [Fact]
     public async Task TestFieldFix2()
     {
-        var code =
-@"int i = ([|1 + 1|]) + (1 + 1);";
-
-        var expected =
-@"private const int {|Rename:V|} = 1 + 1;
-int i = V + V;";
-
-        await TestAsync(code, expected, index: 1);
+        await TestAsync(@"int i = ([|1 + 1|]) + (1 + 1);", @"private const int {|Rename:V|} = 1 + 1;
+int i = V + V;", index: 1);
     }
 
     [Fact]

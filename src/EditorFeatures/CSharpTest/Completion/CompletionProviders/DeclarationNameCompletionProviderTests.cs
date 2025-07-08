@@ -337,14 +337,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [InlineData("record struct")]
     public async Task TreatRecordPositionalParameterAsProperty(string record)
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             public class MyClass
             {
             }
 
             public {{record}} R(MyClass $$
-            """;
-        await VerifyItemExistsAsync(markup, "MyClass", glyph: Glyph.PropertyPublic);
+            """, "MyClass", glyph: Glyph.PropertyPublic);
     }
 
     [Theory]
@@ -352,14 +351,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [InlineData("struct")]
     public async Task DoNotTreatPrimaryConstructorParameterAsProperty(string record)
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             public class MyClass
             {
             }
 
             public {{record}} R(MyClass $$
-            """;
-        await VerifyItemIsAbsentAsync(markup, "MyClass");
+            """, "MyClass");
     }
 
     [Fact]
@@ -379,26 +377,24 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact]
     public async Task AsyncTaskOfT()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading.Tasks;
             public class C
             {
                 async Task<C> $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "GetCAsync");
+            """, "GetCAsync");
     }
 
     [Fact(Skip = "not yet implemented")]
     public async Task NonAsyncTaskOfT()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public class C
             {
                 Task<C> $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "GetCAsync");
+            """, "GetCAsync");
     }
 
     [Fact]
@@ -433,40 +429,37 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact]
     public async Task WordBreaking2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             interface I {}
             public class C
             {
                 I $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "GetI");
+            """, "GetI");
     }
 
     [Fact]
     public async Task WordBreaking3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             interface II {}
             public class C
             {
                 II $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "GetI");
+            """, "GetI");
     }
 
     [Fact]
     public async Task WordBreaking4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             interface IGoo {}
             public class C
             {
                 IGoo $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Goo");
+            """, "Goo");
     }
 
     [Fact]
@@ -493,118 +486,109 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact]
     public async Task Parameter1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
             public class C
             {
                 void Goo(CancellationToken $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
+            """, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
     public async Task Parameter2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
             public class C
             {
                 void Goo(int x, CancellationToken c$$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
+            """, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
     public async Task Parameter3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
             public class C
             {
                 void Goo(CancellationToken c$$) {}
             }
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
+            """, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
     public async Task Parameter4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
             public class C
             {
                 void Other(CancellationToken cancellationToken) {}
                 void Goo(CancellationToken c$$) {}
             }
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
+            """, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
     public async Task Parameter5()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
             public class C
             {
                 void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
             }
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: Glyph.Parameter);
+            """, "cancellationToken1", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
     public async Task Parameter6()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
 
             void Other(CancellationToken cancellationToken) {}
             void Goo(CancellationToken c$$) {}
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
+            """, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
     public async Task Parameter7()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
 
             void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: Glyph.Parameter);
+            """, "cancellationToken1", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
     public async Task Parameter8()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
             public class C
             {
                 int this[CancellationToken cancellationToken] => throw null;
                 int this[CancellationToken c$$] => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
+            """, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
     public async Task Parameter9()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading;
             public class C
             {
                 int this[CancellationToken cancellationToken] => throw null;
                 int this[CancellationToken cancellationToken, CancellationToken c$$] => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: Glyph.Parameter);
+            """, "cancellationToken1", glyph: Glyph.Parameter);
     }
 
     [InlineData(LanguageVersion.CSharp7)]
@@ -757,13 +741,12 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
     public async Task DoNotSuggestParameterNamesFromTheSameOverload()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             public class C
             {
                 void M(string name, string $$) { }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "name");
+            """, "name");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
@@ -785,7 +768,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
     public async Task DoNotSuggestInGenericType()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Collections.Generic;
             public class C
             {
@@ -793,14 +776,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
                 void M(List<$$>) { }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
     public async Task DoNotSuggestInOptionalParameterDefaultValue()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Collections.Generic;
             public class C
             {
@@ -809,8 +791,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
                 void M(int x, int num = $$) { }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
@@ -831,20 +812,19 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
     public async Task EscapeKeywords2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class For { }
             public class C
             {
                 void Goo(For $$) {}
             }
-            """;
-        await VerifyItemExistsAsync(markup, "@for", glyph: Glyph.Parameter);
+            """, "@for", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
     public async Task EscapeKeywords3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class For { }
             public class C
             {
@@ -853,8 +833,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     For $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "@for");
+            """, "@for");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
@@ -916,169 +895,156 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact]
     public async Task NoSuggestionsForInt()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 int $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForLong()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 long $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForDouble()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 double $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForFloat()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 float $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForSbyte()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 sbyte $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForShort()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 short $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForUint()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 uint $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForUlong()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 ulong $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task SuggestionsForUShort()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 ushort $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForBool()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 bool $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForByte()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 byte $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForChar()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System.Threading;
             public class C
             {
                 char $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NoSuggestionsForString()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             public class C
             {
                 string $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -1111,43 +1077,40 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact]
     public async Task NotTriggeredByVar()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             public class C
             {
                 var $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task NotAfterVoid()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             public class C
             {
                 void $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task AfterGeneric()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public class C
             {
                 System.Collections.Generic.IEnumerable<C> $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "GetCs");
+            """, "GetCs");
     }
 
     [Fact]
     public async Task NothingAfterVar()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             public class C
             {
                 void goo()
@@ -1155,8 +1118,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     var $$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -1237,33 +1199,31 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20016")]
     public async Task NotAfterExistingName1()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using IMyType = System.String;
             public class C
             {
                 MyType myType $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20016")]
     public async Task NotAfterExistingName2()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using IMyType = System.String;
             public class C
             {
                 MyType myType, MyType $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19409")]
     public async Task OutVarArgument()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do(out Test goo)
@@ -1271,14 +1231,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     Do(out var $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "test");
+            """, "test");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19409")]
     public async Task OutArgument()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do(out Test goo)
@@ -1286,14 +1245,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     Do(out Test $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "test");
+            """, "test");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19409")]
     public async Task OutGenericArgument()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do<T>(out T goo)
@@ -1301,14 +1259,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     Do(out Test $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "test");
+            """, "test");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleExpressionDeclaration1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do()
@@ -1316,14 +1273,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     (System.Array array, System.Action $$ 
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "action");
+            """, "action");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleExpressionDeclaration2()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class Test
             {
                 void Do()
@@ -1331,14 +1287,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     (array, action $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "action");
+            """, "action");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleExpressionDeclaration_NestedTuples()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do()
@@ -1346,14 +1301,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     ((int i1, int i2), (System.Array array, System.Action $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "action");
+            """, "action");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleExpressionDeclaration_NestedTuples_CompletionInTheMiddle()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do()
@@ -1361,14 +1315,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     ((System.Array array, System.Action $$), (int i1, int i2))
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "action");
+            """, "action");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementDefinition1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do()
@@ -1376,86 +1329,80 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     (System.Array $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "array");
+            """, "array");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementDefinition2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 (System.Array $$) Test() => default;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "array");
+            """, "array");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementDefinition3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 (System.Array array, System.Action $$) Test() => default;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "action");
+            """, "action");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementDefinition4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 (System.Array $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "array");
+            """, "array");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementDefinition5()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void M((System.Array $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "array");
+            """, "array");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementDefinition_NestedTuples()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void M(((int, int), (int, System.Array $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "array");
+            """, "array");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementDefinition_InMiddleOfTuple()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void M((int, System.Array $$),int)
             }
-            """;
-        await VerifyItemExistsAsync(markup, "array");
+            """, "array");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementTypeInference()
     {
-        var markup = """
+        // Currently not supported:
+        await VerifyItemIsAbsentAsync("""
             class Test
             {
                 void Do()
@@ -1463,9 +1410,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     (var accessViolationException, var $$) = (new AccessViolationException(), new Action(() => { }));
                 }
             }
-            """;
-        // Currently not supported:
-        await VerifyItemIsAbsentAsync(markup, "action");
+            """, "action");
         // see https://github.com/dotnet/roslyn/issues/27138
         // after the issue ist fixed we expect this to work:
         // await VerifyItemExistsAsync(markup, "action");
@@ -1475,7 +1420,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementInGenericTypeArgument()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Test
             {
                 void Do()
@@ -1483,14 +1428,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     System.Func<(System.Action $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "action");
+            """, "action");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
     public async Task TupleElementInvocationInsideTuple()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class Test
             {
                 void Do()
@@ -1499,34 +1443,31 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                         var t=(e1: 1, e2: M(1, $$));
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
     public async Task Pluralize1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
             class Index
             {
                 IEnumerable<Index> $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Indices");
+            """, "Indices");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
     public async Task Pluralize2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
             class Test
             {
                 IEnumerable<IEnumerable<Test>> $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "tests");
+            """, "tests");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
@@ -1594,7 +1535,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
     public async Task PluralizeValidGetEnumerator()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class MyClass
             {
                 public void M(MyOwnCollection<MyClass> $$) { }
@@ -1615,14 +1556,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     public bool MoveNext() { return false; }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "myClasses");
+            """, "myClasses");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
     public async Task PluralizeValidGetAsyncEnumerator()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading.Tasks;
 
             class MyClass
@@ -1645,14 +1585,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     public Task<bool> MoveNextAsync() { return Task.FromResult(false); }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "myClasses");
+            """, "myClasses");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
     public async Task PluralizeForUnimplementedIEnumerable()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             class MyClass
@@ -1664,8 +1603,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             class MyOwnCollection<T> : IEnumerable<T>
             {
             }
-            """;
-        await VerifyItemExistsAsync(markup, "myClasses");
+            """, "myClasses");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37366")]
@@ -1813,7 +1751,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact]
     public async Task InUsingStatement1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1823,14 +1761,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     using (StreamReader s$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "streamReader");
+            """, "streamReader");
     }
 
     [Fact]
     public async Task InUsingStatement2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1840,14 +1777,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     using (StreamReader s1, $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "streamReader");
+            """, "streamReader");
     }
 
     [Fact]
     public async Task InUsingStatement_Var()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1857,14 +1793,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     using (var m$$ = new MemoryStream())
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "memoryStream");
+            """, "memoryStream");
     }
 
     [Fact]
     public async Task InForStatement1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1874,14 +1809,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     for (StreamReader s$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "streamReader");
+            """, "streamReader");
     }
 
     [Fact]
     public async Task InForStatement2()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System.IO;
 
             class C
@@ -1891,14 +1825,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     for (StreamReader s1, $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "streamReader");
+            """, "streamReader");
     }
 
     [Fact]
     public async Task InForStatement_Var()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1908,14 +1841,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     for (var m$$ = new MemoryStream();
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "memoryStream");
+            """, "memoryStream");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26021")]
     public async Task InForEachStatement()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1925,14 +1857,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     foreach (StreamReader $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "streamReader");
+            """, "streamReader");
     }
 
     [Fact]
     public async Task InForEachStatement_Var()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1942,28 +1873,25 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     foreach (var m$$ in new[] { new MemoryStream() })
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "memoryStream");
+            """, "memoryStream");
     }
 
     [Fact]
     public async Task DisabledByOption()
     {
         ShowNameSuggestions = false;
-
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class Test
             {
                 Test $$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeImplementsIEnumerableOfType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -1976,14 +1904,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Container : ContainerBase { }
             public class ContainerBase : IEnumerable<ContainerBase> { }
-            """;
-        await VerifyItemExistsAsync(markup, "container");
+            """, "container");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeImplementsIEnumerableOfType2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -1996,14 +1923,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class ContainerBase : IEnumerable<Container> { }
             public class Container : ContainerBase { }
-            """;
-        await VerifyItemExistsAsync(markup, "container");
+            """, "container");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeImplementsIEnumerableOfType3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2015,14 +1941,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
 
             public class Container : IEnumerable<Container> { }
-            """;
-        await VerifyItemExistsAsync(markup, "container");
+            """, "container");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeImplementsIEnumerableOfType4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
             using System.Threading.Tasks;
 
@@ -2037,14 +1962,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             public class ContainerBase : IEnumerable<Container> { }
             public class Container : ContainerBase { }
             public class TaskType : Task<Container> { }
-            """;
-        await VerifyItemExistsAsync(markup, "taskType");
+            """, "taskType");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeImplementsTaskOfType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading.Tasks;
 
             public class Class1
@@ -2057,14 +1981,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Container : ContainerBase { }
             public class ContainerBase : Task<ContainerBase> { }
-            """;
-        await VerifyItemExistsAsync(markup, "container");
+            """, "container");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeImplementsTaskOfType2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading.Tasks;
 
             public class Class1
@@ -2077,14 +2000,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public class Container : Task<ContainerBase> { }
             public class ContainerBase : Container { }
-            """;
-        await VerifyItemExistsAsync(markup, "container");
+            """, "container");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeImplementsTaskOfType3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
             using System.Threading.Tasks;
 
@@ -2099,14 +2021,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             public class TaskType : TaskTypeBase { }
             public class TaskTypeBase : Task<TaskTypeBase> { }
             public class EnumerableType : IEnumerable<TaskType> { }
-            """;
-        await VerifyItemExistsAsync(markup, "taskTypes");
+            """, "taskTypes");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23590")]
     public async Task TypeIsNullableOfNullable()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2117,15 +2038,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                   IEnumerable<Nullable<int?>> $$
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "nullables");
+            """, "nullables");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
     public async Task TypeIsNullableStructInLocalWithNullableTypeName()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
@@ -2137,15 +2057,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                   Nullable<ImmutableArray<int>> $$
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ints");
+            """, "ints");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
     public async Task TypeIsNullableStructInLocalWithQuestionMark()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Immutable;
 
             public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
@@ -2157,15 +2076,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                   ImmutableArray<int>? $$
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ints");
+            """, "ints");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
     public async Task TypeIsNullableReferenceInLocal()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             #nullable enable
 
             using System.Collections.Generic;
@@ -2177,15 +2095,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                   IEnumerable<int>? $$
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ints");
+            """, "ints");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
     public async Task TypeIsNullableStructInParameterWithNullableTypeName()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
@@ -2196,15 +2113,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ints");
+            """, "ints");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
     public async Task TypeIsNullableStructInParameterWithQuestionMark()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
 
             public class Class1
@@ -2213,15 +2129,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ints");
+            """, "ints");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     [WorkItem("https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
     public async Task TypeIsNullableReferenceInParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             #nullable enable
 
             using System.Collections.Generic;
@@ -2232,14 +2147,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ints");
+            """, "ints");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     public async Task EnumerableParameterOfUnmanagedType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2248,14 +2162,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ints");
+            """, "ints");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     public async Task EnumerableParameterOfObject()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2264,14 +2177,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "objects");
+            """, "objects");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     public async Task EnumerableParameterOfString()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2280,14 +2192,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "strings");
+            """, "strings");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     public async Task EnumerableGenericTParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2296,14 +2207,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "values");
+            """, "values");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     public async Task EnumerableGenericTNameParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2312,14 +2222,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "results");
+            """, "results");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     public async Task EnumerableGenericUnexpectedlyNamedParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2328,14 +2237,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "args");
+            """, "args");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36364")]
     public async Task EnumerableGenericUnexpectedlyNamedParameterBeginsWithT()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             public class Class1
@@ -2344,8 +2252,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
               {
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "types");
+            """, "types");
     }
 
     [Fact]
@@ -2452,7 +2359,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
     public async Task TestCompletionCanUsePropertyName()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2464,15 +2371,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     ClassB $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
+            """, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
     public async Task TestCompletionCanUseFieldName()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2484,8 +2390,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     ClassB $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
+            """, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2557,7 +2462,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
     public async Task TestCompletionCanUseClassName()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class classA
             {
                 void M()
@@ -2565,15 +2470,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     classA $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classA", glyph: Glyph.Local,
+            """, "classA", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
     public async Task TestCompletionCanUseLocalInDifferentScope()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2588,8 +2492,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     ClassB $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
+            """, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2652,7 +2555,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
     public async Task TestCompletionDoesNotUseLocalInNestedLocalFunction()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2668,14 +2571,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "classB");
+            """, "classB");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
     public async Task TestCompletionDoesNotUseLocalFunctionParameterInNestedLocalFunction()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2690,14 +2592,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "classB");
+            """, "classB");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
     public async Task TestCompletionCanUseLocalFunctionParameterAsParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2707,15 +2608,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     void LocalM2(ClassB $$) { }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Parameter,
+            """, "classB", glyph: Glyph.Parameter,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
     public async Task TestCompletionCanUseLocalFunctionVariableAsParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2728,15 +2628,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     void LocalM2(ClassB $$) { }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Parameter,
+            """, "classB", glyph: Glyph.Parameter,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
     public async Task TestCompletionCanUseLocalFunctionParameterAsVariable()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2749,15 +2648,14 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
+            """, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35891")]
     public async Task TestCompletionCanUseLocalFunctionVariableAsVariable()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class ClassA
             {
                 class ClassB { }
@@ -2773,8 +2671,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
+            """, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2803,8 +2700,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         {
             { NamingStyleOptions.NamingPreferences, MultipleCamelCaseLocalRules() }
         });
-
-        var markup = """
+        await VerifyItemExistsAsync("""
             public class MyClass
             {
                 void M()
@@ -2813,21 +2709,19 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     MyClass $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "myClass1", glyph: Glyph.Local);
+            """, "myClass1", glyph: Glyph.Local);
     }
 
     [Fact]
     public async Task TestNotForNonTypeSymbol()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
             class C
             {
                 Console.BackgroundColor $$
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "consoleColor");
+            """, "consoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29487")]
@@ -2856,7 +2750,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43602")]
     public async Task TestForOutParam2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void Main()
@@ -2864,14 +2758,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     int.TryParse("", out var $$)
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "result");
+            """, "result");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49791")]
     public async Task TestForErrorType1()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void Main(string _rootPath)
@@ -2880,14 +2773,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     _rootPath = null;
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49791")]
     public async Task TestForErrorType2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void Main()
@@ -2896,14 +2788,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     Goo = null;
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "goo");
+            """, "goo");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36352")]
     public async Task InferCollectionInErrorCase1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Customer { }
 
             class V
@@ -2912,14 +2803,13 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 {
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "customers");
+            """, "customers");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63943")]
     public async Task InferOffOfGenericNameInPattern()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             class Customer { }
@@ -2931,8 +2821,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                     if (o is List<Customer> $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "customers");
+            """, "customers");
     }
 
     private static NamingStylePreferences MultipleCamelCaseLocalRules()
