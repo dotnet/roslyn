@@ -80,7 +80,7 @@ namespace Roslyn.Utilities
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
             DiagnosticResult expected,
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource)
-            => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
+            => VerifyCodeFixAsync(source, [expected], fixedSource);
 
         public static async Task VerifyCodeFixAsync(
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,

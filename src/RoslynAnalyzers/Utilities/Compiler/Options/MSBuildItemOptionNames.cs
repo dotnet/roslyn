@@ -27,7 +27,7 @@ namespace Analyzer.Utilities
     internal static class MSBuildItemOptionNamesHelpers
     {
         public const char ValuesSeparator = ',';
-        private static readonly char[] s_itemMetadataValuesSeparators = new[] { ValuesSeparator };
+        private static readonly char[] s_itemMetadataValuesSeparators = [ValuesSeparator];
 
         public static string GetPropertyNameForItemOptionName(string itemOptionName)
         {
