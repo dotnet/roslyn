@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
@@ -74,38 +72,13 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
                 callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : new EmitSolutionUpdateResults.Data()
-            {
-                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                Diagnostics = [],
-                SyntaxError = null,
-                ProjectsToRebuild = [],
-                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
-            };
+            return result.HasValue
+                ? result.Value
+                : EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, errorMessage: "Unexpected RPC failure", runningProjects); // user friendly error already reported by OOP infra
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            return new EmitSolutionUpdateResults.Data()
-            {
-                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                Diagnostics = GetInternalErrorDiagnosticData(e.Message),
-                SyntaxError = null,
-                ProjectsToRebuild = [],
-                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
-            };
-        }
-
-        ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(string message)
-        {
-            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-            var firstProject = solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First();
-            var diagnostic = Diagnostic.Create(
-                descriptor,
-                Location.None,
-                string.Format(descriptor.MessageFormat.ToString(), "", message));
-
-            return [DiagnosticData.Create(diagnostic, firstProject)];
+            return EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjects);
         }
     }
 

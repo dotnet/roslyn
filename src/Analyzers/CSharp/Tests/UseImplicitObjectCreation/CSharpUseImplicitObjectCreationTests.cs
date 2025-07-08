@@ -24,16 +24,15 @@ public sealed class UseImplicitObjectCreationTests
     [Fact]
     public async Task TestMissingBeforeCSharp9()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
+            TestCode = """
                 class C
                 {
                     C c = new C();
                 }
-                """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp8,
-            TestCode = source,
+                """,
         }.RunAsync();
     }
 
@@ -45,7 +44,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C c = new [|C|]();
+                    C c = [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -66,7 +65,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C c = new [|C|]() { };
+                    C c = [|new|] C() { };
                 }
                 """,
             FixedCode = """
@@ -87,7 +86,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C c = new [|C|] { };
+                    C c = [|new|] C { };
                 }
                 """,
             FixedCode = """
@@ -108,7 +107,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C c = new /*x*/ [|C|]();
+                    C c = [|new|] /*x*/ C();
                 }
                 """,
             FixedCode = """
@@ -201,7 +200,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C<T> where T : new()
                 {
-                    T t = new [|T|]();
+                    T t = [|new|] T();
                 }
                 """,
             FixedCode = """
@@ -224,7 +223,7 @@ public sealed class UseImplicitObjectCreationTests
                 {
                     void M()
                     {
-                        C c = new [|C|]();
+                        C c = [|new|] C();
                     }
                 }
                 """,
@@ -277,7 +276,7 @@ public sealed class UseImplicitObjectCreationTests
                 {
                     void M()
                     {
-                        for (C c = new [|C|]();;)
+                        for (C c = [|new|] C();;)
                         {
                         }
                     }
@@ -308,7 +307,7 @@ public sealed class UseImplicitObjectCreationTests
                 {
                     void M()
                     {
-                        C Func() => new [|C|]();
+                        C Func() => [|new|] C();
                     }
                 }
                 """,
@@ -333,7 +332,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C Func() => new [|C|]();
+                    C Func() => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -354,7 +353,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    public static implicit operator C(int i) => new [|C|]();
+                    public static implicit operator C(int i) => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -375,7 +374,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    public static C operator +(C c1, C c2) => new [|C|]();
+                    public static C operator +(C c1, C c2) => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -396,7 +395,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C P => new [|C|]();
+                    C P => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -417,7 +416,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C P { get => new [|C|](); }
+                    C P { get => [|new|] C(); }
                 }
                 """,
             FixedCode = """
@@ -453,7 +452,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C this[int i] => new [|C|]();
+                    C this[int i] => [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -474,7 +473,7 @@ public sealed class UseImplicitObjectCreationTests
             TestCode = """
                 class C
                 {
-                    C this[int i] { get => new [|C|](); }
+                    C this[int i] { get => [|new|] C(); }
                 }
                 """,
             FixedCode = """
@@ -546,7 +545,7 @@ public sealed class UseImplicitObjectCreationTests
                 using System.Collections.Generic;
                 class C
                 {
-                    List<int> list = new [|System.Collections.Generic.List<int>|]();
+                    List<int> list = [|new|] System.Collections.Generic.List<int>();
                 }
                 """,
             FixedCode = """
@@ -569,7 +568,7 @@ public sealed class UseImplicitObjectCreationTests
                 using System.Collections.Generic;
                 class C
                 {
-                    System.Collections.Generic.List<int> list = new [|List<int>|]();
+                    System.Collections.Generic.List<int> list = [|new|] List<int>();
                 }
                 """,
             FixedCode = """
@@ -593,7 +592,7 @@ public sealed class UseImplicitObjectCreationTests
                 using X = System.Collections.Generic.List<int>;
                 class C
                 {
-                    System.Collections.Generic.List<int> list = new [|X|]();
+                    System.Collections.Generic.List<int> list = [|new|] X();
                 }
                 """,
             FixedCode = """
@@ -620,9 +619,9 @@ public sealed class UseImplicitObjectCreationTests
                     public C() { }
                     public C(Action action) { }
 
-                    C c1 = new [|C|](() =>
+                    C c1 = [|new|] C(() =>
                     {
-                        C c2 = new [|C|]();
+                        C c2 = [|new|] C();
                     });
                 }
                 """,
@@ -652,7 +651,7 @@ public sealed class UseImplicitObjectCreationTests
                 using System.Collections.Generic;
                 class C
                 {
-                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int SomeName, int SomeOtherName, int YetAnotherName)>|]();
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = [|new|] List<(int SomeName, int SomeOtherName, int YetAnotherName)>();
                 }
                 """,
             FixedCode = """
@@ -675,7 +674,7 @@ public sealed class UseImplicitObjectCreationTests
                 using System.Collections.Generic;
                 class C
                 {
-                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+                    List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = [|new|] List<(int, int, int)>();
                 }
                 """,
             FixedCode = """
@@ -700,7 +699,7 @@ public sealed class UseImplicitObjectCreationTests
                 {
                     void M()
                     {
-                        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = new [|List<(int, int, int)>|]();
+                        List<(int SomeName, int SomeOtherName, int YetAnotherName)> list = [|new|] List<(int, int, int)>();
                     }
                 }
                 """,
@@ -721,16 +720,15 @@ public sealed class UseImplicitObjectCreationTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57777")]
     public async Task TestMissingOnNullableStruct()
     {
-        var source = """
+        await new VerifyCS.Test
+        {
+            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            TestCode = """
                 class C
                 {
                     int? i = new int?();
                 }
-                """;
-        await new VerifyCS.Test
-        {
-            LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
-            TestCode = source,
+                """,
         }.RunAsync();
     }
 
@@ -743,7 +741,7 @@ public sealed class UseImplicitObjectCreationTests
                 #nullable enable
                 class C
                 {
-                    C? c = new [|C|]();
+                    C? c = [|new|] C();
                 }
                 """,
             FixedCode = """
@@ -767,7 +765,7 @@ public sealed class UseImplicitObjectCreationTests
 
                 class C
                 {
-                    IList<C> list = new List<C> { new [|C|]() };
+                    IList<C> list = new List<C> { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -792,7 +790,7 @@ public sealed class UseImplicitObjectCreationTests
 
                 class C
                 {
-                    IList<C> list = new List<C>() { new [|C|]() };
+                    IList<C> list = new List<C>() { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -817,7 +815,7 @@ public sealed class UseImplicitObjectCreationTests
 
                 class C
                 {
-                    List<C> list = new [|List<C>|]() { new [|C|]() };
+                    List<C> list = [|new|] List<C>() { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -876,7 +874,7 @@ public sealed class UseImplicitObjectCreationTests
 
                 class C
                 {
-                    C[] list = new C[] { new [|C|]() };
+                    C[] list = new C[] { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -901,7 +899,7 @@ public sealed class UseImplicitObjectCreationTests
 
                 class C
                 {
-                    C[] list = { new [|C|]() };
+                    C[] list = { [|new|] C() };
                 }
                 """,
             FixedCode = """
@@ -960,7 +958,7 @@ public sealed class UseImplicitObjectCreationTests
 
                 class C
                 {
-                    C[][] list = new C[][] { new C[] { new [|C|]() } };
+                    C[][] list = new C[][] { new C[] { [|new|] C() } };
                 }
                 """,
             FixedCode = """

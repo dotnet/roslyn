@@ -42,7 +42,9 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         var ifStatement = await context.TryGetRelevantNodeAsync<TIfStatementSyntax>().ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        if (!ShouldOfferRefactoring(ifStatement, semanticModel, syntaxFactsService, out var analyzer, out var sections, out var target))
+        if (!ShouldOfferRefactoring(
+                ifStatement, semanticModel, syntaxFactsService,
+                out var analyzer, out var sections, out var target))
         {
             return;
         }
@@ -72,7 +74,7 @@ internal abstract partial class AbstractConvertIfToSwitchCodeRefactoringProvider
         ISyntaxFactsService syntaxFactsService,
         [NotNullWhen(true)] out Analyzer? analyzer,
         [NotNullWhen(true)] out ImmutableArray<AnalyzedSwitchSection> sections,
-        [NotNullWhen(true)] out SyntaxNode? target)
+        [NotNullWhen(true)] out TExpressionSyntax? target)
     {
         analyzer = null;
         sections = default;

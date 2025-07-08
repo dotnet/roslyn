@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 wasError = (Method is not null && method is null) || (SetMethod is not null && setMethod is null);
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test with indexers (ie. "method") and in compound assignment (ie. "setMethod")
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test in compound assignment (ie. "setMethod")
                 return new MethodInfo(symbol, method, setMethod);
 
                 static MethodSymbol? replace(MethodSymbol? method)
@@ -3030,13 +3030,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            inferDeclarationExpressionValEscape();
+            inferDeclarationExpressionValEscape(argsOpt, localScopeDepth, escapeValues);
 
             mixableArguments.Free();
             escapeValues.Free();
             return valid;
 
-            void inferDeclarationExpressionValEscape()
+            void inferDeclarationExpressionValEscape(ImmutableArray<BoundExpression> argsOpt, SafeContext localScopeDepth, ArrayBuilder<EscapeValue> escapeValues)
             {
                 // find the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.
@@ -3718,6 +3718,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compoundMethod.HasUnsupportedMetadata ||
                         compoundMethod.RefKind == RefKind.None));
                     break;
+
+                case BoundKind.IncrementOperator:
+                    Debug.Assert(expr is BoundIncrementOperator incrementOperator &&
+                        (incrementOperator.MethodOpt is not { } incrementMethod ||
+                        incrementMethod.HasUnsupportedMetadata ||
+                        incrementMethod.RefKind == RefKind.None));
+                    break;
             }
 
             // At this point we should have covered all the possible cases for anything that is not a strict RValue.
@@ -4087,6 +4094,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (compoundAssignmentOperator.Operator.Method is not { } compoundMethod ||
                         compoundMethod.HasUnsupportedMetadata ||
                         compoundMethod.RefKind == RefKind.None));
+                    break;
+
+                case BoundKind.IncrementOperator:
+                    Debug.Assert(expr is BoundIncrementOperator incrementOperator &&
+                        (incrementOperator.MethodOpt is not { } incrementMethod ||
+                        incrementMethod.HasUnsupportedMetadata ||
+                        incrementMethod.RefKind == RefKind.None));
                     break;
 
                 case BoundKind.ThrowExpression:
@@ -4488,7 +4502,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetValEscape(((BoundNullCoalescingAssignmentOperator)expr).RightOperand, localScopeDepth);
 
                 case BoundKind.IncrementOperator:
-                    return GetValEscape(((BoundIncrementOperator)expr).Operand, localScopeDepth);
+                    var increment = (BoundIncrementOperator)expr;
+                    if (increment.MethodOpt is { IsStatic: true } incrementMethod)
+                    {
+                        Debug.Assert(increment.OperatorKind.IsUserDefined());
+
+                        var prefix = increment.OperatorKind.Operator() is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement;
+                        Debug.Assert(prefix || increment.OperatorKind.Operator() is UnaryOperatorKind.PostfixIncrement or UnaryOperatorKind.PostfixDecrement);
+
+                        // Prefix increment can be analyzed like the underlying method call since that's what it returns.
+                        // Postfix increment is better analyzed as only the operand since that's what it returns.
+                        if (prefix)
+                        {
+                            return GetInvocationEscapeScope(
+                                MethodInfo.Create(incrementMethod),
+                                receiver: null,
+                                receiverIsSubjectToCloning: ThreeState.Unknown,
+                                incrementMethod.Parameters,
+                                argsOpt: [increment.Operand],
+                                argRefKindsOpt: default,
+                                argsToParamsOpt: default,
+                                localScopeDepth: localScopeDepth,
+                                isRefEscape: false);
+                        }
+                    }
+
+                    return GetValEscape(increment.Operand, localScopeDepth);
 
                 case BoundKind.CompoundAssignmentOperator:
                     var compound = (BoundCompoundAssignmentOperator)expr;
@@ -5284,6 +5323,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.IncrementOperator:
                     var increment = (BoundIncrementOperator)expr;
+                    if (increment.MethodOpt is { IsStatic: true } incrementMethod)
+                    {
+                        Debug.Assert(increment.OperatorKind.IsUserDefined());
+
+                        var prefix = increment.OperatorKind.Operator() is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement;
+                        Debug.Assert(prefix || increment.OperatorKind.Operator() is UnaryOperatorKind.PostfixIncrement or UnaryOperatorKind.PostfixDecrement);
+
+                        // Prefix increment can be analyzed like the underlying method call since that's what it returns.
+                        // Postfix increment is better analyzed as only the operand since that's what it returns.
+                        if (prefix)
+                        {
+                            return CheckInvocationEscape(
+                                increment.Syntax,
+                                MethodInfo.Create(incrementMethod),
+                                receiver: null,
+                                receiverIsSubjectToCloning: ThreeState.Unknown,
+                                incrementMethod.Parameters,
+                                argsOpt: [increment.Operand],
+                                argRefKindsOpt: default,
+                                argsToParamsOpt: default,
+                                checkingReceiver: checkingReceiver,
+                                escapeFrom: escapeFrom,
+                                escapeTo: escapeTo,
+                                diagnostics,
+                                isRefEscape: false);
+                        }
+                    }
+
                     return CheckValEscape(node, increment.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.CompoundAssignmentOperator:

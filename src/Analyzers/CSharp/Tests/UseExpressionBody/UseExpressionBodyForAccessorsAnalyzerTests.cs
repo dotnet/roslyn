@@ -288,8 +288,10 @@ public sealed class UseExpressionBodyForAccessorsTests
     [Fact]
     public async Task TestMissingWithOnlyInit()
     {
-        var code =
-            """
+        await new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            TestCode = """
             class C
             {
                 int Goo
@@ -299,12 +301,7 @@ public sealed class UseExpressionBodyForAccessorsTests
 
                 int Bar() { return 0; }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -570,7 +567,9 @@ public sealed class UseExpressionBodyForAccessorsTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31308")]
     public async Task TestUseBlockBody5()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 C this[int index]
@@ -578,10 +577,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     get => default;
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
@@ -661,14 +657,6 @@ public sealed class UseExpressionBodyForAccessorsTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll1()
     {
-        var code = """
-            class C
-            {
-                int Bar() { return 0; }
-
-                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
-            }
-            """;
         var fixedCode = """
             class C
             {
@@ -690,7 +678,14 @@ public sealed class UseExpressionBodyForAccessorsTests
             """;
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                int Bar() { return 0; }
+
+                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
+            }
+            """,
             FixedCode = fixedCode,
             BatchFixedCode = fixedCode,
             Options =
@@ -707,15 +702,17 @@ public sealed class UseExpressionBodyForAccessorsTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll2()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int Bar() { return 0; }
 
                 int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -729,8 +726,8 @@ public sealed class UseExpressionBodyForAccessorsTests
                     set => Bar();
                 }
             }
-            """;
-        var batchFixedCode = """
+            """,
+            BatchFixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -748,12 +745,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
-            BatchFixedCode = batchFixedCode,
+            """,
             DiagnosticSelector = diagnostics => diagnostics[0],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             Options =
@@ -778,15 +770,17 @@ public sealed class UseExpressionBodyForAccessorsTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll3()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int Bar() { return 0; }
 
                 int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -800,8 +794,8 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        var batchFixedCode = """
+            """,
+            BatchFixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -819,12 +813,7 @@ public sealed class UseExpressionBodyForAccessorsTests
                     }
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
-            BatchFixedCode = batchFixedCode,
+            """,
             DiagnosticSelector = diagnostics => diagnostics[1],
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             Options =
@@ -849,15 +838,6 @@ public sealed class UseExpressionBodyForAccessorsTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/61279")]
     public async Task TestAccessorListFormatting_FixAll4()
     {
-        var code =
-            """
-            class C
-            {
-                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:init => Bar();|} }
-
-                int Bar() { return 0; }
-            }
-            """;
         var fixedCode =
             """
             class C
@@ -882,7 +862,14 @@ public sealed class UseExpressionBodyForAccessorsTests
         await new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-            TestCode = code,
+            TestCode = """
+            class C
+            {
+                int Goo { {|IDE0027:get => Bar();|} {|IDE0027:init => Bar();|} }
+
+                int Bar() { return 0; }
+            }
+            """,
             FixedCode = fixedCode,
             BatchFixedCode = fixedCode,
             LanguageVersion = LanguageVersion.CSharp9,

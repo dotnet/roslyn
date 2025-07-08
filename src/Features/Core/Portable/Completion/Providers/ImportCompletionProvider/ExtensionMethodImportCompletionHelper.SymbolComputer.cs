@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal static partial class ExtensionMethodImportCompletionHelper
 {
-    private sealed class SymbolComputer
+    private sealed partial class SymbolComputer
     {
         private readonly int _position;
         private readonly Document _originatingDocument;
@@ -306,7 +306,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 // to the given receiver type and save the result.
                 if (!cachedResult)
                 {
-                    var reducedMethodSymbol = methodSymbols.First().ReduceExtensionMethod(_receiverTypeSymbol);
+                    var reducedMethodSymbol = TryReduceExtensionMethod(methodSymbols.First(), _receiverTypeSymbol);
                     cachedResult = reducedMethodSymbol != null;
                     _checkedReceiverTypes[receiverType] = cachedResult;
                 }
@@ -322,6 +322,25 @@ internal static partial class ExtensionMethodImportCompletionHelper
                     }
                 }
             }
+        }
+
+        private static IMethodSymbol? TryReduceExtensionMethod(IMethodSymbol methodSymbol, ITypeSymbol receiverTypeSymbol)
+        {
+            // First defer to compiler to try to reduce this.
+            var reduced = methodSymbol.ReduceExtensionMethod(receiverTypeSymbol);
+            if (reduced is null)
+                return null;
+
+            // Compiler is sometimes lenient with reduction, especially in cases of generic.  Do another pass ourselves
+            // to see if we should filter this out.
+            if (methodSymbol.Parameters is [var extensionParameter, ..] &&
+                extensionParameter.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
+            {
+                if (!CheckConstraints(receiverTypeSymbol, typeParameter))
+                    return null;
+            }
+
+            return reduced;
         }
 
         private MultiDictionary<ITypeSymbol, IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(

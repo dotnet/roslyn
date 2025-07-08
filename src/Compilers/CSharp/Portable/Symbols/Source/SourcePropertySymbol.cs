@@ -450,10 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            if (!isExtension)
-            {
-                allowedModifiers |= DeclarationModifiers.Extern;
-            }
+            allowedModifiers |= DeclarationModifiers.Extern;
 
             bool hasExplicitAccessMod;
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,

@@ -431,13 +431,11 @@ public sealed class RemoveUnusedMembersTests
     [Fact]
     public async Task EntryPointMethodNotFlagged_06()
     {
-        var code = """
-            return 0;
-            """;
-
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = """
+            return 0;
+            """,
             ExpectedDiagnostics =
             {
                 // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
@@ -2188,33 +2186,30 @@ public sealed class RemoveUnusedMembersTests
         [CombinatorialValues("[|_bar|]", "[|_bar|] = 2")] string secondField,
         [CombinatorialValues(0, 1)] int diagnosticIndex)
     {
-        var source = $$"""
-            class MyClass
-            {
-                private int {{firstField}}, {{secondField}};
-            }
-            """;
         var fixedSource = $$"""
             class MyClass
             {
                 private int {{(diagnosticIndex == 0 ? secondField : firstField)}};
             }
             """;
-        var batchFixedSource = """
-            class MyClass
-            {
-            }
-            """;
-
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = $$"""
+            class MyClass
+            {
+                private int {{firstField}}, {{secondField}};
+            }
+            """,
             FixedState =
             {
                 Sources = { fixedSource },
                 MarkupHandling = MarkupMode.Allow,
             },
-            BatchFixedCode = batchFixedSource,
+            BatchFixedCode = """
+            class MyClass
+            {
+            }
+            """,
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             DiagnosticSelector = fixableDiagnostics => fixableDiagnostics[diagnosticIndex],
         }.RunAsync();

@@ -509,22 +509,22 @@ namespace Microsoft.CodeAnalysis
             bool sourceFileSeen = false;
             bool optionsEnded = false;
 
-            var args = ArrayBuilder<string>.GetInstance();
-            args.AddRange(rawArguments);
-            args.ReverseContents();
-            var argsIndex = args.Count - 1;
-            while (argsIndex >= 0)
+            foreach (string arg in rawArguments)
+            {
+                processArg(arg);
+            }
+
+            void processArg(string arg)
             {
                 // EDMAURER trim off whitespace. Otherwise behavioral differences arise
                 // when the strings which represent args are constructed by cmd or users.
                 // cmd won't produce args with whitespace at the end.
-                string arg = args[argsIndex].TrimEnd();
-                argsIndex--;
+                arg = arg.TrimEnd();
 
                 if (parsingScriptArgs)
                 {
                     scriptArgsOpt!.Add(arg);
-                    continue;
+                    return;
                 }
 
                 if (scriptArgsOpt != null)
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis
                         // csi/vbi: at most one script can be specified on command line, anything else is a script arg:
                         parsingScriptArgs = true;
                         scriptArgsOpt.Add(arg);
-                        continue;
+                        return;
                     }
 
                     if (!optionsEnded && arg == "--")
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis
                         // csi/vbi: no argument past "--" should be treated as an option/response file
                         optionsEnded = true;
                         processedArgs.Add(arg);
-                        continue;
+                        return;
                     }
                 }
 
@@ -586,7 +586,6 @@ namespace Microsoft.CodeAnalysis
                     sourceFileSeen |= optionsEnded || !IsOption(arg);
                 }
             }
-            args.Free();
 
             void parseResponseFile(string fullPath)
             {
@@ -653,21 +652,12 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                for (var i = splitList.Count - 1; i >= 0; i--)
+                foreach (var newArg in splitList)
                 {
-                    var newArg = splitList[i];
                     // Ignores /noconfig option specified in a response file
                     if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
                     {
-                        argsIndex++;
-                        if (argsIndex < args.Count)
-                        {
-                            args[argsIndex] = newArg;
-                        }
-                        else
-                        {
-                            args.Add(newArg);
-                        }
+                        processArg(newArg);
                     }
                     else
                     {
@@ -822,21 +812,24 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly char[] s_resourceSeparators = { ',' };
 
-        internal static void ParseResourceDescription(
+        internal static bool TryParseResourceDescription(
             ReadOnlyMemory<char> resourceDescriptor,
             string? baseDirectory,
-            bool skipLeadingSeparators, //VB does this
-            out string? filePath,
-            out string? fullPath,
-            out string? fileName,
-            out string resourceName,
-            out string? accessibility)
+            bool skipLeadingSeparators,   // VB does this
+            bool allowEmptyAccessibility, // VB does this
+            [NotNullWhen(true)] out string? filePath,
+            [NotNullWhen(true)] out string? fullPath,
+            [NotNullWhen(true)] out string? fileName,
+            [NotNullWhen(true)] out string? resourceName,
+            [NotNullWhen(true)] out bool? isPublic,
+            out string? rawAccessibility)
         {
             filePath = null;
             fullPath = null;
             fileName = null;
-            resourceName = "";
-            accessibility = null;
+            resourceName = null;
+            isPublic = null;
+            rawAccessibility = null;
 
             // resource descriptor is: "<filePath>[,<string name>[,public|private]]"
             var parts = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
@@ -867,17 +860,41 @@ namespace Microsoft.CodeAnalysis
 
             if (length >= 3)
             {
-                accessibility = RemoveQuotesAndSlashes(parts[offset + 2]);
+                rawAccessibility = RemoveQuotesAndSlashes(parts[offset + 2]);
+            }
+
+            if (rawAccessibility == null || rawAccessibility == "" && allowEmptyAccessibility)
+            {
+                // If no accessibility is given, we default to "public".
+                // NOTE: Dev10 distinguishes between null and empty.
+                isPublic = true;
+            }
+            else if (string.Equals(rawAccessibility, "public", StringComparison.OrdinalIgnoreCase))
+            {
+                isPublic = true;
+            }
+            else if (string.Equals(rawAccessibility, "private", StringComparison.OrdinalIgnoreCase))
+            {
+                isPublic = false;
+            }
+            else
+            {
+                isPublic = null;
             }
 
             parts.Free();
-            if (RoslynString.IsNullOrWhiteSpace(filePath))
+
+            if (isPublic == null || RoslynString.IsNullOrWhiteSpace(filePath))
             {
-                return;
+                return false;
             }
 
             fileName = PathUtilities.GetFileName(filePath);
             fullPath = FileUtilities.ResolveRelativePath(filePath, baseDirectory);
+            if (!PathUtilities.IsValidFilePath(fullPath))
+            {
+                return false;
+            }
 
             // The default resource name is the file name.
             // Also use the file name for the name when user specifies string like "filePath,,private"
@@ -885,6 +902,8 @@ namespace Microsoft.CodeAnalysis
             {
                 resourceName = fileName;
             }
+
+            return true;
         }
 
         /// <summary>

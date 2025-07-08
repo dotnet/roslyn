@@ -9,14 +9,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -315,7 +314,7 @@ class C
         var baseActiveStatements = new ActiveStatementsMap(
             ImmutableDictionary.CreateRange(
             [
-                KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
+                KeyValuePair.Create(newDocument.FilePath, ImmutableArray.Create(
                     new ActiveStatement(
                         new ActiveStatementId(0),
                         ActiveStatementFlags.LeafFrame,

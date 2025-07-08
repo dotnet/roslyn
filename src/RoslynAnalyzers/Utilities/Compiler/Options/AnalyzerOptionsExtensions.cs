@@ -13,6 +13,8 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -101,7 +103,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             SyntaxTree tree,
             Compilation compilation)
-            => options.GetOutputKindsOption(rule, tree, compilation, s_defaultOutputKinds);
+            => AnalyzerOptionsExtensions.GetOutputKindsOption(options, rule, tree, compilation, s_defaultOutputKinds);
 
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
@@ -190,7 +192,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             bool defaultValue)
         => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetBoolOptionValue(optionName, rule, tree, compilation, defaultValue)
+            ? GetBoolOptionValue(options, optionName, rule, tree, compilation, defaultValue)
             : defaultValue;
 
         public static bool GetBoolOptionValue(
@@ -253,7 +255,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             ISymbol symbol,
             Compilation compilation)
-            => options.IsConfiguredToSkipAnalysis(rule, symbol, symbol, compilation);
+            => IsConfiguredToSkipAnalysis(options, rule, symbol, symbol, compilation);
 
         public static bool IsConfiguredToSkipAnalysis(
             this AnalyzerOptions options,

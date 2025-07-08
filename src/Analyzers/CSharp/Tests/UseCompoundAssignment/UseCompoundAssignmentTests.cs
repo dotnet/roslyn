@@ -270,7 +270,9 @@ public sealed class UseCompoundAssignmentTests
     [Fact]
     public async Task TestCoalesceExpressionCSharp7()
     {
-        var code = """
+        await new VerifyCS.Test()
+        {
+            TestCode = """
             public class C
             {
                 void M(int? a)
@@ -278,11 +280,7 @@ public sealed class UseCompoundAssignmentTests
                     a = a ?? 10;
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp7_3
         }.RunAsync();
     }
@@ -290,7 +288,9 @@ public sealed class UseCompoundAssignmentTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36467")]
     public async Task TestNotSuggestedWhenRightHandIsThrowExpression()
     {
-        var code = """
+        await new VerifyCS.Test()
+        {
+            TestCode = """
             using System;
             public class C
             {
@@ -299,11 +299,7 @@ public sealed class UseCompoundAssignmentTests
                     a = a ?? throw new Exception();
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -940,7 +936,9 @@ public sealed class UseCompoundAssignmentTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49294")]
     public async Task TestNotOnRecord()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             record InsertionPoint(int level)
             {
                 InsertionPoint Up()
@@ -951,11 +949,7 @@ public sealed class UseCompoundAssignmentTests
                     };
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = code,
+            """,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60
         }.RunAsync();

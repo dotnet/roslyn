@@ -42,12 +42,15 @@ public sealed class AddDebuggerDisplayTests
     [Fact]
     public async Task SupportsConstantInterpolatedStrings()
     {
-        var code = """
+        await new VerifyCS.Test()
+        {
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestCode = """
             [||]class C
             {
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             using System.Diagnostics;
 
             [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
@@ -58,23 +61,21 @@ public sealed class AddDebuggerDisplayTests
                     return ToString();
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            LanguageVersion = LanguageVersion.CSharp12,
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
         }.RunAsync();
     }
 
     [Fact]
     public async Task OfferedOnEmptyRecord()
     {
-        var code = """
+        await new VerifyCS.Test()
+        {
+            LanguageVersion = LanguageVersion.CSharp9,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+            TestCode = """
             [||]record C;
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             using System.Diagnostics;
 
             [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
@@ -85,14 +86,7 @@ public sealed class AddDebuggerDisplayTests
                     return ToString();
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            LanguageVersion = LanguageVersion.CSharp9,
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
         }.RunAsync();
     }
 

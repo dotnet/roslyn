@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         <Fact>
         Public Sub SyntaxTreeCreateWithoutCloneAcceptsAnySyntaxNode()
             Dim node As VisualBasicSyntaxNode = SyntaxFactory.CatchStatement(SyntaxFactory.IdentifierName("Goo"), SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(GetType(InvalidOperationException).Name)), Nothing)
-            Dim tree = VisualBasicSyntaxTree.CreateWithoutClone(node)
+            Dim tree = VisualBasicSyntaxTree.CreateWithoutClone(node, VisualBasicParseOptions.Default)
             CheckTree(tree)
         End Sub
 

@@ -39,7 +39,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             """")]
         public async Task InterpolatedString(string @string)
         {
-            var source = $$"""
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
+                TestCode = $$"""
                 using System.Diagnostics;
 
                 class C
@@ -51,9 +54,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
 
                 {{RoslynDebug}}
-                """;
-
-            var @fixed = $$"""
+                """,
+                FixedCode = $$"""
                 using System.Diagnostics;
                 using Roslyn.Utilities;
 
@@ -66,13 +68,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
 
                 {{RoslynDebug}}
-                """;
-
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
-                TestCode = source,
-                FixedCode = @fixed,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -80,7 +76,10 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task NoCrashOnUsingStaticedAssert()
         {
-            var source = $$"""
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
+                TestCode = $$"""
                 using static System.Diagnostics.Debug;
 
                 class C
@@ -92,12 +91,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
 
                 {{RoslynDebug}}
-                """;
-
-            await new VerifyCS.Test
-            {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
@@ -117,7 +111,9 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             """")]
         public async Task NoAssertForConstantString(string @string)
         {
-            var source = $$"""
+            await new VerifyCS.Test
+            {
+                TestCode = $$"""
                 using System.Diagnostics;
 
                 class C
@@ -129,11 +125,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                 }
 
                 {{RoslynDebug}}
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }

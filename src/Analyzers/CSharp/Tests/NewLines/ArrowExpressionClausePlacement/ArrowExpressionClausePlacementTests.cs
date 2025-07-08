@@ -20,18 +20,15 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithOptionOff()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() =>
                     1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -39,17 +36,14 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithSingleLineMethod()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -57,17 +51,14 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithSingleLineProperty()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -75,8 +66,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithSingleLineLocalFunction()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public void Main()
@@ -84,11 +76,7 @@ public sealed class ArrowExpressionClausePlacementTests
                     int Add() => 1 + 2;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -96,8 +84,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithLambda()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public void Main()
@@ -108,11 +97,7 @@ public sealed class ArrowExpressionClausePlacementTests
 
                 public void Goo(System.Func<int> action) { }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -120,28 +105,22 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestMethodCase()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() [|=>|]
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add()
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -149,8 +128,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotPropertyAccessor1()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add
@@ -159,11 +139,7 @@ public sealed class ArrowExpressionClausePlacementTests
                         1 + 2;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -171,28 +147,22 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestProperty()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add [|=>|]
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -200,8 +170,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestLocalFunction()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 void Main()
@@ -210,10 +181,8 @@ public sealed class ArrowExpressionClausePlacementTests
                         1 + 2;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 void Main()
@@ -222,12 +191,7 @@ public sealed class ArrowExpressionClausePlacementTests
                         => 1 + 2;
                 }
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -235,18 +199,15 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithDiagnosticsInDeclaration()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add(int{|CS1001:)|} =>
                     1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -254,18 +215,15 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithDiagnosticsInExpression()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() =>
                     1 + {|CS1525:;|}
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -273,18 +231,15 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithDiagnosticsAtEnd()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() =>
                     1 + 2{|CS1002:|}
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -292,8 +247,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithFirstExprWithPPTrivia1()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() =>
@@ -301,11 +257,7 @@ public sealed class ArrowExpressionClausePlacementTests
                     1 + 2;
             #endif
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -313,8 +265,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestNotWithFirstExprWithPPTrivia2()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
             #if true
@@ -322,11 +275,7 @@ public sealed class ArrowExpressionClausePlacementTests
             #endif
                     1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.TrueWithSilentEnforcement } }
         }.RunAsync();
     }
@@ -334,8 +283,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestWithRegion1()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() [|=>|]
@@ -343,10 +293,8 @@ public sealed class ArrowExpressionClausePlacementTests
                     1 + 2;
             #endregion
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add()
@@ -354,12 +302,7 @@ public sealed class ArrowExpressionClausePlacementTests
                     => 1 + 2;
             #endregion
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -367,8 +310,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestWithRegion2()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
             #region section
@@ -376,10 +320,8 @@ public sealed class ArrowExpressionClausePlacementTests
             #endregion
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
             #region section
@@ -387,12 +329,7 @@ public sealed class ArrowExpressionClausePlacementTests
             #endregion
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -400,30 +337,24 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestWithNullableDirective1()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() [|=>|]
             #nullable enable
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add()
             #nullable enable
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -431,28 +362,22 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestTrivia1()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() [|=>|] 
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add()
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -460,28 +385,22 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestTrivia2()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() [|=>|] // comment
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add() // comment
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -489,28 +408,22 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestTrivia3()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() /* comment */ [|=>|]
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add() /* comment */
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -518,28 +431,22 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestTrivia4()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() /* comment */ [|=>|] 
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add() /* comment */
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -547,28 +454,22 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestTrivia5()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public int Add() /* comment1 */ [|=>|] /* comment2 */
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public int Add() /* comment1 */ /* comment2 */
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }
@@ -576,8 +477,9 @@ public sealed class ArrowExpressionClausePlacementTests
     [Fact]
     public async Task TestWithDiagnosticsElsewhere()
     {
-        var code =
-            """
+        await new Verify.Test
+        {
+            TestCode = """
             class C
             {
                 public C(int{|CS1001:)|}
@@ -587,10 +489,8 @@ public sealed class ArrowExpressionClausePlacementTests
                 public int Add() [|=>|]
                     1 + 2;
             }
-            """;
-
-        var fixedCode =
-            """
+            """,
+            FixedCode = """
             class C
             {
                 public C(int{|CS1001:)|}
@@ -600,12 +500,7 @@ public sealed class ArrowExpressionClausePlacementTests
                 public int Add()
                     => 1 + 2;
             }
-            """;
-
-        await new Verify.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options = { { CSharpCodeStyleOptions.AllowBlankLineAfterTokenInArrowExpressionClause, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
     }

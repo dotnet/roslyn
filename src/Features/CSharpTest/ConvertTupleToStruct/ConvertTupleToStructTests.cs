@@ -2272,7 +2272,9 @@ public sealed class ConvertTupleToStructTests
     [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
     public async Task TestDuplicatedName(TestHost host)
     {
-        var text = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class Test
             {
                 void Method()
@@ -2280,8 +2282,8 @@ public sealed class ConvertTupleToStructTests
                     var t1 = [||](a: 1, a: 2);
                 }
             }
-            """;
-        var expected = """
+            """,
+            FixedCode = """
             class Test
             {
                 void Method()
@@ -2332,12 +2334,7 @@ public sealed class ConvertTupleToStructTests
                     return new NewStruct(value.a, value.a);
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = text,
-            FixedCode = expected,
+            """,
             TestHost = host,
             ExpectedDiagnostics =
             {

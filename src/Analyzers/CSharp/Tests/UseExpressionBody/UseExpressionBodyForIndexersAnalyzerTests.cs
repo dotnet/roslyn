@@ -207,15 +207,17 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public async Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
     {
-        var code = """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 int Bar() { return 0; }
 
                 {|IDE0026:int this[int i] => Bar();|}
             }
-            """;
-        var fixedCode = """
+            """,
+            FixedCode = """
             class C
             {
                 int Bar() { return 0; }
@@ -225,11 +227,7 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                     get => Bar();
                 }
             }
-            """;
-        await new VerifyCS.Test
-        {
-            TestCode = code,
-            FixedCode = fixedCode,
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },

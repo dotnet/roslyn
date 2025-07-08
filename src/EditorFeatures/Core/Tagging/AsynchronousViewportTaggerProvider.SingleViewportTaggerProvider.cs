@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
@@ -75,12 +74,11 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // that, determine the start/end line for the buffer that is in view.
             var visibleSpan = textView.TextViewLines.FormattedSpan;
             var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
-            if (visibleSpansInBuffer.Count == 0)
+            if (visibleSpansInBuffer is not ([var firstVisibleSpan, ..] and [.., var lastVisibleSpan]))
                 return null;
 
-            var visibleStart = visibleSpansInBuffer.First().Start;
-            var visibleEnd = visibleSpansInBuffer.Last().End;
-
+            var visibleStart = firstVisibleSpan.Start;
+            var visibleEnd = lastVisibleSpan.End;
             var snapshot = subjectBuffer.CurrentSnapshot;
             var startLine = visibleStart.GetContainingLineNumber();
             var endLine = visibleEnd.GetContainingLineNumber();

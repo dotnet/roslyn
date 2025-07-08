@@ -224,8 +224,38 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         Solution solution,
         ActiveStatementSpanProvider? activeStatementSpanProvider = null)
     {
-        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
+        var runningProjects = solution.ProjectIds.ToImmutableDictionary(
+            keySelector: id => id,
+            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = false, RestartWhenChangesHaveNoEffect = false });
+
+        var result = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
         return (result.ModuleUpdates, result.Diagnostics.OrderBy(d => d.ProjectId.DebugName).ToImmutableArray().ToDiagnosticData(solution));
+    }
+
+    internal static async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+        DebuggingSession session,
+        Solution solution,
+        bool allowPartialUpdate,
+        ActiveStatementSpanProvider? activeStatementSpanProvider = null)
+    {
+        var runningProjects = solution.ProjectIds.ToImmutableDictionary(
+            keySelector: id => id,
+            elementSelector: id => new RunningProjectInfo() { AllowPartialUpdate = allowPartialUpdate, RestartWhenChangesHaveNoEffect = false });
+
+        var results = await session.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider ?? s_noActiveSpans, CancellationToken.None);
+
+        var hasTransientError = results.Diagnostics.SelectMany(pd => pd.Diagnostics).Any(d => d.IsEncDiagnostic() && d.Severity == DiagnosticSeverity.Error);
+
+        Assert.Equal(hasTransientError, results.ProjectsToRestart.Any());
+        Assert.Equal(hasTransientError, results.ProjectsToRebuild.Any());
+
+        if (!allowPartialUpdate)
+        {
+            // No updates should be produced if transient error is reported:
+            Assert.True(!hasTransientError || results.ModuleUpdates.Updates.IsEmpty);
+        }
+
+        return results;
     }
 
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<DiagnosticData> actual)
@@ -234,10 +264,28 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static string InspectDiagnostic(DiagnosticData diagnostic)
         => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<ProjectDiagnostics> actual)
+        => actual.SelectMany(pd => pd.Diagnostics.Select(d => $"{pd.ProjectId.DebugName}: {InspectDiagnostic(d)}"));
+
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> diagnostics)
+        => diagnostics.SelectMany(pd => pd.diagnostics.Select(d => $"{pd.project.DebugName}: {InspectDiagnostic(d)}"));
+
+    internal static string InspectDiagnostic(Diagnostic actual)
+        => $"{Inspect(actual.Location)}: {actual.Severity} {actual.Id}: {actual.GetMessage()}";
+
+    internal static string Inspect(Location actual)
+        => actual.GetLineSpan() is { IsValid: true } span ? span.ToString() : "<no location>";
+
     internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<Diagnostic> actual)
-        => actual.Select(d => $"{d.Id}: {d.Severity}: {d.GetMessage()}");
+        => actual.Select(InspectDiagnostic);
 
     internal static IEnumerable<string> InspectDiagnosticIds(ImmutableArray<DiagnosticData> actual)
+        => actual.Select(d => d.Id);
+
+    internal static IEnumerable<string> InspectDiagnosticIds(ImmutableArray<ProjectDiagnostics> actual)
+        => InspectDiagnosticIds(actual.SelectMany(pd => pd.Diagnostics));
+
+    internal static IEnumerable<string> InspectDiagnosticIds(IEnumerable<Diagnostic> actual)
         => actual.Select(d => d.Id);
 
     internal static Guid ReadModuleVersionId(Stream stream)

@@ -838,7 +838,10 @@ public sealed class UseUtf8StringLiteralTests
     public async Task TestDoesNotOfferForControlCharacters()
     {
         // Copied from https://github.com/dotnet/runtime/blob/6a889d234267a4c96ed21d0e1660dce787d78a38/src/libraries/Microsoft.CSharp/src/Microsoft/CSharp/RuntimeBinder/Semantics/Conversion.cs
-        var input = """
+
+        await new VerifyCS.Test
+        {
+            TestCode = """
             class C
             {
                 internal enum ConvKind
@@ -878,11 +881,7 @@ public sealed class UseUtf8StringLiteralTests
                      new byte[] /*   U8 */ { EXP, EXP, EXP, EXP, IMP, IMP, IUD, EXP, NO,  EXP,  EXP, EXP, ID  },
                 };
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestCode = input,
+            """,
             CodeActionValidationMode = CodeActionValidationMode.None,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
             LanguageVersion = LanguageVersion.CSharp12

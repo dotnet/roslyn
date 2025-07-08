@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Collections
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1506,6 +1505,76 @@ public class C
         {
             await
         }
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78822")>
+        Public Async Function AwaitCompletionAddsAsync_AsyncEnumerableMethodDeclaration1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static IAsyncEnumerable<string> Main()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async IAsyncEnumerable<string> Main()
+    {
+        await
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/78822")>
+        Public Async Function AwaitCompletionAddsAsync_AsyncEnumerableMethodDeclaration2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async IAsyncEnumerable<string> Main()
+    {
+        $$
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async IAsyncEnumerable<string> Main()
+    {
+        await
     }
 }
 ", state.GetDocumentText())

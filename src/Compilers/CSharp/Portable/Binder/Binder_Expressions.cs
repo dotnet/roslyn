@@ -1646,6 +1646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(members.Count > 0);
 
                     var receiver = SynthesizeMethodGroupReceiver(node, members);
+                    Debug.Assert(GetValueExpressionIfTypeOrValueReceiver(receiver) is null);
+
                     expression = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                         node,
                         typeArgumentList,
@@ -3905,7 +3907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider removing or adjusting the reported argument position
+                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider removing or adjusting the reported argument position
                 var argNumber = invokedAsExtensionMethod ? arg : arg + 1;
 
                 // Warn for `ref`/`in` or None/`ref readonly` mismatch.
@@ -7894,7 +7896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (lookupResult.IsMultiViable)
                     {
                         CheckFeatureAvailability(boundLeft.Syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
-                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
+                        return BindMemberOfType(node, right, rightName, rightArity, invoked, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
                     }
                     else if (lookupResult.IsClear)
                     {
@@ -7915,7 +7917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (lookupResult.IsMultiViable)
                     {
-                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensions, diagnostics: diagnostics);
+                        return BindMemberOfType(node, right, rightName, rightArity, invoked, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.SearchExtensions, diagnostics: diagnostics);
                     }
 
                     if (!invoked)
@@ -8016,7 +8018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(typeArgumentsOpt.IsDefault);
                 if (!receiver.HasErrors)
                 {
-                    diagnostics.AddRange(resolution.Diagnostics); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test dependencies/diagnostics
+                    diagnostics.AddRange(resolution.Diagnostics);
                 }
 
                 resolution.Free();
@@ -8030,6 +8032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
             receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
 
             switch (extensionMember)
@@ -8045,7 +8048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindPropertyAccess(syntax, receiver, propertySymbol, diagnostics, LookupResultKind.Viable, hasErrors: false);
 
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
                     return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [receiver], CreateErrorType());
 
                 default:
@@ -8096,17 +8099,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lookupResult.IsMultiViable)
                 {
-                    return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArgumentsWithAnnotations, lookupResult, flags, diagnostics);
+                    return BindMemberOfType(node, right, rightName, rightArity, invoked, indexed, boundLeft, typeArgumentsSyntax, typeArgumentsWithAnnotations, lookupResult, flags, diagnostics);
                 }
 
                 if (searchExtensionsIfNecessary)
                 {
-                    BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(boundLeft);
-
-                    if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out _))
-                    {
-                        boundLeft = ReplaceTypeOrValueReceiver(boundLeft, useType: false, diagnostics);
-                    }
+                    var members = ArrayBuilder<Symbol>.GetInstance();
+                    boundLeft = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(boundLeft, right, rightName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
+                    members.Free();
 
                     if (!invoked)
                     {
@@ -8337,12 +8337,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType ?? CreateErrorType();
         }
 
+#nullable enable 
+
         /// <summary>
         /// Combine the receiver and arguments of an extension method
         /// invocation into a single argument list to allow overload resolution
         /// to treat the invocation as a static method invocation with no receiver.
         /// </summary>
-        private static void CombineExtensionMethodArguments(BoundExpression receiver, AnalyzedArguments originalArguments, AnalyzedArguments extensionMethodArguments)
+        private static void CombineExtensionMethodArguments(BoundExpression receiver, AnalyzedArguments? originalArguments, AnalyzedArguments extensionMethodArguments)
         {
             Debug.Assert(receiver != null);
             Debug.Assert(extensionMethodArguments.Arguments.Count == 0);
@@ -8351,20 +8353,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             extensionMethodArguments.IncludesReceiverAsArgument = true;
             extensionMethodArguments.Arguments.Add(receiver);
-            extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
 
-            if (originalArguments.Names.Count > 0)
+            if (originalArguments is not null)
+            {
+                extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
+            }
+
+            if (originalArguments?.Names.Count > 0)
             {
                 extensionMethodArguments.Names.Add(null);
                 extensionMethodArguments.Names.AddRange(originalArguments.Names);
             }
 
-            if (originalArguments.RefKinds.Count > 0)
+            if (originalArguments?.RefKinds.Count > 0)
             {
                 extensionMethodArguments.RefKinds.Add(RefKind.None);
                 extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
             }
         }
+
+#nullable disable
 
         private static void InitializeExtensionPropertyArguments(BoundExpression receiver, AnalyzedArguments extensionPropertyArguments)
         {
@@ -8385,6 +8393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode right,
             string plainName,
             int arity,
+            bool invoked,
             bool indexed,
             BoundExpression left,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
@@ -8416,6 +8425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the receiver of the method group, even though the spec notes that there is
                 // no associated instance expression.)
 
+                left = CheckAmbiguousPrimaryConstructorParameterAsColorColorReceiver(left, right, plainName, typeArgumentsWithAnnotations, invoked, members, diagnostics);
+
                 result = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                     node,
                     typeArgumentsSyntax,
@@ -8430,7 +8441,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // methods are special because of extension methods.
                 Debug.Assert(symbol.Kind != SymbolKind.Method);
                 left = ReplaceTypeOrValueReceiver(left, symbol.IsStatic || symbol.Kind == SymbolKind.NamedType, diagnostics);
 
@@ -8629,7 +8639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 3. resolve properties
                 Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
                 OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 || acceptOnlyMethods ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
@@ -8686,7 +8696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // ambiguous between multiple applicable properties
                 propertyResult.Free();
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider using the property overload resolution result in the result to improve reported diagnostics
+                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider using the property overload resolution result in the result to improve reported diagnostics
                 result = makeErrorResult(left.Type, memberName, arity, lookupResult, expression, diagnostics);
                 return true;
             }
@@ -8816,7 +8826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static MethodGroupResolution makeErrorResult(TypeSymbol receiverType, string memberName, int arity, LookupResult lookupResult, SyntaxNode expression, BindingDiagnosticBag diagnostics)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we'll want to describe what went wrong in a useful way (see OverloadResolutionResult.ReportDiagnostics)
+                // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we'll want to describe what went wrong in a useful way (see OverloadResolutionResult.ReportDiagnostics)
                 var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_ExtensionResolutionFailed, receiverType, memberName);
                 diagnostics.Add(errorInfo, expression.Location);
                 var resultSymbol = new ExtendedErrorTypeSymbol(containingSymbol: null, lookupResult.Symbols.ToImmutable(), LookupResultKind.OverloadResolutionFailure, errorInfo, arity);

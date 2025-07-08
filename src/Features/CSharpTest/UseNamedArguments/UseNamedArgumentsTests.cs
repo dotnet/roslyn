@@ -94,10 +94,9 @@ index: 1);
     public async Task TestNonFirstArgument_CSharp_7_2()
     {
         // Because we're on the last argument, we should only offer one refactoring to the user.
-        var initialMarkup = @"class C { void M(int arg1, int arg2) => M(1, [||]2); }";
         await new VerifyCS.Test
         {
-            TestCode = initialMarkup,
+            TestCode = @"class C { void M(int arg1, int arg2) => M(1, [||]2); }",
             FixedCode = @"class C { void M(int arg1, int arg2) => M(1, arg2: 2); }",
             LanguageVersion = LanguageVersion.CSharp7_2,
             ExactActionSetOffered = [string.Format(FeaturesResources.Add_argument_name_0, "arg2")],
@@ -639,10 +638,9 @@ index: 1);
     public async Task TestNoTrailingArgumentsToName()
     {
         // Because we're on the last argument that doesn't have a name, we should only offer one refactoring to the user.
-        var initialMarkup = @"class C { void M(int arg1, int arg2, int arg3) => M(1, [||]2, arg3: 3); }";
         await new VerifyCS.Test
         {
-            TestCode = initialMarkup,
+            TestCode = @"class C { void M(int arg1, int arg2, int arg3) => M(1, [||]2, arg3: 3); }",
             FixedCode = @"class C { void M(int arg1, int arg2, int arg3) => M(1, arg2: 2, arg3: 3); }",
             ExactActionSetOffered = [string.Format(FeaturesResources.Add_argument_name_0, "arg2")],
         }.RunAsync();

@@ -207,7 +207,16 @@ internal abstract partial class AbstractFindUsagesService
         }
         else
         {
-            return [];
+            // If a symbol is partial definition, return its implementation part
+            var implementationPart = symbol switch
+            {
+                IMethodSymbol method => method.PartialImplementationPart,
+                IPropertySymbol property => property.PartialImplementationPart,
+                IEventSymbol ev => ev.PartialImplementationPart,
+                _ => symbol,
+            };
+
+            return implementationPart is null ? [] : [implementationPart];
         }
     }
 }

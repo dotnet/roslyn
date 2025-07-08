@@ -4,13 +4,13 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Xunit;
-using System;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -199,7 +199,19 @@ public sealed class WorkspaceTests
         {
             foreach (var language in OptionsTestHelpers.GetApplicableLanguages(option))
             {
-                Assert.Equal(value, workspace2.Options.GetOption(new OptionKey(option, language)));
+                var currentValue = workspace2.Options.GetOption(new OptionKey(option, language));
+                if (!Equals(currentValue, value))
+                {
+                    if (currentValue.GetType().IsEnum && value.GetType().IsEnum)
+                    {
+                        // Enum values are not equal if they are different instances, even if they have the same value.
+                        Assert.Equal(Convert.ToInt32(currentValue), Convert.ToInt32(value));
+                    }
+                    else
+                    {
+                        Assert.Equal(value, currentValue);
+                    }
+                }
             }
         }
     }

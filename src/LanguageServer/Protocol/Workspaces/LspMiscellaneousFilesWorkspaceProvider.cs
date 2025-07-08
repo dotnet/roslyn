@@ -30,8 +30,11 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
 {
     public bool SupportsMutation => true;
 
-    // For this implementation, it's easiest to just have it inherit from Workspace, so we'll just return this.
-    public Workspace Workspace => this;
+    public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document, CancellationToken cancellationToken)
+    {
+        // In this case, the only documents ever created live in the Miscellaneous Files workspace (which is this object directly), so we can just compare to 'this'.
+        return ValueTaskFactory.FromResult(document.Project.Solution.Workspace == this);
+    }
 
     /// <summary>
     /// Takes in a file URI and text and creates a misc project and document for the file.

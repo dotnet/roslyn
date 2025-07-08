@@ -79,6 +79,11 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         if (expressionSymbol is IParameterSymbol parameterSymbol && parameterSymbol.ContainingSymbol.Equals(containingSymbol))
             return;
 
+        // Direct reference to named type or type parameter.  e.g. `$$Console.WriteLine()` or `T.Add(...)`.  These 
+        // are effectively statics (not values) and cannot become parameter.
+        if (expressionSymbol is INamedTypeSymbol or ITypeParameterSymbol)
+            return;
+
         // Code actions for trampoline and overloads will not be offered if the method is a constructor.
         // Code actions for overloads will not be offered if the method if the method is a local function.
         var methodKind = methodSymbol.MethodKind;

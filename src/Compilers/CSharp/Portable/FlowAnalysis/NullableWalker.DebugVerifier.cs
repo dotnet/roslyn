@@ -123,9 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // See NullableWalker.VisitCollectionExpression.getCollectionDetails() which
-                // does not have an element type for the ImplementsIEnumerable case.
-                bool hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
+                bool hasElementType = node.CollectionTypeKind is not CollectionExpressionTypeKind.None;
                 foreach (var element in node.Elements)
                 {
                     if (element is BoundCollectionExpressionSpreadElement spread)
@@ -231,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void VisitForEachEnumeratorInfo(ForEachEnumeratorInfo enumeratorInfo)
             {
                 Visit(enumeratorInfo.DisposeAwaitableInfo);
-                if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+                if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/78828: Test this code path with new extensions
                 {
                     foreach (var arg in enumeratorInfo.GetEnumeratorInfo.Arguments)
                     {
@@ -276,7 +274,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
             {
-                if (node.LeftConversion is BoundConversion leftConversion)
+                if (node.LeftConversion is BoundConversion leftConversion &&
+                    !(node.Operator.Method is { IsStatic: false } method && method.GetIsNewExtensionMember()))
                 {
                     VerifyExpression(leftConversion);
                 }

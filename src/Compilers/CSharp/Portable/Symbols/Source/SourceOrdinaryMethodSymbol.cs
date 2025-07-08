@@ -248,6 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
             }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, _location, Name);
+            }
         }
 
         internal static void CheckExtensionAttributeAvailability(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
@@ -755,12 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Async;
-
-            if (!isExtension)
-            {
-                allowedModifiers |= DeclarationModifiers.Extern;
-            }
+            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern;
 
             if (containingType.IsStructType())
             {
@@ -919,10 +918,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
-            }
-            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
-            {
-                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, location, Name);
             }
             else if (ContainingType.IsStatic && !IsStatic)
             {

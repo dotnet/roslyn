@@ -206,7 +206,9 @@ public sealed class UseExplicitTupleNameTests
     [Fact]
     public async Task TestFalseOptionImplicitTuple()
     {
-        var code = """
+        await new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -215,11 +217,7 @@ public sealed class UseExplicitTupleNameTests
                     var v2 = v1.Item1;
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             Options =
             {
                 { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }
@@ -230,7 +228,9 @@ public sealed class UseExplicitTupleNameTests
     [Fact]
     public async Task TestFalseOptionExplicitTuple()
     {
-        var code = """
+        await new VerifyCS.Test()
+        {
+            TestCode = """
             class C
             {
                 void M()
@@ -239,11 +239,7 @@ public sealed class UseExplicitTupleNameTests
                     var v2 = v1.i;
                 }
             }
-            """;
-
-        await new VerifyCS.Test()
-        {
-            TestCode = code,
+            """,
             Options =
             {
                 { CodeStyleOptions2.PreferExplicitTupleNames, false, NotificationOption2.Warning }

@@ -17,9 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -2679,14 +2677,14 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
                 tryStatement = (TryStatementSyntax)node;
                 coversAllChildren = false;
 
-                if (tryStatement.Catches.Count == 0)
+                if (tryStatement.Catches is not [var firstCatch, ..])
                 {
                     RoslynDebug.Assert(tryStatement.Finally != null);
                     return tryStatement.Finally.Span;
                 }
 
                 return TextSpan.FromBounds(
-                    tryStatement.Catches.First().SpanStart,
+                    firstCatch.SpanStart,
                     (tryStatement.Finally != null)
                         ? tryStatement.Finally.Span.End
                         : tryStatement.Catches.Last().Span.End);

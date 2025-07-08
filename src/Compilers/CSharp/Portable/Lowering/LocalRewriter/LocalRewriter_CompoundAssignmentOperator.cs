@@ -36,31 +36,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitInstanceCompoundAssignmentOperator(BoundCompoundAssignmentOperator node, bool used)
         {
             Debug.Assert(node.Operator.Method is { });
+            Debug.Assert(node.LeftConversion is null || (node.Left.Type!.IsReferenceType && node.Operator.Method.GetIsNewExtensionMember()));
+            Debug.Assert(node.FinalConversion is null);
 
             SyntaxNode syntax = node.Syntax;
 
             if (!used)
             {
-                return BoundCall.Synthesized(syntax, VisitExpression(node.Left), initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.Operator.Method, VisitExpression(node.Right));
+                return BoundCall.Synthesized(syntax,
+                                             ApplyConversionIfNotIdentity(node.LeftConversion, node.LeftPlaceholder, VisitExpression(node.Left)),
+                                             initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                             node.Operator.Method,
+                                             VisitExpression(node.Right));
             }
 
             TypeSymbol? leftType = node.Left.Type; // type of the target
             Debug.Assert(leftType is { });
             Debug.Assert(TypeSymbol.Equals(leftType, node.Type, TypeCompareKind.AllIgnoreOptions));
 
-            BoundAssignmentOperator tempAssignment;
-            BoundLocal targetOfCompoundOperation;
-
             if (leftType.IsReferenceType)
             {
-                targetOfCompoundOperation = _factory.StoreToTemp(VisitExpression(node.Left), out tempAssignment);
+                BoundAssignmentOperator tempAssignment;
+                BoundLocal targetOfCompoundOperation = _factory.StoreToTemp(VisitExpression(node.Left), out tempAssignment);
                 return new BoundSequence(
                     syntax: syntax,
                     locals: [targetOfCompoundOperation.LocalSymbol],
-                    sideEffects: [tempAssignment, BoundCall.Synthesized(syntax, targetOfCompoundOperation, initialBindingReceiverIsSubjectToCloning: ThreeState.False, node.Operator.Method, VisitExpression(node.Right))],
+                    sideEffects:
+                        [
+                            tempAssignment,
+                            BoundCall.Synthesized(syntax,
+                                                  ApplyConversionIfNotIdentity(node.LeftConversion, node.LeftPlaceholder, targetOfCompoundOperation),
+                                                  initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                                                  node.Operator.Method,
+                                                  VisitExpression(node.Right))
+                        ],
                     value: targetOfCompoundOperation,
                     type: leftType);
             }
+
+            Debug.Assert(node.LeftConversion is null);
 
             return MakeInstanceCompoundAssignmentOperatorResult(node.Syntax, node.Left, node.Right, node.Operator.Method, node.Operator.Kind.IsChecked());
         }

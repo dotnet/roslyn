@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNullable;
@@ -538,13 +537,11 @@ class Example
     [InlineData(NullableContextOptions.Enable)]
     public async Task DisabledIfSetInProject(NullableContextOptions nullableContextOptions)
     {
-        var code = @"
-#nullable enable$$
-";
-
         await new VerifyCS.Test
         {
-            TestCode = code,
+            TestCode = @"
+#nullable enable$$
+",
             SolutionTransforms =
             {
                 (solution, projectId) =>

@@ -150,7 +150,7 @@ internal sealed class TextDocumentStates<TState>
 
         return new(
             _ids.AddRange(ids),
-            States.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
+            States.AddRange(states.Select(state => KeyValuePair.Create(state.Id, state))),
             filePathToDocumentIds: null);
     }
 

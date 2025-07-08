@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol.Equals(this.LeftType, other.LeftType, TypeCompareKind.ConsiderEverything2) &&
                 TypeSymbol.Equals(this.RightType, other.RightType, TypeCompareKind.ConsiderEverything2) &&
                 TypeSymbol.Equals(this.ReturnType, other.ReturnType, TypeCompareKind.ConsiderEverything2) &&
-                this.Method == other.Method;
+                Symbol.Equals(this.Method, other.Method, TypeCompareKind.ConsiderEverything);
         }
 
         public static bool operator ==(BinaryOperatorSignature x, BinaryOperatorSignature y)
