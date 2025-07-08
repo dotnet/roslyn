@@ -217,6 +217,16 @@
         <target state="new">Move to Resx</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_Resx_Name">
+        <source>Rename Resx Name</source>
+        <target state="new">Rename Resx Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_resource_and_update_Resx">
+        <source>Rename resource and update .resx</source>
+        <target state="new">Rename resource and update .resx</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reverse_for_statement">
         <source>Reverse 'for' statement</source>
         <target state="translated">Inverti l'istruzione 'for'</target>

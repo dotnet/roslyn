@@ -43,12 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
             if (node == null)
                 return;
 
-            var resxFile = GetResxAdditionalFiles(context.Document.Project).FirstOrDefault();
+            var resxFile = FindBestResxFile(context.Document.Project, context.Document.FilePath);
             if (resxFile != null)
             {
+                var resxName = Path.GetFileName(resxFile.FilePath);
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: "Move string to .resx resource (in-memory)",
+                        title: $"Move string to .resx resource ({resxName})",
                         createChangedSolution: c => MoveStringToResxAndReplaceLiteralAsync(context.Document, node, resxFile, c),
                         equivalenceKey: "MoveStringToResxInMemory"),
                     diagnostic);
@@ -57,24 +58,67 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToResx
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: "No resx file found in AdditionalFiles. Please add a .resx file to your project.",
+                        title: "No .resx file found. Please create a .resx file in your project or folder.",
                         createChangedDocument: c => Task.FromResult(context.Document), // No-op
                         equivalenceKey: "NoResxFileFound"),
                     diagnostic);
             }
         }
 
-        private static IEnumerable<TextDocument> GetResxAdditionalFiles(Project project)
+        private static TextDocument? FindBestResxFile(Project project, string? documentPath)
         {
-            foreach (var file in project.AdditionalDocuments)
+            var allResx = project.AdditionalDocuments
+                .Where(f => f.FilePath != null && string.Equals(".resx", Path.GetExtension(f.FilePath), StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (allResx.Count == 0 || documentPath == null)
+                return allResx.FirstOrDefault();
+
+            var docDir = Path.GetDirectoryName(documentPath);
+            var preferredNames = new[] { "UIResources", "Errors", "Resources", "Strings" };
+
+            // 1. Look for .resx in the same folder with preferred names
+            var inSameDir = allResx.Where(f => Path.GetDirectoryName(f.FilePath) == docDir).ToList();
+            foreach (var preferred in preferredNames)
             {
-                if (file.FilePath != null &&
-                    string.Equals(".resx", Path.GetExtension(file.FilePath), StringComparison.OrdinalIgnoreCase))
-                {
-                    yield return file;
-                }
+                var match = inSameDir.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f.FilePath).Equals(preferred, StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                    return match;
             }
+            // 2. Look for .resx in the same folder with any name
+            if (inSameDir.Count > 0)
+                return inSameDir.First();
+
+            // 3. Look for .resx in parent folders (upward scan), prefer preferred names
+            var currentDir = docDir;
+            while (!string.IsNullOrEmpty(currentDir))
+            {
+                foreach (var preferred in preferredNames)
+                {
+                    var match = allResx.FirstOrDefault(f =>
+                        Path.GetDirectoryName(f.FilePath).Equals(currentDir, StringComparison.OrdinalIgnoreCase) &&
+                        Path.GetFileNameWithoutExtension(f.FilePath).Equals(preferred, StringComparison.OrdinalIgnoreCase));
+                    if (match != null)
+                        return match;
+                }
+                currentDir = Path.GetDirectoryName(currentDir);
+            }
+
+            // 4. Fallback: any .resx in the project
+            return allResx.FirstOrDefault();
         }
+
+        //private static IEnumerable<TextDocument> GetResxAdditionalFiles(Project project)
+        //{
+        //    foreach (var file in project.AdditionalDocuments)
+        //    {
+        //        if (file.FilePath != null &&
+        //            string.Equals(".resx", Path.GetExtension(file.FilePath), StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            yield return file;
+        //        }
+        //    }
+        //}
 
         // This method parses, updates, and saves the resx file in memory, and replaces the string literal with a resource reference
         private static async Task<Solution> MoveStringToResxAndReplaceLiteralAsync(

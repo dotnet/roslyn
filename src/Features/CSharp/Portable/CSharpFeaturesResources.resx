@@ -593,4 +593,10 @@
   <data name="Use_Resx_for_user_facing_strings" xml:space="preserve">
     <value>Use Resx for user facing strings</value>
   </data>
+  <data name="Rename_Resx_Name" xml:space="preserve">
+    <value>Rename Resx Name</value>
+  </data>
+  <data name="Rename_resource_and_update_Resx" xml:space="preserve">
+    <value>Rename resource and update .resx</value>
+  </data>
 </root>
