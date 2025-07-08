@@ -45,6 +45,7 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
 
     [Fact]
     public Task TestDestructorMissingCloseParenAndBody()
+        // Expected behavior is that the class should be outlined, but the destructor should not.
         => VerifyNoBlockSpansAsync("""
                 class C
                 {

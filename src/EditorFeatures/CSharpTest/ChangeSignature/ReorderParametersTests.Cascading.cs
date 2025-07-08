@@ -258,7 +258,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
         ////      / \   \
         ////   $$D2  D3  C
 
-
         var permutation = new[] { 1, 0 };
         await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class B { public virtual void M(int x, string y) { } }

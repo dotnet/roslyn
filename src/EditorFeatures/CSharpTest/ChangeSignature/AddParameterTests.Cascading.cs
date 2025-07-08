@@ -288,7 +288,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
         ////      / \   \
         ////   $$D2  D3  C
 
-
         var permutation = new[] {
             new AddedParameterOrExistingIndex(1),
             new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),

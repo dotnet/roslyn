@@ -163,6 +163,7 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
 
     [Fact]
     public Task TestConstructorMissingCloseParenAndBody()
+        // Expected behavior is that the class should be outlined, but the constructor should not.
         => VerifyNoBlockSpansAsync("""
                 class C
                 {
