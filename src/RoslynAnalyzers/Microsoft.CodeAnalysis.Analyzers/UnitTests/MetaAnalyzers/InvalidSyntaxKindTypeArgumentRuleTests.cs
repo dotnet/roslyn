@@ -22,13 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyDiagnosticAsync()
         {
-            DiagnosticResult[] expected = new[]
-            {
-                GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
-                GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
-            };
-
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -62,19 +56,20 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<int> context)
     {
     }
-}", expected);
+}";
+            DiagnosticResult[] expected =
+            [
+                GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
+                GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
+            ];
+
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
         public async Task VisualBasic_VerifyDiagnosticAsync()
         {
-            DiagnosticResult[] expected = new[]
-            {
-                GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
-                GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
-            };
-
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -103,12 +98,20 @@ Class MyAnalyzer
     Private Shared Sub AnalyzeCodeBlockStart(context As CodeBlockStartAnalysisContext(Of Int32))
     End Sub
 End Class
-", expected);
+";
+            DiagnosticResult[] expected =
+            [
+                GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
+                GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
+            ];
+
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public Task CSharp_NoDiagnosticCasesAsync()
-            => VerifyCS.VerifyAnalyzerAsync(@"
+        public async Task CSharp_NoDiagnosticCasesAsync()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -144,11 +147,15 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     private static void AnalyzeCodeBlockStart(CodeBlockStartAnalysisContext<T> context)
     {
     }
-}");
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task VisualBasic_NoDiagnosticCasesAsync()
-            => VerifyVB.VerifyAnalyzerAsync(@"
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
+        {
+            var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -179,7 +186,10 @@ Class MyAnalyzer(Of T As Structure)
     Private Shared Sub AnalyzeCodeBlockStart(context As CodeBlockStartAnalysisContext(Of T))
     End Sub
 End Class
-");
+";
+
+            await VerifyVB.VerifyAnalyzerAsync(source);
+        }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName) =>
 #pragma warning disable RS0030 // Do not use banned APIs

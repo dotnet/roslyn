@@ -22,14 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task CSharp_VerifyDiagnosticAsync()
         {
-            DiagnosticResult[] expected = new[]
-            {
-                GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
-                GetCSharpExpectedDiagnostic(34, 47, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
-                GetCSharpExpectedDiagnostic(38, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
-            };
-
-            await VerifyCS.VerifyAnalyzerAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -69,20 +62,21 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeOperationBlockStart(OperationBlockStartAnalysisContext operationBlockContext)
     {
     }
-}", expected);
+}";
+            DiagnosticResult[] expected =
+            [
+                GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
+                GetCSharpExpectedDiagnostic(34, 47, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
+                GetCSharpExpectedDiagnostic(38, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
+            ];
+
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
         public async Task VisualBasic_VerifyDiagnosticAsync()
         {
-            DiagnosticResult[] expected = new[]
-            {
-                GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
-                GetBasicExpectedDiagnostic(31, 46, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
-                GetBasicExpectedDiagnostic(34, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
-            };
-
-            await VerifyVB.VerifyAnalyzerAsync(@"
+            var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -118,12 +112,21 @@ Class MyAnalyzer
     Private Shared Sub AnalyzeOperationBlockStart(operationBlockContext As OperationBlockStartAnalysisContext)
     End Sub
 End Class
-", expected);
+";
+            DiagnosticResult[] expected =
+            [
+                GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
+                GetBasicExpectedDiagnostic(31, 46, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
+                GetBasicExpectedDiagnostic(34, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
+            ];
+
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public Task CSharp_NoDiagnosticCasesAsync()
-            => VerifyCS.VerifyAnalyzerAsync(@"
+        public async Task CSharp_NoDiagnosticCasesAsync()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -158,11 +161,15 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     {
         context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
     }
-}");
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task CSharp_NoDiagnosticCases_2Async()
-            => VerifyCS.VerifyAnalyzerAsync(@"
+        public async Task CSharp_NoDiagnosticCases_2Async()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -200,11 +207,15 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     {
         context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
     }
-}");
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task CSharp_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
-            => VerifyCS.VerifyAnalyzerAsync(@"
+        public async Task CSharp_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -250,11 +261,14 @@ class MyAnalyzer2 : DiagnosticAnalyzer
     private static void AnalyzeOperationBlock(OperationBlockAnalysisContext context)
     {
     }
-}");
+}";
+            await VerifyCS.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task CSharp_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
-            => VerifyCS.VerifyAnalyzerAsync(@"
+        public async Task CSharp_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -304,11 +318,15 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
         context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
     }
-}");
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task VisualBasic_NoDiagnosticCasesAsync()
-            => VerifyVB.VerifyAnalyzerAsync(@"
+        public async Task VisualBasic_NoDiagnosticCasesAsync()
+        {
+            var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -340,11 +358,15 @@ Class MyAnalyzer(Of T As Structure)
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
     End Sub
 End Class
-");
+";
+
+            await VerifyVB.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task VisualBasic_NoDiagnosticCases_2Async()
-            => VerifyVB.VerifyAnalyzerAsync(@"
+        public async Task VisualBasic_NoDiagnosticCases_2Async()
+        {
+            var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -380,11 +402,15 @@ Class MyAnalyzer(Of T As Structure)
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
     End Sub
 End Class
-");
+";
+
+            await VerifyVB.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task VisualBasic_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
-            => VerifyVB.VerifyAnalyzerAsync(@"
+        public async Task VisualBasic_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
+        {
+            var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -423,11 +449,14 @@ Class MyAnalyzer2
 	Private Shared Sub AnalyzeOperationBlock(context As OperationBlockAnalysisContext)
 	End Sub
 End Class
-");
+";
+            await VerifyVB.VerifyAnalyzerAsync(source);
+        }
 
         [Fact]
-        public Task VisualBasic_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
-            => VerifyVB.VerifyAnalyzerAsync(@"
+        public async Task VisualBasic_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
+        {
+            var source = @"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -468,7 +497,10 @@ MustInherit Class MyAnalyzer
 		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.Invocation)
 	End Sub
 End Class
-");
+";
+
+            await VerifyVB.VerifyAnalyzerAsync(source);
+        }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
 #pragma warning disable RS0030 // Do not use banned APIs
@@ -494,7 +526,7 @@ End Class
                 _ => throw new ArgumentException("Unsupported action kind", nameof(kind)),
             };
 
-            return new[] { parameterName, arg2 };
+            return [parameterName, arg2];
         }
 
         private enum StartActionKind

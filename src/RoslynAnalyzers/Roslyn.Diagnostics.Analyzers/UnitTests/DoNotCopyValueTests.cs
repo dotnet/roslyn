@@ -714,7 +714,7 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
             var expected = (parameterModifiers, getEnumeratorModifiers) switch
             {
                 // /0/Test0.cs(8,29): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'ParameterReference' operation
-                ("in", "") => new[] { VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "ParameterReference") },
+                ("in", "") => [VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "ParameterReference")],
 
                 _ => DiagnosticResult.EmptyDiagnosticResults,
             };

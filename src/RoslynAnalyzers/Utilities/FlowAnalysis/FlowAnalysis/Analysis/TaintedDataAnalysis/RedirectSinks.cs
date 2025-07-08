@@ -26,9 +26,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: new[] { "RedirectLocation" },
                 sinkMethodParameters: new[] {
                     ( "Redirect", new[] { "url" }),
-                    ( "RedirectPermanent", new[] { "url" }),
-                    ( "RedirectToRoute", new[] { "routeName" }),
-                    ( "RedirectToRoutePermanent", new[] { "routeName" }),
+                    ( "RedirectPermanent", ["url"]),
+                    ( "RedirectToRoute", ["routeName"]),
+                    ( "RedirectToRoutePermanent", ["routeName"]),
                 });
             builder.AddSinkInfo(
                 WellKnownTypeNames.SystemWebHttpResponseBase,
@@ -38,9 +38,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 sinkProperties: new[] { "RedirectLocation" },
                 sinkMethodParameters: new[] {
                     ( "Redirect", new[] { "url" }),
-                    ( "RedirectPermanent", new[] { "url" }),
-                    ( "RedirectToRoute", new[] { "routeName" }),
-                    ( "RedirectToRoutePermanent", new[] { "routeName" }),
+                    ( "RedirectPermanent", ["url"]),
+                    ( "RedirectToRoute", ["routeName"]),
+                    ( "RedirectToRoutePermanent", ["routeName"]),
                 });
 
             SinkInfos = builder.ToImmutableAndFree();

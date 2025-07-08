@@ -20,16 +20,24 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class ReleaseTrackingAnalyzerTests
     {
         [Fact]
-        public Task TestNoDeclaredAnalyzersAsync()
-            => VerifyCSharpAsync(@"", @"", @"");
+        public async Task TestNoDeclaredAnalyzersAsync()
+        {
+            var source = @"";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         [InlineData(@"{|RS2008:""Id1""|}", null, null)]
         [InlineData(@"""Id1""", "", null)]
         [InlineData(@"""Id1""", null, "")]
         [InlineData(@"{|RS2000:""Id1""|}", "", "")]
         [Theory]
-        public Task TestMissingReleasesFilesAsync(string id, string shippedText, string unshippedText)
-            => VerifyCSharpAsync($@"
+        public async Task TestMissingReleasesFilesAsync(string id, string shippedText, string unshippedText)
+        {
+            var source = $@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -44,7 +52,10 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, unshippedText);
+}}";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         [Fact]
         public async Task TestCodeFixToEnableAnalyzerReleaseTrackingAsync()
@@ -133,8 +144,9 @@ class MyAnalyzer : DiagnosticAnalyzer
                     DefaultShippedHeader2WithBorders + "| Id1 | Category1 | Warning | |" + BlankLine + DefaultChangedUnshippedHeaderWithBorders + "| Id3 | Category2 | Warning | Category1 | Warning | |" + BlankLine + DefaultRemovedUnshippedHeaderWithBorders + "| Id2 | Category1 | Warning | |",
                     DefaultRemovedUnshippedHeaderWithBorders + "| Id3 | Category2 | Warning | |")]
         [Theory]
-        public Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
-            => VerifyCSharpAsync(@"
+        public async Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -149,14 +161,15 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) {{ }}
-}", shippedText, unshippedText);
+}";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         [Fact]
         public async Task TestRemoveUnshippedDeletedDiagnosticIdRuleAsync()
         {
-            var unshippedText = DefaultUnshippedHeader + "Id1 | Category1 | Warning |";
-
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -167,15 +180,18 @@ class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
     public override void Initialize(AnalysisContext context) {{ }} 
-}", @"", unshippedText,
+}";
+            var shippedText = @"";
+            var unshippedText = DefaultUnshippedHeader + "Id1 | Category1 | Warning |";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.RemoveUnshippedDeletedDiagnosticIdRule).WithArguments("Id1"));
         }
 
         [Fact]
         public async Task TestRemoveShippedDeletedDiagnosticIdRuleAsync()
         {
-            var shippedText = DefaultShippedHeader + "Id1 | Category1 | Warning |";
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -186,13 +202,18 @@ class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
     public override void Initialize(AnalysisContext context) {{ }} 
-}", shippedText, @"",
+}";
+            var shippedText = DefaultShippedHeader + "Id1 | Category1 | Warning |";
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                 new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.RemoveShippedDeletedDiagnosticIdRule).WithArguments("Id1", "1.0"));
         }
 
         [Fact]
-        public Task TestCodeFixToAddUnshippedEntriesAsync()
-            => VerifyCSharpAdditionalFileFixAsync(@"
+        public async Task TestCodeFixToAddUnshippedEntriesAsync()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -219,9 +240,17 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor1_dupe, descriptor2, descriptor3);
     public override void Initialize(AnalysisContext context) { }
-}", @"", @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
+}";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText =
+$@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
 Id2 | Category2 | Disabled | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)");
+Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         [Fact]
         public async Task TestCodeFixToAddUnshippedEntries_DiagnosticDescriptorHelperAsync()
@@ -254,9 +283,15 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor1_dupe, descriptor2, descriptor3);
     public override void Initialize(AnalysisContext context) { }
 }" + CSharpDiagnosticDescriptorCreationHelper;
-            await VerifyCSharpAdditionalFileFixAsync(source, @"", @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText =
+$@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
 Id2 | Category2 | Disabled | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)");
+Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         private const string BlankLine = @"
@@ -272,8 +307,9 @@ Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)");
         [InlineData(DefaultUnshippedHeader + BlankLine + @"; Comments are preserved" + BlankLine,
                     DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + @"; Comments are preserved" + BlankLine)]
         [Theory]
-        public Task TestCodeFixToAddUnshippedEntries_TriviaIsPreservedAsync(string unshippedText, string fixedUnshippedText)
-            => VerifyCSharpAdditionalFileFixAsync(@"
+        public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreservedAsync(string unshippedText, string fixedUnshippedText)
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -287,7 +323,11 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", @"", unshippedText, fixedUnshippedText);
+}";
+
+            var shippedText = @"";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         // Added after current entry.
         [InlineData("Id0", DefaultUnshippedHeader + @"Id0 | DifferentCategory | Warning | MyAnalyzer",
@@ -304,8 +344,9 @@ class MyAnalyzer : DiagnosticAnalyzer
                            DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + DefaultRemovedUnshippedHeader + @"Id3 | Category | Warning | MyAnalyzer",
                            DefaultShippedHeader + @"Id2 | DifferentCategory | Warning | MyAnalyzer" + BlankLine + @"Id3 | Category | Warning | MyAnalyzer")]
         [Theory]
-        public Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntriesAsync(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
-            => VerifyCSharpAdditionalFileFixAsync($@"
+        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntriesAsync(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
+        {
+            var source = $@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -322,7 +363,10 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor2);
     public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, unshippedText, fixedUnshippedText);
+}}";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         // Adds to existing new rules table and creates a new changed rules table.
         [InlineData(DefaultUnshippedHeader + @"Id0 | Category0 | Warning | MyAnalyzer",
@@ -333,8 +377,9 @@ class MyAnalyzer : DiagnosticAnalyzer
                     DefaultUnshippedHeader + @"Id1 | Category1 | Warning | MyAnalyzer" + BlankLine + BlankLine + DefaultChangedUnshippedHeader + @"Id0 | Category0 | Warning | Category | Warning | MyAnalyzer" + BlankLine + @"Id2 | DifferentCategory | Warning | Category | Warning | MyAnalyzer",
                     DefaultShippedHeader + @"Id0 | Category | Warning | MyAnalyzer" + BlankLine + @"Id2 | Category | Warning | MyAnalyzer")]
         [Theory]
-        public Task TestCodeFixToAddUnshippedEntriesToMultipleTablesAsync(string unshippedText, string fixedUnshippedText, string shippedText = "")
-            => VerifyCSharpAdditionalFileFixAsync(@"
+        public async Task TestCodeFixToAddUnshippedEntriesToMultipleTablesAsync(string unshippedText, string fixedUnshippedText, string shippedText = "")
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -354,7 +399,10 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor0, descriptor1, descriptor2);
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText, fixedUnshippedText);
+}";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         [InlineData("",
                     DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer",
@@ -369,8 +417,9 @@ class MyAnalyzer : DiagnosticAnalyzer
                     DefaultUnshippedHeader + "Id1 | Category1 | Warning | MyAnalyzer",
                     "RS2000")]
         [Theory]
-        public Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntryAsync(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
-            => VerifyCSharpAdditionalFileFixAsync($@"
+        public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntryAsync(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
+        {
+            var source = $@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -385,11 +434,16 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, @"", fixedUnshippedText);
+}}";
+
+            var unshippedText = @"";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         [Fact]
-        public Task TestCodeFixToUpdateMultipleUnshippedEntriesAsync()
-            => VerifyCSharpAdditionalFileFixAsync(@"
+        public async Task TestCodeFixToUpdateMultipleUnshippedEntriesAsync()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -412,17 +466,27 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
     public override void Initialize(AnalysisContext context) { }
-}", @"", $@"{DefaultUnshippedHeader}Id1 | DifferentCategory | Warning | MyAnalyzer
+}";
+
+            var shippedText = @"";
+
+            var unshippedText =
+$@"{DefaultUnshippedHeader}Id1 | DifferentCategory | Warning | MyAnalyzer
 Id2 | Category2 | Warning | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
+Id3 | Category3 | Warning | MyAnalyzer";
+
+            var fixedUnshippedText =
+$@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
 Id2 | Category2 | Disabled | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer");
+Id3 | Category3 | Warning | MyAnalyzer";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
 
         [Fact]
         public async Task TestCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
         {
-            var entry = $@"Id1 | {ReleaseTrackingHelper.UndetectedText} | {ReleaseTrackingHelper.UndetectedText} | MyAnalyzer";
-            await VerifyCSharpAdditionalFileFixAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -445,7 +509,14 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", @"", @"", $@"{DefaultUnshippedHeader}{entry}", additionalExpectedDiagnosticsInInput: ImmutableArray<DiagnosticResult>.Empty,
+}";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var entry = $@"Id1 | {ReleaseTrackingHelper.UndetectedText} | {ReleaseTrackingHelper.UndetectedText} | MyAnalyzer";
+            var fixedUnshippedText = $@"{DefaultUnshippedHeader}{entry}";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText, additionalExpectedDiagnosticsInInput: ImmutableArray<DiagnosticResult>.Empty,
                 additionalExpectedDiagnosticsInResult: ImmutableArray.Create(
                     GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
@@ -455,8 +526,9 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public Task TestNoCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
-            => VerifyCSharpAsync(@"
+        public async Task TestNoCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -479,7 +551,13 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", @"", $@"{DefaultUnshippedHeader}Id1 | CustomCategory | Warning |");
+}";
+
+            var shippedText = @"";
+            var unshippedText = $@"{DefaultUnshippedHeader}Id1 | CustomCategory | Warning |";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         // No header in unshipped
         [InlineData("", "Id1 | Category1 | Warning |")]
@@ -520,9 +598,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestInvalidHeaderDiagnosticAsync(string shippedText, string unshippedText, int line = 1)
         {
-            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            var diagnosticText = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).ElementAt(line - 1);
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -536,7 +612,11 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+}";
+
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
+            var diagnosticText = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).ElementAt(line - 1);
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(line, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidHeaderInAnalyzerReleasesFileRule,
@@ -563,12 +643,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestInvalidEntryDiagnosticAsync(string entry, bool hasUndetectedField)
         {
-            var rule = hasUndetectedField ?
-                DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule :
-                DiagnosticDescriptorCreationAnalyzer.InvalidEntryInAnalyzerReleasesFileRule;
-            var unshippedText = DefaultUnshippedHeader + entry;
-
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -582,7 +657,15 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", @"", unshippedText,
+}";
+            var rule = hasUndetectedField ?
+                DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule :
+                DiagnosticDescriptorCreationAnalyzer.InvalidEntryInAnalyzerReleasesFileRule;
+
+            var shippedText = @"";
+            var unshippedText = DefaultUnshippedHeader + entry;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
                         rule,
@@ -621,12 +704,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestInvalidEntryDiagnostic_ChangedRulesAsync(string entry, bool hasUndetectedField)
         {
-            var rule = hasUndetectedField ?
-                DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule :
-                DiagnosticDescriptorCreationAnalyzer.InvalidEntryInAnalyzerReleasesFileRule;
-            var unshippedText = DefaultChangedUnshippedHeader + entry;
-
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -640,7 +718,15 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", @"", unshippedText,
+}";
+            var rule = hasUndetectedField ?
+                DiagnosticDescriptorCreationAnalyzer.InvalidUndetectedEntryInAnalyzerReleasesFileRule :
+                DiagnosticDescriptorCreationAnalyzer.InvalidEntryInAnalyzerReleasesFileRule;
+
+            var shippedText = @"";
+            var unshippedText = DefaultChangedUnshippedHeader + entry;
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
                         rule,
@@ -663,8 +749,9 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Duplicate entries with in shipped with second removed entry.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "{|RS2005:Id1 | Category2 | Warning ||}", "")]
         [Theory]
-        public Task TestDuplicateEntryInReleaseDiagnosticAsync(string shippedText, string unshippedText)
-            => VerifyCSharpAsync(@"
+        public async Task TestDuplicateEntryInReleaseDiagnosticAsync(string shippedText, string unshippedText)
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -678,7 +765,9 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText);
+}";
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         // Duplicate entries across shipped and unshipped.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultUnshippedHeader + "{|RS2006:Id1 | Category1 | Warning ||}")]
@@ -695,8 +784,9 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Duplicate changed entries across consecutive shipped releases.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedShippedHeader2 + "Id1 | Category1 | Warning | Category1 | Info |" + BlankLine + DefaultChangedShippedHeader3 + "{|RS2006:Id1 | Category1 | Warning | Category1 | Info ||}", "")]
         [Theory]
-        public Task TestDuplicateEntryBetweenReleasesDiagnosticAsync(string shippedText, string unshippedText)
-            => VerifyCSharpAsync(@"
+        public async Task TestDuplicateEntryBetweenReleasesDiagnosticAsync(string shippedText, string unshippedText)
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -710,7 +800,9 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText);
+}";
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         // Remove entry in unshipped for already shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", DefaultRemovedUnshippedHeader + "Id1 | Category1 | Warning |", "RS2004")]
@@ -719,8 +811,9 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Remove entry with changed severity in shipped for a prior shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "", "RS2000")]
         [Theory]
-        public Task TestRemoveEntryInReleaseFile_DiagnosticCasesAsync(string shippedText, string unshippedText, string expectedDiagnosticId)
-            => VerifyCSharpAsync($@"
+        public async Task TestRemoveEntryInReleaseFile_DiagnosticCasesAsync(string shippedText, string unshippedText, string expectedDiagnosticId)
+        {
+            var source = $@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -734,7 +827,9 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, unshippedText);
+}}";
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         // Invalid remove entry without prior shipped entry in shipped.
         [InlineData(DefaultRemovedShippedHeader + "Id1 | Category1 | Warning |", "")]
@@ -743,9 +838,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFileAsync(string shippedText, string unshippedText)
         {
-            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -756,7 +849,10 @@ class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+}";
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
+            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
@@ -772,9 +868,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestInvalidChangedWithoutShippedEntryInReleaseFileAsync(string shippedText, string unshippedText)
         {
-            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split(new[] { Environment.NewLine }, StringSplitOptions.None).Length;
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -788,7 +882,10 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+}";
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
+            var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
@@ -804,8 +901,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFile_02Async(string shippedText, string unshippedText)
         {
-            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            await VerifyCSharpAsync(@"
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -819,7 +915,9 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+}";
+            var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
                     GetAdditionalFileResultAt(7, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
@@ -835,8 +933,9 @@ class MyAnalyzer : DiagnosticAnalyzer
         // Remove entry with changed severity in shipped for a prior shipped release.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedShippedHeader2 + "Id1 | Category1 | Info |", "")]
         [Theory]
-        public Task TestRemoveEntryInReleaseFile_NoDiagnosticCasesAsync(string shippedText, string unshippedText)
-            => VerifyCSharpAsync(@"
+        public async Task TestRemoveEntryInReleaseFile_NoDiagnosticCasesAsync(string shippedText, string unshippedText)
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -847,11 +946,14 @@ class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
     public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText);
+}";
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         [Fact, WorkItem(5828, "https://github.com/dotnet/roslyn-analyzers/issues/5828")]
-        public Task TestTargetTypedNew()
-            => VerifyCSharpAsync(@"
+        public async Task TestTargetTypedNew()
+        {
+            var source = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -865,7 +967,13 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
     public override void Initialize(AnalysisContext context) { }
-}", @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |");
+}";
+
+            var shippedText = @"";
+            var unshippedText = $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
         #region Helpers
 
         private const string DefaultUnshippedHeader = ReleaseTrackingHelper.TableTitleNewRules + BlankLine + BlankLine +
@@ -961,12 +1069,16 @@ class MyAnalyzer : DiagnosticAnalyzer
             await test.RunAsync();
         }
 
-        private Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText)
-            => VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, ImmutableArray<DiagnosticResult>.Empty, ImmutableArray<DiagnosticResult>.Empty);
+        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText)
+        {
+            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, ImmutableArray<DiagnosticResult>.Empty, ImmutableArray<DiagnosticResult>.Empty);
+        }
 
-        private Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText,
+        private async Task VerifyCSharpAdditionalFileFixAsync(string source, string shippedText, string oldUnshippedText, string newUnshippedText,
             ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInInput, ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInResult)
-            => VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, additionalExpectedDiagnosticsInInput, additionalExpectedDiagnosticsInResult);
+        {
+            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedText, oldUnshippedText, newUnshippedText, additionalExpectedDiagnosticsInInput, additionalExpectedDiagnosticsInResult);
+        }
 
         private async Task VerifyAdditionalFileFixAsync(string language, string source, string shippedText, string oldUnshippedText, string newUnshippedText,
             ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInInput, ImmutableArray<DiagnosticResult> additionalExpectedDiagnosticsInResult)
