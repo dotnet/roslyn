@@ -221,9 +221,8 @@ public class CSharpSendToInteractive : AbstractInteractiveWindowTest
     [IdeFact]
     public async Task ResetInteractiveFromProjectAndVerify()
     {
-        var assembly = "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
         var project = ProjectName;
-        await TestServices.SolutionExplorer.AddMetadataReferenceAsync(assembly, project, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddMetadataReferenceAsync("System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", project, HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.SelectItemAsync(ProjectName, HangMitigatingCancellationToken);
         await TestServices.Shell.ExecuteCommandAsync<ResetInteractiveWindowFromProjectCommand>(HangMitigatingCancellationToken);

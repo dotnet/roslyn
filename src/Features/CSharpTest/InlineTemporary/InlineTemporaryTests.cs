@@ -153,7 +153,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [Fact]
     public async Task Escaping5()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             using System.Linq;
             class C
             {
@@ -163,9 +163,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var q = from e in "" let a = new { @where } select a;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System.Linq;
             class C
             {
@@ -174,15 +172,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var q = from e in "" let a = new { @where = 0 } select a;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task Call()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             using System;
             class C 
             {
@@ -192,9 +188,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     x.ToString();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             class C 
             {
@@ -203,15 +197,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     (1 + 1).ToString();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task Conversion_NoChange()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             using System;
             class C 
             {
@@ -221,9 +213,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     x.ToString();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             class C 
             {
@@ -232,9 +222,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     ((double)3).ToString();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
@@ -433,7 +421,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [Fact]
     public async Task DoubleAssignment()
     {
-        var code = """
+        await TestMissingAsync("""
             class C
             {
                 void M()
@@ -442,9 +430,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     int y = x;
                 }
             }
-            """;
-
-        await TestMissingAsync(code);
+            """);
     }
 
     [Fact]
@@ -468,7 +454,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [Fact]
     public async Task DoNotBreakOverloadResolution_Case5()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void Goo(object o) { }
@@ -480,9 +466,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Goo(x);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void Goo(object o) { }
@@ -493,15 +477,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Goo((object)(1 + 1));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task DoNotTouchUnrelatedBlocks()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -511,9 +493,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Goo(x);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -522,15 +502,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Goo(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task TestLambdaParenthesizeAndCast_Case7()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -539,9 +517,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     int y = x();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -549,9 +525,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     int y = ((System.Func<int>)(() => 1))();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538094")]
@@ -716,7 +690,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
     public async Task TestArrayInitializer2()
     {
-        var initial = """
+        await TestInRegularAndScriptAsync("""
             class Program
             { 
                 static void Main()
@@ -725,9 +699,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Array a = x;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             { 
                 static void Main()
@@ -735,15 +707,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Array a = new int[] { 3, 4, 5 };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545657")]
     public async Task TestArrayInitializer3()
     {
-        var initial = """
+        await TestInRegularAndScriptAsync("""
             class Program
             { 
                 static void Main()
@@ -756,9 +726,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Array a = x;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             { 
                 static void Main()
@@ -770,16 +738,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_RefParameter1()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -798,10 +763,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -820,16 +782,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                 {
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_RefParameter2()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -843,10 +802,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -860,16 +816,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                 {
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_AssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -880,10 +833,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -894,16 +844,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_AddAssignExpression1()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -914,10 +861,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -928,16 +872,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_AddAssignExpression2()
     {
-        var initial =
-            """
+        await TestMissingAsync("""
             using System;
             class C
             {
@@ -949,16 +890,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     int y = x;
                 }
             }
-            """;
-
-        await TestMissingAsync(initial);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_SubtractAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -969,10 +907,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -983,16 +918,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_MultiplyAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1003,10 +935,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1017,16 +946,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_DivideAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1037,10 +963,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1051,16 +974,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_ModuloAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1071,10 +991,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1085,16 +1002,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_AndAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1105,10 +1019,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1119,16 +1030,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_OrAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1139,10 +1047,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1153,16 +1058,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_ExclusiveOrAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1173,10 +1075,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1187,16 +1086,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_LeftShiftAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1207,10 +1103,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1221,16 +1114,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_RightShiftAssignExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1241,10 +1131,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1255,16 +1142,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_PostIncrementExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1275,10 +1159,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1289,16 +1170,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_PreIncrementExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1309,10 +1187,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1323,16 +1198,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_PostDecrementExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1343,10 +1215,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1357,16 +1226,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_PreDecrementExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1377,10 +1243,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1391,15 +1254,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task TestConflict_AddressOfExpression()
     {
-        var initial = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 unsafe void M()
@@ -1409,9 +1270,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var z = &y;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 unsafe void M()
@@ -1421,16 +1280,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var z = &{|Conflict:y|};
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545342")]
     public async Task TestConflict_UsedBeforeDeclaration()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -1439,10 +1295,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var y[||] = 45;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 static void Main(string[] args)
@@ -1451,9 +1304,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var y = 45;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
@@ -1534,8 +1385,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540164")]
     public async Task TriviaOnArrayInitializer()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -1544,10 +1394,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Goo(a);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -1555,16 +1402,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Goo(new int[]/**/{ 1 });
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
     public async Task ProperlyFormatWhenRemovingDeclarator1()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -1573,10 +1417,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Console.Write(i);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -1585,16 +1426,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Console.Write(1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
     public async Task ProperlyFormatWhenRemovingDeclarator2()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -1603,10 +1441,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Console.Write(j);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -1615,16 +1450,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Console.Write(2);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540156")]
     public async Task ProperlyFormatWhenRemovingDeclarator3()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -1633,10 +1465,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Console.Write(k);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -1645,16 +1474,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     System.Console.Write(3);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540186")]
     public async Task ProperlyFormatAnonymousTypeMember()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -1663,10 +1489,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var y = new { x };
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -1674,16 +1497,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var y = new { x = 123 };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem(6356, "DevDiv_Projects/Roslyn")]
     public async Task InlineToAnonymousTypeProperty()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -1692,10 +1512,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var y = new { x = x };
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class C
             {
                 void M()
@@ -1703,16 +1520,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var y = new { x = 123 };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528075")]
     public async Task InlineIntoDelegateInvocation()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -1722,10 +1536,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     del(null);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -1734,16 +1545,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     ((Action<string[]>)Main)(null);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
     public async Task InlineAnonymousMethodIntoNullCoalescingExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -1754,10 +1562,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Action y = x ?? null;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
 
             class Program
@@ -1767,16 +1572,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Action y = (Action)delegate { } ?? null;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541341")]
     public async Task InlineLambdaIntoNullCoalescingExpression()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -1787,10 +1589,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Action y = x ?? null;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
 
             class Program
@@ -1800,16 +1599,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Action y = (Action)(() => { }) ?? null;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
     public async Task InsertCastForBoxingOperation1()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -1820,10 +1616,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((long)z);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class A
             {
@@ -1833,16 +1626,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((long)z);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
     public async Task InsertCastForBoxingOperation2()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -1854,10 +1644,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((long)z);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class A
             {
@@ -1868,16 +1655,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((long)z);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
     public async Task InsertCastForBoxingOperation3()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -1888,10 +1672,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((byte)z);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class A
             {
@@ -1901,16 +1682,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((byte)z);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
     public async Task InsertCastForBoxingOperation4()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -1921,10 +1699,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((sbyte)z);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class A
             {
@@ -1934,16 +1709,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((sbyte)z);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538079")]
     public async Task InsertCastForBoxingOperation5()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -1954,10 +1726,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((short)z);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class A
             {
@@ -1967,9 +1736,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     Console.WriteLine((short)z);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540278")]
@@ -4118,7 +3885,8 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [InlineData(LanguageVersion.CSharp12)]
     public async Task Tuples(LanguageVersion version)
     {
-        var code = """
+        await TestInRegularAndScript1Async(
+            """
             using System;
             class C
             {
@@ -4128,9 +3896,8 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     x.ToString();
                 }
             }
-            """;
-
-        var expected = """
+            """,
+            """
             using System;
             class C
             {
@@ -4139,18 +3906,14 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     (1, "hello").ToString();
                 }
             }
-            """;
-
-        await TestInRegularAndScript1Async(
-            code,
-            expected,
+            """,
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(version)));
     }
 
     [Fact]
     public async Task TuplesWithNames()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -4160,9 +3923,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     x.ToString();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             class C
             {
@@ -4171,15 +3932,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     (a: 1, b: "hello").ToString();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11028")]
     public async Task TuplesWithDifferentNames()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 public void M()
@@ -4188,9 +3947,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     x.a.ToString();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 public void M()
@@ -4198,15 +3955,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     (((int a, string b))(c: 1, d: "hello")).a.ToString();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task Deconstruction()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -4217,9 +3972,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var x3 = temp;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             class C
             {
@@ -4229,15 +3982,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var x3 = new C();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12802")]
     public async Task Deconstruction2()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 static void Main()
@@ -4254,9 +4005,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             {
                 public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
             }
-            """;
-
-        var expected = """
+            """, """
             class Program
             {
                 static void Main()
@@ -4272,15 +4021,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
             {
                 public void Deconstruct(out T1 item1, out T2 item2) { item1 = default(T1); item2 = default(T2); }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11958")]
     public async Task EnsureParenthesesInStringConcatenation()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4289,9 +4036,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     string s = "a" + i;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4299,15 +4044,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     string s = "a" + (1 + 2);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4316,9 +4059,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (i, 3);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4326,15 +4067,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (i: 1 + 2, 3);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded_Trivia()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4343,9 +4082,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = ( /*comment*/ i, 3);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4353,15 +4090,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = ( /*comment*/ i: 1 + 2, 3);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded_Trivia2()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4373,9 +4108,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     );
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4386,15 +4119,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     );
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded_NoDuplicateNames()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4403,9 +4134,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (i, i);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4413,14 +4142,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (1 + 2, 1 + 2);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19047")]
     public async Task ExplicitTupleNameAdded_DeconstructionDeclaration()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 static int y = 1;
@@ -4430,8 +4158,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = ((i, (i, _)) = (1, (i, 3)));
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 static int y = 1;
@@ -4441,14 +4168,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (({|Conflict:i|}, ({|Conflict:i|}, _)) = (1, (i: C.y, 3)));
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19047")]
     public async Task ExplicitTupleNameAdded_DeconstructionDeclaration2()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 static int y = 1;
@@ -4458,8 +4184,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = ((i, _) = (1, 2));
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 static int y = 1;
@@ -4469,14 +4194,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (({|Conflict:i|}, _) = (1, 2));
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded_NoReservedNames()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4485,9 +4209,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (Rest, 3);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4495,14 +4217,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (1 + 2, 3);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded_NoReservedNames2()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4511,9 +4232,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (Item1, 3);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4521,14 +4240,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (1 + 2, 3);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded_EscapeKeywords()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4537,9 +4255,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (@int, 3);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4547,14 +4263,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (@int: 1 + 2, 3);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitTupleNameAdded_KeepEscapedName()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4563,9 +4278,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (@where, 3);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4573,14 +4286,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = (@where: 1 + 2, 3);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitAnonymousTypeMemberNameAdded_DuplicateNames()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4589,9 +4301,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = new { i, i }; // error already
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4599,14 +4309,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = new { i = 1 + 2, i = 1 + 2 }; // error already
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitAnonymousTypeMemberNameAdded_AssignmentEpression()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4616,9 +4325,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = new { i, k = 3 };
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4627,14 +4334,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = new { i = j = 1, k = 3 };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitAnonymousTypeMemberNameAdded_Comment()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4643,9 +4349,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = new { /*comment*/ i, j = 3 };
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4653,14 +4357,13 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     var t = new { /*comment*/ i = 1 + 2, j = 3 };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task ExplicitAnonymousTypeMemberNameAdded_Comment2()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -4672,9 +4375,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     };
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4685,8 +4386,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                     };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19247")]
@@ -4882,7 +4582,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35645")]
     public async Task UsingDeclaration()
     {
-        var code = """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             class C : IDisposable
             {
@@ -4893,9 +4593,7 @@ public sealed class InlineTemporaryTests : AbstractCSharpCodeActionTest_NoEditor
                 }
                 public void Dispose() { }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
+            """, new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp8)));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
@@ -5438,43 +5136,37 @@ System.Diagnostics.Debug.Assert(x == true); }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
     public async Task Call_TopLevelStatement()
     {
-        var code = """
-            using System;
-
-            int [||]x = 1 + 1;
-            x.ToString();
-            """;
-
-        var expected = """
-            using System;
-
-            (1 + 1).ToString();
-            """;
 
         // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
         // tested because global statements in script code are field declarations, which are not considered
         // temporary.
-        await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        await TestAsync("""
+            using System;
+
+            int [||]x = 1 + 1;
+            x.ToString();
+            """, """
+            using System;
+
+            (1 + 1).ToString();
+            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
     public async Task TopLevelStatement()
     {
-        var code = """
-            int val = 0;
-            int [||]val2 = val + 1;
-            System.Console.WriteLine(val2);
-            """;
-
-        var expected = """
-            int val = 0;
-            System.Console.WriteLine(val + 1);
-            """;
 
         // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
         // tested because global statements in script code are field declarations, which are not considered
         // temporary.
-        await TestAsync(code, expected, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
+        await TestAsync("""
+            int val = 0;
+            int [||]val2 = val + 1;
+            System.Console.WriteLine(val2);
+            """, """
+            int val = 0;
+            System.Console.WriteLine(val + 1);
+            """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44263")]
@@ -5548,7 +5240,7 @@ System.Diagnostics.Debug.Assert(x == true); }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50207")]
     public async Task TestImplicitObjectCreation()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class MyClass
             {
                 void Test()
@@ -5557,9 +5249,7 @@ System.Diagnostics.Debug.Assert(x == true); }
                     myClass.ToString();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class MyClass
             {
                 void Test()
@@ -5567,15 +5257,13 @@ System.Diagnostics.Debug.Assert(x == true); }
                     new MyClass().ToString();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34143")]
     public async Task TestPreserveDestinationTrivia1()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             class MyClass
             {
                 void Goo(bool b)
@@ -5587,9 +5275,7 @@ System.Diagnostics.Debug.Assert(x == true); }
 
                 void SomeMethod(string _) { }
             }
-            """;
-
-        var expected = """
+            """, """
             class MyClass
             {
                 void Goo(bool b)
@@ -5600,15 +5286,13 @@ System.Diagnostics.Debug.Assert(x == true); }
 
                 void SomeMethod(string _) { }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60552")]
     public async Task TestNullable1()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             #nullable enable
 
             public class C
@@ -5624,9 +5308,7 @@ System.Diagnostics.Debug.Assert(x == true); }
                     return a;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             #nullable enable
 
             public class C
@@ -5642,9 +5324,7 @@ System.Diagnostics.Debug.Assert(x == true); }
                     return "" + s;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69869")]

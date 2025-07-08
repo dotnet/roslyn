@@ -19,7 +19,7 @@ public sealed class ConvertToRecordCodeFixTests
     [Fact]
     public async Task TestMovePropertySimpleRecordInheritance_CodeFix()
     {
-        var initialMarkup = """
+        await TestCodeFixAsync("""
             namespace N
             {
                 public record B
@@ -32,8 +32,7 @@ public sealed class ConvertToRecordCodeFixTests
                     public int P { get; init; }
                 }
             }
-            """;
-        var changedMarkup = """
+            """, """
             namespace N
             {
                 public record B
@@ -43,14 +42,13 @@ public sealed class ConvertToRecordCodeFixTests
 
                 public record C(int P) : B;
             }
-            """;
-        await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     [Fact]
     public async Task TestMovePropertyPositionalParameterRecordInheritance_CodeFix()
     {
-        var initialMarkup = """
+        await TestCodeFixAsync("""
             namespace N
             {
                 public record B(int Foo, int Bar);
@@ -60,22 +58,20 @@ public sealed class ConvertToRecordCodeFixTests
                     public int P { get; init; }
                 }
             }
-            """;
-        var changedMarkup = """
+            """, """
             namespace N
             {
                 public record B(int Foo, int Bar);
 
                 public record C(int Foo, int Bar, int P) : B(Foo, Bar);
             }
-            """;
-        await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     [Fact]
     public async Task TestMovePropertyPositionalParameterRecordInheritanceWithComments_CodeFix()
     {
-        var initialMarkup = """
+        await TestCodeFixAsync("""
             namespace N
             {
                 /// <summary> B </summary>
@@ -90,8 +86,7 @@ public sealed class ConvertToRecordCodeFixTests
                     public int P { get; init; }
                 }
             }
-            """;
-        var changedMarkup = """
+            """, """
             namespace N
             {
                 /// <summary> B </summary>
@@ -105,14 +100,13 @@ public sealed class ConvertToRecordCodeFixTests
                 /// <param name="P"> P can be initialized </param>
                 public record C(int Foo, int Bar, int P) : B(Foo, Bar);
             }
-            """;
-        await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     [Fact]
     public async Task TestMovePropertyAndReorderWithPositionalParameterRecordInheritance_CodeFix()
     {
-        var initialMarkup = """
+        await TestCodeFixAsync("""
             namespace N
             {
                 public record B(int Foo, int Bar);
@@ -129,16 +123,14 @@ public sealed class ConvertToRecordCodeFixTests
                     }
                 }
             }
-            """;
-        var changedMarkup = """
+            """, """
             namespace N
             {
                 public record B(int Foo, int Bar);
 
                 public record C(int P, int Bar, int Foo) : B(Foo, Bar);
             }
-            """;
-        await TestCodeFixAsync(initialMarkup, changedMarkup).ConfigureAwait(false);
+            """).ConfigureAwait(false);
     }
 
     private sealed class CodeFixTest : CSharpCodeFixVerifier<TestAnalyzer, CSharpConvertToRecordCodeFixProvider>.Test

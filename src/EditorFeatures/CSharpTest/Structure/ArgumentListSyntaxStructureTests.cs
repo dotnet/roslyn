@@ -19,34 +19,28 @@ public sealed class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeS
     [Fact]
     public async Task TestInvocationExpressionSingleLine()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             var x = M$$();
-            """;
-
-        await VerifyBlockSpansAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestInvocationExpressionTwoArgumentsInTwoLines()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             var x = M$$("Hello",
                 "World");
-            """;
-
-        await VerifyBlockSpansAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestInvocationExpressionThreeLines()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             var x = M$${|span:(
                 "",
                 "")|};
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
@@ -57,68 +51,56 @@ public sealed class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeS
         // While this test shows both as collapsible, they will be deduplicated by AbstractBlockStructureProvider
         // This test only tests ArgumentListStructureProvider specifically, so it doesn't show the deduplication.
         // Tests in BlockStructureServiceTests show the overall behavior accurately.
-        var testInner = """
+
+        await VerifyBlockSpansAsync("""
             var x = M(M$${|span:(
                 "",
                 "")|});
-            """;
-
-        await VerifyBlockSpansAsync(testInner,
+            """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-
-        var testOuter = """
+        await VerifyBlockSpansAsync("""
             var x = M$${|span:(M(
                 "",
                 ""))|};
-            """;
-
-        await VerifyBlockSpansAsync(testOuter,
+            """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestObjectCreationSingleLine()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             var x = new C$$();
-            """;
-
-        await VerifyBlockSpansAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestObjectCreationThreeLines()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             var x = new C$${|span:(
                 "",
                 "")|};
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestImplicitObjectCreationSingleLine()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             C x = new$$();
-            """;
-
-        await VerifyBlockSpansAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestImplicitObjectCreationThreeLines()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
             C x = new$${|span:(
                 "",
                 "")|};
-            """;
-
-        await VerifyBlockSpansAsync(code,
+            """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

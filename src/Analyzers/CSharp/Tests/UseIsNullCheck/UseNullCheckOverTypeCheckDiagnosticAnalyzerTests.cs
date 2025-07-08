@@ -49,7 +49,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     [Fact]
     public async Task TestIsObject()
     {
-        var source = """
+        await VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -57,8 +57,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return [|value is object|]/*comment*/;
                 }
             }
-            """;
-        var fixedSource = """
+            """, """
             public class C
             {
                 public bool M(string value)
@@ -66,8 +65,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return value is not null/*comment*/;
                 }
             }
-            """;
-        await VerifyCSharp9Async(source, fixedSource);
+            """);
     }
 
     [Fact]
@@ -88,7 +86,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     [Fact]
     public async Task TestIsNotObject()
     {
-        var source = """
+        await VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -96,8 +94,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return value is [|not object|];
                 }
             }
-            """;
-        var fixedSource = """
+            """, """
             public class C
             {
                 public bool M(string value)
@@ -105,8 +102,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return value is null;
                 }
             }
-            """;
-        await VerifyCSharp9Async(source, fixedSource);
+            """);
     }
 
     [Fact]
@@ -142,7 +138,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     [Fact]
     public async Task TestIsStringAgainstString()
     {
-        var source = """
+        await VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -150,8 +146,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return [|value is string|];
                 }
             }
-            """;
-        var fixedSource = """
+            """, """
             public class C
             {
                 public bool M(string value)
@@ -159,8 +154,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return value is not null;
                 }
             }
-            """;
-        await VerifyCSharp9Async(source, fixedSource);
+            """);
     }
 
     [Fact]
@@ -181,7 +175,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     [Fact]
     public async Task TestIsNotStringAgainstString()
     {
-        var source = """
+        await VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -189,8 +183,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return value is [|not string|];
                 }
             }
-            """;
-        var fixedSource = """
+            """, """
             public class C
             {
                 public bool M(string value)
@@ -198,8 +191,7 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                     return value is null;
                 }
             }
-            """;
-        await VerifyCSharp9Async(source, fixedSource);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58377")]

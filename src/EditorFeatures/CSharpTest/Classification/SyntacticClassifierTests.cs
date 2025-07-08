@@ -441,14 +441,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiterals4(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
 
             @" goo bar 
 
 
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             Verbatim("""
                 @" goo bar 
@@ -460,15 +459,14 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiterals5(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
 
             @" goo bar
             and 
             on a new line " 
             more stuff
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             Verbatim("""
                 @" goo bar
@@ -482,15 +480,14 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiteralsUtf8_03(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
 
             @" goo bar
             and 
             on a new line "u8 
             more stuff
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             Verbatim("""
                 @" goo bar
@@ -505,15 +502,14 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task VerbatimStringLiteralsUtf8_04(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
 
             @" goo bar
             and 
             on a new line "U8 
             more stuff
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             Verbatim("""
                 @" goo bar
@@ -658,8 +654,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task CharacterLiteral1(TestHost testHost)
     {
-        var code = @"'f'";
-        await TestInMethodAsync(code,
+        await TestInMethodAsync(@"'f'",
             testHost,
             String("'f'"));
     }
@@ -667,8 +662,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task LinqFrom1(TestHost testHost)
     {
-        var code = @"from it in goo";
-        await TestInExpressionAsync(code,
+        await TestInExpressionAsync(@"from it in goo",
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -679,8 +673,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task LinqFrom2(TestHost testHost)
     {
-        var code = @"from it in goo.Bar()";
-        await TestInExpressionAsync(code,
+        await TestInExpressionAsync(@"from it in goo.Bar()",
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -696,8 +689,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     public async Task LinqFrom3(TestHost testHost)
     {
         // query expression are not statement expressions, but the parser parses them anyways to give better errors
-        var code = @"from it in ";
-        await TestInMethodAsync(code,
+        await TestInMethodAsync(@"from it in ",
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -707,8 +699,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task LinqFrom4(TestHost testHost)
     {
-        var code = @"from it in ";
-        await TestInExpressionAsync(code,
+        await TestInExpressionAsync(@"from it in ",
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -718,8 +709,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task LinqWhere1(TestHost testHost)
     {
-        var code = "from it in goo where it > 42";
-        await TestInExpressionAsync(code,
+        await TestInExpressionAsync("from it in goo where it > 42",
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -734,10 +724,9 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task LinqWhere2(TestHost testHost)
     {
-        var code = """
+        await TestInExpressionAsync("""
             from it in goo where it > "bar"
-            """;
-        await TestInExpressionAsync(code,
+            """,
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -1357,9 +1346,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task CommentSingle(TestHost testHost)
     {
-        var code = "// goo";
-
-        await TestAsync(code,
+        await TestAsync("// goo",
             testHost,
             Comment("// goo"));
     }
@@ -1367,8 +1354,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task CommentAsTrailingTrivia1(TestHost testHost)
     {
-        var code = "class Bar { // goo";
-        await TestAsync(code,
+        await TestAsync("class Bar { // goo",
             testHost,
             Keyword("class"),
             Class("Bar"),
@@ -1379,14 +1365,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task CommentAsLeadingTrivia1(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             class Bar { 
               // goo
               void Method1() { }
             }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             Keyword("class"),
             Class("Bar"),
@@ -1547,15 +1532,14 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task CommentAsMethodBodyContent(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             class Bar { 
               void Method1() {
             // goo
             }
             }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             Keyword("class"),
             Class("Bar"),
@@ -1604,12 +1588,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocCommentOnClass(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <summary>something</summary>
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1629,14 +1612,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocCommentOnClassWithIndent(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
                 /// <summary>
                 /// something
                 /// </summary>
                 class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1659,12 +1641,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_EntityReference(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <summary>&#65;</summary>
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1684,13 +1665,12 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_ExteriorTriviaInsideCloseTag(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <summary>something</
             /// summary>
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1791,15 +1771,14 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [CombinatorialData]
     public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <see cref="System.
             /// Int32"/>
             class C
             {
             }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1827,14 +1806,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocCommentOnClassWithExteriorTrivia(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <summary>
             /// something
             /// </summary>
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1857,14 +1835,12 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_ExteriorTriviaNoText(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             ///<summary>
             ///something
             ///</summary>
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("<"),
@@ -1885,12 +1861,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_EmptyElement(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <summary />
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1906,13 +1881,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_Attribute(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <summary attribute="value">something</summary>
             class Bar { }
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1941,12 +1914,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_AttributeInEmptyElement(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             /// <summary attribute="value" />
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text(" "),
@@ -1971,12 +1943,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_ExtraSpaces(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             ///   <   summary   attribute    =   "value"     />
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Text("   "),
@@ -2001,12 +1972,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_XmlComment(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             ///<!--comment-->
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("<!--"),
@@ -2021,13 +1991,12 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_XmlCommentWithExteriorTrivia(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             ///<!--first
             ///second-->
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("<!--"),
@@ -2044,12 +2013,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_XmlCommentInElement(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             ///<summary><!--comment--></summary>
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("<"),
@@ -2071,14 +2039,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [WorkItem("https://github.com/dotnet/roslyn/pull/31410")]
     public async Task XmlDocComment_MalformedXmlDocComment(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             ///<summary>
             ///<a: b, c />.
             ///</summary>
             class C { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("<"),
@@ -2106,14 +2073,12 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task MultilineXmlDocComment_ExteriorTrivia(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             /**<summary>
             *comment
             *</summary>*/
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("/**"),
             XmlDoc.Delimiter("<"),
@@ -2135,13 +2100,12 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task XmlDocComment_CDataWithExteriorTrivia(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             ///<![CDATA[first
             ///second]]>
             class Bar { }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             XmlDoc.Delimiter("///"),
             XmlDoc.Delimiter("<![CDATA["),
@@ -2200,8 +2164,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536321")]
     public async Task KeywordTypeParameters(TestHost testHost)
     {
-        var code = @"class C<int> { }";
-        await TestAsync(code,
+        await TestAsync(@"class C<int> { }",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2216,8 +2179,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536853")]
     public async Task TypeParametersWithAttribute(TestHost testHost)
     {
-        var code = @"class C<[Attr] T> { }";
-        await TestAsync(code,
+        await TestAsync(@"class C<[Attr] T> { }",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2234,8 +2196,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task ClassTypeDeclaration1(TestHost testHost)
     {
-        var code = "class C1 { } ";
-        await TestAsync(code,
+        await TestAsync("class C1 { } ",
             testHost,
             Keyword("class"),
             Class("C1"),
@@ -2246,8 +2207,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task ClassTypeDeclaration2(TestHost testHost)
     {
-        var code = "class ClassName1 { } ";
-        await TestAsync(code,
+        await TestAsync("class ClassName1 { } ",
             testHost,
             Keyword("class"),
             Class("ClassName1"),
@@ -2258,8 +2218,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task StructTypeDeclaration1(TestHost testHost)
     {
-        var code = "struct Struct1 { }";
-        await TestAsync(code,
+        await TestAsync("struct Struct1 { }",
             testHost,
             Keyword("struct"),
             Struct("Struct1"),
@@ -2270,8 +2229,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task InterfaceDeclaration1(TestHost testHost)
     {
-        var code = "interface I1 { }";
-        await TestAsync(code,
+        await TestAsync("interface I1 { }",
             testHost,
             Keyword("interface"),
             Interface("I1"),
@@ -2282,8 +2240,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task EnumDeclaration1(TestHost testHost)
     {
-        var code = "enum Weekday { }";
-        await TestAsync(code,
+        await TestAsync("enum Weekday { }",
             testHost,
             Keyword("enum"),
             Enum("Weekday"),
@@ -2295,8 +2252,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [CombinatorialData]
     public async Task ClassInEnum(TestHost testHost)
     {
-        var code = "enum E { Min = System.Int32.MinValue }";
-        await TestAsync(code,
+        await TestAsync("enum E { Min = System.Int32.MinValue }",
             testHost,
             Keyword("enum"),
             Enum("E"),
@@ -2314,8 +2270,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task DelegateDeclaration1(TestHost testHost)
     {
-        var code = "delegate void Action();";
-        await TestAsync(code,
+        await TestAsync("delegate void Action();",
             testHost,
             Keyword("delegate"),
             Keyword("void"),
@@ -2340,8 +2295,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task GenericParameter(TestHost testHost)
     {
-        var code = "class C1<P1> {}";
-        await TestAsync(code,
+        await TestAsync("class C1<P1> {}",
             testHost,
             Keyword("class"),
             Class("C1"),
@@ -2355,8 +2309,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task GenericParameters(TestHost testHost)
     {
-        var code = "class C1<P1,P2> {}";
-        await TestAsync(code,
+        await TestAsync("class C1<P1,P2> {}",
             testHost,
             Keyword("class"),
             Class("C1"),
@@ -2372,8 +2325,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task GenericParameter_Interface(TestHost testHost)
     {
-        var code = "interface I1<P1> {}";
-        await TestAsync(code,
+        await TestAsync("interface I1<P1> {}",
             testHost,
             Keyword("interface"),
             Interface("I1"),
@@ -2387,8 +2339,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task GenericParameter_Struct(TestHost testHost)
     {
-        var code = "struct S1<P1> {}";
-        await TestAsync(code,
+        await TestAsync("struct S1<P1> {}",
             testHost,
             Keyword("struct"),
             Struct("S1"),
@@ -2402,8 +2353,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task GenericParameter_Delegate(TestHost testHost)
     {
-        var code = "delegate void D1<P1> {}";
-        await TestAsync(code,
+        await TestAsync("delegate void D1<P1> {}",
             testHost,
             Keyword("delegate"),
             Keyword("void"),
@@ -4370,13 +4320,12 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task InterpolatedStrings1(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
             var x = "World";
             var y = $"Hello, {x}";
 
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             Keyword("var"),
             Local("x"),
@@ -4404,14 +4353,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task InterpolatedStrings2(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
             var a = "Hello";
             var b = "World";
             var c = $"{a}, {b}";
 
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             Keyword("var"),
             Local("a"),
@@ -4449,14 +4397,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task InterpolatedStrings3(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
             var a = "Hello";
             var b = "World";
             var c = $@"{a}, {b}";
 
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             Keyword("var"),
             Local("a"),
@@ -4494,7 +4441,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task ExceptionFilter1(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
             try
             {
@@ -4503,8 +4450,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             {
             }
 
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             ControlKeyword("try"),
             Punctuation.OpenCurly,
@@ -4521,7 +4467,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task ExceptionFilter2(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
             try
             {
@@ -4530,8 +4476,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             {
             }
 
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             ControlKeyword("try"),
             Punctuation.OpenCurly,
@@ -4553,11 +4498,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task OutVar(TestHost testHost)
     {
-        var code = """
+        await TestInMethodAsync("""
 
             F(out var);
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             Identifier("F"),
             Punctuation.OpenParen,
@@ -4570,11 +4514,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task ReferenceDirective(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             #r "file.dll"
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("r"),
@@ -4586,11 +4529,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task LoadDirective(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             #load "file.csx"
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("load"),
@@ -4602,14 +4544,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task IncompleteAwaitInNonAsyncContext(TestHost testHost)
     {
-        var code = """
+        await TestInClassAsync("""
 
             void M()
             {
                 var x = await
             }
-            """;
-        await TestInClassAsync(code,
+            """,
             testHost,
             Keyword("void"),
             Method("M"),
@@ -4626,14 +4567,13 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     [Theory, CombinatorialData]
     public async Task CompleteAwaitInNonAsyncContext(TestHost testHost)
     {
-        var code = """
+        await TestInClassAsync("""
 
             void M()
             {
                 var x = await;
             }
-            """;
-        await TestInClassAsync(code,
+            """,
             testHost,
             Keyword("void"),
             Method("M"),
@@ -5422,9 +5362,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestUsingDirective(TestHost testHost)
     {
-        var code = @"using System.Collections.Generic;";
-
-        await TestAsync(code,
+        await TestAsync(@"using System.Collections.Generic;",
             testHost,
             Keyword("using"),
             Identifier("System"),
@@ -5438,9 +5376,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestUsingAliasDirectiveForIdentifier(TestHost testHost)
     {
-        var code = @"using Col = System.Collections;";
-
-        await TestAsync(code,
+        await TestAsync(@"using Col = System.Collections;",
             testHost,
             Keyword("using"),
             Identifier("Col"),
@@ -5454,9 +5390,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestUsingAliasDirectiveForClass(TestHost testHost)
     {
-        var code = @"using Con = System.Console;";
-
-        await TestAsync(code,
+        await TestAsync(@"using Con = System.Console;",
             testHost,
             Keyword("using"),
             Identifier("Con"),
@@ -5470,9 +5404,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestUsingStaticDirective(TestHost testHost)
     {
-        var code = @"using static System.Console;";
-
-        await TestAsync(code,
+        await TestAsync(@"using static System.Console;",
             testHost,
             Keyword("using"),
             Keyword("static"),
@@ -5932,15 +5864,13 @@ testHost,
     [WorkItem("https://github.com/dotnet/roslyn/issues/45807")]
     public async Task FunctionPointer(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             class C
             {
                 delegate* unmanaged[Stdcall, SuppressGCTransition] <int, int> x;
             }
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6024,7 +5954,7 @@ testHost,
     [CombinatorialData]
     public async Task TestStaticLocalFunction(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             class C
             {
@@ -6033,9 +5963,7 @@ testHost,
                     static void LocalFunc() { }
                 }
             }
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6064,7 +5992,7 @@ testHost,
     [CombinatorialData]
     public async Task TestConstantLocalVariable(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
 
             class C
             {
@@ -6073,9 +6001,7 @@ testHost,
                     const int Zero = 0;
                 }
             }
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6102,7 +6028,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteral(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6111,9 +6037,7 @@ testHost,
                     var s = """Hello world""";
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6142,7 +6066,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralUtf8_01(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6151,9 +6075,7 @@ testHost,
                     var s = """Hello world"""u8;
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6183,7 +6105,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralUtf8_02(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6192,9 +6114,7 @@ testHost,
                     var s = """Hello world"""U8;
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6224,7 +6144,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralMultiline(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6235,9 +6155,7 @@ testHost,
                """;
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6268,7 +6186,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralMultilineUtf8_01(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6279,9 +6197,7 @@ testHost,
                """u8;
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6313,7 +6229,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralMultilineUtf8_02(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6324,9 +6240,7 @@ testHost,
                """U8;
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6358,7 +6272,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralInterpolation1(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6367,9 +6281,7 @@ testHost,
                     var s = $"""{x}""";
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6404,7 +6316,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralInterpolation2(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6413,9 +6325,7 @@ testHost,
                     var s = $$"""{{x}}""";
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -6450,7 +6360,7 @@ testHost,
     [Theory, CombinatorialData]
     public async Task TestRawStringLiteralInterpolation3(TestHost testHost)
     {
-        var code = """"
+        await TestAsync(""""
 
             class C
             {
@@ -6459,9 +6369,7 @@ testHost,
                     var s = $$"""{{{x}}}""";
                 }
             }
-            """";
-
-        await TestAsync(code,
+            """",
             testHost,
             Keyword("class"),
             Class("C"),

@@ -311,21 +311,20 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     [Theory, CombinatorialData]
     public async Task ProjectToProjectContext_MiscellaneousFilesWorkspace(bool mutatingLspWorkspace)
     {
-        var source = """
-            class A
-            {
-                void M()
-                {
-                }
-            }
-            """;
 
         // Create a server that supports LSP misc files.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file.
         var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
-        await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(looseFileUri, """
+            class A
+            {
+                void M()
+                {
+                }
+            }
+            """).ConfigureAwait(false);
 
         var document = await GetTextDocumentAsync(testLspServer, looseFileUri);
         Assert.NotNull(document);

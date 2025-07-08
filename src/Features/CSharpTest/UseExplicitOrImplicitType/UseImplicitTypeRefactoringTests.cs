@@ -23,7 +23,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
     [Fact]
     public async Task TestIntLocalDeclaration()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -31,9 +31,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     int[||] i = 0;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -41,15 +39,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public async Task TestSelection1()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -57,9 +53,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     [|int i = 0;|]
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -67,15 +61,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public async Task TestSelection2()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -83,9 +75,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     [|int|] i = 0;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -93,16 +83,14 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public async Task TestSelectionNotType()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -110,9 +98,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     int [|i|] = 0;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -120,15 +106,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     var i = 0;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task TestForeachInsideLocalDeclaration()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -136,9 +120,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     System.Action notThisLocal = () => { foreach (int[||] i in new int[0]) { } };
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -146,15 +128,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     System.Action notThisLocal = () => { foreach (var[||] i in new int[0]) { } };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task TestInIntPattern()
     {
-        var code = """
+        await TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -162,15 +142,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     _ = 0 is int[||] i;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestIntLocalDeclaration_Multiple()
     {
-        var code = """
+        await TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -178,15 +156,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     int[||] i = 0, j = j;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestIntLocalDeclaration_NoInitializer()
     {
-        var code = """
+        await TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -194,15 +170,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     int[||] i;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestIntForLoop()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -210,9 +184,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     for (int[||] i = 0;;) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -220,15 +192,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     for (var i = 0;;) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task TestInDispose()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C : System.IDisposable
             {
                 static void Main()
@@ -236,9 +206,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     using (C[||] c = new C()) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C : System.IDisposable
             {
                 static void Main()
@@ -246,15 +214,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     using (var c = new C()) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task TestIntForeachLoop()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -262,9 +228,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach (int[||] i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -272,15 +236,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach (var i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public async Task TestIntForeachLoop2()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -288,9 +250,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach ([|int|] i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -298,15 +258,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach (var i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public async Task TestIntForeachLoop3()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -314,9 +272,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach (int [|i|] in new[] { 0 }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -324,15 +280,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach (var i in new[] { 0 }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public async Task TestIntForeachLoop4()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -340,9 +294,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach ([|object|] i in new[] { new object() }) { }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -350,15 +302,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     foreach (var i in new[] { new object() }) { }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task TestIntDeconstruction()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -366,9 +316,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     (int[||] i, var j) = (0, 1);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -376,15 +324,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     (var i, var j) = (0, 1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task TestIntDeconstruction2()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -392,9 +338,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     (int[||] i, var j) = (0, 1);
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -402,15 +346,15 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     (var i, var j) = (0, 1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
     public async Task NoSuggestionOnForeachCollectionExpression()
     {
-        var code = """
+
+        // We never want to get offered here under any circumstances.
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -424,16 +368,15 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     }
                 }
             }
-            """;
-
-        // We never want to get offered here under any circumstances.
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
     public async Task NoSuggestionWithinAnExpression()
     {
-        var code = """
+
+        // We never want to get offered here under any circumstances.
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System;
 
@@ -444,16 +387,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     int a = 40 [||]+ 2;
                 }
             }
-            """;
-
-        // We never want to get offered here under any circumstances.
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
     public async Task TestRefLocal1()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -463,8 +403,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     [||]ref string rStr1 = ref str;
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -474,15 +413,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
     public async Task TestRefLocal2()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -492,9 +429,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref [||]string rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -504,15 +439,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
     public async Task TestRefLocal3()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -522,9 +455,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref string [||]rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -534,15 +465,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
     public async Task TestRefReadonlyLocal1()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -552,9 +481,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref readonly [||]string rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -564,15 +491,13 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref readonly var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
     public async Task TestRefReadonlyLocal2()
     {
-        var code = """
+        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -582,9 +507,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref readonly string[||] rStr1 = ref str;
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 static void Main()
@@ -594,9 +517,7 @@ public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                     ref readonly var rStr1 = ref str;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+            """);
     }
 
     private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)

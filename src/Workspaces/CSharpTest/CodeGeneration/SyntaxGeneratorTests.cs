@@ -4653,19 +4653,17 @@ public class C
 {
 }
 ";
-        var expected = @"
-public class C : IDisposable
-{
-}
-";
-
         var root = ParseCompilationUnit(text);
         var decl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
         var newRoot = root.ReplaceNode(decl, newDecl);
 
         var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
-        Assert.Equal(expected, elasticOnlyFormatted);
+        Assert.Equal(@"
+public class C : IDisposable
+{
+}
+", elasticOnlyFormatted);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]

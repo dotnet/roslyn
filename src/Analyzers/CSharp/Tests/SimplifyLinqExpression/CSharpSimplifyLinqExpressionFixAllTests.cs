@@ -63,8 +63,7 @@ public partial class CSharpSimplifyLinqExpressionTests
     [Fact]
     public async Task FixAllInDocumentExplicitCall()
     {
-
-        var testCode = """
+        await VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -81,8 +80,7 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test5 = [|Enumerable.Where(test, x => x.Equals("!")).FirstOrDefault()|];
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -99,8 +97,7 @@ public partial class CSharpSimplifyLinqExpressionTests
                     var test5 = Enumerable.FirstOrDefault(test, x => x.Equals("!"));
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(testCode, fixedCode);
+            """);
     }
 
     [Fact]

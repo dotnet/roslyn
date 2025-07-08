@@ -680,8 +680,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             else
             {
                 var span = fixLocation.SourceSpan;
-                var locationInfo = $"{span.Start}{AdditionalDocumentLocationInfoSeparator}{span.Length}{AdditionalDocumentLocationInfoSeparator}{fixLocation.GetLineSpan().Path}";
-                properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, locationInfo);
+                properties = properties.Add(DefineDescriptorArgumentCorrectlyFixAdditionalDocumentLocationInfo, $"{span.Start}{AdditionalDocumentLocationInfoSeparator}{span.Length}{AdditionalDocumentLocationInfoSeparator}{fixLocation.GetLineSpan().Path}");
             }
 
             reportDiagnostic(argumentOperation.CreateDiagnostic(descriptor, additionalLocations, properties));

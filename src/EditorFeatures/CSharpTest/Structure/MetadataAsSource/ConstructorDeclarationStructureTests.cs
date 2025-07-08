@@ -19,35 +19,31 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task NoCommentsOrAttributes()
     {
-        var code = """
+        await VerifyNoBlockSpansAsync("""
                 class C
                 {
                     $$C();
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
+                """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:[Bar]
                     |}$$C();|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAndAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:// Summary:
@@ -55,16 +51,14 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                     [Bar]
                     |}$$C();|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAttributesAndModifiers()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:// Summary:
@@ -72,16 +66,14 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                     [Bar]
                     |}$$public C();|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task TestConstructor10()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public C(){|textspan:
@@ -92,9 +84,7 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                     {
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

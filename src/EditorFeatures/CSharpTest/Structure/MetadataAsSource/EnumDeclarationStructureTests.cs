@@ -19,31 +19,27 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task NoCommentsOrAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|hint:enum $$E{|textspan:
                 {
                     A,
                     B
                 }|}|}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|hint:{|textspan:[Bar]
                 |}{|#0:enum $$E|}{|textspan2:
                 {
                     A,
                     B
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
@@ -51,7 +47,7 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAndAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Bar]
@@ -60,9 +56,7 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                     A,
                     B
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
@@ -70,7 +64,7 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAttributesAndModifiers()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Bar]
@@ -79,9 +73,7 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                     A,
                     B
                 }|}|#0}
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
@@ -93,16 +85,14 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     [InlineData("interface")]
     public async Task TestEnum3(string typeKind)
     {
-        var code = $@"
+        await VerifyBlockSpansAsync($@"
 {{|#0:$$enum E{{|textspan:
 {{
 }}|#0}}
 |}}
 {typeKind} Following
 {{
-}}";
-
-        await VerifyBlockSpansAsync(code,
+}}",
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

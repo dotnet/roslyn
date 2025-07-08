@@ -49,8 +49,7 @@ public class Program
         await TestServices.Editor.PlaceCaretAsync("World", charsOffset: 4, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
-
-        var expectedMarkup = @"
+        MarkupTestFile.GetSpans(@"
 using System;
 public class Program
 {
@@ -69,9 +68,7 @@ public class Program
     {
         Console.WriteLine(""Hello World"");
     }
-}";
-
-        MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
+}", out var expectedText, out var spans);
         await TestServices.EditorVerifier.TextContainsAsync(expectedText, cancellationToken: HangMitigatingCancellationToken);
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
         AssertEx.SetEqual(spans, tags);
@@ -91,8 +88,7 @@ public class Program
         await TestServices.Editor.PlaceCaretAsync("result;", charsOffset: 4, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
-
-        var expectedMarkup = @"
+        MarkupTestFile.GetSpans(@"
 using System;
 public class Program
 {
@@ -110,9 +106,7 @@ public class Program
     {
         return a * b;
     }
-}";
-
-        MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
+}", out var expectedText, out var spans);
         Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
         AssertEx.SetEqual(spans, tags);
@@ -131,8 +125,7 @@ public class Program
         await TestServices.Editor.PlaceCaretAsync("a = 5", charsOffset: -1, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
-
-        var expectedMarkup = @"
+        MarkupTestFile.GetSpans(@"
 using System;
 public class Program
 {
@@ -152,9 +145,7 @@ public class Program
         b = 10;
         result = a * b;
     }
-}";
-
-        MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
+}", out var expectedText, out var spans);
         Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
         AssertEx.SetEqual(spans, tags);

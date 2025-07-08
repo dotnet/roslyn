@@ -17,7 +17,7 @@ public sealed partial class AddExplicitCastTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task CS0266TestFixAllInDocument()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -155,9 +155,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -295,9 +293,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -305,7 +301,7 @@ public sealed partial class AddExplicitCastTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task CS0266TestFixAllInProject()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -443,9 +439,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -583,9 +577,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -593,7 +585,7 @@ public sealed partial class AddExplicitCastTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task CS0266TestFixAllInSolution()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -731,9 +723,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -871,9 +861,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -881,7 +869,7 @@ public sealed partial class AddExplicitCastTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task CS1503TestFixAllInDocument()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1007,9 +995,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1135,9 +1121,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -1145,7 +1129,7 @@ public sealed partial class AddExplicitCastTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task CS1503TestFixAllInProject()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1310,9 +1294,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1477,9 +1459,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -1487,7 +1467,7 @@ public sealed partial class AddExplicitCastTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task CS1503TestFixAllInSolution()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1615,9 +1595,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1745,9 +1723,7 @@ public sealed partial class AddExplicitCastTests
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
     #endregion
 }

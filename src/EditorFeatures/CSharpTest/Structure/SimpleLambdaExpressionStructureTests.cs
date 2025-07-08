@@ -19,7 +19,7 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
     [Fact]
     public async Task TestLambda()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -29,16 +29,14 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         };|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestLambdaInForLoop()
     {
-        var code = """
+        await VerifyNoBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -46,15 +44,13 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         for (Action a = x$$ => { }; true; a()) { }
                     }
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
+                """);
     }
 
     [Fact]
     public async Task TestLambdaInMethodCall1()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -64,16 +60,14 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         }|}|}, "other arguments}");
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestLambdaInMethodCall2()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -83,9 +77,7 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         }|}|});
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

@@ -19,7 +19,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     [Fact]
     public async Task TestEvent1()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -28,16 +28,14 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                         remove { }
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestEvent2()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -51,16 +49,14 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                         remove { }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestEvent3()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -75,16 +71,14 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                         remove { }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestEvent4()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -99,16 +93,14 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                         set;
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestEvent5()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -123,16 +115,14 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                         set => throw null;
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task TestEventWithComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -143,9 +133,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                         remove { }
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }

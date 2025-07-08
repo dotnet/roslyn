@@ -20,8 +20,7 @@ public sealed class ConvertToAsyncTests
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
     public async Task CantAwaitAsyncVoid()
     {
-        var initial =
-            """
+        await VerifyCS.VerifyCodeFixAsync("""
             using System.Threading.Tasks;
 
             class Program
@@ -35,10 +34,7 @@ public sealed class ConvertToAsyncTests
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
 
             class Program
@@ -54,7 +50,6 @@ public sealed class ConvertToAsyncTests
                 {
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(initial, expected);
+            """);
     }
 }

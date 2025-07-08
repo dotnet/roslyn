@@ -38,8 +38,7 @@ public sealed partial class TypeInferrerTests
     [Fact]
     public async Task TestDeclaration1()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -48,16 +47,13 @@ public sealed partial class TypeInferrerTests
                 Func<int> q = [|here|];
               }
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestAssignment1()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -67,16 +63,13 @@ public sealed partial class TypeInferrerTests
                 f = [|here|]
               }
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestArgument1()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -87,16 +80,13 @@ public sealed partial class TypeInferrerTests
 
               void Bar(Func<int> f);
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestConstructor1()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -107,16 +97,13 @@ public sealed partial class TypeInferrerTests
 
               public C(Func<int> f);
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestDelegateConstructor1()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -125,16 +112,13 @@ public sealed partial class TypeInferrerTests
                 new Func<int>([|here|]);
               }
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestCastExpression1()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -143,16 +127,13 @@ public sealed partial class TypeInferrerTests
                 (Func<int>)[|here|]
               }
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestCastExpression2()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -161,16 +142,13 @@ public sealed partial class TypeInferrerTests
                 (Func<int>)([|here|]
               }
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestReturnFromMethod()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -179,16 +157,13 @@ public sealed partial class TypeInferrerTests
                 return [|here|]
               }
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<int>");
+            """, "System.Func<int>");
     }
 
     [Fact]
     public async Task TestInsideLambda1()
     {
-        var text =
-            """
+        await TestDelegateAsync("""
             using System;
             class C
             {
@@ -197,8 +172,6 @@ public sealed partial class TypeInferrerTests
                 Func<int,Func<string,bool>> f = i => [|here|]
               }
             }
-            """;
-
-        await TestDelegateAsync(text, "System.Func<string, bool>");
+            """, "System.Func<string, bool>");
     }
 }

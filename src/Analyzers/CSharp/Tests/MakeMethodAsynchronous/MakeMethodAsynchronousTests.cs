@@ -25,8 +25,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task AwaitInVoidMethodWithModifiers()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -37,10 +36,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -51,8 +47,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            """, index: 1);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26312")]
@@ -71,9 +66,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """;
-
-        var expected =
-            """
+        await TestAsync(initial, """
             using System;
             using System.Threading.Tasks;
 
@@ -84,8 +77,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestAsync(initial, expected, parseOptions: CSharpParseOptions.Default,
+            """, parseOptions: CSharpParseOptions.Default,
             compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
 
         // no option offered to keep void
@@ -96,8 +88,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     [WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task AwaitInVoidMainMethodWithModifiers_NotEntryPoint()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -108,10 +99,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -122,15 +110,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            """, index: 1);
     }
 
     [Fact]
     public async Task AwaitInVoidMethodWithModifiers2()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -141,10 +127,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -155,15 +138,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task AwaitInTaskMethodNoModifiers()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -174,10 +155,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -188,15 +166,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task AwaitInTaskMethodWithModifiers()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -207,10 +183,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -221,15 +194,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task AwaitInLambdaFunction()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -241,10 +212,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     Func<Task> b = () => [|await Task.Run(a);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -256,15 +224,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     Func<Task> b = async () => await Task.Run(a);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task AwaitInLambdaAction()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -275,10 +241,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     Action a = () => [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -289,15 +252,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     Action a = async () => await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task BadAwaitInNonAsyncMethod()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -306,10 +267,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             class Program
             {
@@ -318,15 +276,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            """, index: 1);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task BadAwaitInNonAsyncMethod2()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -335,10 +291,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             class Program
             {
@@ -347,15 +300,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task BadAwaitInNonAsyncMethod3()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -364,10 +315,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             class Program
             {
@@ -376,15 +324,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task BadAwaitInNonAsyncMethod4()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -393,10 +339,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             class Program
             {
@@ -405,15 +348,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task BadAwaitInNonAsyncMethod5()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 void Test()
@@ -421,10 +362,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 async void Test()
@@ -432,15 +370,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected, index: 1);
+            """, index: 1);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task BadAwaitInNonAsyncMethod6()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 Task Test()
@@ -448,10 +384,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 async Task Test()
@@ -459,15 +392,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33082")]
     public async Task BadAwaitInNonAsyncMethod7()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 Task<int> Test()
@@ -475,10 +406,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 async Task<int> Test()
@@ -486,15 +414,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task BadAwaitInNonAsyncMethod8()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 int Test()
@@ -502,10 +428,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
 
             class Program
@@ -515,15 +438,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task BadAwaitInNonAsyncMethod9()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 Program Test()
@@ -531,10 +452,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
 
             class Program
@@ -544,15 +462,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task BadAwaitInNonAsyncMethod10()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 asdf Test()
@@ -560,10 +476,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 async System.Threading.Tasks.Task<asdf> TestAsync()
@@ -571,8 +484,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
@@ -611,8 +523,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     [Fact]
     public async Task BadAwaitInEnumerableMethodMissingIAsyncEnumerableType()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -623,10 +534,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -637,15 +545,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task BadAwaitInEnumerableMethodWithReturn()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -656,10 +562,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     return null;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -670,15 +573,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     return null;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task BadAwaitInEnumerableMethodWithYieldInsideLocalFunction()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -694,10 +595,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     }
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -713,15 +611,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task BadAwaitInEnumeratorMethodWithReturn()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -732,10 +628,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     return null;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             using System.Collections.Generic;
             class Program
@@ -746,8 +639,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     return null;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
@@ -891,16 +783,14 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     [Fact]
     public async Task AwaitInMember()
     {
-        var code =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class Program
             {
                 var x = [|await Task.Delay(3)|];
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact]
@@ -1030,8 +920,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
     [WorkItem("https://github.com/dotnet/roslyn/issues/17470")]
     public async Task AwaitInValueTaskMethod()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -1048,10 +937,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -1068,15 +954,13 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact]
     public async Task AwaitInValueTaskWithoutGenericMethod()
     {
-        var initial =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -1093,10 +977,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     [|await Task.Delay(1);|]
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Threading.Tasks;
 
@@ -1113,8 +994,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14133")]
@@ -1529,8 +1409,7 @@ index: 1);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25446")]
     public async Task TestOnAwaitParsedAsType()
     {
-        var initial =
-            """
+        await TestInRegularAndScript1Async("""
             using System.Threading.Tasks;
 
             class C
@@ -1541,10 +1420,7 @@ index: 1);
                     [|await|] task;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -1555,15 +1431,13 @@ index: 1);
                     await task;
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public async Task PartialMethod1()
     {
-        var initial =
-            """
+        await TestInRegularAndScript1Async("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1578,10 +1452,7 @@ index: 1);
                     [|await|] Task.Delay(1);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             
             public partial class C
@@ -1596,15 +1467,13 @@ index: 1);
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public async Task PartialMethod2()
     {
-        var initial =
-            """
+        await TestInRegularAndScript1Async("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1619,10 +1488,7 @@ index: 1);
                     [|await|] Task.Delay(1);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             
             public partial class C
@@ -1637,15 +1503,13 @@ index: 1);
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(initial, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public async Task PartialMethod3()
     {
-        var initial =
-            """
+        await TestInRegularAndScript1Async("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1660,10 +1524,7 @@ index: 1);
                     [|await|] Task.Delay(1);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             
             public partial class C
@@ -1678,15 +1539,13 @@ index: 1);
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(initial, expected, index: 1);
+            """, index: 1);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63404")]
     public async Task PartialMethod4()
     {
-        var initial =
-            """
+        await TestInRegularAndScript1Async("""
             using System.Threading.Tasks;
 
             public partial class C
@@ -1701,10 +1560,7 @@ index: 1);
                     [|await|] Task.Delay(1);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Threading.Tasks;
             
             public partial class C
@@ -1719,7 +1575,6 @@ index: 1);
                     await Task.Delay(1);
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(initial, expected, index: 1);
+            """, index: 1);
     }
 }

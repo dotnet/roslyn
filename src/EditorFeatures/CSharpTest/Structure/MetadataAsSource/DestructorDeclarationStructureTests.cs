@@ -20,35 +20,31 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
     [Fact]
     public async Task NoCommentsOrAttributes()
     {
-        var code = """
+        await VerifyNoBlockSpansAsync("""
                 class Goo
                 {
                     $$~Goo();
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
+                """);
     }
 
     [Fact]
     public async Task WithAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:[Bar]
                     |}$$~Goo();|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact]
     public async Task WithCommentsAndAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -56,9 +52,7 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
                     [Bar]
                     |}$$~Goo();|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

@@ -26,8 +26,7 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
     [Theory, CombinatorialData]
     public async Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
     {
-        var markup =
-@"class A
+        await RunVerifyInlayHintAsync(@"class A
 {
     void M(int x)
     {
@@ -37,15 +36,13 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
     {
         M({|x:|}5);
     }
-}";
-        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
+}", mutatingLspWorkspace);
     }
 
     [Theory, CombinatorialData]
     public async Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
     {
-        var markup =
-@"class A
+        await RunVerifyInlayHintAsync(@"class A
 {
     void M(int a, double b, bool c)
     {
@@ -55,29 +52,25 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
     {
         M({|a:|}5, {|b:|}5.5, {|c:|}true);
     }
-}";
-        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
+}", mutatingLspWorkspace);
     }
 
     [Theory, CombinatorialData]
     public async Task TestOneInlayTypeHintAsync(bool mutatingLspWorkspace)
     {
-        var markup =
-@"class A
+        await RunVerifyInlayHintAsync(@"class A
 {
     void M()
     {
         var {|int:|}x = 5;
     }
-}";
-        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
+}", mutatingLspWorkspace);
     }
 
     [Theory, CombinatorialData]
     public async Task TestMultipleInlayTypeHintsAsync(bool mutatingLspWorkspace)
     {
-        var markup =
-@"using System;
+        await RunVerifyInlayHintAsync(@"using System;
 class A
 {
     void M()
@@ -85,22 +78,19 @@ class A
         var {|int:|}x = 5;
         var {|object:|}obj = new Object();
     }
-}";
-        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
+}", mutatingLspWorkspace);
     }
 
     [Theory, CombinatorialData]
     public async Task TestInlayTypeHintsDeconstructAsync(bool mutatingLspWorkspace)
     {
-        var markup =
-@"class A
+        await RunVerifyInlayHintAsync(@"class A
 {
     void X((int, bool) d)
     {
         var (i, b) = d;
     }
-}";
-        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace, hasTextEdits: false);
+}", mutatingLspWorkspace, hasTextEdits: false);
     }
 
     [Theory, CombinatorialData]

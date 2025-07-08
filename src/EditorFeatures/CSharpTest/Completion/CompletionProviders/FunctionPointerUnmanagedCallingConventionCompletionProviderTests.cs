@@ -20,7 +20,7 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
     [Fact]
     public async Task TypeFound()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             namespace System.Runtime.CompilerServices
             {
                 public class CallConvUnitTest { }
@@ -30,14 +30,13 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
             {
                 delegate* unmanaged[$$] <int, string> f;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "UnitTest");
+            """, "UnitTest");
     }
 
     [Fact]
     public async Task TypeFoundSecondCallingConvention()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             namespace System.Runtime.CompilerServices
             {
                 public class CallConvUnitTest { }
@@ -47,8 +46,7 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
             {
                 delegate* unmanaged[Thiscall, $$] <int, string> f;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "UnitTest");
+            """, "UnitTest");
     }
 
     [Theory]
@@ -60,7 +58,7 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
     {
         // We explicitly create a project with no references (not even common references) to ensure we
         // get the defaults
-        var markup = """
+        await VerifyItemExistsAsync("""
             <Workspace>
                 <Project Language="C#">
                     <Document>
@@ -71,7 +69,6 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
                     </Document>
                 </Project>
             </Workspace>
-            """;
-        await VerifyItemExistsAsync(markup, callingConvention, glyph: Glyph.Keyword);
+            """, callingConvention, glyph: Glyph.Keyword);
     }
 }

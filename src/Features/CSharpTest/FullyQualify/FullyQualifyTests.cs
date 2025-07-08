@@ -1509,7 +1509,7 @@ class Program
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
     public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
     {
-        var initialWorkspace = @"
+        await TestMissingAsync(@"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -1533,9 +1533,7 @@ class Program
 }
 </Document>
     </Project>
-</Workspace>";
-
-        await TestMissingAsync(initialWorkspace, new TestParameters(
+</Workspace>", new TestParameters(
             options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
     }

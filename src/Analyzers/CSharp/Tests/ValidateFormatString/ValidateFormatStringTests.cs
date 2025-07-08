@@ -546,7 +546,10 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
     [Fact]
     public async Task TestOption_Enabled()
     {
-        var source = """
+        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, true);
+
+        await TestDiagnosticInfoAsync(
+            """
             class Program
             {
                 static void Main(string[] args)
@@ -554,11 +557,7 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
                     string.Format("This [|{1}|] is my test", "teststring1");
                 }     
             }
-            """;
-        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, true);
-
-        await TestDiagnosticInfoAsync(
-            source,
+            """,
             options: options,
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
@@ -568,7 +567,9 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
     [Fact]
     public async Task TestOption_Disabled()
     {
-        var source = """
+        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
+
+        await TestDiagnosticMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -576,10 +577,7 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
                     string.Format("This [|{1}|] is my test", "teststring1");
                 }     
             }
-            """;
-        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
-
-        await TestDiagnosticMissingAsync(source, new TestParameters(options: options));
+            """, new TestParameters(options: options));
     }
 
     [Fact]
@@ -835,7 +833,7 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
     [Fact]
     public async Task Net45TestOutOfBounds()
     {
-        var input = """
+        await TestDiagnosticInfoAsync("""
                         < Workspace >
                             < Project Language = "C#" AssemblyName="Assembly1" CommonReferencesNet45="true"> 
              <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -851,8 +849,7 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
                     </Document>
                             </Project>
                         </Workspace>
-            """;
-        await TestDiagnosticInfoAsync(input,
+            """,
             options: null,
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,

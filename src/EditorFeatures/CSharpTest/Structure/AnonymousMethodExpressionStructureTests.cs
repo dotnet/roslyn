@@ -19,7 +19,7 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
     [Fact]
     public async Task TestAnonymousMethod()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -29,16 +29,14 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                         };|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestAnonymousMethodInForLoop()
     {
-        var code = """
+        await VerifyNoBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -46,15 +44,13 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                         for (Action a = $$delegate { }; true; a()) { }
                     }
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
+                """);
     }
 
     [Fact]
     public async Task TestAnonymousMethodInMethodCall1()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -64,16 +60,14 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                         }|}|}, "other arguments");
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestAnonymousMethodInMethodCall2()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -83,9 +77,7 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                         }|}|});
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 }

@@ -1538,10 +1538,15 @@ public class Test
 }}";
             var compilation = CreateCompilationWithMscorlibAndSpan(csharp, TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "3402", verify: Verification.Fails with { ILVerifyMessage = """
+
+            var peVerifyMessage = "[ : Test::Main][offset 0x00000002] Cannot modify an imaged based (RVA) static";
+
+            var ilVerifyMessage = """
                 [Main]: Cannot change initonly field outside its .ctor. { Offset = 0x2 }
                 [Main]: Unexpected type on the stack. { Offset = 0x8, Found = address of '<PrivateImplementationDetails>+__StaticArrayInitTypeSize=3', Expected = Native Int }
-                """, PEVerifyMessage = "[ : Test::Main][offset 0x00000002] Cannot modify an imaged based (RVA) static" });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "3402", verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage, PEVerifyMessage = peVerifyMessage });
             verifier.VerifyIL("Test.Main", """
 {
   // Code size      156 (0x9c)
@@ -2647,12 +2652,13 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "ran",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+            var ilVerifyMessage = """
                 [MString]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1a }
                 [MObject]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
                 [MC]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
-                """ });
+                """;
+            var verifier = CompileAndVerify(compilation, expectedOutput: "ran",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.MString", """
@@ -2715,12 +2721,14 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+            var ilVerifyMessage = """
                 [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x2a }
                 [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x2a }
                 [M3]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
-                """ });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             var expectedIL = """
 {
@@ -2786,10 +2794,13 @@ public class C
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
             compilation.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+
+            var ilVerifyMessage = """
                 [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1b }
-                """ });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "2 hello world",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             verifier.VerifyIL("C.M", """
 {
@@ -2829,10 +2840,12 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "hello world",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+            var ilVerifyMessage = """
                 [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
-                """ });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "hello world",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             verifier.VerifyIL("C.M", """
 {
@@ -2894,11 +2907,13 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+            var ilVerifyMessage = """
                 [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
                 [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
-                """ });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             var expectedIL = """
 {
@@ -2985,11 +3000,13 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+            var ilVerifyMessage = """
                 [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
                 [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
-                """ });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             var expectedIL = """
 {
@@ -3073,11 +3090,13 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+            var ilVerifyMessage = """
                 [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
                 [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1f }
-                """ });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             verifier.VerifyIL("C.M", """
 {
@@ -3140,11 +3159,13 @@ public class C
 }
 """;
             var compilation = CreateCompilationWithMscorlibAndSpan(src);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = """
+            var ilVerifyMessage = """
                 [M]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x26 }
                 [M2]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x26 }
-                """ });
+                """;
+
+            var verifier = CompileAndVerify(compilation, expectedOutput: "1 1",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = ilVerifyMessage });
 
             var expectedIL = """
 {

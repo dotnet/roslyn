@@ -343,7 +343,7 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
     [WpfFact]
     public async Task TestRegexGroupBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -353,15 +353,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"$$[|(|]a[|)|]");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestRegexGroupBracket2()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -371,15 +369,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"[|(|]a[|)|]$$");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestRegexUnclosedGroupBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -389,15 +385,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"$$(a");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestRegexCommentBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -407,15 +401,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"$$[|(|]?#a[|)|]");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestRegexCommentBracket2()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -425,15 +417,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"[|(|]?#a[|)|]$$");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestRegexUnclosedCommentBracket()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -443,15 +433,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"$$(?#a");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestRegexCharacterClassBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -461,15 +449,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"$$[|<|]a[|>|]");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+            """, swapAnglesWithBrackets: true);
     }
 
     [WpfFact]
     public async Task TestRegexCharacterClassBracket2()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -479,14 +465,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"[|<|]a[|>|]$$");
                 }
             }
-            """;
-        await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+            """, swapAnglesWithBrackets: true);
     }
 
     [WpfFact]
     public async Task TestRegexUnclosedCharacterClassBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -496,15 +481,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"$$<a");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+            """, swapAnglesWithBrackets: true);
     }
 
     [WpfFact]
     public async Task TestRegexNegativeCharacterClassBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -514,15 +497,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"$$[|<|]^a[|>|]");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+            """, swapAnglesWithBrackets: true);
     }
 
     [WpfFact]
     public async Task TestRegexNegativeCharacterClassBracket2()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -532,15 +513,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = new Regex(@"[|<|]^a[|>|]$$");
                 }
             }
-            """;
-
-        await TestBraceHighlightingAsync(input, swapAnglesWithBrackets: true);
+            """, swapAnglesWithBrackets: true);
     }
 
     [WpfFact]
     public async Task TestJsonBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -548,14 +527,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = /*lang=json*/ @"new Json[|$$(|]1, 2, 3[|)|]";
                 }
             }
-            """;
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestJsonBracket2()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -563,14 +541,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = /*lang=json*/ @"new Json[|(|]1, 2, 3[|)|]$$";
                 }
             }
-            """;
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestJsonBracket_RawStrings()
     {
-        var input = """"
+        await TestBraceHighlightingAsync(""""
             class C
             {
                 void Goo()
@@ -578,14 +555,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = /*lang=json*/ """new Json[|$$(|]1, 2, 3[|)|]""";
                 }
             }
-            """";
-        await TestBraceHighlightingAsync(input);
+            """");
     }
 
     [WpfFact]
     public async Task TestUnmatchedJsonBracket1()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -593,14 +569,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = /*lang=json*/ @"new Json$$(1, 2, 3";
                 }
             }
-            """;
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestJsonBracket_NoComment_NotLikelyJson()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -608,14 +583,13 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = @"$$[ 1, 2, 3 ]";
                 }
             }
-            """;
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfFact]
     public async Task TestJsonBracket_NoComment_LikelyJson()
     {
-        var input = """
+        await TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -623,8 +597,7 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                     var r = @"[ { prop: 0 }, new Json[|$$(|]1, 2, 3[|)|], 3 ]";
                 }
             }
-            """;
-        await TestBraceHighlightingAsync(input);
+            """);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/32791")]

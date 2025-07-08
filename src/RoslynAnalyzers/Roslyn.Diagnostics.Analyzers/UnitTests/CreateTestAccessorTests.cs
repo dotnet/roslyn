@@ -156,8 +156,6 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("[|Class TestClass|]")]
         public async Task CreateTestAccessorVisualBasicAsync(string typeHeader)
         {
-            var source = $@"{typeHeader}
-End Class";
             var fixedSourceBody = @"
     Friend Function GetTestAccessor() As TestAccessor
         Return New TestAccessor(Me)
@@ -173,7 +171,8 @@ End Class";
 End Class";
 
             var fixedSource = "Class TestClass" + fixedSourceBody;
-            await VerifyVB.VerifyRefactoringAsync(source, fixedSource);
+            await VerifyVB.VerifyRefactoringAsync($@"{typeHeader}
+End Class", fixedSource);
 
             // Applying the refactoring a second time does not produce any changes
             fixedSource = typeHeader + fixedSourceBody;
@@ -188,8 +187,6 @@ End Class";
         [InlineData("[|Structure TestStructure|]")]
         public async Task CreateTestAccessorStructureVisualBasicAsync(string typeHeader)
         {
-            var source = $@"{typeHeader}
-End Structure";
             var fixedSourceBody = @"
     Friend Function GetTestAccessor() As TestAccessor
         Return New TestAccessor(Me)
@@ -205,7 +202,8 @@ End Structure";
 End Structure";
 
             var fixedSource = "Structure TestStructure" + fixedSourceBody;
-            await VerifyVB.VerifyRefactoringAsync(source, fixedSource);
+            await VerifyVB.VerifyRefactoringAsync($@"{typeHeader}
+End Structure", fixedSource);
 
             // Applying the refactoring a second time does not produce any changes
             fixedSource = typeHeader + fixedSourceBody;

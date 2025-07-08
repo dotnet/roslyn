@@ -20,654 +20,447 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
     [Fact]
     public async Task TestEmptyFile()
     {
-        var code = @"$$";
-        var expected = @"";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"$$", @"");
     }
 
     [Fact]
     public async Task TestAtFirstPositionInFile()
     {
-        var code = @"$$public class C { }";
-        var expected = @"public class C { }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"$$public class C { }", @"public class C { }");
     }
 
     [Fact]
     public async Task TestAtLastPositionInFile()
     {
-        var code = @"public class C { }$$";
-        var expected = @"public class C [|{|] }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { }$$", @"public class C [|{|] }");
     }
 
     [Fact]
     public async Task TestCurlyBrace1()
     {
-        var code = @"public class C $${ }";
-        var expected = @"public class C { [|}|]";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C $${ }", @"public class C { [|}|]");
     }
 
     [Fact]
     public async Task TestCurlyBrace2()
     {
-        var code = @"public class C {$$ }";
-        var expected = @"public class C { [|}|]";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C {$$ }", @"public class C { [|}|]");
     }
 
     [Fact]
     public async Task TestCurlyBrace3()
     {
-        var code = @"public class C { $$}";
-        var expected = @"public class C [|{|] }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { $$}", @"public class C [|{|] }");
     }
 
     [Fact]
     public async Task TestCurlyBrace4()
     {
-        var code = @"public class C { }$$";
-        var expected = @"public class C [|{|] }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { }$$", @"public class C [|{|] }");
     }
 
     [Fact]
     public async Task TestParen1()
     {
-        var code = @"public class C { void Goo$$() { } }";
-        var expected = @"public class C { void Goo([|)|] { } }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void Goo$$() { } }", @"public class C { void Goo([|)|] { } }");
     }
 
     [Fact]
     public async Task TestParen2()
     {
-        var code = @"public class C { void Goo($$) { } }";
-        var expected = @"public class C { void Goo([|)|] { } }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void Goo($$) { } }", @"public class C { void Goo([|)|] { } }");
     }
 
     [Fact]
     public async Task TestParen3()
     {
-        var code = @"public class C { void Goo($$ ) { } }";
-        var expected = @"public class C { void Goo( [|)|] { } }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void Goo($$ ) { } }", @"public class C { void Goo( [|)|] { } }");
     }
 
     [Fact]
     public async Task TestParen4()
     {
-        var code = @"public class C { void Goo( $$) { } }";
-        var expected = @"public class C { void Goo[|(|] ) { } }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void Goo( $$) { } }", @"public class C { void Goo[|(|] ) { } }");
     }
 
     [Fact]
     public async Task TestParen5()
     {
-        var code = @"public class C { void Goo( )$$ { } }";
-        var expected = @"public class C { void Goo[|(|] ) { } }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void Goo( )$$ { } }", @"public class C { void Goo[|(|] ) { } }");
     }
 
     [Fact]
     public async Task TestParen6()
     {
-        var code = @"public class C { void Goo()$$ { } }";
-        var expected = @"public class C { void Goo[|(|]) { } }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void Goo()$$ { } }", @"public class C { void Goo[|(|]) { } }");
     }
 
     [Fact]
     public async Task TestSquareBracket1()
     {
-        var code = @"public class C { int$$[] i; }";
-        var expected = @"public class C { int[[|]|] i; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { int$$[] i; }", @"public class C { int[[|]|] i; }");
     }
 
     [Fact]
     public async Task TestSquareBracket2()
     {
-        var code = @"public class C { int[$$] i; }";
-        var expected = @"public class C { int[[|]|] i; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { int[$$] i; }", @"public class C { int[[|]|] i; }");
     }
 
     [Fact]
     public async Task TestSquareBracket3()
     {
-        var code = @"public class C { int[$$ ] i; }";
-        var expected = @"public class C { int[ [|]|] i; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { int[$$ ] i; }", @"public class C { int[ [|]|] i; }");
     }
 
     [Fact]
     public async Task TestSquareBracket4()
     {
-        var code = @"public class C { int[ $$] i; }";
-        var expected = @"public class C { int[|[|] ] i; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { int[ $$] i; }", @"public class C { int[|[|] ] i; }");
     }
 
     [Fact]
     public async Task TestSquareBracket5()
     {
-        var code = @"public class C { int[ ]$$ i; }";
-        var expected = @"public class C { int[|[|] ] i; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { int[ ]$$ i; }", @"public class C { int[|[|] ] i; }");
     }
 
     [Fact]
     public async Task TestSquareBracket6()
     {
-        var code = @"public class C { int[]$$ i; }";
-        var expected = @"public class C { int[|[|]] i; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { int[]$$ i; }", @"public class C { int[|[|]] i; }");
     }
 
     [Fact]
     public async Task TestAngleBracket1()
     {
-        var code = @"public class C { Goo$$<int> f; }";
-        var expected = @"public class C { Goo<int[|>|] f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Goo$$<int> f; }", @"public class C { Goo<int[|>|] f; }");
     }
 
     [Fact]
     public async Task TestAngleBracket2()
     {
-        var code = @"public class C { Goo<$$int> f; }";
-        var expected = @"public class C { Goo<int[|>|] f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Goo<$$int> f; }", @"public class C { Goo<int[|>|] f; }");
     }
 
     [Fact]
     public async Task TestAngleBracket3()
     {
-        var code = @"public class C { Goo<int$$> f; }";
-        var expected = @"public class C { Goo[|<|]int> f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Goo<int$$> f; }", @"public class C { Goo[|<|]int> f; }");
     }
 
     [Fact]
     public async Task TestAngleBracket4()
     {
-        var code = @"public class C { Goo<int>$$ f; }";
-        var expected = @"public class C { Goo[|<|]int> f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Goo<int>$$ f; }", @"public class C { Goo[|<|]int> f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket1()
     {
-        var code = @"public class C { Func$$<Func<int,int>> f; }";
-        var expected = @"public class C { Func<Func<int,int>[|>|] f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func$$<Func<int,int>> f; }", @"public class C { Func<Func<int,int>[|>|] f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket2()
     {
-        var code = @"public class C { Func<$$Func<int,int>> f; }";
-        var expected = @"public class C { Func<Func<int,int>[|>|] f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func<$$Func<int,int>> f; }", @"public class C { Func<Func<int,int>[|>|] f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket3()
     {
-        var code = @"public class C { Func<Func$$<int,int>> f; }";
-        var expected = @"public class C { Func<Func<int,int[|>|]> f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func<Func$$<int,int>> f; }", @"public class C { Func<Func<int,int[|>|]> f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket4()
     {
-        var code = @"public class C { Func<Func<$$int,int>> f; }";
-        var expected = @"public class C { Func<Func<int,int[|>|]> f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func<Func<$$int,int>> f; }", @"public class C { Func<Func<int,int[|>|]> f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket5()
     {
-        var code = @"public class C { Func<Func<int,int$$>> f; }";
-        var expected = @"public class C { Func<Func[|<|]int,int>> f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func<Func<int,int$$>> f; }", @"public class C { Func<Func[|<|]int,int>> f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket6()
     {
-        var code = @"public class C { Func<Func<int,int>$$> f; }";
-        var expected = @"public class C { Func<Func[|<|]int,int>> f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func<Func<int,int>$$> f; }", @"public class C { Func<Func[|<|]int,int>> f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket7()
     {
-        var code = @"public class C { Func<Func<int,int> $$> f; }";
-        var expected = @"public class C { Func[|<|]Func<int,int> > f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func<Func<int,int> $$> f; }", @"public class C { Func[|<|]Func<int,int> > f; }");
     }
 
     [Fact]
     public async Task TestNestedAngleBracket8()
     {
-        var code = @"public class C { Func<Func<int,int>>$$ f; }";
-        var expected = @"public class C { Func[|<|]Func<int,int>> f; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { Func<Func<int,int>>$$ f; }", @"public class C { Func[|<|]Func<int,int>> f; }");
     }
 
     [Fact]
     public async Task TestString1()
     {
-        var code = @"public class C { string s = $$""Goo""; }";
-        var expected = @"public class C { string s = ""Goo[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = $$""Goo""; }", @"public class C { string s = ""Goo[|""|]; }");
     }
 
     [Fact]
     public async Task TestString2()
     {
-        var code = @"public class C { string s = ""$$Goo""; }";
-        var expected = @"public class C { string s = ""Goo[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""$$Goo""; }", @"public class C { string s = ""Goo[|""|]; }");
     }
 
     [Fact]
     public async Task TestString3()
     {
-        var code = @"public class C { string s = ""Goo$$""; }";
-        var expected = @"public class C { string s = [|""|]Goo""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""Goo$$""; }", @"public class C { string s = [|""|]Goo""; }");
     }
 
     [Fact]
     public async Task TestString4()
     {
-        var code = @"public class C { string s = ""Goo""$$; }";
-        var expected = @"public class C { string s = [|""|]Goo""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""Goo""$$; }", @"public class C { string s = [|""|]Goo""; }");
     }
 
     [Fact]
     public async Task TestString5()
     {
-        var code = @"public class C { string s = ""Goo$$ ";
-        var expected = @"public class C { string s = ""Goo ";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""Goo$$ ", @"public class C { string s = ""Goo ");
     }
 
     [Fact]
     public async Task TestVerbatimString1()
     {
-        var code = @"public class C { string s = $$@""Goo""; }";
-        var expected = @"public class C { string s = @""Goo[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = $$@""Goo""; }", @"public class C { string s = @""Goo[|""|]; }");
     }
 
     [Fact]
     public async Task TestVerbatimString2()
     {
-        var code = @"public class C { string s = @$$""Goo""; }";
-        var expected = @"public class C { string s = @""Goo[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @$$""Goo""; }", @"public class C { string s = @""Goo[|""|]; }");
     }
 
     [Fact]
     public async Task TestVerbatimString3()
     {
-        var code = @"public class C { string s = @""$$Goo""; }";
-        var expected = @"public class C { string s = @""Goo[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""$$Goo""; }", @"public class C { string s = @""Goo[|""|]; }");
     }
 
     [Fact]
     public async Task TestVerbatimString4()
     {
-        var code = @"public class C { string s = @""Goo$$""; }";
-        var expected = @"public class C { string s = [|@""|]Goo""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""Goo$$""; }", @"public class C { string s = [|@""|]Goo""; }");
     }
 
     [Fact]
     public async Task TestVerbatimString5()
     {
-        var code = @"public class C { string s = @""Goo""$$; }";
-        var expected = @"public class C { string s = [|@""|]Goo""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""Goo""$$; }", @"public class C { string s = [|@""|]Goo""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString1()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""$${x}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x[|}|], {y}""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""$${x}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x[|}|], {y}""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString2()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{$$x}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x[|}|], {y}""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{$$x}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x[|}|], {y}""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString3()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x$$}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""[|{|]x}, {y}""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x$$}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""[|{|]x}, {y}""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString4()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}$$, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""[|{|]x}, {y}""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}$$, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""[|{|]x}, {y}""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString5()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, $${y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y[|}|]""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, $${y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y[|}|]""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString6()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {$$y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y[|}|]""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {$$y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y[|}|]""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString7()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y$$}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, [|{|]y}""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y$$}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, [|{|]y}""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString8()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}$$""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, [|{|]y}""; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}$$""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, [|{|]y}""; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString9()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$""{x}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$""{x}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}[|""|]; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString10()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$""{x}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$""{x}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $""{x}, {y}[|""|]; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString11()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$@""{x}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $$[||]$@""{x}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString12()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$@""{x}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $[||]$$@""{x}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }");
     }
 
     [Fact]
     public async Task TestInterpolatedString13()
     {
-        var code = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@$$""{x}, {y}""; }";
-        var expected = @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@$$""{x}, {y}""; }", @"public class C { void M() { var x = ""Hello""; var y = ""World""; var s = $@""{x}, {y}[|""|]; }");
     }
 
     [Fact]
     public async Task TestUtf8String1()
     {
-        var code = @"public class C { string s = $$""Goo""u8; }";
-        var expected = @"public class C { string s = ""Goo[|""u8|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = $$""Goo""u8; }", @"public class C { string s = ""Goo[|""u8|]; }");
     }
 
     [Fact]
     public async Task TestUtf8String2()
     {
-        var code = @"public class C { string s = ""$$Goo""u8; }";
-        var expected = @"public class C { string s = ""Goo[|""u8|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""$$Goo""u8; }", @"public class C { string s = ""Goo[|""u8|]; }");
     }
 
     [Fact]
     public async Task TestUtf8String3()
     {
-        var code = @"public class C { string s = ""Goo$$""u8; }";
-        var expected = @"public class C { string s = [|""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""Goo$$""u8; }", @"public class C { string s = [|""|]Goo""u8; }");
     }
 
     [Fact]
     public async Task TestUtf8String4()
     {
-        var code = @"public class C { string s = ""Goo""$$u8; }";
-        var expected = @"public class C { string s = [|""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""Goo""$$u8; }", @"public class C { string s = [|""|]Goo""u8; }");
     }
 
     [Fact]
     public async Task TestUtf8String5()
     {
-        var code = @"public class C { string s = ""Goo""u$$8; }";
-        var expected = @"public class C { string s = [|""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""Goo""u$$8; }", @"public class C { string s = [|""|]Goo""u8; }");
     }
 
     [Fact]
     public async Task TestUtf8String6()
     {
-        var code = @"public class C { string s = ""Goo""u8$$; }";
-        var expected = @"public class C { string s = [|""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = ""Goo""u8$$; }", @"public class C { string s = [|""|]Goo""u8; }");
     }
 
     [Fact]
     public async Task TestVerbatimUtf8String1()
     {
-        var code = @"public class C { string s = $$@""Goo""u8; }";
-        var expected = @"public class C { string s = @""Goo[|""u8|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = $$@""Goo""u8; }", @"public class C { string s = @""Goo[|""u8|]; }");
     }
 
     [Fact]
     public async Task TestVerbatimUtf8String2()
     {
-        var code = @"public class C { string s = @$$""Goo""u8; }";
-        var expected = @"public class C { string s = @""Goo[|""u8|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @$$""Goo""u8; }", @"public class C { string s = @""Goo[|""u8|]; }");
     }
 
     [Fact]
     public async Task TestVerbatimUtf8String3()
     {
-        var code = @"public class C { string s = @""$$Goo""u8; }";
-        var expected = @"public class C { string s = @""Goo[|""u8|]; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""$$Goo""u8; }", @"public class C { string s = @""Goo[|""u8|]; }");
     }
 
     [Fact]
     public async Task TestVerbatimUtf8String4()
     {
-        var code = @"public class C { string s = @""Goo$$""u8; }";
-        var expected = @"public class C { string s = [|@""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""Goo$$""u8; }", @"public class C { string s = [|@""|]Goo""u8; }");
     }
 
     [Fact]
     public async Task TestVerbatimUtf8String5()
     {
-        var code = @"public class C { string s = @""Goo""$$u8; }";
-        var expected = @"public class C { string s = [|@""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""Goo""$$u8; }", @"public class C { string s = [|@""|]Goo""u8; }");
     }
 
     [Fact]
     public async Task TestVerbatimUtf8String6()
     {
-        var code = @"public class C { string s = @""Goo""u$$8; }";
-        var expected = @"public class C { string s = [|@""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""Goo""u$$8; }", @"public class C { string s = [|@""|]Goo""u8; }");
     }
 
     [Fact]
     public async Task TestVerbatimUtf8String7()
     {
-        var code = @"public class C { string s = @""Goo""u8$$; }";
-        var expected = @"public class C { string s = [|@""|]Goo""u8; }";
-
-        await TestAsync(code, expected);
+        await TestAsync(@"public class C { string s = @""Goo""u8$$; }", @"public class C { string s = [|@""|]Goo""u8; }");
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestConditionalDirectiveWithSingleMatchingDirective()
     {
-        var code = """
+        await TestAsync("""
             public class C 
             {
             #if$$ CHK 
             #endif
             }
-            """;
-        var expected = """
+            """, """
             public class C 
             {
             #if$$ CHK 
             [|#endif|]
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestConditionalDirectiveWithTwoMatchingDirectives()
     {
-        var code = """
+        await TestAsync("""
             public class C 
             {
             #if$$ CHK 
             #else
             #endif
             }
-            """;
-        var expected = """
+            """, """
             public class C 
             {
             #if$$ CHK 
             [|#else|]
             #endif
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestConditionalDirectiveWithAllMatchingDirectives()
     {
-        var code = """
+        await TestAsync("""
             public class C 
             {
             #if CHK 
@@ -675,8 +468,7 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
             #else
             #endif$$
             }
-            """;
-        var expected = """
+            """, """
             public class C 
             {
             [|#if|] CHK 
@@ -684,36 +476,31 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
             #else
             #endif
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestRegionDirective()
     {
-        var code = """
+        await TestAsync("""
             public class C 
             {
             $$#region test
             #endregion
             }
-            """;
-        var expected = """
+            """, """
             public class C 
             {
             #region test
             [|#endregion|]
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestInterleavedDirectivesInner()
     {
-        var code = """
+        await TestAsync("""
             #define CHK
             public class C 
             {
@@ -728,8 +515,7 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
             #endif
                 }
             }
-            """;
-        var expected = """
+            """, """
             #define CHK
             public class C 
             {
@@ -744,15 +530,13 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
             #endif
                 }
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestInterleavedDirectivesOuter()
     {
-        var code = """
+        await TestAsync("""
             #define CHK
             public class C 
             {
@@ -767,8 +551,7 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
             #endif
                 }
             }
-            """;
-        var expected = """
+            """, """
             #define CHK
             public class C 
             {
@@ -783,53 +566,45 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
             #endif
                 }
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestUnmatchedDirective1()
     {
-        var code = """
+        await TestAsync("""
             public class C 
             {
             $$#region test
             }
-            """;
-        var expected = """
+            """, """
             public class C 
             {
             #region test
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")]
     public async Task TestUnmatchedDirective2()
     {
-        var code = """
+        await TestAsync("""
             #d$$efine CHK
             public class C 
             {
             }
-            """;
-        var expected = """
+            """, """
             #define CHK
             public class C 
             {
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
     public async Task TestUnmatchedConditionalDirective()
     {
-        var code = """
+        await TestAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -837,8 +612,7 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
 
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Program
             {
                 static void Main(string[] args)
@@ -846,15 +620,13 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
 
                 }
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7534")]
     public async Task TestUnmatchedConditionalDirective2()
     {
-        var code = """
+        await TestAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -862,8 +634,7 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
 
                 }
             }
-            """;
-        var expected = """
+            """, """
             class Program
             {
                 static void Main(string[] args)
@@ -871,89 +642,60 @@ public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
 
                 }
             }
-            """;
-
-        await TestAsync(code, expected);
+            """);
     }
 
     [Fact]
     public async Task StartTupleDeclaration()
     {
-        var code = @"public class C { $$(int, int, int, int, int, int, int, int) x; }";
-        var expected = @"public class C { (int, int, int, int, int, int, int, int[|)|] x; }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { $$(int, int, int, int, int, int, int, int) x; }", @"public class C { (int, int, int, int, int, int, int, int[|)|] x; }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task EndTupleDeclaration()
     {
-        var code = @"public class C { (int, int, int, int, int, int, int, int)$$ x; }";
-        var expected = @"public class C { [|(|]int, int, int, int, int, int, int, int) x; }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { (int, int, int, int, int, int, int, int)$$ x; }", @"public class C { [|(|]int, int, int, int, int, int, int, int) x; }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task StartTupleLiteral()
     {
-        var code = @"public class C { var x = $$(1, 2, 3, 4, 5, 6, 7, 8); }";
-        var expected = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8[|)|]; }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { var x = $$(1, 2, 3, 4, 5, 6, 7, 8); }", @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8[|)|]; }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task EndTupleLiteral()
     {
-        var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8)$$; }";
-        var expected = @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, 8); }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { var x = (1, 2, 3, 4, 5, 6, 7, 8)$$; }", @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, 8); }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task StartNestedTupleLiteral()
     {
-        var code = @"public class C { var x = $$((1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
-        var expected = @"public class C { var x = ((1, 1, 1), 2, 3, 4, 5, 6, 7, 8[|)|]; }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { var x = $$((1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }", @"public class C { var x = ((1, 1, 1), 2, 3, 4, 5, 6, 7, 8[|)|]; }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task StartInnerNestedTupleLiteral()
     {
-        var code = @"public class C { var x = ($$(1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
-        var expected = @"public class C { var x = ((1, 1, 1[|)|], 2, 3, 4, 5, 6, 7, 8); }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { var x = ($$(1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }", @"public class C { var x = ((1, 1, 1[|)|], 2, 3, 4, 5, 6, 7, 8); }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task EndNestedTupleLiteral()
     {
-        var code = @"public class C { var x = (1, 2, 3, 4, 5, 6, 7, (8, 8, 8))$$; }";
-        var expected = @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, (8, 8, 8)); }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { var x = (1, 2, 3, 4, 5, 6, 7, (8, 8, 8))$$; }", @"public class C { var x = [|(|]1, 2, 3, 4, 5, 6, 7, (8, 8, 8)); }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task EndInnerNestedTupleLiteral()
     {
-        var code = @"public class C { var x = ((1, 1, 1)$$, 2, 3, 4, 5, 6, 7, 8); }";
-        var expected = @"public class C { var x = ([|(|]1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public class C { var x = ((1, 1, 1)$$, 2, 3, 4, 5, 6, 7, 8); }", @"public class C { var x = ([|(|]1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }", TestOptions.Regular);
     }
 
     [Fact]
     public async Task TestFunctionPointer()
     {
-        var code = @"public unsafe class C { delegate*<$$int, int> functionPointer; }";
-        var expected = @"public unsafe class C { delegate*<int, int[|>|] functionPointer; }";
-
-        await TestAsync(code, expected, TestOptions.Regular);
+        await TestAsync(@"public unsafe class C { delegate*<$$int, int> functionPointer; }", @"public unsafe class C { delegate*<int, int[|>|] functionPointer; }", TestOptions.Regular);
     }
 }

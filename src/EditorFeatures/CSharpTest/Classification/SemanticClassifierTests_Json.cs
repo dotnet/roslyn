@@ -146,7 +146,7 @@ public partial class SemanticClassifierTests
     [Theory, CombinatorialData]
     public async Task TestJson_NoComment_NotLikelyJson(TestHost testHost)
     {
-        var input = """
+        await TestAsync("""
             class C
             {
                 void Goo()
@@ -154,8 +154,7 @@ public partial class SemanticClassifierTests
                     var r = @"[1, 2, 3]";
                 }
             }
-            """;
-        await TestAsync(input,
+            """,
             testHost,
             Keyword("var"));
     }
@@ -163,7 +162,7 @@ public partial class SemanticClassifierTests
     [Theory, CombinatorialData]
     public async Task TestJson_NoComment_LikelyJson(TestHost testHost)
     {
-        var input = """
+        await TestAsync("""
             class C
             {
                 void Goo()
@@ -171,8 +170,7 @@ public partial class SemanticClassifierTests
                     var r = @"[1, { prop: 0 }, 3]";
                 }
             }
-            """;
-        await TestAsync(input,
+            """,
             testHost,
             Keyword("var"),
             Json.Array("["),

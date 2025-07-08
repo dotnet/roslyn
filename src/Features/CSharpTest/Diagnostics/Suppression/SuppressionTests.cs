@@ -1795,7 +1795,7 @@ class Class
             [Fact]
             public async Task TestSuppressionWithExistingGlobalSuppressionsDocument()
             {
-                var initialMarkup = @"<Workspace>
+                await TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1816,9 +1816,7 @@ using System.Diagnostics.CodeAnalysis;
 ]]>
         </Document>
     </Project>
-</Workspace>";
-                var expectedText =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
+</Workspace>", $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1827,16 +1825,13 @@ using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-";
-
-                await TestAsync(initialMarkup, expectedText);
+");
             }
 
             [Fact]
             public async Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
             {
-                // Own custom file named GlobalSuppressions.cs
-                var initialMarkup = @"<Workspace>
+                await TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1853,9 +1848,7 @@ class Class { }
 ]]>
         </Document>
     </Project>
-</Workspace>";
-                var expectedText =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
+</Workspace>", $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1863,16 +1856,13 @@ $@"// This file is used by Code Analysis to maintain SuppressMessage
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-";
-
-                await TestAsync(initialMarkup, expectedText);
+");
             }
 
             [Fact]
             public async Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
             {
-                // Own custom file named GlobalSuppressions.cs + existing GlobalSuppressions2.cs with global suppressions
-                var initialMarkup = @"<Workspace>
+                await TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1899,9 +1889,7 @@ using System.Diagnostics.CodeAnalysis;
 ]]>
         </Document>
     </Project>
-</Workspace>";
-                var expectedText =
-$@"// This file is used by Code Analysis to maintain SuppressMessage
+</Workspace>", $@"// This file is used by Code Analysis to maintain SuppressMessage
 // attributes that are applied to this project.
 // Project-level suppressions either have no target or are given
 // a specific target and scoped to a namespace, type, member, etc.
@@ -1910,15 +1898,13 @@ using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-";
-
-                await TestAsync(initialMarkup, expectedText);
+");
             }
 
             [Fact]
             public async Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
             {
-                var initialMarkup = @"<Workspace>
+                await TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1935,22 +1921,18 @@ using System.Diagnostics.CodeAnalysis;
 ]]>
         </Document>
     </Project>
-</Workspace>";
-                var expectedText =
-                    $@"
+</Workspace>", $@"
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-";
-
-                await TestAsync(initialMarkup, expectedText);
+");
             }
 
             [Fact]
             public async Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
             {
-                var initialMarkup = @"<Workspace>
+                await TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1965,16 +1947,12 @@ class Class { }
 ]]>
         </Document>
     </Project>
-</Workspace>";
-                var expectedText =
-$@"
+</Workspace>", $@"
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
-";
-
-                await TestAsync(initialMarkup, expectedText);
+");
             }
         }
     }
@@ -2027,17 +2005,6 @@ using System.Diagnostics.CodeAnalysis;
             [Fact]
             public async Task TestSuppressionOnSimpleType()
             {
-                var initial = @"
-using System;
-
-// Some trivia
-/* More Trivia */ [|class Class|]
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2051,7 +2018,17 @@ class Class
         int x = 0;
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+// Some trivia
+/* More Trivia */ [|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("class Class", "[|class Class|]");
@@ -2062,19 +2039,6 @@ class Class
             public async Task TestSuppressionOnSimpleType2()
             {
                 // Type already has attributes.
-                var initial = @"
-using System;
-
-// Some trivia
-/* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-[|class Class|]
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2089,7 +2053,19 @@ class Class
         int x = 0;
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("class Class", "[|class Class|]");
@@ -2100,20 +2076,6 @@ class Class
             public async Task TestSuppressionOnSimpleType3()
             {
                 // Type already has attributes with trailing trivia.
-                var initial = @"
-using System;
-
-// Some trivia
-/* More Trivia */
-[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
-/* Some More Trivia */
-[|class Class|]
-{
-    int Method()
-    {
-        int x = 0;
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2129,7 +2091,20 @@ class Class
         int x = 0;
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+// Some trivia
+/* More Trivia */
+[System.Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification = ""<Pending>"")]
+/* Some More Trivia */
+[|class Class|]
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("class Class", "[|class Class|]");
@@ -2139,22 +2114,6 @@ class Class
             [Fact]
             public async Task TestSuppressionOnTypeInsideNamespace()
             {
-                var initial = @"
-using System;
-
-namespace N1
-{
-    namespace N2
-    {
-        [|class Class|]
-        {
-            int Method()
-            {
-                int x = 0;
-            }
-        }
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2172,7 +2131,22 @@ namespace N1
         }}
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+namespace N1
+{
+    namespace N2
+    {
+        [|class Class|]
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("class Class", "[|class Class|]");
@@ -2182,22 +2156,6 @@ namespace N1
             [Fact]
             public async Task TestSuppressionOnNestedType()
             {
-                var initial = @"
-using System;
-
-namespace N
-{
-    class Generic<T>
-    {
-        [|class Class|]
-        {
-            int Method()
-            {
-                int x = 0;
-            }
-        }
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2215,7 +2173,22 @@ namespace N
         }}
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+namespace N
+{
+    class Generic<T>
+    {
+        [|class Class|]
+        {
+            int Method()
+            {
+                int x = 0;
+            }
+        }
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("class Class", "[|class Class|]");
@@ -2225,22 +2198,6 @@ namespace N
             [Fact]
             public async Task TestSuppressionOnMethod()
             {
-                var initial = @"
-using System;
-
-namespace N
-{
-    class Generic<T>
-    {
-        class Class
-        {
-            [|int Method()|]
-            {
-                int x = 0;
-            }
-        }
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2258,7 +2215,22 @@ namespace N
         }}
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+namespace N
+{
+    class Generic<T>
+    {
+        class Class
+        {
+            [|int Method()|]
+            {
+                int x = 0;
+            }
+        }
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("int Method()", "[|int Method()|]");
@@ -2268,7 +2240,23 @@ namespace N
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47427")]
             public async Task TestSuppressionOnMethodWithXmlDoc()
             {
-                var initial = @"
+                var expected = $@"
+using System;
+
+namespace ClassLibrary10
+{{
+    public class Class1
+    {{
+        int x;
+
+        /// <summary>
+        /// This is a description
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
+        public void Method(int unused) {{ }}
+    }}
+}}";
+                await TestAsync(@"
 using System;
 
 namespace ClassLibrary10
@@ -2282,24 +2270,7 @@ namespace ClassLibrary10
         /// </summary>
         [|public void Method(int unused)|] { }
     }
-}";
-                var expected = $@"
-using System;
-
-namespace ClassLibrary10
-{{
-    public class Class1
-    {{
-        int x;
-
-        /// <summary>
-        /// This is a description
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"")]
-        public void Method(int unused) {{ }}
-    }}
-}}";
-                await TestAsync(initial, expected);
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");
@@ -2309,17 +2280,6 @@ namespace ClassLibrary10
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47427")]
             public async Task TestSuppressionOnMethodWithNoTrivia()
             {
-                var initial = @"
-using System;
-
-namespace ClassLibrary10
-{
-    public class Class1
-    {
-        int x;
-[|public void Method(int unused)|] { }
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2332,7 +2292,17 @@ namespace ClassLibrary10
         public void Method(int unused) {{ }}
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+namespace ClassLibrary10
+{
+    public class Class1
+    {
+        int x;
+[|public void Method(int unused)|] { }
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");
@@ -2342,17 +2312,6 @@ namespace ClassLibrary10
             [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47427")]
             public async Task TestSuppressionOnMethodWithTriviaStartsOnTheSameLine()
             {
-                var initial = @"
-using System;
-
-namespace ClassLibrary10
-{
-    public class Class1
-    {
-        int x;
-        /*test*/[|public void Method(int unused)|] { }
-    }
-}";
                 var expected = $@"
 using System;
 
@@ -2366,7 +2325,17 @@ namespace ClassLibrary10
         public void Method(int unused) {{ }}
     }}
 }}";
-                await TestAsync(initial, expected);
+                await TestAsync(@"
+using System;
+
+namespace ClassLibrary10
+{
+    public class Class1
+    {
+        int x;
+        /*test*/[|public void Method(int unused)|] { }
+    }
+}", expected);
 
                 // Also verify that the added attribute does indeed suppress the diagnostic.
                 expected = expected.Replace("public void Method(int unused)", "[|public void Method(int unused)|]");

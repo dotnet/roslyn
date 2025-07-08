@@ -33,15 +33,14 @@ public class BasicReferenceHighlighting : AbstractEditorTest
     [IdeFact, Trait(Traits.Feature, Traits.Features.Classification)]
     public async Task Highlighting()
     {
-        var markup = @"
+        MarkupTestFile.GetSpans(@"
 Class C
     Dim {|definition:Goo|} as Int32
     Function M()
         Console.WriteLine({|reference:Goo|})
         {|writtenReference:Goo|} = 4
     End Function
-End Class";
-        MarkupTestFile.GetSpans(markup, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+End Class", out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
         await VerifyAsync("Goo", spans, HangMitigatingCancellationToken);
 

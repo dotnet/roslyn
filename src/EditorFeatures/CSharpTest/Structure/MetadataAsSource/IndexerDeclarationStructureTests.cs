@@ -19,29 +19,25 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task NoCommentsOrAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:public string $$this[int x] {|textspan:{ get; set; }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:[Goo]
                     |}{|hint2:public string $$this[int x] {|textspan2:{ get; set; }|}|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -49,7 +45,7 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAndAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -57,9 +53,7 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                     [Goo]
                     |}{|hint2:string $$this[int x] {|textspan2:{ get; set; }|}|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -67,7 +61,7 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAttributesAndmodifiers()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -75,9 +69,7 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                     [Goo]
                     |}{|hint2:public string $$this[int x] {|textspan2:{ get; set; }|}|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -85,7 +77,7 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task TestIndexer3()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public string this[int index]{|textspan:
@@ -95,9 +87,7 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 |}
                     int Value => 0;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

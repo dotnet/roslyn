@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact]
         public async Task TestSimpleCase_CSharpAsync()
         {
-            var code = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -30,8 +30,7 @@ class Analyzer : DiagnosticAnalyzer {
     {
     }
 }
-";
-            var fixedCode = @"
+", @"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -43,15 +42,13 @@ class Analyzer : DiagnosticAnalyzer {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+");
         }
 
         [Fact]
         public async Task TestSimpleCase_VisualBasicAsync()
         {
-            var code = @"
+            await VerifyVB.VerifyCodeFixAsync(@"
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -68,8 +65,7 @@ Class Analyzer
     Public Overrides Sub Initialize([|context|] As AnalysisContext)
     End Sub
 End Class
-";
-            var fixedCode = @"
+", @"
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -87,15 +83,13 @@ Class Analyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze Or GeneratedCodeAnalysisFlags.ReportDiagnostics)
     End Sub
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(code, fixedCode);
+");
         }
 
         [Fact]
         public async Task RenamedMethod_CSharpAsync()
         {
-            var code = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -111,15 +105,13 @@ class Analyzer : DiagnosticAnalyzer {
     {
     }
 }
-";
-
-            await VerifyCS.VerifyAnalyzerAsync(code);
+");
         }
 
         [Fact]
         public async Task RenamedMethod_VisualBasicAsync()
         {
-            var code = @"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -140,15 +132,13 @@ Class Analyzer
     Public Sub NotInitialize(context As AnalysisContext)
     End Sub
 End Class
-";
-
-            await VerifyVB.VerifyAnalyzerAsync(code);
+");
         }
 
         [Fact, WorkItem(2698, "https://github.com/dotnet/roslyn-analyzers/issues/2698")]
         public async Task RS1025_ExpressionBodiedMethodAsync()
         {
-            var code = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -158,8 +148,7 @@ class Analyzer : DiagnosticAnalyzer {
     public override void Initialize(AnalysisContext [|context|])
         => context.RegisterCompilationAction(x => { });
 }
-";
-            var fixedCode = @"
+", @"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -172,9 +161,7 @@ class Analyzer : DiagnosticAnalyzer {
         context.RegisterCompilationAction(x => { });
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+");
         }
     }
 }

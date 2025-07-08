@@ -3647,7 +3647,36 @@ class C
     [Fact(Skip = "TODO")]
     public void Lambdas_Update_Signature_CustomModifiers1()
     {
-        var delegateSource = @"
+        var src1 = @"
+using System;
+
+class C
+{
+    void G1(D1 f) {}
+    void G2(D2 f) {}
+
+    void F()
+    {
+        G1(a => a);
+    }
+}
+";
+        var src2 = @"
+using System;
+
+class C
+{
+    void G1(D1 f) {}
+    void G2(D2 f) {}
+
+    void F()
+    {
+        G2(a => a);
+    }
+}
+";
+        MetadataReference delegateDefs;
+        using (var tempAssembly = IlasmUtilities.CreateTempAssembly(@"
 .class public auto ansi sealed D1
        extends [mscorlib]System.MulticastDelegate
 {
@@ -3688,38 +3717,7 @@ class C
       int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst) b) runtime managed
   {
   }
-}";
-
-        var src1 = @"
-using System;
-
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
-
-    void F()
-    {
-        G1(a => a);
-    }
-}
-";
-        var src2 = @"
-using System;
-
-class C
-{
-    void G1(D1 f) {}
-    void G2(D2 f) {}
-
-    void F()
-    {
-        G2(a => a);
-    }
-}
-";
-        MetadataReference delegateDefs;
-        using (var tempAssembly = IlasmUtilities.CreateTempAssembly(delegateSource))
+}"))
         {
             delegateDefs = MetadataReference.CreateFromImage(File.ReadAllBytes(tempAssembly.Path));
         }
@@ -4363,28 +4361,22 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51297")]
     public void Lambdas_Update_CeaseCapture_IndexerParameter_WithExpressionBody_Partial()
     {
-        var srcA1 = @"
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(@"
 partial class C
 {
-}";
-        var srcB1 = @"
-partial class C
-{
-    int this[int a] => new System.Func<int>(() => a + 1);
-}";
-
-        var srcA2 = @"
+}", @"
 partial class C
 {
     int this[int a] => new System.Func<int>(() => 2); // no capture
-}";
-        var srcB2 = @"
+}"), GetTopEdits(@"
 partial class C
 {
-}";
-
-        EditAndContinueValidation.VerifySemantics(
-            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+    int this[int a] => new System.Func<int>(() => a + 1);
+}", @"
+partial class C
+{
+}")],
             [
                 DocumentResults(
                     semanticEdits: [

@@ -8757,7 +8757,7 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
     public async Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
     {
-        var source = """
+        await TestExactActionSetOfferedAsync("""
             class C
             {
                 C M(C x)
@@ -8767,29 +8767,26 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
 
                 C M2() => new C();
             }
-            """;
-
-        await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
+            """, [CodeFixesResources.Remove_redundant_assignment]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
     public async Task TestCodeFixTitleForExpressionBodyRedundantCompoundAssignmentReturn()
     {
-        var source = """
+        await TestExactActionSetOfferedAsync("""
             class C
             {
                 C M(C x) => [|x ??= M2()|];
 
                 C M2() => new C();
             }
-            """;
-        await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
+            """, [CodeFixesResources.Remove_redundant_assignment]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
     public async Task TestCodeFixTitleForPatternMatching()
     {
-        var source = """
+        await TestExactActionSetOfferedAsync("""
             class C
             {
                 void M()
@@ -8802,15 +8799,13 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
 
                 C M2() => new C();
             }
-            """;
-
-        await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
+            """, [CodeFixesResources.Remove_redundant_assignment]);
     }
 
     [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
     public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
     {
-        var source = """
+        await TestInRegularAndScriptAsync("""
             using System;
             namespace ConsoleApp
             {
@@ -8832,8 +8827,7 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                     }
             	}
             }
-            """;
-        var expected = """
+            """, """
             using System;
             namespace ConsoleApp
             {
@@ -8855,8 +8849,7 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                     }
             	}
             }
-            """;
-        await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
+            """, options: PreferDiscard).ConfigureAwait(false);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]

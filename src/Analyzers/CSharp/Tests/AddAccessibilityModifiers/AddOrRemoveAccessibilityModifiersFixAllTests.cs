@@ -25,20 +25,16 @@ public sealed class AddOrRemoveAccessibilityModifiersFixAllTests(ITestOutputHelp
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllInContainingType_DoesNotCrashInDuplicateProgramInTopLevelStatements()
     {
-        var input = """
+        await TestAsync("""
             Console.WriteLine("Hello, World!");
             class {|FixAllInContainingType:Program|}
             {
             }
-            """;
-
-        var expected = """
+            """, """
             Console.WriteLine("Hello, World!");
             internal class Program
             {
             }
-            """;
-
-        await TestAsync(input, expected, TestParameters.Default.parseOptions);
+            """, TestParameters.Default.parseOptions);
     }
 }

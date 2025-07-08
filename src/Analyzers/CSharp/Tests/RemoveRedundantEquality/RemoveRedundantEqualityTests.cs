@@ -20,7 +20,7 @@ public sealed class RemoveRedundantEqualityTests
     [Fact]
     public async Task TestSimpleCaseForEqualsTrue()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -28,8 +28,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x [|==|] true;
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             public class C
             {
                 public bool M1(bool x)
@@ -37,8 +36,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact]
@@ -64,7 +62,7 @@ public sealed class RemoveRedundantEqualityTests
     [Fact]
     public async Task TestSimpleCaseForNotEqualsFalse()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -72,8 +70,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x [|!=|] false;
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             public class C
             {
                 public bool M1(bool x)
@@ -81,8 +78,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact]
@@ -108,7 +104,7 @@ public sealed class RemoveRedundantEqualityTests
     [Fact]
     public async Task TestNullable_NoDiagnostics()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public bool M1(bool? x)
@@ -116,14 +112,13 @@ public sealed class RemoveRedundantEqualityTests
                     return x == true;
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestWhenConstant_NoDiagnostics()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public const bool MyTrueConstant = true;
@@ -133,14 +128,13 @@ public sealed class RemoveRedundantEqualityTests
                     return x == MyTrueConstant;
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestOverloadedOperator_NoDiagnostics()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public static bool operator ==(C a, bool b) => false;
@@ -151,14 +145,13 @@ public sealed class RemoveRedundantEqualityTests
                     return x == true;
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestOnLeftHandSide()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -166,8 +159,7 @@ public sealed class RemoveRedundantEqualityTests
                     return true [|==|] x;
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             public class C
             {
                 public bool M1(bool x)
@@ -175,14 +167,13 @@ public sealed class RemoveRedundantEqualityTests
                     return x;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestInArgument()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -190,8 +181,7 @@ public sealed class RemoveRedundantEqualityTests
                     return M1(x [|==|] true);
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             public class C
             {
                 public bool M1(bool x)
@@ -199,14 +189,13 @@ public sealed class RemoveRedundantEqualityTests
                     return M1(x);
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestFixAll()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -224,8 +213,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x [|==|] true [|==|] true;
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             public class C
             {
                 public bool M1(bool x)
@@ -243,14 +231,13 @@ public sealed class RemoveRedundantEqualityTests
                     return x;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48236")]
     public async Task TestNullableValueTypes_DoesNotCrash()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public bool M1(int? x)
@@ -258,14 +245,13 @@ public sealed class RemoveRedundantEqualityTests
                     return x == null;
                 }
             }
-            """;
-        await VerifyCS.VerifyAnalyzerAsync(code);
+            """);
     }
 
     [Fact]
     public async Task TestSimpleCaseForIsFalse()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -273,8 +259,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x [|is|] false;
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             public class C
             {
                 public bool M1(bool x)
@@ -282,14 +267,13 @@ public sealed class RemoveRedundantEqualityTests
                     return !x;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestSimpleCaseForIsTrue1()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -297,8 +281,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x [|is|] true;
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             public class C
             {
                 public bool M1(bool x)
@@ -306,8 +289,7 @@ public sealed class RemoveRedundantEqualityTests
                     return x;
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact]
