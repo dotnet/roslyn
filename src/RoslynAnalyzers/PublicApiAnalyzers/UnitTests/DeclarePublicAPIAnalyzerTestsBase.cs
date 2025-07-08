@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             var expectedDiagnostics = Array.Empty<DiagnosticResult>();
             if (!editorconfigText.EndsWith("true", StringComparison.OrdinalIgnoreCase))
             {
-                expectedDiagnostics = new[] { GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C") };
+                expectedDiagnostics = [GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C")];
             }
 
             await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\n{editorconfigText}", expectedDiagnostics);
@@ -1319,7 +1319,7 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
                     // Test0.cs(27,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                     GetCSharpResultAt(27, 19, AvoidMultipleOverloadsWithOptionalParameters, "Method5", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri)
                 }
-                : new[] {
+                : [
                     // Test0.cs(5,17): warning RS0016: Symbol 'C.Method1(int p1, int p2, int p3 = 0) -> void' is not part of the declared API.
                     GetCSharpResultAt(5, 17, DeclareNewApiRule, "C.Method1(int p1, int p2, int p3 = 0) -> void"),
                     // Test0.cs(8,17): warning RS0016: Symbol 'C.Method1(char p1, params int[] p2) -> void' is not part of the declared API.
@@ -1334,7 +1334,7 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
                     GetCSharpResultAt(26, 17, AvoidMultipleOverloadsWithOptionalParameters, "Method5", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
                     // Test0.cs(27,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                     GetCSharpResultAt(27, 17, AvoidMultipleOverloadsWithOptionalParameters, "Method5", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri)
-                };
+                ];
 
             await VerifyCSharpAsync(source, shippedText, unshippedText, result);
         }
@@ -1406,10 +1406,10 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
                 C.Method6(string p1) -> void
                 """;
 
-            var diagnostics = IsInternalTest ? new DiagnosticResult[] {
+            var diagnostics = IsInternalTest ? [
                 // /0/Test0.cs(11,19): warning RS0059: Symbol 'Method2' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
                 GetCSharpResultAt(11, 19, AvoidMultipleOverloadsWithOptionalParameters, "Method2", AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
-             } : Array.Empty<DiagnosticResult>();
+             ] : Array.Empty<DiagnosticResult>();
 
             diagnostics = diagnostics.Concat(new[] {
                 // Test0.cs(21,17): warning RS0027: Symbol 'Method4' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.

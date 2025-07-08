@@ -263,11 +263,10 @@ namespace SampleNamespace
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code,
-                new[]
-                {
+                [
                     VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(14, 29, 14, 50),
                     VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithSpan(15, 20, 15, 58),
-                }, code);
+                ], code);
         }
         [Fact]
         public async Task ShouldReplacEmptyCollectionCreationWithArrayEmptyAsync()

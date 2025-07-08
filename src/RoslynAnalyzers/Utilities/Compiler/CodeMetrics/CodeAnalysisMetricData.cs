@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             {
                 foreach (var child in Children)
                 {
-                    foreach (var line in child.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var line in child.ToString().Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries))
                     {
                         builder.AppendLine();
                         builder.Append($"{indent}{line}");
