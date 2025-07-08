@@ -155,7 +155,8 @@ be done incrementally. Doing so can have an outsized impact on IDE and command-l
   This has a couple of problems: first, every attributed type needs to be checked to see if the attribute inherits from the marker attribute. While not as performance
   impacting as the first three scenarios, this isn't great for performance. Second, and more importantly, there is no good way to retrieve any customizations from the
   inherited attribute. These attributes are not instantiated by the source generator, so any parameters passed to the `base()` constructor call or values that are assigned
-  to any properties of the base attribute are not visible to the generator.
+  to any properties of the base attribute are not visible to the generator. Prefer using FAWMN-driven development here, and using an analyzer to inform the user if they
+  need to inherit from some base class for your generator to work correctly.
 
 ## Designs
 
