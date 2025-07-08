@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<LocalSymbol, LocalSymbol> localMap = new Dictionary<LocalSymbol, LocalSymbol>();
 
         //to handle type changes (e.g. type parameters) we need to update placeholders
-        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundValuePlaceholderBase> _placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundValuePlaceholderBase>();
 
         // A mapping for types in the original method to types in its replacement.  This is mainly necessary
         // when the original method was generic, as type parameters in the original method are mapping into
@@ -131,11 +131,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getAwaiter = (BoundExpression?)this.Visit(node.GetAwaiter);
             var isCompleted = VisitPropertySymbol(node.IsCompleted);
             var getResult = VisitMethodSymbol(node.GetResult);
-            var runtimeAsyncAwaitMethod = VisitMethodSymbol(node.RuntimeAsyncAwaitMethod);
 
             _placeholderMap.Remove(awaitablePlaceholder);
 
-            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitMethod);
+            BoundCall? runtimeAsyncAwaitCall = null;
+            var runtimeAsyncAwaitCallPlaceholder = node.RuntimeAsyncAwaitCallPlaceholder;
+            var rewrittenRuntimeAsyncAwaitCallPlaceholder = runtimeAsyncAwaitCallPlaceholder;
+            if (rewrittenRuntimeAsyncAwaitCallPlaceholder is not null)
+            {
+                rewrittenRuntimeAsyncAwaitCallPlaceholder = runtimeAsyncAwaitCallPlaceholder!.Update(VisitType(runtimeAsyncAwaitCallPlaceholder.Type));
+                _placeholderMap.Add(runtimeAsyncAwaitCallPlaceholder, rewrittenRuntimeAsyncAwaitCallPlaceholder);
+                runtimeAsyncAwaitCall = (BoundCall?)this.Visit(node.RuntimeAsyncAwaitCall);
+                _placeholderMap.Remove(runtimeAsyncAwaitCallPlaceholder);
+            }
+            else
+            {
+                Debug.Assert(node.RuntimeAsyncAwaitCall is null);
+            }
+
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult, runtimeAsyncAwaitCall, rewrittenRuntimeAsyncAwaitCallPlaceholder);
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)

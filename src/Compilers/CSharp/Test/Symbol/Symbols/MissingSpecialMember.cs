@@ -570,10 +570,6 @@ namespace System
                     || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter
                     || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter
-                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTask
-                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitTaskT_T
-                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTask
-                    || special == SpecialMember.System_Runtime_CompilerServices_AsyncHelpers__AwaitValueTaskT_T
                     )
                 {
                     Assert.Null(symbol); // Not available
