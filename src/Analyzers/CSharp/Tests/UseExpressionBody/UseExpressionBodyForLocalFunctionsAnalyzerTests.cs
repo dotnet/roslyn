@@ -48,9 +48,8 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
         }.RunAsync();
 
     [Fact]
-    public async Task TestUseExpressionBody1()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBody1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -74,12 +73,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody2()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBody2()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -103,12 +100,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody3()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBody3()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -132,12 +127,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody4()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBody4()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -161,7 +154,6 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestUseExpressionBodyWhenOnSingleLineMissing()
@@ -184,9 +176,8 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
     }
 
     [Fact]
-    public async Task TestUseExpressionBodyWhenOnSingleLine()
-    {
-        await TestWithUseExpressionBodyWhenOnSingleLine("""
+    public Task TestUseExpressionBodyWhenOnSingleLine()
+        => TestWithUseExpressionBodyWhenOnSingleLine("""
             class C
             {
                 void Goo()
@@ -206,12 +197,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBody1()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBody1()
+        => TestWithUseBlockBody("""
             class C
             {
                 void Test() { }
@@ -235,12 +224,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBody2()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBody2()
+        => TestWithUseBlockBody("""
             class C
             {
                 int Test() { return 0; }
@@ -264,12 +251,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBody3()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBody3()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
@@ -293,12 +278,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBody4()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBody4()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
@@ -322,12 +305,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments1()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestComments1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -354,12 +335,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments2()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestComments2()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -386,12 +365,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments3()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestComments3()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -422,12 +399,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments4()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestComments4()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -451,12 +426,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments5()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestComments5()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -480,12 +453,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComments6()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestComments6()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -513,12 +484,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDirectives1()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestDirectives1()
+        => TestWithUseExpressionBody("""
             #define DEBUG
             using System;
 
@@ -550,12 +519,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDirectives2()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestDirectives2()
+        => TestWithUseExpressionBody("""
             #define DEBUG
             using System;
 
@@ -591,12 +558,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBodyAsync1()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBodyAsync1()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -624,12 +589,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 Task Test() { return Task.CompletedTask; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBodyAsync2()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBodyAsync2()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -657,12 +620,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 Task Test() { return Task.CompletedTask; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBodyAsync3()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBodyAsync3()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -690,12 +651,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 Task Bar() { return Task.CompletedTask; }
             }
             """, ReferenceAssemblies.NetStandard.NetStandard21);
-    }
 
     [Fact]
-    public async Task TestUseBlockBodyAsync4()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBodyAsync4()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -723,12 +682,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 Task<int> Bar() { return Task.FromResult(0); }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBodyAsync5()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBodyAsync5()
+        => TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -756,12 +713,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 Task Bar() { return Task.CompletedTask; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBodyNestedLocalFunction()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBodyNestedLocalFunction()
+        => TestWithUseBlockBody("""
             class C
             {
                 void NestedTest() { }
@@ -791,12 +746,10 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseExpressionBodyNestedLocalFunction()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBodyNestedLocalFunction()
+        => TestWithUseExpressionBody("""
             class C
             {
                 void NestedTest() { }
@@ -826,7 +779,6 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57570")]
     public Task TestUseExpressionBodyTopLevelStatment()

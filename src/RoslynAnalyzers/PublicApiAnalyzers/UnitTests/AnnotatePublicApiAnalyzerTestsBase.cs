@@ -74,9 +74,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #region Fix tests
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenUnannotatedClassConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task NoObliviousWhenUnannotatedClassConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C<T> where T : class
                 {
@@ -85,12 +84,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 C<T>.C() -> void
 C<T>
 ");
-        }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenAnnotatedClassConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task NoObliviousWhenAnnotatedClassConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C<T> where T : class?
                 {
@@ -99,7 +96,6 @@ C<T>
 C<T>.C() -> void
 C<T>
 ");
-        }
 
         [Fact]
         public async Task NoObliviousWhenAnnotatedClassConstraintMultipleFiles()
@@ -137,9 +133,8 @@ C<T>
         }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task ObliviousWhenObliviousClassConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousWhenObliviousClassConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class {|{{ObliviousApiId}}:C|}<T> // oblivious
                 #nullable disable
@@ -150,12 +145,10 @@ C<T>
 C<T>.C() -> void
 ~C<T>
 ");
-        }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class D { }
                 {{EnabledModifier}} class C<T> where T : D
@@ -167,12 +160,10 @@ C<T>
 D
 D.D() -> void
 ");
-        }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class D { }
                 {{EnabledModifier}} class C<T> where T : D?
@@ -184,12 +175,10 @@ C<T>
 D
 D.D() -> void
 ");
-        }
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
-        public async Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class D { }
 
@@ -204,12 +193,10 @@ C<T>.C() -> void
 D
 D.D() -> void
 ");
-        }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -218,12 +205,10 @@ D.D() -> void
                 """, @"", @"C
 C.C() -> void
 C.Field -> string");
-        }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -232,12 +217,10 @@ C.Field -> string");
                 """, @"", @"C
 C.C() -> void
 C.Field2 -> string");
-        }
 
         [Fact]
-        public async Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifier}} class C
                 {
@@ -248,7 +231,6 @@ C.Field2 -> string");
 C.C() -> void
 C.Field -> string
 C.Field2 -> string", @"");
-        }
 
         [Fact]
         public async Task AnnotatedMemberInAnnotatedShippedAPIAsync()

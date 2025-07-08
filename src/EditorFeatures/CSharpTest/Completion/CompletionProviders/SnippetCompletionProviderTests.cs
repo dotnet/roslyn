@@ -85,9 +85,8 @@ public sealed class SnippetCompletionProviderTests : AbstractCSharpCompletionPro
         => await VerifyItemIsAbsentAsync(@"#line (1, 2) - (3, 4) $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]
-    public async Task ShowSnippetsFromOtherContext()
-    {
-        await VerifyItemInLinkedFilesAsync("""
+    public Task ShowSnippetsFromOtherContext()
+        => VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -105,7 +104,6 @@ public sealed class SnippetCompletionProviderTests : AbstractCSharpCompletionPro
                 </Project>
             </Workspace>
             """, MockSnippetInfoService.SnippetShortcut, null);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140893")]
     public async Task CommitWithEnterObeysOption()

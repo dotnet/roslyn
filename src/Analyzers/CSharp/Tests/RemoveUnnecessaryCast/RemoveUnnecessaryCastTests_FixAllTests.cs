@@ -28,9 +28,8 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -189,14 +188,12 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -331,14 +328,12 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -473,6 +468,5 @@ public sealed class RemoveUnnecessaryCastTests_FixAllTests : AbstractCSharpDiagn
                 </Project>
             </Workspace>
             """);
-    }
     #endregion
 }

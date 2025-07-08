@@ -55,9 +55,8 @@ public sealed class OrganizeUsingsTests
     }
 
     [Fact]
-    public async Task AliasesAtBottom()
-    {
-        await CheckAsync("""
+    public Task AliasesAtBottom()
+        => CheckAsync("""
             using A = B;
             using C;
             using D = E;
@@ -69,7 +68,6 @@ public sealed class OrganizeUsingsTests
             using D = E;
 
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44136")]
     [InlineData("\n")]
@@ -95,9 +93,8 @@ public sealed class OrganizeUsingsTests
     }
 
     [Fact]
-    public async Task UsingStaticsBetweenUsingsAndAliases()
-    {
-        await CheckAsync("""
+    public Task UsingStaticsBetweenUsingsAndAliases()
+        => CheckAsync("""
             using static System.Convert;
             using A = B;
             using C;
@@ -115,12 +112,10 @@ public sealed class OrganizeUsingsTests
             using D = E;
 
             """);
-    }
 
     [Fact]
-    public async Task NestedStatements()
-    {
-        await CheckAsync("""
+    public Task NestedStatements()
+        => CheckAsync("""
             using B;
             using A;
 
@@ -199,12 +194,10 @@ public sealed class OrganizeUsingsTests
               }
             }
             """);
-    }
 
     [Fact]
-    public async Task FileScopedNamespace()
-    {
-        await CheckAsync("""
+    public Task FileScopedNamespace()
+        => CheckAsync("""
             using B;
             using A;
 
@@ -223,12 +216,10 @@ public sealed class OrganizeUsingsTests
             using D;
 
             """);
-    }
 
     [Fact]
-    public async Task SpecialCaseSystem()
-    {
-        await CheckAsync("""
+    public Task SpecialCaseSystem()
+        => CheckAsync("""
             using M2;
             using M1;
             using System.Linq;
@@ -240,12 +231,10 @@ public sealed class OrganizeUsingsTests
             using M2;
 
             """, placeSystemNamespaceFirst: true);
-    }
 
     [Fact]
-    public async Task SpecialCaseSystemWithUsingStatic()
-    {
-        await CheckAsync("""
+    public Task SpecialCaseSystemWithUsingStatic()
+        => CheckAsync("""
             using M2;
             using M1;
             using System.Linq;
@@ -261,12 +250,10 @@ public sealed class OrganizeUsingsTests
             using static Microsoft.Win32.Registry;
 
             """, placeSystemNamespaceFirst: true);
-    }
 
     [Fact]
-    public async Task DoNotSpecialCaseSystem()
-    {
-        await CheckAsync("""
+    public Task DoNotSpecialCaseSystem()
+        => CheckAsync("""
             using M2;
             using M1;
             using System.Linq;
@@ -278,12 +265,10 @@ public sealed class OrganizeUsingsTests
             using System.Linq;
 
             """);
-    }
 
     [Fact]
-    public async Task DoNotSpecialCaseSystemWithUsingStatics()
-    {
-        await CheckAsync("""
+    public Task DoNotSpecialCaseSystemWithUsingStatics()
+        => CheckAsync("""
             using M2;
             using M1;
             using System.Linq;
@@ -298,12 +283,10 @@ public sealed class OrganizeUsingsTests
             using static Microsoft.Win32.Registry;
             using static System.BitConverter;
             """);
-    }
 
     [Fact]
-    public async Task IndentationAfterSorting()
-    {
-        await CheckAsync("""
+    public Task IndentationAfterSorting()
+        => CheckAsync("""
             namespace A
             {
                 using V.W;
@@ -330,12 +313,10 @@ public sealed class OrganizeUsingsTests
             namespace V.W { }
             namespace X.Y.Z { }
             """);
-    }
 
     [Fact]
-    public async Task DoNotTouchCommentsAtBeginningOfFile1()
-    {
-        await CheckAsync("""
+    public Task DoNotTouchCommentsAtBeginningOfFile1()
+        => CheckAsync("""
             // Copyright (c) Microsoft Corporation.  All rights reserved.
 
             using B;
@@ -354,12 +335,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact]
-    public async Task DoNotTouchCommentsAtBeginningOfFile2()
-    {
-        await CheckAsync("""
+    public Task DoNotTouchCommentsAtBeginningOfFile2()
+        => CheckAsync("""
             /* Copyright (c) Microsoft Corporation.  All rights reserved. */
 
             using B;
@@ -378,12 +357,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact]
-    public async Task DoNotTouchCommentsAtBeginningOfFile3()
-    {
-        await CheckAsync("""
+    public Task DoNotTouchCommentsAtBeginningOfFile3()
+        => CheckAsync("""
             // Copyright (c) Microsoft Corporation.  All rights reserved.
 
             using B;
@@ -402,12 +379,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
-    public async Task DoNotTouchCommentsAtBeginningOfFile4()
-    {
-        await CheckAsync("""
+    public Task DoNotTouchCommentsAtBeginningOfFile4()
+        => CheckAsync("""
             /// Copyright (c) Microsoft Corporation.  All rights reserved.
 
             using B;
@@ -426,12 +401,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33251")]
-    public async Task DoNotTouchCommentsAtBeginningOfFile5()
-    {
-        await CheckAsync("""
+    public Task DoNotTouchCommentsAtBeginningOfFile5()
+        => CheckAsync("""
             /** Copyright (c) Microsoft Corporation.  All rights reserved.
             */
 
@@ -452,12 +425,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2480")]
-    public async Task DoTouchCommentsAtBeginningOfFile1()
-    {
-        await CheckAsync("""
+    public Task DoTouchCommentsAtBeginningOfFile1()
+        => CheckAsync("""
             // Copyright (c) Microsoft Corporation.  All rights reserved.
             using B;
             // I like namespace A
@@ -474,12 +445,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2480")]
-    public async Task DoTouchCommentsAtBeginningOfFile2()
-    {
-        await CheckAsync("""
+    public Task DoTouchCommentsAtBeginningOfFile2()
+        => CheckAsync("""
             /* Copyright (c) Microsoft Corporation.  All rights reserved. */
             using B;
             /* I like namespace A */
@@ -496,12 +465,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2480")]
-    public async Task DoTouchCommentsAtBeginningOfFile3()
-    {
-        await CheckAsync("""
+    public Task DoTouchCommentsAtBeginningOfFile3()
+        => CheckAsync("""
             /// Copyright (c) Microsoft Corporation.  All rights reserved.
             using B;
             /// I like namespace A
@@ -518,12 +485,10 @@ public sealed class OrganizeUsingsTests
             namespace A { }
             namespace B { }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2480")]
-    public async Task CommentsNotAtTheStartOfTheFile1()
-    {
-        await CheckAsync("""
+    public Task CommentsNotAtTheStartOfTheFile1()
+        => CheckAsync("""
             namespace N
             {
                 // attached to System.Text
@@ -540,12 +505,10 @@ public sealed class OrganizeUsingsTests
                 using System.Text;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2480")]
-    public async Task CommentsNotAtTheStartOfTheFile2()
-    {
-        await CheckAsync("""
+    public Task CommentsNotAtTheStartOfTheFile2()
+        => CheckAsync("""
             namespace N
             {
                 // not attached to System.Text
@@ -564,7 +527,6 @@ public sealed class OrganizeUsingsTests
                 using System.Text;
             }
             """);
-    }
 
     [Fact]
     public async Task DoNotSortIfEndIfBlocks()
@@ -590,9 +552,8 @@ public sealed class OrganizeUsingsTests
     }
 
     [Fact]
-    public async Task ExternAliases()
-    {
-        await CheckAsync("""
+    public Task ExternAliases()
+        => CheckAsync("""
             extern alias Z;
             extern alias Y;
             extern alias X;
@@ -665,7 +626,6 @@ public sealed class OrganizeUsingsTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task DuplicateUsings()
@@ -682,9 +642,8 @@ public sealed class OrganizeUsingsTests
     }
 
     [Fact]
-    public async Task InlineComments()
-    {
-        await CheckAsync("""
+    public Task InlineComments()
+        => CheckAsync("""
             /*00*/using/*01*/D/*02*/;/*03*/
             /*04*/using/*05*/C/*06*/;/*07*/
             /*08*/using/*09*/A/*10*/;/*11*/
@@ -697,22 +656,18 @@ public sealed class OrganizeUsingsTests
             /*00*/using/*01*/D/*02*/;/*03*/
             /*16*/
             """);
-    }
 
     [Fact]
-    public async Task AllOnOneLine()
-    {
-        await CheckAsync(@"using C; using B; using A;", """
+    public Task AllOnOneLine()
+        => CheckAsync(@"using C; using B; using A;", """
             using A;
             using B; 
             using C; 
             """);
-    }
 
     [Fact]
-    public async Task InsideRegionBlock()
-    {
-        await CheckAsync("""
+    public Task InsideRegionBlock()
+        => CheckAsync("""
             #region Using directives
             using C;
             using A;
@@ -733,7 +688,6 @@ public sealed class OrganizeUsingsTests
             {
             }
             """);
-    }
 
     [Fact]
     public async Task NestedRegionBlock()
@@ -772,9 +726,8 @@ public sealed class OrganizeUsingsTests
     }
 
     [Fact]
-    public async Task InterleavedNewlines()
-    {
-        await CheckAsync("""
+    public Task InterleavedNewlines()
+        => CheckAsync("""
             using B;
 
             using A;
@@ -789,12 +742,10 @@ public sealed class OrganizeUsingsTests
 
             class D { }
             """);
-    }
 
     [Fact]
-    public async Task InsideIfEndIfBlock()
-    {
-        await CheckAsync("""
+    public Task InsideIfEndIfBlock()
+        => CheckAsync("""
             #if !X
             using B;
             using A;
@@ -807,7 +758,6 @@ public sealed class OrganizeUsingsTests
             using C;
             #endif
             """);
-    }
 
     [Fact]
     public async Task IfEndIfBlockAbove()
@@ -870,9 +820,8 @@ public sealed class OrganizeUsingsTests
     }
 
     [Fact]
-    public async Task Korean()
-    {
-        await CheckAsync("""
+    public Task Korean()
+        => CheckAsync("""
             using 하;
             using 파;
             using 타;
@@ -904,12 +853,10 @@ public sealed class OrganizeUsingsTests
             using 하;
 
             """);
-    }
 
     [Fact]
-    public async Task DoNotSpecialCaseSystem1()
-    {
-        await CheckAsync("""
+    public Task DoNotSpecialCaseSystem1()
+        => CheckAsync("""
             using B;
             using System.Collections.Generic;
             using C;
@@ -931,12 +878,10 @@ public sealed class OrganizeUsingsTests
             using SystemZ;
 
             """, placeSystemNamespaceFirst: false);
-    }
 
     [Fact]
-    public async Task DoNotSpecialCaseSystem2()
-    {
-        await CheckAsync("""
+    public Task DoNotSpecialCaseSystem2()
+        => CheckAsync("""
             extern alias S;
             extern alias R;
             extern alias T;
@@ -972,7 +917,6 @@ public sealed class OrganizeUsingsTests
             using Z = System.Int32;
 
             """, placeSystemNamespaceFirst: false);
-    }
 
     [Fact]
     public async Task CaseSensitivity1()
@@ -1148,9 +1092,8 @@ public sealed class OrganizeUsingsTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20988")]
-    public async Task TestGrouping()
-    {
-        await CheckAsync("""
+    public Task TestGrouping()
+        => CheckAsync("""
             // Banner
 
             using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -1179,12 +1122,10 @@ public sealed class OrganizeUsingsTests
             using IntList = System.Collections.Generic.List<int>;
 
             """, placeSystemNamespaceFirst: true, separateImportGroups: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20988")]
-    public async Task TestGrouping2()
-    {
-        await CheckAsync("""
+    public Task TestGrouping2()
+        => CheckAsync("""
             // Banner
 
             using System.Collections.Generic;
@@ -1217,14 +1158,12 @@ public sealed class OrganizeUsingsTests
             using IntList = System.Collections.Generic.List<int>;
 
             """, placeSystemNamespaceFirst: true, separateImportGroups: true);
-    }
 
     [Theory, WorkItem(20988, "https://github.com/dotnet/roslyn/issues/19306")]
     [InlineData("\n")]
     [InlineData("\r\n")]
-    public async Task TestGrouping3(string endOfLine)
-    {
-        await CheckAsync("""
+    public Task TestGrouping3(string endOfLine)
+        => CheckAsync("""
             // Banner
 
             using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -1253,12 +1192,10 @@ public sealed class OrganizeUsingsTests
             using IntList = System.Collections.Generic.List<int>;
 
             """, placeSystemNamespaceFirst: true, separateImportGroups: true, endOfLine: endOfLine);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71502")]
-    public async Task GlobalsBeforeNonGlobals()
-    {
-        await CheckAsync("""
+    public Task GlobalsBeforeNonGlobals()
+        => CheckAsync("""
             using A = B;
             using static C;
             using X;
@@ -1274,12 +1211,10 @@ public sealed class OrganizeUsingsTests
             using A = B;
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71502")]
-    public async Task GlobalNonNamedAliases1()
-    {
-        await CheckAsync("""
+    public Task GlobalNonNamedAliases1()
+        => CheckAsync("""
             global using B = (int, string);
             global using A = int;
             """, """
@@ -1287,12 +1222,10 @@ public sealed class OrganizeUsingsTests
             global using B = (int, string);
 
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71502")]
-    public async Task GlobalNonNamedAliases2()
-    {
-        await CheckAsync("""
+    public Task GlobalNonNamedAliases2()
+        => CheckAsync("""
             global using unsafe DataLogWriteFunc = delegate* unmanaged[Cdecl]<void*, byte*, nuint, void>;
             global using unsafe DataLogHandle = void*;
             """, """
@@ -1300,5 +1233,4 @@ public sealed class OrganizeUsingsTests
             global using unsafe DataLogWriteFunc = delegate* unmanaged[Cdecl]<void*, byte*, nuint, void>;
 
             """);
-    }
 }

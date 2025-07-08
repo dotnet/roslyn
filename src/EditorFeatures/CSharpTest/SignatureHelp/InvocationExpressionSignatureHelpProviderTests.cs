@@ -23,9 +23,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
     #region "Regular tests"
 
     [Fact]
-    public async Task TestInvocationAfterCloseParen()
-    {
-        await TestAsync("""
+    public Task TestInvocationAfterCloseParen()
+        => TestAsync("""
             class C
             {
                 int Goo(int x)
@@ -34,12 +33,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("int C.Goo(int x)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationInsideLambda()
-    {
-        await TestAsync("""
+    public Task TestInvocationInsideLambda()
+        => TestAsync("""
             using System;
 
             class C
@@ -50,12 +47,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo(Action<int> f)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationInsideLambda2()
-    {
-        await TestAsync("""
+    public Task TestInvocationInsideLambda2()
+        => TestAsync("""
             using System;
 
             class C
@@ -66,12 +61,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo(Action<int> f)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutParameters()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutParameters()
+        => TestAsync("""
             class C
             {
                 void Goo()
@@ -80,12 +73,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo()", string.Empty, null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutParametersMethodXmlComments()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutParametersMethodXmlComments()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -97,12 +88,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo()", "Summary for goo", null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersOn1()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersOn1()
+        => TestAsync("""
             class C
             {
                 void Goo(int a, int b)
@@ -111,12 +100,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersXmlCommentsOn1()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersXmlCommentsOn1()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -130,12 +117,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo(int a, int b)", "Summary for Goo", "Param a", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersOn2()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersOn2()
+        => TestAsync("""
             class C
             {
                 void Goo(int a, int b)
@@ -144,12 +129,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersXmlComentsOn2()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersXmlComentsOn2()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -163,12 +146,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo(int a, int b)", "Summary for Goo", "Param b", currentParameterIndex: 1)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
-    public async Task TestDelegateParameterWithDocumentation_Invoke()
-    {
-        await TestAsync("""
+    public Task TestDelegateParameterWithDocumentation_Invoke()
+        => TestAsync("""
             class C
             {
                 /// <param name="a">Parameter docs</param>
@@ -180,12 +161,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void SomeDelegate(int a)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
-    public async Task TestDelegateParameterWithDocumentation_Invoke2()
-    {
-        await TestAsync("""
+    public Task TestDelegateParameterWithDocumentation_Invoke2()
+        => TestAsync("""
             class C
             {
                 /// <param name="a">Parameter docs</param>
@@ -197,12 +176,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void SomeDelegate.Invoke(int a)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
-    public async Task TestDelegateParameterWithDocumentation_BeginInvoke()
-    {
-        await TestAsync("""
+    public Task TestDelegateParameterWithDocumentation_BeginInvoke()
+        => TestAsync("""
             class C
             {
                 /// <param name="a">Parameter docs</param>
@@ -214,12 +191,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("System.IAsyncResult SomeDelegate.BeginInvoke(int a, System.AsyncCallback callback, object @object)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26713")]
-    public async Task TestDelegateParameterWithDocumentation_BeginInvoke2()
-    {
-        await TestAsync("""
+    public Task TestDelegateParameterWithDocumentation_BeginInvoke2()
+        => TestAsync("""
             class C
             {
                 /// <param name="a">Parameter docs</param>
@@ -232,12 +207,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("System.IAsyncResult SomeDelegate.BeginInvoke(int a, System.AsyncCallback callback, object @object)", parameterDocumentation: null, currentParameterIndex: 1)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutClosingParen()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutClosingParen()
+        => TestAsync("""
             class C
             {
                 void Goo()
@@ -246,12 +219,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 |]}
             }
             """, [new SignatureHelpTestItem("void C.Goo()", string.Empty, null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutClosingParenWithParameters()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutClosingParenWithParameters()
+        => TestAsync("""
             class C
             {
                 void Goo(int a, int b)
@@ -260,12 +231,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 |]}
             }
             """, [new SignatureHelpTestItem("void C.Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutClosingParenWithParametersOn2()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutClosingParenWithParametersOn2()
+        => TestAsync("""
             class C
             {
                 void Goo(int a, int b)
@@ -274,12 +243,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 |]}
             }
             """, [new SignatureHelpTestItem("void C.Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
-    }
 
     [Fact]
-    public async Task TestInvocationOnLambda()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnLambda()
+        => TestAsync("""
             using System;
 
             class C
@@ -291,12 +258,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 |]}
             }
             """, [new SignatureHelpTestItem("void Action<int>(int obj)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationOnMemberAccessExpression()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnMemberAccessExpression()
+        => TestAsync("""
             class C
             {
                 static void Bar(int a)
@@ -309,14 +274,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 |]}
             }
             """, [new SignatureHelpTestItem("void C.Bar(int a)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestExtensionMethod1()
-    {
-
-        // TODO: Once we do the work to allow extension methods in nested types, we should change this.
-        await TestAsync("""
+    public Task TestExtensionMethod1()
+        => TestAsync("""
             using System;
 
             class C
@@ -336,12 +297,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) int string.ExtensionMethod(int x)", string.Empty, string.Empty, currentParameterIndex: 0)], sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestOptionalParameters()
-    {
-        await TestAsync("""
+    public Task TestOptionalParameters()
+        => TestAsync("""
             class Class1
             {
                 void Test()
@@ -354,12 +313,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
             }
             """, [new SignatureHelpTestItem("void Class1.Goo([int a = 42])", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestNoInvocationOnEventNotInCurrentClass()
-    {
-        await TestAsync("""
+    public Task TestNoInvocationOnEventNotInCurrentClass()
+        => TestAsync("""
             using System;
 
             class C
@@ -376,12 +333,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 public event Action evt;
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
-    public async Task TestInvocationOnNamedType()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnNamedType()
+        => TestAsync("""
             class Program
             {
                 void Main()
@@ -401,12 +356,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("double C.Goo(double x)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539712")]
-    public async Task TestInvocationOnInstance()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnInstance()
+        => TestAsync("""
             class Program
             {
                 void Main()
@@ -426,12 +379,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("double C.Goo(double x, double y)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
-    public async Task TestStatic1()
-    {
-        await TestAsync("""
+    public Task TestStatic1()
+        => TestAsync("""
             class C
             {
                 static void Goo()
@@ -448,12 +399,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Bar()", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545118")]
-    public async Task TestStatic2()
-    {
-        await TestAsync("""
+    public Task TestStatic2()
+        => TestAsync("""
             class C
             {
                 void Goo()
@@ -472,12 +421,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void C.Bar()", currentParameterIndex: 0),
             new SignatureHelpTestItem("void C.Bar(int i)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543117")]
-    public async Task TestInvocationOnAnonymousType()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnAnonymousType()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class Program
@@ -509,12 +456,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 {{FeaturesResources.Types_colon}}
                     'a {{FeaturesResources.is_}} new { string Name, int Age }
                 """)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnBaseExpression_ProtectedAccessibility()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnBaseExpression_ProtectedAccessibility()
+        => TestAsync("""
             using System;
             public class Base
             {
@@ -539,12 +484,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             parameterDocumentation: string.Empty,
             currentParameterIndex: 0,
             description: string.Empty)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnBaseExpression_AbstractBase()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnBaseExpression_AbstractBase()
+        => TestAsync("""
             using System;
             public abstract class Base
             {
@@ -569,12 +512,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             parameterDocumentation: string.Empty,
             currentParameterIndex: 0,
             description: string.Empty)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnThisExpression_ProtectedAccessibility()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnThisExpression_ProtectedAccessibility()
+        => TestAsync("""
             using System;
             public class Base
             {
@@ -594,12 +535,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             parameterDocumentation: string.Empty,
             currentParameterIndex: 0,
             description: string.Empty)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnThisExpression_ProtectedAccessibility_Overridden()
+        => TestAsync("""
             using System;
             public class Base
             {
@@ -624,12 +563,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             parameterDocumentation: string.Empty,
             currentParameterIndex: 0,
             description: string.Empty)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase()
+        => TestAsync("""
             using System;
             public abstract class Base
             {
@@ -649,12 +586,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             parameterDocumentation: string.Empty,
             currentParameterIndex: 0,
             description: string.Empty)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnThisExpression_ProtectedAccessibility_AbstractBase_Overridden()
+        => TestAsync("""
             using System;
             public abstract class Base
             {
@@ -679,12 +614,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             parameterDocumentation: string.Empty,
             currentParameterIndex: 0,
             description: string.Empty)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnBaseExpression_ProtectedInternalAccessibility()
+        => TestAsync("""
             using System;
             public class Base
             {
@@ -709,12 +642,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             parameterDocumentation: string.Empty,
             currentParameterIndex: 0,
             description: string.Empty)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnBaseMember_ProtectedAccessibility_ThroughType()
+        => TestAsync("""
             using System;
             public class Base
             {
@@ -734,12 +665,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, null);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968188")]
-    public async Task TestInvocationOnBaseExpression_PrivateAccessibility()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnBaseExpression_PrivateAccessibility()
+        => TestAsync("""
             using System;
             public class Base
             {
@@ -759,16 +688,14 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, null);
-    }
 
     #endregion
 
     #region "Current Parameter Name"
 
     [Fact]
-    public async Task TestCurrentParameterName()
-    {
-        await VerifyCurrentParameterNameAsync("""
+    public Task TestCurrentParameterName()
+        => VerifyCurrentParameterNameAsync("""
             class C
             {
                 void Goo(int someParameter, bool something)
@@ -777,16 +704,14 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, "someParameter");
-    }
 
     #endregion
 
     #region "Trigger tests"
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47364")]
-    public async Task TestInvocationOnTriggerParens_OptionalDefaultStruct()
-    {
-        await TestAsync(
+    public Task TestInvocationOnTriggerParens_OptionalDefaultStruct()
+        => TestAsync(
             """
             using System;
             using System.Threading;
@@ -801,12 +726,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void Program.SomeMethod([CancellationToken token = default])", string.Empty, null, currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestInvocationOnTriggerParens()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnTriggerParens()
+        => TestAsync("""
             class C
             {
                 void Goo()
@@ -815,12 +738,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo()", string.Empty, null, currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestInvocationOnTriggerComma()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnTriggerComma()
+        => TestAsync("""
             class C
             {
                 void Goo(int a, int b)
@@ -829,12 +750,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void C.Goo(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestNoInvocationOnSpace()
-    {
-        await TestAsync("""
+    public Task TestNoInvocationOnSpace()
+        => TestAsync("""
             class C
             {
                 void Goo(int a, int b)
@@ -843,12 +762,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestTriggerCharacterInComment01()
-    {
-        await TestAsync("""
+    public Task TestTriggerCharacterInComment01()
+        => TestAsync("""
             class C
             {
                 void Goo(int a)
@@ -857,12 +774,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestTriggerCharacterInComment02()
-    {
-        await TestAsync("""
+    public Task TestTriggerCharacterInComment02()
+        => TestAsync("""
             class C
             {
                 void Goo(int a)
@@ -872,12 +787,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestTriggerCharacterInString01()
-    {
-        await TestAsync("""
+    public Task TestTriggerCharacterInString01()
+        => TestAsync("""
             class C
             {
                 void Goo(int a)
@@ -886,7 +799,6 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
     public void TestTriggerCharacters()
@@ -1467,9 +1379,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
     #region "Awaitable tests"
     [Fact]
-    public async Task AwaitableMethod()
-    {
-        await TestSignatureHelpWithMscorlib45Async("""
+    public Task AwaitableMethod()
+        => TestSignatureHelpWithMscorlib45Async("""
             using System.Threading.Tasks;
             class C
             {
@@ -1479,12 +1390,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task C.Goo()", methodDocumentation: string.Empty, currentParameterIndex: 0)], "C#");
-    }
 
     [Fact]
-    public async Task AwaitableMethod2()
-    {
-        await TestSignatureHelpWithMscorlib45Async("""
+    public Task AwaitableMethod2()
+        => TestSignatureHelpWithMscorlib45Async("""
             using System.Threading.Tasks;
             class C
             {
@@ -1494,14 +1403,12 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<Task<int>> C.Goo()", methodDocumentation: string.Empty, currentParameterIndex: 0)], "C#");
-    }
 
     #endregion
 
     [Fact, WorkItem(13849, "DevDiv_Projects/Roslyn")]
-    public async Task TestSpecificity1()
-    {
-        await TestAsync("""
+    public Task TestSpecificity1()
+        => TestAsync("""
             class Class1
             {
                 static void Main()
@@ -1519,12 +1426,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 public void M(int t) { }
             }
             """, [new SignatureHelpTestItem("void C<int>.M(int t)", string.Empty, "Real t", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530017")]
-    public async Task LongSignature()
-    {
-        await TestAsync("""
+    public Task LongSignature()
+        => TestAsync("""
             class C
             {
                 void Goo(string a, string b, string c, string d, string e, string f, string g, string h, string i, string j, string k, string l, string m, string n, string o, string p, string q, string r, string s, string t, string u, string v, string w, string x, string y, string z)
@@ -1541,14 +1446,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                            string v, string w, string x, string y, string z)
                 """,
                 currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task GenericExtensionMethod()
-    {
-
-        // Extension methods are supported in Interactive/Script (yet).
-        await TestAsync("""
+    public Task GenericExtensionMethod()
+        => TestAsync("""
             interface IGoo
             {
                 void Bar<T>();
@@ -1570,12 +1471,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void IGoo.Bar<T>()", currentParameterIndex: 0),
             new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) void IGoo.Bar<T1, T2>()", currentParameterIndex: 0)], sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_PickInt()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_PickInt()
+        => TestAsync("""
             class Program
             {
                 static void Main()
@@ -1588,12 +1487,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0, isSelected: true),
             new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_PickInt_ReverseOrder()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_PickInt_ReverseOrder()
+        => TestAsync("""
             class Program
             {
                 static void Main()
@@ -1606,12 +1503,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0, isSelected: true),
             new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_PickSecond()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_PickSecond()
+        => TestAsync("""
             class Program
             {
                 static void Main()
@@ -1624,12 +1519,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void Program.M(int i)", currentParameterIndex: 0),
             new SignatureHelpTestItem($"void Program.M(string s)", currentParameterIndex: 0, isSelected: true)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_OtherName_PickIntRemaining()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_OtherName_PickIntRemaining()
+        => TestAsync("""
             class D
             {
                 static void Main()
@@ -1643,12 +1536,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_OtherName_PickIntRemaining_ConversionToD()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_OtherName_PickIntRemaining_ConversionToD()
+        => TestAsync("""
             class D
             {
                 static void Main()
@@ -1663,12 +1554,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_OtherName_PickIntRemaining_ReversedOrder()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_OtherName_PickIntRemaining_ReversedOrder()
+        => TestAsync("""
             class D
             {
                 static void Main()
@@ -1682,12 +1571,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0, isSelected: true),
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_OtherName_PickStringRemaining()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_OtherName_PickStringRemaining()
+        => TestAsync("""
             class D
             {
                 static void Main()
@@ -1701,12 +1588,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void D.M(int i)", currentParameterIndex: 0),
             new SignatureHelpTestItem("void D.M(string i)", currentParameterIndex: 0, isSelected: true)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_RefKind()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_RefKind()
+        => TestAsync("""
             class D
             {
                 static void Main()
@@ -1720,7 +1605,6 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void D.M(ref int a, int i)", currentParameterIndex: 0),
             new SignatureHelpTestItem("void D.M(out int b, int i)", currentParameterIndex: 0, isSelected: true)]);
-    }
 
     [Theory]
     [InlineData("1$$", 0)]
@@ -1867,9 +1751,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
     }
 
     [Fact]
-    public async Task PickCorrectOverload_Params_NonArrayType()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_Params_NonArrayType()
+        => TestAsync("""
             class Program
             {
                 void Main()
@@ -1879,14 +1762,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 void M(int i1, params int i2) { }
             }
             """, [new SignatureHelpTestItem("void Program.M(int i1, params int i2)", currentParameterIndex: 1, isSelected: true)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6713")]
-    public async Task PickCorrectOverload_Incomplete_OutOfPositionArgument()
-    {
-
-        // The first unspecified parameter (s2) is selected
-        await TestAsync("""
+    public Task PickCorrectOverload_Incomplete_OutOfPositionArgument()
+        => TestAsync("""
             class Program
             {
                 static void Main()
@@ -1896,7 +1775,6 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 static void M(string s1, string s2, string s3) { }
             }
             """, [new SignatureHelpTestItem($"void Program.M(string s1, string s2, string s3)", currentParameterIndex: 1, isSelected: true)]);
-    }
 
     [Theory]
     [InlineData("i: 1", 0)]
@@ -1920,9 +1798,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
     }
 
     [Fact]
-    public async Task TestInvocationWithCrefXmlComments()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithCrefXmlComments()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -1936,12 +1813,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 void Bar() { }
             }
             """, [new SignatureHelpTestItem("void C.Goo()", "Summary for goo. See method C.Bar()", null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task FieldUnavailableInOneLinkedFile()
-    {
-        await VerifyItemWithReferenceWorkerAsync("""
+    public Task FieldUnavailableInOneLinkedFile()
+        => VerifyItemWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -1972,12 +1847,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
-    }
 
     [Fact]
-    public async Task ExcludeFilesWithInactiveRegions()
-    {
-        await VerifyItemWithReferenceWorkerAsync("""
+    public Task ExcludeFilesWithInactiveRegions()
+        => VerifyItemWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO,BAR">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -2014,12 +1887,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
-    public async Task InstanceAndStaticMethodsShown1()
-    {
-        await TestAsync("""
+    public Task InstanceAndStaticMethodsShown1()
+        => TestAsync("""
             class C
             {
                 Goo Goo;
@@ -2038,12 +1909,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void Goo.Bar(int x)", currentParameterIndex: 0),
             new SignatureHelpTestItem("void Goo.Bar(string s)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
-    public async Task InstanceAndStaticMethodsShown2()
-    {
-        await TestAsync("""
+    public Task InstanceAndStaticMethodsShown2()
+        => TestAsync("""
             class C
             {
                 Goo Goo;
@@ -2062,12 +1931,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void Goo.Bar(int x)", currentParameterIndex: 0),
             new SignatureHelpTestItem("void Goo.Bar(string s)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
-    public async Task InstanceAndStaticMethodsShown3()
-    {
-        await TestAsync("""
+    public Task InstanceAndStaticMethodsShown3()
+        => TestAsync("""
             class C
             {
                 Goo Goo;
@@ -2086,12 +1953,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void Goo.Bar(int x)", currentParameterIndex: 0),
             new SignatureHelpTestItem("void Goo.Bar(string s)", currentParameterIndex: 0)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
-    public async Task InstanceAndStaticMethodsShown4()
-    {
-        await TestAsync("""
+    public Task InstanceAndStaticMethodsShown4()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -2107,12 +1972,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 public static void Bar(string s) { }
             }
             """, []);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768697")]
-    public async Task InstanceAndStaticMethodsShown5()
-    {
-        await TestAsync("""
+    public Task InstanceAndStaticMethodsShown5()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -2128,12 +1991,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 public static void Bar(string s) { }
             }
             """, []);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33549")]
-    public async Task ShowOnlyStaticMethodsForBuildInTypes()
-    {
-        await TestAsync("""
+    public Task ShowOnlyStaticMethodsForBuildInTypes()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -2145,12 +2006,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             new SignatureHelpTestItem("bool object.Equals(object objA, object objB)"),
             new SignatureHelpTestItem("bool string.Equals(string a, string b)"),
             new SignatureHelpTestItem("bool string.Equals(string a, string b, System.StringComparison comparisonType)")]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23133")]
-    public async Task ShowOnlyStaticMethodsForNotImportedTypes()
-    {
-        await TestAsync("""
+    public Task ShowOnlyStaticMethodsForNotImportedTypes()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -2167,20 +2026,16 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void Test.Goo.Bar(string s)")]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-    public async Task InvokedWithNoToken()
-    {
-        await TestAsync("""
+    public Task InvokedWithNoToken()
+        => TestAsync("""
             // goo($$
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-    public async Task MethodOverloadDifferencesIgnored()
-    {
-        await VerifyItemWithReferenceWorkerAsync("""
+    public Task MethodOverloadDifferencesIgnored()
+        => VerifyItemWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -2211,13 +2066,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
-    public async Task TestGenericParameters1()
-    {
-        await TestAsync("""
+    public Task TestGenericParameters1()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -2231,13 +2084,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void C.Goo<string>(string a)", string.Empty, string.Empty, currentParameterIndex: 0),
             new SignatureHelpTestItem("void C.Goo<T, U>(T a, U b)", string.Empty)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068424")]
-    public async Task TestGenericParameters2()
-    {
-        await TestAsync("""
+    public Task TestGenericParameters2()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -2251,12 +2102,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("void C.Goo<T>(T a)", string.Empty),
             new SignatureHelpTestItem("void C.Goo<T, U>(T a, U b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4144")]
-    public async Task TestSigHelpIsVisibleOnInaccessibleItem()
-    {
-        await TestAsync("""
+    public Task TestSigHelpIsVisibleOnInaccessibleItem()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class A
@@ -2272,12 +2121,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void List<int>.Add(int item)")]);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss1()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss1()
+        => TestAsync("""
             class C
             {
                 int Goo(object x)
@@ -2286,12 +2133,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("int C.Goo(object x)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss2()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss2()
+        => TestAsync("""
             class C
             {
                 int Goo(object x)
@@ -2300,12 +2145,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("int C.Goo(object x)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss3()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss3()
+        => TestAsync("""
             class C
             {
                 int Goo(object x)
@@ -2314,12 +2157,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("int C.Goo(object x)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss4()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss4()
+        => TestAsync("""
             class C
             {
                 int Goo(object x)
@@ -2328,12 +2169,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("int C.Goo(object x)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task PickCorrectOverload_WithCorrectSelectionAfterFilteringOutNoApplicableItems()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_WithCorrectSelectionAfterFilteringOutNoApplicableItems()
+        => TestAsync("""
             class Comparer
             {
                 public static bool Equals(object x, object y) => true;
@@ -2352,13 +2191,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """, [
             new SignatureHelpTestItem("bool Comparer.Equals(object x)", currentParameterIndex: 1),
             new SignatureHelpTestItem("bool Comparer.Equals(string x, string y)", currentParameterIndex: 1, isSelected: true)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
     [CompilerTrait(CompilerFeature.LocalFunctions)]
-    public async Task TestLocalFunction()
-    {
-        await TestAsync("""
+    public Task TestLocalFunction()
+        => TestAsync("""
             class C
             {
                 void M()
@@ -2368,13 +2205,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void Local()")]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38074")]
     [CompilerTrait(CompilerFeature.LocalFunctions)]
-    public async Task TestLocalFunctionInStaticMethod()
-    {
-        await TestAsync("""
+    public Task TestLocalFunctionInStaticMethod()
+        => TestAsync("""
             class C
             {
                 static void M()
@@ -2384,13 +2219,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("void Local()")]);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.FunctionPointers)]
-    public async Task TestFunctionPointer()
-    {
-        await TestAsync("""
+    public Task TestFunctionPointer()
+        => TestAsync("""
             class C
             {
                 unsafe static void M()
@@ -2400,13 +2233,11 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("int delegate*(int)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.FunctionPointers)]
-    public async Task TestFunctionPointerMultipleArguments()
-    {
-        await TestAsync("""
+    public Task TestFunctionPointerMultipleArguments()
+        => TestAsync("""
             class C
             {
                 unsafe static void M()
@@ -2416,7 +2247,6 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
                 }
             }
             """, [new SignatureHelpTestItem("int delegate*(string, long)", currentParameterIndex: 1)]);
-    }
 
     [Theory, CombinatorialData]
     public async Task ShowWarningForOverloadUnavailableInRelatedDocument(bool typeParameterProvided)
@@ -2475,9 +2305,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
     }
 
     [Fact]
-    public async Task TestLightweightOverloadResolution1()
-    {
-        await TestAsync(
+    public Task TestLightweightOverloadResolution1()
+        => TestAsync(
             """
             class C : IResource
             {
@@ -2508,12 +2337,10 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             public interface IResourceBuilder<T> where T : IResource { }
             """, [new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) IResourceBuilder<C> IResourceBuilder<C>.WithServiceBinding<C>(int containerPort, [int? hostPort = null], [string? scheme = null], [string? name = null], [string? env = null])", currentParameterIndex: 0)],
             sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Fact]
-    public async Task TestLightweightOverloadResolution2()
-    {
-        await TestAsync(
+    public Task TestLightweightOverloadResolution2()
+        => TestAsync(
             """
             class C : IResource
             {
@@ -2545,5 +2372,4 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             public interface IResourceBuilder<T> where T : IResource { }
             """, [new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) IResourceBuilder<C> IResourceBuilder<C>.WithServiceBinding<C>(int containerPort, [int? hostPort = null], [string? scheme = null], [string? name = null], [string? env = null])", currentParameterIndex: 0)],
             sourceCodeKind: SourceCodeKind.Regular);
-    }
 }

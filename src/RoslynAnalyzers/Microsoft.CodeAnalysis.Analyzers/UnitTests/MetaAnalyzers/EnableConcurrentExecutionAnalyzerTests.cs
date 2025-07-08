@@ -17,9 +17,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class EnableConcurrentExecutionAnalyzerTests
     {
         [Fact]
-        public async Task TestSimpleCase_CSharpAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task TestSimpleCase_CSharpAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -43,12 +42,10 @@ class Analyzer : DiagnosticAnalyzer {
     }
 }
 ");
-        }
 
         [Fact]
-        public async Task TestSimpleCase_VisualBasicAsync()
-        {
-            await VerifyVB.VerifyCodeFixAsync(@"
+        public Task TestSimpleCase_VisualBasicAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -84,12 +81,10 @@ Class Analyzer
     End Sub
 End Class
 ");
-        }
 
         [Fact]
-        public async Task RenamedMethod_CSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task RenamedMethod_CSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -106,12 +101,10 @@ class Analyzer : DiagnosticAnalyzer {
     }
 }
 ");
-        }
 
         [Fact]
-        public async Task RenamedMethod_VisualBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task RenamedMethod_VisualBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -133,12 +126,10 @@ Class Analyzer
     End Sub
 End Class
 ");
-        }
 
         [Fact, WorkItem(2698, "https://github.com/dotnet/roslyn-analyzers/issues/2698")]
-        public async Task RS1026_ExpressionBodiedMethodAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task RS1026_ExpressionBodiedMethodAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -162,6 +153,5 @@ class Analyzer : DiagnosticAnalyzer {
     }
 }
 ");
-        }
     }
 }

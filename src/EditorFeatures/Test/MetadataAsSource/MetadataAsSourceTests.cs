@@ -1883,9 +1883,8 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-    public async Task IndexedProperty()
-    {
-        await GenerateAndVerifySourceAsync("""
+    public Task IndexedProperty()
+        => GenerateAndVerifySourceAsync("""
 
             Public Class C
                 Public Property IndexProp(ByVal p1 As Integer) As String
@@ -1910,12 +1909,10 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
                 public void set_IndexProp(int p1, string value);
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566688")]
-    public async Task AttributeReferencingInternalNestedType()
-    {
-        await GenerateAndVerifySourceAsync("""
+    public Task AttributeReferencingInternalNestedType()
+        => GenerateAndVerifySourceAsync("""
             using System;
             [My(typeof(D))]
             public class C
@@ -1940,7 +1937,6 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
                 public C();
             }
             """);
-    }
 
     [WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530978"), CombinatorialData]
     public async Task TestAttributesOnMembers(OriginatingProjectLanguage language, bool signaturesOnly)
@@ -3500,96 +3496,80 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestSByteMinValue()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestSByteMinValue()
+        => GenerateAndVerifySourceLineAsync("""
 
             class C
             {
                 sbyte Goo = sbyte.[|MinValue|];
             }
             """, LanguageNames.CSharp, "public const SByte MinValue = -128;");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestSByteMinValueVB()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestSByteMinValueVB()
+        => GenerateAndVerifySourceLineAsync("""
 
             Class C
                 Public Goo = SByte.[|MinValue|]
             End Class
             """, LanguageNames.VisualBasic, "Public Const MinValue As [SByte] = -128");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt16MinValue()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestInt16MinValue()
+        => GenerateAndVerifySourceLineAsync("""
 
             class C
             {
                 short Goo = short.[|MinValue|];
             }
             """, LanguageNames.CSharp, $"public const Int16 MinValue = -32768;");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt16MinValueVB()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestInt16MinValueVB()
+        => GenerateAndVerifySourceLineAsync("""
 
             Class C
                 Public Goo = Short.[|MinValue|]
             End Class
             """, LanguageNames.VisualBasic, $"Public Const MinValue As Int16 = -32768");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt32MinValue()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestInt32MinValue()
+        => GenerateAndVerifySourceLineAsync("""
 
             class C
             {
                 int Goo = int.[|MinValue|];
             }
             """, LanguageNames.CSharp, $"public const Int32 MinValue = -2147483648;");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt32MinValueVB()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestInt32MinValueVB()
+        => GenerateAndVerifySourceLineAsync("""
 
             Class C
                 Public Goo = Integer.[|MinValue|]
             End Class
             """, LanguageNames.VisualBasic, $"Public Const MinValue As Int32 = -2147483648");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt64MinValue()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestInt64MinValue()
+        => GenerateAndVerifySourceLineAsync("""
 
             class C
             {
                 long Goo = long.[|MinValue|];
             }
             """, LanguageNames.CSharp, $"public const Int64 MinValue = -9223372036854775808;");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29786")]
-    public async Task TestInt64MinValueVB()
-    {
-        await GenerateAndVerifySourceLineAsync("""
+    public Task TestInt64MinValueVB()
+        => GenerateAndVerifySourceLineAsync("""
 
             Class C
                 Public Goo = Long.[|MinValue|]
             End Class
             """, LanguageNames.VisualBasic, $"Public Const MinValue As Int64 = -9223372036854775808");
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/34650"), CombinatorialData]
     public async Task TestReadOnlyStruct_ReadOnlyField(OriginatingProjectLanguage language, bool signaturesOnly)
@@ -5961,9 +5941,8 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/22431")]
-    public async Task TestCDATAComment()
-    {
-        await GenerateAndVerifySourceAsync("""
+    public Task TestCDATAComment()
+        => GenerateAndVerifySourceAsync("""
 
             public enum BinaryOperatorKind
             {
@@ -5986,5 +5965,4 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
                 [|LeftShift|] = 8
             }
             """, includeXmlDocComments: true);
-    }
 }

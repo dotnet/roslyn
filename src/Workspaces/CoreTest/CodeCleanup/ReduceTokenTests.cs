@@ -27,9 +27,8 @@ public sealed class ReduceTokenTests
 #endif
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_LessThan8Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceSingleLiterals_LessThan8Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 8 significant digits
@@ -104,12 +103,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 8 significant digits
@@ -184,12 +181,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_8Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceSingleLiterals_8Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
@@ -250,12 +245,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
@@ -316,12 +309,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_GreaterThan8Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceSingleLiterals_GreaterThan8Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
@@ -406,12 +397,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
@@ -496,12 +485,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_LessThan16Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDoubleLiterals_LessThan16Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 16 significant digits precision,
@@ -576,12 +563,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 16 significant digits precision,
@@ -656,12 +641,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_16Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDoubleLiterals_16Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
@@ -730,12 +713,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_16Digits_WithTypeCharacter()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDoubleLiterals_16Digits_WithTypeCharacter()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
@@ -804,12 +785,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_GreaterThan16Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDoubleLiterals_GreaterThan16Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -930,12 +909,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -1056,12 +1033,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_LessThan30Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDecimalLiterals_LessThan30Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 30 significant digits
@@ -1136,12 +1111,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 30 significant digits
@@ -1216,12 +1189,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_30Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDecimalLiterals_30Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 30 significant digits
@@ -1268,12 +1239,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 30 significant digits
@@ -1320,12 +1289,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_GreaterThan30Digits()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDecimalLiterals_GreaterThan30Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 30 significant digits
@@ -1372,12 +1339,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceFloatLiteralsWithNegativeExponents()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceFloatLiteralsWithNegativeExponents()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
 
@@ -1466,12 +1431,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiteralsWithTrailingZeros()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceSingleLiteralsWithTrailingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const f1 As Single = 3.011000F                      ' Dev11 & Roslyn: 3.011F
@@ -1528,12 +1491,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiteralsWithTrailingZeros()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDoubleLiteralsWithTrailingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const d1 As Double = 3.011000                       ' Dev11 & Roslyn: 3.011
@@ -1590,12 +1551,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiteralsWithTrailingZeros()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceDecimalLiteralsWithTrailingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const d1 As Decimal = 3.011000D                     ' Dev11 & Roslyn: 3.011D
@@ -1652,7 +1611,6 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
     public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
@@ -1716,9 +1674,8 @@ End Module");
     }
 
     [Fact]
-    public async Task ReduceIntegerLiteralWithLeadingZeros()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceIntegerLiteralWithLeadingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const i0 As Integer = 0060
@@ -1763,12 +1720,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact]
-    public async Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const s0 As Short = &HFFFFS
@@ -1803,12 +1758,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact]
-    public async Task ReduceIntegerLiteralWithOverflow()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceIntegerLiteralWithOverflow()
+        => VerifyAsync(@"[|
 Module Module1
     Sub Main()
         Dim sMax As Short = 0032768S
@@ -1835,12 +1788,10 @@ Module Module1
     End Sub
 End Module
 ");
-    }
 
     [Fact]
-    public async Task ReduceBinaryIntegerLiteral()
-    {
-        await VerifyAsync(@"[|
+    public Task ReduceBinaryIntegerLiteral()
+        => VerifyAsync(@"[|
 Module Module1
     Sub Main()
         ' signed
@@ -1897,7 +1848,6 @@ Module Module1
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14034")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/48492")]

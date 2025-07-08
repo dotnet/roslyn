@@ -1551,9 +1551,8 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57465")]
-    public async Task FormatLambdaWithDirective()
-    {
-        await AssertFormatAsync("""
+    public Task FormatLambdaWithDirective()
+        => AssertFormatAsync("""
                 namespace N
                 {
                     public class C
@@ -1596,12 +1595,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, spans: null);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57465")]
-    public async Task FormatLambdaWithComment()
-    {
-        await AssertFormatAsync("""
+    public Task FormatLambdaWithComment()
+        => AssertFormatAsync("""
                 namespace N
                 {
                     public class C
@@ -1642,7 +1639,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                     }
                 }
                 """, spans: null);
-    }
 
     [WpfTheory]
     [CombinatorialData]
@@ -1905,9 +1901,8 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31907")]
-    public async Task NullableReferenceTypes()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task NullableReferenceTypes()
+        => AssertFormatWithBaseIndentAsync("""
 
                 class MyClass
                 {
@@ -1928,7 +1923,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
                 |]
                 """, baseIndentation: 4);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/30518")]
     public void FormatGeneratedNodeInInitializer()
@@ -1953,9 +1947,8 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/27268")]
-    public async Task PositionalPattern()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task PositionalPattern()
+        => AssertFormatWithBaseIndentAsync("""
 
                 class MyClass
                 {
@@ -1984,12 +1977,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
                 |]
                 """, baseIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task WithExpression()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task WithExpression()
+        => AssertFormatWithBaseIndentAsync("""
 
                 record C(int Property)
                 {
@@ -2010,12 +2001,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
                 |]
                 """, baseIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task WithExpression_MultiLine()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task WithExpression_MultiLine()
+        => AssertFormatWithBaseIndentAsync("""
 
                 record C(int Property, int Property2)
                 {
@@ -2044,12 +2033,10 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
                 |]
                 """, baseIndentation: 4);
-    }
 
     [WpfFact]
-    public async Task WithExpression_MultiLine_UserPositionedBraces()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task WithExpression_MultiLine_UserPositionedBraces()
+        => AssertFormatWithBaseIndentAsync("""
 
                 record C(int Property, int Property2)
                 {
@@ -2078,7 +2065,6 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
                 }
                 |]
                 """, baseIndentation: 4);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/25003")]
     public void SeparateGroups_KeepMultipleLinesBetweenGroups()

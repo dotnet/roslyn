@@ -367,55 +367,46 @@ public sealed class DeclarationNameCompletion_ContextTests
     }
 
     [Fact]
-    public async Task ClassTypeParameter1()
-    {
-        await VerifySymbolKinds("""
+    public Task ClassTypeParameter1()
+        => VerifySymbolKinds("""
             class C<$$
             {
             }
             """,
             new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
-    }
 
     [Fact]
-    public async Task ClassTypeParameter2()
-    {
-        await VerifySymbolKinds("""
+    public Task ClassTypeParameter2()
+        => VerifySymbolKinds("""
             class C<T1, $$
             {
             }
             """,
             new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
-    }
 
     [Fact]
-    public async Task ModifierExclusion1()
-    {
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion1()
+        => VerifySymbolKinds("""
             class C
             {
                 readonly int $$
             }
             """,
             new SymbolKindOrTypeKind(SymbolKind.Field));
-    }
 
     [Fact]
-    public async Task ModifierExclusion2()
-    {
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion2()
+        => VerifySymbolKinds("""
             class C
             {
                 const int $$
             }
             """,
             new SymbolKindOrTypeKind(SymbolKind.Field));
-    }
 
     [Fact]
-    public async Task ModifierExclusion3()
-    {
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion3()
+        => VerifySymbolKinds("""
             class C
             {
                 abstract int $$
@@ -423,12 +414,10 @@ public sealed class DeclarationNameCompletion_ContextTests
             """,
             new SymbolKindOrTypeKind(SymbolKind.Property),
             new SymbolKindOrTypeKind(MethodKind.Ordinary));
-    }
 
     [Fact]
-    public async Task ModifierExclusion4()
-    {
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion4()
+        => VerifySymbolKinds("""
             class C
             {
                 virtual int $$
@@ -436,12 +425,10 @@ public sealed class DeclarationNameCompletion_ContextTests
             """,
             new SymbolKindOrTypeKind(SymbolKind.Property),
             new SymbolKindOrTypeKind(MethodKind.Ordinary));
-    }
 
     [Fact]
-    public async Task ModifierExclusion5()
-    {
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion5()
+        => VerifySymbolKinds("""
             class C
             {
                 sealed int $$
@@ -449,12 +436,10 @@ public sealed class DeclarationNameCompletion_ContextTests
             """,
             new SymbolKindOrTypeKind(SymbolKind.Property),
             new SymbolKindOrTypeKind(MethodKind.Ordinary));
-    }
 
     [Fact]
-    public async Task ModifierExclusion6()
-    {
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion6()
+        => VerifySymbolKinds("""
             class C
             {
                 override int $$
@@ -462,25 +447,20 @@ public sealed class DeclarationNameCompletion_ContextTests
             """,
             new SymbolKindOrTypeKind(SymbolKind.Property),
             new SymbolKindOrTypeKind(MethodKind.Ordinary));
-    }
 
     [Fact]
-    public async Task ModifierExclusion7()
-    {
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion7()
+        => VerifySymbolKinds("""
             class C
             {
                 async int $$
             }
             """,
             new SymbolKindOrTypeKind(MethodKind.Ordinary));
-    }
 
     [Fact]
-    public async Task ModifierExclusion8()
-    {
-        // Note that the async is not included in the incomplete member syntax
-        await VerifySymbolKinds("""
+    public Task ModifierExclusion8()
+        => VerifySymbolKinds("""
             class C
             {
                 partial int $$
@@ -489,15 +469,13 @@ public sealed class DeclarationNameCompletion_ContextTests
             new SymbolKindOrTypeKind(SymbolKind.Field),
             new SymbolKindOrTypeKind(SymbolKind.Property),
             new SymbolKindOrTypeKind(MethodKind.Ordinary));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_Const(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_Const(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -508,15 +486,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(SymbolKind.Local));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_ConstLocalDeclaration(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_ConstLocalDeclaration(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -527,15 +503,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(SymbolKind.Local));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_ConstLocalFunction(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_ConstLocalFunction(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -548,18 +522,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(SymbolKind.Local));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_Async(string type)
-    {
-        // This only works with a partially written name.
-        // Because async is not a keyword, the syntax tree when the name is missing is completely broken
-        // in that there can be multiple statements full of missing and skipped tokens depending on the type syntax.
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_Async(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -570,15 +539,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_AsyncLocalDeclaration(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_AsyncLocalDeclaration(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -589,15 +556,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_AsyncLocalFunction(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_AsyncLocalFunction(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -610,15 +575,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_Unsafe(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_Unsafe(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -629,15 +592,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_UnsafeLocalDeclaration(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_UnsafeLocalDeclaration(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -648,15 +609,13 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Theory]
     [InlineData("int")]
     [InlineData("C")]
     [InlineData("List<string>")]
-    public async Task ModifierExclusionInsideMethod_UnsafeLocalFunction(string type)
-    {
-        await VerifySymbolKinds($@"
+    public Task ModifierExclusionInsideMethod_UnsafeLocalFunction(string type)
+        => VerifySymbolKinds($@"
 using System.Collections.Generic;
 class C
 {{
@@ -669,12 +628,10 @@ class C
 }}
 ",
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Fact]
-    public async Task LocalInsideMethod1()
-    {
-        await VerifySymbolKinds("""
+    public Task LocalInsideMethod1()
+        => VerifySymbolKinds("""
             namespace ConsoleApp1
             {
                 class ReallyLongClassName { }
@@ -688,12 +645,10 @@ class C
             """,
             new SymbolKindOrTypeKind(SymbolKind.Local),
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Fact]
-    public async Task LocalInsideMethod2()
-    {
-        await VerifySymbolKinds("""
+    public Task LocalInsideMethod2()
+        => VerifySymbolKinds("""
             namespace ConsoleApp1
             {
                 class ReallyLongClassName<T> { }
@@ -707,12 +662,10 @@ class C
             """,
             new SymbolKindOrTypeKind(SymbolKind.Local),
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Fact]
-    public async Task LocalInsideMethodAfterPredefinedTypeKeyword()
-    {
-        await VerifySymbolKinds("""
+    public Task LocalInsideMethodAfterPredefinedTypeKeyword()
+        => VerifySymbolKinds("""
             namespace ConsoleApp1
             {
                 class ReallyLongClassName { }
@@ -726,12 +679,10 @@ class C
             """,
             new SymbolKindOrTypeKind(SymbolKind.Local),
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     [Fact]
-    public async Task LocalInsideMethodAfterArray()
-    {
-        await VerifySymbolKinds("""
+    public Task LocalInsideMethodAfterArray()
+        => VerifySymbolKinds("""
             namespace ConsoleApp1
             {
                 class Program
@@ -744,7 +695,6 @@ class C
             """,
             new SymbolKindOrTypeKind(SymbolKind.Local),
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-    }
 
     private async Task VerifyTypeName(string markup, string? typeName)
     {

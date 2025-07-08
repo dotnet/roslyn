@@ -16,15 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8333")]
-    public async Task TestNotInExpressionBody()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInExpressionBody()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 void Goo(int a, int b) => [||]0;
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1905")]
     public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCommand()
@@ -155,9 +153,8 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     }
 
     [Fact]
-    public async Task TestOnAnonymousMethodWithTwoParameters_ViaCommand()
-    {
-        await TestMissingAsync("""
+    public Task TestOnAnonymousMethodWithTwoParameters_ViaCommand()
+        => TestMissingAsync("""
             class Program
             {
                 static void M()
@@ -166,12 +163,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnAnonymousMethodWithTwoDiscardParameters_ViaCommand()
-    {
-        await TestMissingAsync("""
+    public Task TestOnAnonymousMethodWithTwoDiscardParameters_ViaCommand()
+        => TestMissingAsync("""
             class Program
             {
                 static void M()
@@ -180,12 +175,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCodeAction()
-    {
-        await TestMissingAsync("""
+    public Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCodeAction()
+        => TestMissingAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -199,12 +192,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 static void M2(int x, int y, int z) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingWhitespace()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingWhitespace()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 [||]
@@ -213,12 +204,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingTrivia()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingTrivia()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 // [||]
@@ -227,12 +216,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingTrivia2()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingTrivia2()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 [||]//
@@ -241,12 +228,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingDocComment()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingDocComment()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 /// [||]
@@ -255,12 +240,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingDocComment2()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingDocComment2()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 [||]///
@@ -269,12 +252,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingAttributes1()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingAttributes1()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 [||][X]
@@ -283,12 +264,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingAttributes2()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingAttributes2()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 [[||]X]
@@ -297,12 +276,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInLeadingAttributes3()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInLeadingAttributes3()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 [X][||]
@@ -311,12 +288,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17309")]
-    public async Task TestNotInConstraints()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task TestNotInConstraints()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Ext
             {
                 void Goo<T>(int a, int b) where [||]T : class
@@ -324,5 +299,4 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 };
             }
             """, expectedCodeAction: false);
-    }
 }

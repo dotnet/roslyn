@@ -885,9 +885,8 @@ index: 1,
 parseOptions: null);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
-    public async Task InExtensionMethodUnderConditionalAccessExpression()
-    {
-        await TestInRegularAndScriptAsync(@"<Workspace>
+    public Task InExtensionMethodUnderConditionalAccessExpression()
+        => TestInRegularAndScriptAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 namespace Sample
@@ -930,12 +929,10 @@ namespace Sample
     }
 }
        ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
-    public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions()
-    {
-        await TestInRegularAndScriptAsync(@"<Workspace>
+    public Task InExtensionMethodUnderMultipleConditionalAccessExpressions()
+        => TestInRegularAndScriptAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -970,12 +967,10 @@ public class C
     }
 }
        ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/3818")]
-    public async Task InExtensionMethodUnderMultipleConditionalAccessExpressions2()
-    {
-        await TestInRegularAndScriptAsync(@"<Workspace>
+    public Task InExtensionMethodUnderMultipleConditionalAccessExpressions2()
+        => TestInRegularAndScriptAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -1010,7 +1005,6 @@ public class C
     }
 }
        ");
-    }
 
     [Fact]
     public Task TestDeconstructExtension()

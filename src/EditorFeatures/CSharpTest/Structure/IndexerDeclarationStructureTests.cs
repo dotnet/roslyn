@@ -17,9 +17,8 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
     internal override AbstractSyntaxStructureProvider CreateProvider() => new IndexerDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestIndexer1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIndexer1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -29,12 +28,10 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexer2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIndexer2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -45,12 +42,10 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexer3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIndexer3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public string this[int index]{|textspan:
@@ -62,12 +57,10 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexerWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIndexerWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -80,12 +73,10 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestIndexerWithWithExpressionBodyAndComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIndexerWithWithExpressionBodyAndComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
@@ -94,5 +85,4 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 }
                 """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 }

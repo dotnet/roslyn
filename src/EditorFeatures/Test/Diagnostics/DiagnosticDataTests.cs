@@ -22,10 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 public sealed class DiagnosticDataTests
 {
     [Fact]
-    public async Task DiagnosticData_GetText()
-    {
-        await VerifyTextSpanAsync("", 10, 10, 20, 20, new TextSpan(0, 0));
-    }
+    public Task DiagnosticData_GetText()
+        => VerifyTextSpanAsync("", 10, 10, 20, 20, new TextSpan(0, 0));
 
     [Fact]
     public async Task DiagnosticData_GetText1()
@@ -91,9 +89,8 @@ public sealed class DiagnosticDataTests
     }
 
     [Fact]
-    public async Task DiagnosticData_GetText8()
-    {
-        await VerifyTextSpanAsync(@"
+    public Task DiagnosticData_GetText8()
+        => VerifyTextSpanAsync(@"
 namespace B
 {
     class A
@@ -101,7 +98,6 @@ namespace B
     }
 }
 ", 3, 10, 3, 11, new TextSpan(28, 1));
-    }
 
     private static async Task VerifyTextSpanAsync(string code, int startLine, int startColumn, int endLine, int endColumn, TextSpan span)
     {

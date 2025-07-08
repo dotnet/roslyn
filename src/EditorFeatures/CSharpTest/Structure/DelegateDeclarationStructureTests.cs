@@ -16,13 +16,11 @@ public sealed class DelegateDeclarationStructureTests : AbstractCSharpSyntaxNode
     internal override AbstractSyntaxStructureProvider CreateProvider() => new DelegateDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestDelegateWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestDelegateWithComments()
+        => VerifyBlockSpansAsync("""
                 {|span:// Goo
                 // Bar|}
                 $$public delegate void C();
                 """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 }

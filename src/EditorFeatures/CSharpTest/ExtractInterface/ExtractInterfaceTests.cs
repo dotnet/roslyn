@@ -28,9 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractInterface;
 public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
 {
     [WpfFact]
-    public async Task ExtractInterface_Invocation_CaretInMethod()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_CaretInMethod()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -40,12 +39,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_CaretAfterClassClosingBrace()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_CaretAfterClassClosingBrace()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -55,12 +52,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }$$
             """, expectedSuccess: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_CaretBeforeClassKeyword()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_CaretBeforeClassKeyword()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             $$class MyClass
             {
@@ -70,12 +65,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromInnerClass1()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_FromInnerClass1()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -92,12 +85,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true, expectedMemberName: "Bar");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromInnerClass2()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_FromInnerClass2()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -114,12 +105,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true, expectedMemberName: "Bar");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromOuterClass()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_FromOuterClass()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -136,48 +125,40 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true, expectedMemberName: "Goo");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromInterface_01()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_FromInterface_01()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             interface IMyInterface
             {
                 $$void Goo();
             }
             """, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "IMyInterface1");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromInterface_02()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_FromInterface_02()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             interface IMyInterface()
             {
                 $$void Goo();
             }
             """, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "IMyInterface1");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromStruct()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_FromStruct()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             struct SomeStruct
             {
                 $$public void Goo() { }
             }
             """, expectedSuccess: true, expectedMemberName: "Goo", expectedInterfaceName: "ISomeStruct");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromNamespace()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_Invocation_FromNamespace()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
 
             namespace Ns$$
@@ -188,12 +169,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_DoesNotIncludeFields()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_DoesNotIncludeFields()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -204,24 +183,20 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true, expectedMemberName: "Goo");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$public int Prop { get; set; }
             }
             """, expectedSuccess: true, expectedMemberName: "Prop");
-    }
 
     [WpfFact]
-    public async Task ExtractInterfaceAction_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
-    {
-        await TestExtractInterfaceCodeActionCSharpAsync("""
+    public Task ExtractInterfaceAction_ExtractableMembers_IncludesPublicProperty_WithGetAndSet()
+        => TestExtractInterfaceCodeActionCSharpAsync("""
             class MyClass$$
             {
                 public int Prop { get; set; }
@@ -237,72 +212,60 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 public int Prop { get; set; }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndPrivateSet()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGetAndPrivateSet()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$public int Prop { get; private set; }
             }
             """, expectedSuccess: true, expectedMemberName: "Prop");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGet()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_IncludesPublicProperty_WithGet()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$public int Prop { get; }
             }
             """, expectedSuccess: true, expectedMemberName: "Prop");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_ExcludesPublicProperty_WithPrivateGetAndPrivateSet()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_ExcludesPublicProperty_WithPrivateGetAndPrivateSet()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$public int Prop { private get; private set; }
             }
             """, expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_IncludesPublicIndexer()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_IncludesPublicIndexer()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$public int this[int x] { get { return 5; } set { } }
             }
             """, expectedSuccess: true, expectedMemberName: "this[]");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_ExcludesInternalIndexer()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_ExcludesInternalIndexer()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$internal int this[int x] { get { return 5; } set { } }
             }
             """, expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_IncludesPublicMethod()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_IncludesPublicMethod()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -311,12 +274,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true, expectedMemberName: "M");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_ExcludesInternalMethod()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_ExcludesInternalMethod()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -325,48 +286,40 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_IncludesAbstractMethod()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_IncludesAbstractMethod()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             abstract class MyClass
             {
                 $$public abstract void M();
             }
             """, expectedSuccess: true, expectedMemberName: "M");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_IncludesPublicEvent()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_IncludesPublicEvent()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$public event Action MyEvent;
             }
             """, expectedSuccess: true, expectedMemberName: "MyEvent");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_ExtractableMembers_ExcludesPrivateEvent()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_ExtractableMembers_ExcludesPrivateEvent()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$private event Action MyEvent;
             }
             """, expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_DefaultInterfaceName_DoesNotConflictWithOtherTypeNames()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_DefaultInterfaceName_DoesNotConflictWithOtherTypeNames()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
@@ -377,24 +330,20 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             struct IMyClass1 { }
             class IMyClass2 { }
             """, expectedSuccess: true, expectedInterfaceName: "IMyClass3");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_NamespaceName_NoNamespace()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_NamespaceName_NoNamespace()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class MyClass
             {
                 $$public void Goo() { }
             }
             """, expectedSuccess: true, expectedNamespaceName: "");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_NamespaceName_SingleNamespace()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_NamespaceName_SingleNamespace()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             namespace MyNamespace
             {
@@ -404,12 +353,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true, expectedNamespaceName: "MyNamespace");
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_NamespaceName_NestedNamespaces()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_NamespaceName_NestedNamespaces()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             namespace OuterNamespace
             {
@@ -422,7 +369,6 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, expectedSuccess: true, expectedNamespaceName: "OuterNamespace.InnerNamespace");
-    }
 
     [WpfFact]
     public async Task ExtractInterface_NamespaceName_NestedNamespaces_FileScopedNamespace1()
@@ -547,9 +493,8 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_ClassesImplementExtractedInterface()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_ClassesImplementExtractedInterface()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
 
             class MyClass
@@ -564,12 +509,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 public void Goo() { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_StructsImplementExtractedInterface()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_StructsImplementExtractedInterface()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
 
             struct MyStruct
@@ -584,12 +527,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 public void Goo() { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_InterfacesDoNotImplementExtractedInterface()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_InterfacesDoNotImplementExtractedInterface()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
 
             interface MyInterface
@@ -604,7 +545,6 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 void Goo();
             }
             """);
-    }
 
     [WpfFact]
     public async Task ExtractInterface_CodeGen_Methods()
@@ -977,9 +917,8 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_BaseList_NewBaseListNonGeneric()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_BaseList_NewBaseListNonGeneric()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class Program
             {
                 $$public void Goo() { }
@@ -990,12 +929,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 public void Goo() { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_BaseList_NewBaseListGeneric()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_BaseList_NewBaseListGeneric()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class Program<T>
             {
                 $$public void Goo(T t) { }
@@ -1006,12 +943,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 public void Goo(T t) { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_BaseList_NewBaseListWithWhereClause()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_BaseList_NewBaseListWithWhereClause()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class Program<T, U> where T : U
             {
                 $$public void Goo(T t, U u) { }
@@ -1022,12 +957,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 public void Goo(T t, U u) { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList1()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_BaseList_LargerBaseList1()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class Program : ISomeInterface
             {
                 $$public void Goo() { }
@@ -1042,12 +975,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
 
             interface ISomeInterface {}
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList2()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_BaseList_LargerBaseList2()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class Program<T, U> : ISomeInterface<T>
             {
                 $$public void Goo(T t, U u) { }
@@ -1062,12 +993,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
 
             interface ISomeInterface<T> {}
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList3()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_BaseList_LargerBaseList3()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class Program<T, U> : ISomeInterface<T>, ISomeInterface2<T, U>
             {
                 $$public void Goo(T t, U u) { }
@@ -1084,12 +1013,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             interface ISomeInterface<T> {}
             interface ISomeInterface2<T, U> {}
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_CodeGen_BaseList_LargerBaseList4()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task ExtractInterface_CodeGen_BaseList_LargerBaseList4()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class Program<T, U> : ISomeInterface<T>, ISomeInterface2<T, U> where T : U
             {
                 $$public void Goo(T t, U u) { }
@@ -1106,132 +1033,110 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             interface ISomeInterface<T> {}
             interface ISomeInterface2<T, U> {}
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly1()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly1()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class Program<T, U> : ISomeInterface<T> where T : U
             {
                 $$public void Goo(T t, U u) { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: false);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly2()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly2()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class Program<T, U> $$: ISomeInterface<T> where T : U
             {
                 public void Goo(T t, U u) { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly3()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly3()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class$$ Program<T, U> : ISomeInterface<T> where T : U
             {
                 public void Goo(T t, U u) { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly4()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly4()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class Program<T, U>$$ : ISomeInterface<T> where T : U
             {
                 public void Goo(T t, U u) { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly5()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly5()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class Program  $$ <T, U> : ISomeInterface<T> where T : U
             {
                 public void Goo(T t, U u) { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly6()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly6()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class $$Program   <T, U> : ISomeInterface<T> where T : U
             {
                 public void Goo(T t, U u) { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly7()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly7()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class $$Program : ISomeInterface<object>
             {
                 public void Goo() { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly8()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly8()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class Program$$ : ISomeInterface<object>
             {
                 public void Goo() { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly9()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly9()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class$$ Program : ISomeInterface<object>
             {
                 public void Goo() { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly10()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly10()
+        => TestTypeDiscoveryAsync("""
             interface ISomeInterface<T> {}
             class Program $$: ISomeInterface<object>
             {
                 public void Goo() { }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_TypeDiscovery_NameOnly11()
-    {
-        await TestTypeDiscoveryAsync("""
+    public Task ExtractInterface_TypeDiscovery_NameOnly11()
+        => TestTypeDiscoveryAsync("""
             namespace N
             {
             $$    class Program
@@ -1240,7 +1145,6 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """, TypeDiscoveryRule.TypeNameOnly, expectedExtractable: true);
-    }
 
     private static async Task TestTypeDiscoveryAsync(
         string markup,
@@ -1315,9 +1219,8 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WpfFact]
-    public async Task TestInWithMethod_Parameters()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestInWithMethod_Parameters()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class $$TestClass
             {
@@ -1332,12 +1235,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 void Method(in int p1);
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRefReadOnlyWithMethod_ReturnType()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestRefReadOnlyWithMethod_ReturnType()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class $$TestClass
             {
@@ -1350,12 +1251,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 ref readonly int Method();
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRefReadOnlyWithProperty()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestRefReadOnlyWithProperty()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class $$TestClass
             {
@@ -1368,12 +1267,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 ref readonly int Property { get; }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestInWithIndexer_Parameters()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestInWithIndexer_Parameters()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class $$TestClass
             {
@@ -1386,12 +1283,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 int this[in int p1] { set; }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRefReadOnlyWithIndexer_ReturnType()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestRefReadOnlyWithIndexer_ReturnType()
+        => TestExtractInterfaceCommandCSharpAsync("""
             using System;
             class $$TestClass
             {
@@ -1404,12 +1299,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 ref readonly int this[int p1] { get; }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestUnmanagedConstraint_Type()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestUnmanagedConstraint_Type()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class $$TestClass<T> where T : unmanaged
             {
                 public void M(T arg) => throw null;
@@ -1421,12 +1314,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 void M(T arg);
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestUnmanagedConstraint_Method()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestUnmanagedConstraint_Method()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class $$TestClass
             {
                 public void M<T>() where T : unmanaged => throw null;
@@ -1438,12 +1329,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 void M<T>() where T : unmanaged;
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestNotNullConstraint_Type()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestNotNullConstraint_Type()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class $$TestClass<T> where T : notnull
             {
                 public void M(T arg) => throw null;
@@ -1455,12 +1344,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 void M(T arg);
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestNotNullConstraint_Method()
-    {
-        await TestExtractInterfaceCommandCSharpAsync("""
+    public Task TestNotNullConstraint_Method()
+        => TestExtractInterfaceCommandCSharpAsync("""
             class $$TestClass
             {
                 public void M<T>() where T : notnull => throw null;
@@ -1472,7 +1359,6 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 void M<T>() where T : notnull;
             }
             """);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/23855")]
     [WpfFact]
@@ -1598,9 +1484,8 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WpfFact]
-    public async Task TestClass1()
-    {
-        await TestExtractInterfaceCommandCSharpAsync(
+    public Task TestClass1()
+        => TestExtractInterfaceCommandCSharpAsync(
             """
             namespace Test
             {
@@ -1608,12 +1493,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             }
             """,
             expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task TestStruct1()
-    {
-        await TestExtractInterfaceCommandCSharpAsync(
+    public Task TestStruct1()
+        => TestExtractInterfaceCommandCSharpAsync(
             """
             namespace Test
             {
@@ -1621,7 +1504,6 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             }
             """,
             expectedSuccess: false);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
     [WpfFact]
@@ -1663,9 +1545,8 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WpfFact]
-    public async Task TestClass2()
-    {
-        await TestExtractInterfaceCommandCSharpAsync(
+    public Task TestClass2()
+        => TestExtractInterfaceCommandCSharpAsync(
             """
             namespace Test
             {
@@ -1673,12 +1554,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             }
             """,
             expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task TestStruct2()
-    {
-        await TestExtractInterfaceCommandCSharpAsync(
+    public Task TestStruct2()
+        => TestExtractInterfaceCommandCSharpAsync(
             """
             namespace Test
             {
@@ -1686,7 +1565,6 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             }
             """,
             expectedSuccess: false);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/49739")]
     [WpfFact]
@@ -1730,9 +1608,8 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WpfFact]
-    public async Task TestClass3()
-    {
-        await TestExtractInterfaceCommandCSharpAsync(
+    public Task TestClass3()
+        => TestExtractInterfaceCommandCSharpAsync(
             """
             namespace Test
             {
@@ -1741,12 +1618,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             }
             """,
             expectedSuccess: false);
-    }
 
     [WpfFact]
-    public async Task TestStruct3()
-    {
-        await TestExtractInterfaceCommandCSharpAsync(
+    public Task TestStruct3()
+        => TestExtractInterfaceCommandCSharpAsync(
             """
             namespace Test
             {
@@ -1755,7 +1630,6 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             }
             """,
             expectedSuccess: false);
-    }
 
     [WpfFact]
     public async Task TestStruct4()
@@ -1786,9 +1660,8 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/71718")]
-    public async Task RemoveEnumeratorCancellationAttribute()
-    {
-        await TestExtractInterfaceCodeActionCSharpAsync("""
+    public Task RemoveEnumeratorCancellationAttribute()
+        => TestExtractInterfaceCodeActionCSharpAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet8="true">
                     <Document FilePath="file.cs"><![CDATA[using System;
@@ -1830,12 +1703,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/54019")]
-    public async Task TestStaticMember()
-    {
-        await TestExtractInterfaceCodeActionCSharpAsync("""
+    public Task TestStaticMember()
+        => TestExtractInterfaceCodeActionCSharpAsync("""
             using System;
 
             class MyClass$$
@@ -1863,12 +1734,10 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
                 public static event Action Event;
             }
             """);
-    }
 
     [WpfFact]
-    public async Task ExtractInterface_Invocation_FromExtension()
-    {
-        await TestExtractInterfaceCommandCSharpAsync(
+    public Task ExtractInterface_Invocation_FromExtension()
+        => TestExtractInterfaceCommandCSharpAsync(
             """
             using System;
 
@@ -1881,5 +1750,4 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             }
             """, expectedSuccess: false,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
-    }
 }

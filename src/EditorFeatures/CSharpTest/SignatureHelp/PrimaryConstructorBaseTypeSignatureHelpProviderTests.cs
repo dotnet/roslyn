@@ -20,9 +20,8 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
         => typeof(PrimaryConstructorBaseTypeSignatureHelpProvider);
 
     [Fact]
-    public async Task PrimaryConstructorBaseType_FirstParameter()
-    {
-        await TestAsync("""
+    public Task PrimaryConstructorBaseType_FirstParameter()
+        => TestAsync("""
             record Base(int Identifier)
             {
                 private Base(string ignored) : this(1, 2) { }
@@ -31,24 +30,20 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
             """, [
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 0),
             new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
-    }
 
     [Fact]
-    public async Task PrimaryConstructorClassBaseType_FirstParameter()
-    {
-        await TestAsync("""
+    public Task PrimaryConstructorClassBaseType_FirstParameter()
+        => TestAsync("""
             class Base(int Identifier)
             {
                 private Base(string ignored) : this(1, 2) { }
             }
             class Derived(int Other) : [|Base($$1|]);
             """, [new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
-    }
 
     [Fact]
-    public async Task PrimaryConstructorBaseType_SecondParameter()
-    {
-        await TestAsync("""
+    public Task PrimaryConstructorBaseType_SecondParameter()
+        => TestAsync("""
             record Base(int Identifier1, int Identifier2)
             {
                 protected Base(string name) : this(1, 2) { }
@@ -58,12 +53,10 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 1),
             new("Base(string name)", string.Empty, null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
-    }
 
     [Fact]
-    public async Task PrimaryConstructorClassBaseType_SecondParameter()
-    {
-        await TestAsync("""
+    public Task PrimaryConstructorClassBaseType_SecondParameter()
+        => TestAsync("""
             class Base(int Identifier1, int Identifier2)
             {
                 protected Base(string name) : this(1, 2) { }
@@ -72,12 +65,10 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
             """, [
             new("Base(string name)", string.Empty, null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
-    }
 
     [Fact]
-    public async Task CommentOnBaseConstructor()
-    {
-        await TestAsync("""
+    public Task CommentOnBaseConstructor()
+        => TestAsync("""
             record Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
@@ -88,12 +79,10 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 1),
             new("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
-    }
 
     [Fact]
-    public async Task CommentOnClassBaseConstructor()
-    {
-        await TestAsync("""
+    public Task CommentOnClassBaseConstructor()
+        => TestAsync("""
             class Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
@@ -103,12 +92,10 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
             """, [
             new("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
-    }
 
     [Fact]
-    public async Task CommentOnBaseConstructorAndParameters()
-    {
-        await TestAsync("""
+    public Task CommentOnBaseConstructorAndParameters()
+        => TestAsync("""
             record Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
@@ -120,12 +107,10 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 0),
             new("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
-    }
 
     [Fact]
-    public async Task CommentOnClassBaseConstructorAndParameters()
-    {
-        await TestAsync("""
+    public Task CommentOnClassBaseConstructorAndParameters()
+        => TestAsync("""
             class Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
@@ -136,16 +121,13 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
             """, [
             new("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")]
-    public async Task PrimaryConstructorBaseType_AbstractBaseType()
-    {
-        await TestAsync("""
+    public Task PrimaryConstructorBaseType_AbstractBaseType()
+        => TestAsync("""
             abstract class Base(int Identifier)
             {
             }
             class Derived(int Other) : [|Base($$1|]);
             """, [new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
-    }
 }

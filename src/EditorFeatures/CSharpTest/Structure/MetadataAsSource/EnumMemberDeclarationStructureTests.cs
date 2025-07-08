@@ -18,21 +18,18 @@ public sealed class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNo
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumMemberDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 enum E
                 {
                     $$Goo,
                     Bar
                 }
                 """);
-    }
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 enum E
                 {
                     {|hint:{|textspan:[Blah]
@@ -41,12 +38,10 @@ public sealed class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 enum E
                 {
                     {|hint:{|textspan:// Summary:
@@ -57,5 +52,4 @@ public sealed class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

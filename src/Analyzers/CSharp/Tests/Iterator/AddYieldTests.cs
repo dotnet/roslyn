@@ -23,9 +23,8 @@ public sealed class AddYieldTests
         => VerifyCS.VerifyCodeFixAsync(code, fixedCode);
 
     [Fact]
-    public async Task TestAddYieldIEnumerableReturnNull()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestAddYieldIEnumerableReturnNull()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -37,12 +36,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldIEnumerableReturnObject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldIEnumerableReturnObject()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -65,12 +62,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldIEnumeratorReturnObject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldIEnumeratorReturnObject()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -93,12 +88,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldIEnumeratorReturnGenericList()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldIEnumeratorReturnGenericList()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -123,12 +116,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldGenericIEnumeratorReturnObject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldGenericIEnumeratorReturnObject()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -153,12 +144,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldGenericIEnumerableReturnObject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldGenericIEnumerableReturnObject()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -183,12 +172,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldIEnumerableReturnGenericList()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestAddYieldIEnumerableReturnGenericList()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -201,12 +188,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldGenericIEnumeratorReturnDefault()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldGenericIEnumeratorReturnDefault()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -231,12 +216,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldGenericIEnumerableReturnConvertibleToObject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldGenericIEnumerableReturnConvertibleToObject()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -261,12 +244,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -291,12 +272,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldGenericIEnumeratorNonConvertableType()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestAddYieldGenericIEnumeratorNonConvertableType()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -309,12 +288,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -339,12 +316,10 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAddYieldNoTypeArguments()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestAddYieldNoTypeArguments()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.IO;
@@ -391,5 +366,4 @@ public sealed class AddYieldTests
                 }
             }
             """);
-    }
 }

@@ -24,9 +24,8 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     #region "Regular tests"
 
     [Fact]
-    public async Task TestInvocationWithoutParameters()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutParameters()
+        => TestAsync("""
             class C
             {
                 void goo()
@@ -35,12 +34,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestImplicitInvocationWithoutParameters()
-    {
-        await TestAsync("""
+    public Task TestImplicitInvocationWithoutParameters()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -55,12 +52,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 </Project>
             </Workspace>
             """, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutParametersMethodXmlComments()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutParametersMethodXmlComments()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -74,12 +69,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C()", "Summary for C", null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersOn1()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersOn1()
+        => TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -90,12 +83,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestImplicitInvocationWithParametersOn1()
-    {
-        await TestAsync("""
+    public Task TestImplicitInvocationWithParametersOn1()
+        => TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -106,12 +97,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersXmlCommentsOn1()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersXmlCommentsOn1()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -127,12 +116,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C(int a, int b)", "Summary for C", "Param a", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersOn2()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersOn2()
+        => TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -143,12 +130,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithParametersXmlComentsOn2()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithParametersXmlComentsOn2()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -164,12 +149,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C(int a, int b)", "Summary for C", "Param b", currentParameterIndex: 1)]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_PickFirst()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_PickFirst()
+        => TestAsync("""
             class D
             {
                 void M()
@@ -183,12 +166,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
             """, [
             new("D(int i)", currentParameterIndex: 0, isSelected: true),
             new("D(string i)", currentParameterIndex: 0),]);
-    }
 
     [Fact]
-    public async Task PickCorrectOverload_PickFirst_ImplicitObjectCreation()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_PickFirst_ImplicitObjectCreation()
+        => TestAsync("""
             class D
             {
                 void M()
@@ -202,12 +183,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
             """, [
             new("D(int i)", currentParameterIndex: 0, isSelected: true),
             new("D(string i)", currentParameterIndex: 0),]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25830")]
-    public async Task PickCorrectOverload_PickSecond()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_PickSecond()
+        => TestAsync("""
             class D
             {
                 void M()
@@ -221,12 +200,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
             """, [
             new("D(int i)", currentParameterIndex: 0),
             new("D(string i)", currentParameterIndex: 0, isSelected: true),]);
-    }
 
     [Fact]
-    public async Task PickCorrectOverload_PickSecond_ImplicitObjectCreation()
-    {
-        await TestAsync("""
+    public Task PickCorrectOverload_PickSecond_ImplicitObjectCreation()
+        => TestAsync("""
             class D
             {
                 void M()
@@ -240,12 +217,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
             """, [
             new("D(int i)", currentParameterIndex: 0),
             new("D(string i)", currentParameterIndex: 0, isSelected: true),]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutClosingParen()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutClosingParen()
+        => TestAsync("""
             class C
             {
                 void goo()
@@ -254,12 +229,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
             }
             """, [new("C()", string.Empty, null, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutClosingParenWithParameters()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutClosingParenWithParameters()
+        => TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -270,12 +243,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
             }
             """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task TestInvocationWithoutClosingParenWithParametersOn2()
-    {
-        await TestAsync("""
+    public Task TestInvocationWithoutClosingParenWithParametersOn2()
+        => TestAsync("""
             class C
             {
                 C(int a, int b) { }
@@ -286,12 +257,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
             }
             """, [new("C(int a, int b)", string.Empty, string.Empty, currentParameterIndex: 1)]);
-    }
 
     [Fact]
-    public async Task TestInvocationOnLambda()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnLambda()
+        => TestAsync("""
             using System;
 
             class C
@@ -302,16 +271,14 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 |]}
             }
             """, [new("Action<int, int>(void (int, int) target)", string.Empty, string.Empty, currentParameterIndex: 0, isSelected: true)]);
-    }
 
     #endregion
 
     #region "Current Parameter Name"
 
     [Fact]
-    public async Task TestCurrentParameterName()
-    {
-        await VerifyCurrentParameterNameAsync("""
+    public Task TestCurrentParameterName()
+        => VerifyCurrentParameterNameAsync("""
             class C
             {
                 C(int a, string b)
@@ -324,16 +291,14 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, "a");
-    }
 
     #endregion
 
     #region "Trigger tests"
 
     [Fact]
-    public async Task TestInvocationOnTriggerParens()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnTriggerParens()
+        => TestAsync("""
             class C
             {
                 void goo()
@@ -342,12 +307,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C()", string.Empty, null, currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestInvocationOnTriggerComma()
-    {
-        await TestAsync("""
+    public Task TestInvocationOnTriggerComma()
+        => TestAsync("""
             class C
             {
                 C(int a, string b)
@@ -360,12 +323,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, [new("C(int a, string b)", string.Empty, string.Empty, currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TestNoInvocationOnSpace()
-    {
-        await TestAsync("""
+    public Task TestNoInvocationOnSpace()
+        => TestAsync("""
             class C
             {
                 C(int a, string b)
@@ -378,7 +339,6 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """, expectedOrderedItemsOrNull: [], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
     public void TestTriggerCharacters()
@@ -547,9 +507,8 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     #endregion
 
     [Fact]
-    public async Task FieldUnavailableInOneLinkedFile()
-    {
-        await VerifyItemWithReferenceWorkerAsync(
+    public Task FieldUnavailableInOneLinkedFile()
+        => VerifyItemWithReferenceWorkerAsync(
             """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
@@ -581,12 +540,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
 
                 {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
                 """, currentParameterIndex: 0)], false);
-    }
 
     [Fact]
-    public async Task ExcludeFilesWithInactiveRegions()
-    {
-        await VerifyItemWithReferenceWorkerAsync(
+    public Task ExcludeFilesWithInactiveRegions()
+        => VerifyItemWithReferenceWorkerAsync(
             """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO,BAR">
@@ -624,20 +581,16 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
 
                 {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
                 """, currentParameterIndex: 0)], false);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-    public async Task InvokedWithNoToken()
-    {
-        await TestAsync("""
+    public Task InvokedWithNoToken()
+        => TestAsync("""
             // new goo($$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078993")]
-    public async Task TestSigHelpInIncorrectObjectCreationExpression()
-    {
-        await TestAsync("""
+    public Task TestSigHelpInIncorrectObjectCreationExpression()
+        => TestAsync("""
             class C
             {
                 void goo(C c)
@@ -646,12 +599,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss1()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss1()
+        => TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -662,12 +613,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
 
             }
             """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss2()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss2()
+        => TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -678,12 +627,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
 
             }
             """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss3()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss3()
+        => TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -694,12 +641,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
 
             }
             """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Fact]
-    public async Task TypingTupleDoesNotDismiss4()
-    {
-        await TestAsync("""
+    public Task TypingTupleDoesNotDismiss4()
+        => TestAsync("""
             class C
             {
                 public C(object o) { }
@@ -710,7 +655,6 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
 
             }
             """, [new("C(object o)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
-    }
 
     [Theory]
     [InlineData("1$$", 0, 0)]
@@ -773,9 +717,8 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
-    public async Task ProtectedConstructor1()
-    {
-        await TestAsync("""
+    public Task ProtectedConstructor1()
+        => TestAsync("""
             public class Derived:BaseClass
             {
                 public void Do()
@@ -792,12 +735,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
             """,
             [new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0)],
             usePreviousCharAsTrigger: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
-    public async Task ProtectedConstructor2()
-    {
-        await TestAsync("""
+    public Task ProtectedConstructor2()
+        => TestAsync("""
             public class BaseClass
             {
                 public BaseClass(int val) { }
@@ -816,12 +757,10 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 new SignatureHelpTestItem("BaseClass(int val, int val1)", currentParameterIndex: 0),
             ],
             usePreviousCharAsTrigger: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
-    public async Task ProtectedConstructor3()
-    {
-        await TestAsync("""
+    public Task ProtectedConstructor3()
+        => TestAsync("""
             public class BaseClass
             {
                 public BaseClass(int val) { }
@@ -837,5 +776,4 @@ public sealed class ObjectCreationExpressionSignatureHelpProviderTests : Abstrac
                 new SignatureHelpTestItem("BaseClass(int val, int val1)", currentParameterIndex: 0),
             ],
             usePreviousCharAsTrigger: true);
-    }
 }

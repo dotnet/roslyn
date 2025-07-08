@@ -18,9 +18,8 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllDocumentBasic()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task FixAllDocumentBasic()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 static void Main()
@@ -41,14 +40,12 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 }
             }
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllDocumentVariedSingleLine()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task FixAllDocumentVariedSingleLine()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 static void Main()
@@ -65,14 +62,12 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 }
             }
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task FixAllDocumentVariedWithUsing()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task FixAllDocumentVariedWithUsing()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -99,7 +94,6 @@ public sealed partial class ConvertTypeOfToNameOfTests
                 }
             }
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]

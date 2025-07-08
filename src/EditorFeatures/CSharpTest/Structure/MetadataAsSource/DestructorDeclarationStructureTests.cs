@@ -18,20 +18,17 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
     internal override AbstractSyntaxStructureProvider CreateProvider() => new DestructorDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 class Goo
                 {
                     $$~Goo();
                 }
                 """);
-    }
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:[Bar]
@@ -39,12 +36,10 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -54,5 +49,4 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

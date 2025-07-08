@@ -108,9 +108,8 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("i => { }")]
     [InlineData("(i) => { }")]
     [InlineData("delegate (int i) { }")]
-    public async Task TestNoCaptures(string anonymousFunctionSyntax)
-    {
-        await TestWithCSharp9Async($$"""
+    public Task TestNoCaptures(string anonymousFunctionSyntax)
+        => TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -139,7 +138,6 @@ public sealed class MakeAnonymousFunctionStaticTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("i => _field")]
@@ -172,9 +170,8 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("i => GetValueFromStaticMethod()")]
     [InlineData("(i) => GetValueFromStaticMethod()")]
     [InlineData("delegate (int i) { return GetValueFromStaticMethod(); }")]
-    public async Task TestNoCaptures_ReferencesStaticMethod(string anonymousFunctionSyntax)
-    {
-        await TestWithCSharp9Async($$"""
+    public Task TestNoCaptures_ReferencesStaticMethod(string anonymousFunctionSyntax)
+        => TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -207,7 +204,6 @@ public sealed class MakeAnonymousFunctionStaticTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("i => x")]
@@ -238,9 +234,8 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("i => i")]
     [InlineData("(i) => i")]
     [InlineData("delegate (int i) { return i; }")]
-    public async Task TestNoCaptures_SameFunctionParameterNameAsOuterParameterName(string anonymousFunctionSyntax)
-    {
-        await TestWithCSharp9Async($$"""
+    public Task TestNoCaptures_SameFunctionParameterNameAsOuterParameterName(string anonymousFunctionSyntax)
+        => TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -269,7 +264,6 @@ public sealed class MakeAnonymousFunctionStaticTests
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("i => x")]
@@ -301,9 +295,8 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("i => i")]
     [InlineData("(i) => i")]
     [InlineData("delegate (int i) { return i; }")]
-    public async Task TestNoCaptures_SameFunctionParameterNameAsOuterLocalName(string anonymousFunctionSyntax)
-    {
-        await TestWithCSharp9Async($$"""
+    public Task TestNoCaptures_SameFunctionParameterNameAsOuterLocalName(string anonymousFunctionSyntax)
+        => TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -334,12 +327,10 @@ public sealed class MakeAnonymousFunctionStaticTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedLambdasWithNoCaptures()
-    {
-        await TestWithCSharp9Async("""
+    public Task TestNestedLambdasWithNoCaptures()
+        => TestWithCSharp9Async("""
             using System;
             
             class C
@@ -374,12 +365,10 @@ public sealed class MakeAnonymousFunctionStaticTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNestedAnonymousMethodsWithNoCaptures()
-    {
-        await TestWithCSharp9Async("""
+    public Task TestNestedAnonymousMethodsWithNoCaptures()
+        => TestWithCSharp9Async("""
             using System;
             
             class C
@@ -414,5 +403,4 @@ public sealed class MakeAnonymousFunctionStaticTests
                 }
             }
             """);
-    }
 }

@@ -2240,9 +2240,8 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             """, options: ExplicitTypeForBuiltInTypesOnly());
 
     [Fact]
-    public async Task SuggestExplicitTypeNotificationLevelSilent()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestExplicitTypeNotificationLevelSilent()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2255,12 +2254,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             options: ExplicitTypeSilentEnforcement(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Hidden);
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeNotificationLevelInfo()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestExplicitTypeNotificationLevelInfo()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2273,12 +2270,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             options: ExplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Info);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
-    public async Task SuggestExplicitTypeNotificationLevelWarning()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestExplicitTypeNotificationLevelWarning()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2291,12 +2286,10 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             options: ExplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning);
-    }
 
     [Fact]
-    public async Task SuggestExplicitTypeNotificationLevelError()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestExplicitTypeNotificationLevelError()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2309,7 +2302,6 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
             options: ExplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Error);
-    }
 
     [Fact]
     public Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()

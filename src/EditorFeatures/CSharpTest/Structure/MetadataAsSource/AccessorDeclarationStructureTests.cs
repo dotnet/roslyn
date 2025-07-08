@@ -18,9 +18,8 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
     internal override AbstractSyntaxStructureProvider CreateProvider() => new AccessorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestPropertyGetter3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestPropertyGetter3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -36,12 +35,10 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithSingleLineComments3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestPropertyGetterWithSingleLineComments3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -60,12 +57,10 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 """,
             Region("span1", "// My ...", autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyGetterWithMultiLineComments3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestPropertyGetterWithMultiLineComments3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     public string Text
@@ -83,5 +78,4 @@ public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan1", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

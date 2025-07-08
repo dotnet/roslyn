@@ -30,9 +30,8 @@ public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDi
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -100,14 +99,12 @@ public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDi
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -174,14 +171,12 @@ public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDi
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProjectSkipsGeneratedCode()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInProjectSkipsGeneratedCode()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -249,14 +244,12 @@ public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDi
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -322,14 +315,12 @@ public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDi
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingMember_NotApplicable()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestFixAllInContainingMember_NotApplicable()
+        => TestMissingInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -364,14 +355,12 @@ public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDi
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingType_NotApplicable()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestFixAllInContainingType_NotApplicable()
+        => TestMissingInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -406,6 +395,5 @@ public sealed class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDi
                 </Project>
             </Workspace>
             """);
-    }
     #endregion
 }

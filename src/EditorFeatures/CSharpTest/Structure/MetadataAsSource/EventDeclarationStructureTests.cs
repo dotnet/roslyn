@@ -17,21 +17,18 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EventDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:public event EventArgs $$goo {|textspan:{ add; remove; }|}|}
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:[Goo]
@@ -40,12 +37,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -56,12 +51,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAttributesAndModifiers()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -72,12 +65,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestEvent3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEvent3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:event EventHandler E{|textspan:
@@ -94,5 +85,4 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

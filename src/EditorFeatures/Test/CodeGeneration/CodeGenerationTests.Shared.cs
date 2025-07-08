@@ -651,9 +651,8 @@ End Namespace";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task TestDocumentationComment()
-        {
-            await TestGenerateFromSourceSymbolAsync(@"
+        public Task TestDocumentationComment()
+            => TestGenerateFromSourceSymbolAsync(@"
 public class [|C|]
 {
     /// <summary>When in need, a documented method is a friend, indeed.</summary>
@@ -669,7 +668,6 @@ public class [|C|]
 }",
                 context: new CodeGenerationContext(generateMethodBodies: false, generateDocumentationComments: true),
                 onlyGenerateMembers: true);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestModifiers()

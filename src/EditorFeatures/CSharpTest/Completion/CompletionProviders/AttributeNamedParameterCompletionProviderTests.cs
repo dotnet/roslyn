@@ -68,9 +68,8 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
     }
 
     [Fact]
-    public async Task SimpleAttributeUsage()
-    {
-        await VerifyItemExistsAsync("""
+    public Task SimpleAttributeUsage()
+        => VerifyItemExistsAsync("""
             using System;
             class class1
             {
@@ -85,12 +84,10 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
                 public ConsoleColor Color { get; set; }
             }
             """, "Color", displayTextSuffix: " =");
-    }
 
     [Fact]
-    public async Task AfterComma()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AfterComma()
+        => VerifyItemExistsAsync("""
             using System;
             class class1
             {
@@ -106,7 +103,6 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
                 public string Text { get; set; }
             }
             """, "Text", displayTextSuffix: " =");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544345")]
     public async Task ExistingItemsAreFiltered()
@@ -133,9 +129,8 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
     }
 
     [Fact]
-    public async Task AttributeConstructor()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AttributeConstructor()
+        => VerifyItemExistsAsync("""
             using System;
             class TestAttribute : Attribute
             {
@@ -147,12 +142,10 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
             class Goo
             { }
             """, "a", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task AttributeConstructorAfterComma()
-    {
-        await VerifyItemExistsAsync("""
+    public Task AttributeConstructorAfterComma()
+        => VerifyItemExistsAsync("""
             using System;
             class TestAttribute : Attribute
             {
@@ -164,12 +157,10 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
             class Goo
             { }
             """, "a", displayTextSuffix: ":");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545426")]
-    public async Task TestPropertiesInScript()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestPropertiesInScript()
+        => VerifyItemExistsAsync("""
             using System;
 
             class TestAttribute : Attribute
@@ -185,12 +176,10 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
             {
             }
             """, "Text", displayTextSuffix: " =");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
-    public async Task NotInComment()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotInComment()
+        => VerifyNoItemsExistAsync("""
             using System;
             class class1
             {
@@ -205,5 +194,4 @@ public sealed class AttributeNamedParameterCompletionProviderTests : AbstractCSh
                 public ConsoleColor Color { get; set; }
             }
             """);
-    }
 }

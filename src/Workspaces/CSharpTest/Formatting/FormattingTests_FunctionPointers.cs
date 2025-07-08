@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
 public sealed class FormattingTests_FunctionPointers : CSharpFormattingTestBase
 {
     [Fact]
-    public async Task FormatFunctionPointer()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatFunctionPointer()
+        => AssertFormatAsync(@"
 unsafe class C
 {
     delegate*<int, int> functionPointer;
@@ -25,12 +24,10 @@ unsafe class C
 {
     delegate * < int ,  int > functionPointer;
 }");
-    }
 
     [Fact]
-    public async Task FormatFunctionPointerWithManagedCallingConvention()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatFunctionPointerWithManagedCallingConvention()
+        => AssertFormatAsync(@"
 unsafe class C
 {
     delegate* managed<int, int> functionPointer;
@@ -39,12 +36,10 @@ unsafe class C
 {
     delegate *managed < int ,  int > functionPointer;
 }");
-    }
 
     [Fact]
-    public async Task FormatFunctionPointerWithUnmanagedCallingConvention()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatFunctionPointerWithUnmanagedCallingConvention()
+        => AssertFormatAsync(@"
 unsafe class C
 {
     delegate* unmanaged<int, int> functionPointer;
@@ -53,12 +48,10 @@ unsafe class C
 {
     delegate *unmanaged < int ,  int > functionPointer;
 }");
-    }
 
     [Fact]
-    public async Task FormatFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
+        => AssertFormatAsync(@"
 unsafe class C
 {
     delegate* unmanaged[Cdecl, Thiscall]<int, int> functionPointer;
@@ -67,12 +60,10 @@ unsafe class C
 {
     delegate *unmanaged [ Cdecl ,  Thiscall ] < int ,  int > functionPointer;
 }");
-    }
 
     [Fact]
-    public async Task FormatFunctionPointerWithUnrecognizedCallingConvention()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatFunctionPointerWithUnrecognizedCallingConvention()
+        => AssertFormatAsync(@"
 unsafe class C
 {
     delegate*invalid <int, int> functionPointer;
@@ -81,12 +72,10 @@ unsafe class C
 {
     delegate *invalid < int ,  int > functionPointer;
 }");
-    }
 
     [Fact]
-    public async Task FormatFunctionPointerWithInvalidCallingConventionAndSpecifiers()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatFunctionPointerWithInvalidCallingConventionAndSpecifiers()
+        => AssertFormatAsync(@"
 unsafe class C
 {
     delegate*invalid [Cdecl, Thiscall]<int, int> functionPointer;
@@ -95,5 +84,4 @@ unsafe class C
 {
     delegate *invalid [ Cdecl ,  Thiscall ] < int ,  int > functionPointer;
 }");
-    }
 }

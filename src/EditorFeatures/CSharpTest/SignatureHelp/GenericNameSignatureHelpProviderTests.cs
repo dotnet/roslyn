@@ -666,9 +666,8 @@ public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignat
     }
 
     [Fact]
-    public async Task TestUnmanagedConstraint()
-    {
-        await TestAsync("""
+    public Task TestUnmanagedConstraint()
+        => TestAsync("""
             class C
             {
                 /// <summary>
@@ -688,7 +687,6 @@ public sealed class GenericNameSignatureHelpProviderTests : AbstractCSharpSignat
         [
             new SignatureHelpTestItem("void C.M<T>(T arg) where T : unmanaged", "summary headline", "T documentation", currentParameterIndex: 0)
         ]);
-    }
 
     #endregion
 

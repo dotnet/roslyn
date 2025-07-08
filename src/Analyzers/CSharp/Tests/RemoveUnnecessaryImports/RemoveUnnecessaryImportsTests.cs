@@ -1361,9 +1361,8 @@ public sealed class RemoveUnnecessaryImportsTests
     }
 
     [Fact]
-    public async Task TestSpan()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSpan()
+        => VerifyCS.VerifyCodeFixAsync("""
             namespace N
             {
                 [|{|IDE0005:using System;|}|]
@@ -1373,7 +1372,6 @@ public sealed class RemoveUnnecessaryImportsTests
             {
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]
     public async Task TestMissingWhenErrorsWouldBeGenerated()

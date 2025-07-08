@@ -129,9 +129,8 @@ C.Field -> string", newUnshippedApiText: unshippedText);
         }
 
         [Fact]
-        public async Task DoNotWarnIfAlreadyEnabled_ViaUnshippedFileAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task DoNotWarnIfAlreadyEnabled_ViaUnshippedFileAsync()
+            => VerifyCSharpAsync(@"
 #nullable enable
 public class C
 {
@@ -142,12 +141,10 @@ public class C
 C.C() -> void
 C.Field -> string
 C.Field2 -> string", @"#nullable enable");
-        }
 
         [Fact]
-        public async Task DoNotWarnIfAlreadyEnabled_ViaShippedFileAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task DoNotWarnIfAlreadyEnabled_ViaShippedFileAsync()
+            => VerifyCSharpAsync(@"
 #nullable enable
 public class C
 {
@@ -159,7 +156,6 @@ C
 C.C() -> void
 C.Field -> string
 C.Field2 -> string", @"");
-        }
 
         #endregion
     }

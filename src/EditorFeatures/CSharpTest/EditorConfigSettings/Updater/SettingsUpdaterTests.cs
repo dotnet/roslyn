@@ -143,9 +143,8 @@ public sealed partial class SettingsUpdaterTests : TestBase
             (CSharpFormattingOptions2.NewLineForElse, false));
 
     [Fact]
-    public async Task TestAddNewWhitespaceOptionToExistingFileAsync()
-    {
-        await TestAsync(
+    public Task TestAddNewWhitespaceOptionToExistingFileAsync()
+        => TestAsync(
             @"
 [*.{cs,vb}]
 
@@ -163,12 +162,10 @@ dotnet_diagnostic.CA1000.severity = false
 [*.cs]
 csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
-    public async Task TestAddNewWhitespaceOptionToWithNonMathcingGroupsAsync()
-    {
-        await TestAsync(
+    public Task TestAddNewWhitespaceOptionToWithNonMathcingGroupsAsync()
+        => TestAsync(
             @"
 root = true
 
@@ -184,12 +181,10 @@ indent_size = 2
 [*.cs]
 csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
-    public async Task TestAddNewWhitespaceOptionWithStarGroup()
-    {
-        await TestAsync(
+    public Task TestAddNewWhitespaceOptionWithStarGroup()
+        => TestAsync(
             @"
 root = true
 
@@ -216,7 +211,6 @@ indent_size = 2
 [*.cs]
 csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
     public Task TestAddMultimpleNewWhitespaceOptions()
@@ -228,9 +222,8 @@ csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForFinally, true));
 
     [Fact]
-    public async Task TestAddOptionThatAppliesToBothLanguages()
-    {
-        await TestAsync(
+    public Task TestAddOptionThatAppliesToBothLanguages()
+        => TestAsync(
             @"
 root = true
 
@@ -257,12 +250,10 @@ dotnet_sort_system_directives_first = true
 # CSharp code style settings:
 [*.cs]",
             (GenerationOptions.PlaceSystemNamespaceFirst, true));
-    }
 
     [Fact]
-    public async Task TestAddOptionWithRelativePathGroupingPresent()
-    {
-        await TestAsync(
+    public Task TestAddOptionWithRelativePathGroupingPresent()
+        => TestAsync(
             @"
 root = true
 
@@ -295,7 +286,6 @@ indent_size = 2
 [*.cs]
 csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
     public async Task TestAnalyzerSettingsUpdaterService()

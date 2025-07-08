@@ -230,9 +230,8 @@ public sealed partial class TotalClassifierTests : AbstractCSharpClassifierTests
             Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
-    public async Task PartialDynamicWhere(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PartialDynamicWhere(TestHost testHost)
+        => TestAsync("""
             partial class partial<where> where where : partial<where>
             {
                 static dynamic dynamic<partial>()
@@ -277,7 +276,6 @@ public sealed partial class TotalClassifierTests : AbstractCSharpClassifierTests
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]

@@ -61,9 +61,8 @@ public partial class CSharpSimplifyLinqExpressionTests
         }.RunAsync();
 
     [Fact]
-    public async Task FixAllInDocumentExplicitCall()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task FixAllInDocumentExplicitCall()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             using System.Linq;
             using System.Collections.Generic;
@@ -98,7 +97,6 @@ public partial class CSharpSimplifyLinqExpressionTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task NestedInDocument()

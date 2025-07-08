@@ -268,9 +268,8 @@ public sealed class ForEachCastTests
     }
 
     [Fact]
-    public async Task NonGenericObjectCollection_Always()
-    {
-        await TestAlwaysAsync("""
+    public Task NonGenericObjectCollection_Always()
+        => TestAlwaysAsync("""
             using System.Collections;
             namespace ConsoleApplication1
             {
@@ -302,7 +301,6 @@ public sealed class ForEachCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task NonGenericObjectCollection_NonLegacy()

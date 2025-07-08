@@ -17,9 +17,8 @@ public sealed class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
     public FormattingEngineTests_Venus(ITestOutputHelper output) : base(output) { }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-    public async Task SimpleOneLineNugget()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task SimpleOneLineNugget()
+        => AssertFormatWithBaseIndentAsync("""
             public class Default
             {
                 void PreRender()
@@ -42,12 +41,10 @@ public sealed class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
                 }
             }
             """, baseIndentation: 7);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-    public async Task SimpleMultiLineNugget()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task SimpleMultiLineNugget()
+        => AssertFormatWithBaseIndentAsync("""
             public class Default
             {
                 void PreRender()
@@ -75,12 +72,10 @@ public sealed class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
                 }
             }
             """, baseIndentation: 3);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-    public async Task SimpleQueryWithinNugget()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task SimpleQueryWithinNugget()
+        => AssertFormatWithBaseIndentAsync("""
             public class Default
             {
                 void PreRender()
@@ -109,12 +104,10 @@ public sealed class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
                 }
             }
             """, baseIndentation: 7);
-    }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-    public async Task LambdaExpressionInNugget()
-    {
-        await AssertFormatWithBaseIndentAsync("""
+    public Task LambdaExpressionInNugget()
+        => AssertFormatWithBaseIndentAsync("""
             public class Default
             {
                 void PreRender()
@@ -143,17 +136,11 @@ public sealed class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
                 }
             }
             """, baseIndentation: 3);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576457")]
     [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
-    public async Task StatementLambdaInNugget()
-    {
-
-        // It is somewhat odd that the 'x' and the ')' maintain their
-        // position relative to 'foreach', but the block doesn't, but that isn't
-        // Venus specific, just the way the formatting engine is.
-        await AssertFormatWithBaseIndentAsync("""
+    public Task StatementLambdaInNugget()
+        => AssertFormatWithBaseIndentAsync("""
             public class Default
             {
                 void PreRender()
@@ -200,5 +187,4 @@ public sealed class FormattingEngineTests_Venus : CSharpFormattingEngineTestBase
                 }
             }
             """, baseIndentation: 3);
-    }
 }

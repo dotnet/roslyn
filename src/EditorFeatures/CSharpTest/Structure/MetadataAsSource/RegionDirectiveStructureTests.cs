@@ -18,24 +18,20 @@ public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStru
     internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
     [Fact]
-    public async Task FileHeader()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task FileHeader()
+        => VerifyBlockSpansAsync("""
                 {|span:#re$$gion Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
                 // C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll
                 #endregion|}
                 """,
             Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse: true, isDefaultCollapsed: true));
-    }
 
     [Fact]
-    public async Task EmptyFileHeader()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task EmptyFileHeader()
+        => VerifyBlockSpansAsync("""
                 {|span:#re$$gion
                 // C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\mscorlib.dll
                 #endregion|}
                 """,
             Region("span", "#region", autoCollapse: true, isDefaultCollapsed: true));
-    }
 }

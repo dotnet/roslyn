@@ -17,9 +17,8 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
     internal override AbstractSyntaxStructureProvider CreateProvider() => new AnonymousMethodExpressionStructureProvider();
 
     [Fact]
-    public async Task TestAnonymousMethod()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestAnonymousMethod()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -31,12 +30,10 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestAnonymousMethodInForLoop()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task TestAnonymousMethodInForLoop()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -45,12 +42,10 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                     }
                 }
                 """);
-    }
 
     [Fact]
-    public async Task TestAnonymousMethodInMethodCall1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestAnonymousMethodInMethodCall1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -62,12 +57,10 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestAnonymousMethodInMethodCall2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestAnonymousMethodInMethodCall2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void Main()
@@ -79,5 +72,4 @@ public sealed class AnonymousMethodExpressionStructureTests : AbstractCSharpSynt
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

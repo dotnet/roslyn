@@ -389,9 +389,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
     }
 
     [Fact]
-    public async Task QueryEmptyDeclarations()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task QueryEmptyDeclarations()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -411,7 +410,6 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task QueryWhereClause()
@@ -1327,9 +1325,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31784")]
-    public async Task QueryWhichRequiresSelectManyWithIdentityLambda()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task QueryWhichRequiresSelectManyWithIdentityLambda()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1357,7 +1354,6 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """, index: 1);
-    }
 
     #endregion
 
@@ -2140,9 +2136,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
     }
 
     [Fact]
-    public async Task ToListHashSetNoConversion()
-    {
-        await TestMissingAsync("""
+    public Task ToListHashSetNoConversion()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             class C
             {
@@ -2156,7 +2151,6 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task ToListMergeWithReturn()
@@ -2643,9 +2637,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
     }
 
     [Fact]
-    public async Task ToListOverride()
-    {
-        await TestMissingAsync("""
+    public Task ToListOverride()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2665,7 +2658,6 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """);
-    }
 
     #endregion
 
@@ -4098,11 +4090,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
     #region Preprocessor directives
 
     [Fact]
-    public async Task NoConversionPreprocessorDirectives()
-    {
-
-        // Cannot convert expressions with preprocessor directives
-        await TestMissingAsync("""
+    public Task NoConversionPreprocessorDirectives()
+        => TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4118,7 +4107,6 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """);
-    }
 
     #endregion
 }

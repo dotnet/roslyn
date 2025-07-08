@@ -967,9 +967,8 @@ public sealed partial class TotalClassifierTests
             Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
-    public async Task DynamicAsRegionLabel(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task DynamicAsRegionLabel(TestHost testHost)
+        => TestAsync("""
             #region dynamic
             #endregion
             """,
@@ -979,7 +978,6 @@ public sealed partial class TotalClassifierTests
             PPText("dynamic"),
             PPKeyword("#"),
             PPKeyword("endregion"));
-    }
 
     [Theory, CombinatorialData]
     public Task DynamicAsInterfaceType(TestHost testHost)

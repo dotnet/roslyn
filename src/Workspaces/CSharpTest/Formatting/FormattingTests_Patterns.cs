@@ -302,9 +302,8 @@ class A
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
-    public async Task FormatMultiLinePattern1()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatMultiLinePattern1()
+        => AssertFormatAsync(@"
 class TypeName
 {
     bool MethodName(string value)
@@ -329,12 +328,10 @@ class TypeName
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
-    public async Task FormatMultiLinePattern2()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatMultiLinePattern2()
+        => AssertFormatAsync(@"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -385,12 +382,10 @@ class TypeName
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46284")]
-    public async Task FormatMultiLinePattern3()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatMultiLinePattern3()
+        => AssertFormatAsync(@"
 class TypeName
 {
     private static bool IsCallingConventionModifier(CustomModifier modifier)
@@ -441,12 +436,10 @@ ContainingNamespace: { IsGlobalNamespace: true }
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatMultiLinePattern4()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatMultiLinePattern4()
+        => AssertFormatAsync(@"
 class TypeName
 {
     void MethodName(string value)
@@ -473,12 +466,10 @@ class TypeName
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatMultiLinePattern5()
-    {
-        await AssertFormatAsync(@"
+    public Task FormatMultiLinePattern5()
+        => AssertFormatAsync(@"
 class TypeName
 {
     void MethodName(string value)
@@ -505,12 +496,10 @@ class TypeName
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatNestedListPattern1()
-    {
-        await AssertFormatAsync("""
+    public Task FormatNestedListPattern1()
+        => AssertFormatAsync("""
             class C
             {
                 void M(string[] ss)
@@ -533,12 +522,10 @@ class TypeName
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatNestedListPattern2()
-    {
-        await AssertFormatAsync("""
+    public Task FormatNestedListPattern2()
+        => AssertFormatAsync("""
             class C
             {
                 void M(string[] ss)
@@ -561,12 +548,10 @@ class TypeName
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatNestedListPattern3()
-    {
-        await AssertFormatAsync("""
+    public Task FormatNestedListPattern3()
+        => AssertFormatAsync("""
             class C
             {
                 void M(string[] ss)
@@ -589,12 +574,10 @@ class TypeName
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42861")]
-    public async Task FormatNestedListPattern4()
-    {
-        await AssertFormatAsync("""
+    public Task FormatNestedListPattern4()
+        => AssertFormatAsync("""
             class C
             {
                 void M(string[][] ss)
@@ -617,5 +600,4 @@ class TypeName
                 }
             }
             """);
-    }
 }

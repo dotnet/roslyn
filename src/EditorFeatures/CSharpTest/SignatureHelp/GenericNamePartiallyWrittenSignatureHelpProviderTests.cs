@@ -394,10 +394,8 @@ public sealed class GenericNamePartiallyWrittenSignatureHelpProviderTests : Abst
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-    public async Task InvokedWithNoToken()
-    {
-        await TestAsync("""
+    public Task InvokedWithNoToken()
+        => TestAsync("""
             // goo<$$
             """);
-    }
 }

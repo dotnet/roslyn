@@ -152,9 +152,8 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -200,12 +199,10 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -243,7 +240,6 @@ Class MyAnalyzer
     End Sub
 End Class
 ");
-        }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
 #pragma warning disable RS0030 // Do not use banned APIs

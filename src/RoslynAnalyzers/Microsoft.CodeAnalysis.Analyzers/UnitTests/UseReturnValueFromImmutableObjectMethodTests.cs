@@ -114,9 +114,8 @@ End Class", expected);
         }
 
         [Fact]
-        public async Task CSharp_VerifyNoDiagnosticAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_VerifyNoDiagnosticAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -139,12 +138,10 @@ namespace ConsoleApplication1
         }
     }
 }");
-        }
 
         [Fact]
-        public async Task VisualBasic_VerifyNoDiagnosticAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_VerifyNoDiagnosticAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 
@@ -163,7 +160,6 @@ Namespace ConsoleApplication1
         End Sub
     End Class
 End Namespace");
-        }
 
         [Fact]
         public async Task CSharp_ReturnsVoid()

@@ -581,20 +581,17 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact]
-    public async Task VerifySignatureFormat()
-    {
-        await VerifyItemExistsAsync("""
+    public Task VerifySignatureFormat()
+        => VerifyItemExistsAsync("""
             public class a
             {
                 override $$
             }
             """, "Equals(object obj)");
-    }
 
     [WpfFact]
-    public async Task PrivateNoFilter()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task PrivateNoFilter()
+        => VerifyNoItemsExistAsync("""
             public class c
             {
                 public virtual void goo() { }
@@ -605,24 +602,18 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 private override $$
             }
             """);
-    }
 
     [WpfFact]
-    public async Task NotOfferedOnFirstLine()
-    {
-        await VerifyNoItemsExistAsync(@"class c { override $$");
-    }
+    public Task NotOfferedOnFirstLine()
+        => VerifyNoItemsExistAsync(@"class c { override $$");
 
     [WpfFact]
-    public async Task NotOfferedOverrideAlone()
-    {
-        await VerifyNoItemsExistAsync(@"override $$");
-    }
+    public Task NotOfferedOverrideAlone()
+        => VerifyNoItemsExistAsync(@"override $$");
 
     [WpfFact]
-    public async Task IntermediateClassOverriddenMember()
-    {
-        await VerifyItemExistsAsync("""
+    public Task IntermediateClassOverriddenMember()
+        => VerifyItemExistsAsync("""
             abstract class Base
             {
                 public abstract void Goo();
@@ -638,12 +629,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "Goo()", "void Derived.Goo()");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543748")]
-    public async Task NotOfferedBaseClassMember()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotOfferedBaseClassMember()
+        => VerifyItemIsAbsentAsync("""
             abstract class Base
             {
                 public abstract void Goo();
@@ -659,12 +648,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "Goo()", "void Base.Goo()");
-    }
 
     [WpfFact]
-    public async Task NotOfferedOnNonVirtual()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task NotOfferedOnNonVirtual()
+        => VerifyItemIsAbsentAsync("""
             class Base
             {
                 public void Goo();
@@ -675,7 +662,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "Goo()", "void Base.Goo()");
-    }
 
     [WpfFact]
     public async Task GenericTypeNameSubstitutedForGenericInDerivedClass1()
@@ -788,9 +774,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543756")]
-    public async Task ParameterTypeSimplified()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ParameterTypeSimplified()
+        => VerifyItemExistsAsync("""
             using System;
 
             public abstract class Base
@@ -803,12 +788,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "Goo(Exception e)");
-    }
 
     [WpfFact]
-    public async Task NullableAnnotationsIncluded()
-    {
-        await VerifyItemExistsAsync("""
+    public Task NullableAnnotationsIncluded()
+        => VerifyItemExistsAsync("""
             #nullable enable
 
             public abstract class Base
@@ -821,7 +804,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "Goo(string? s)");
-    }
 
     [WpfFact]
     public async Task EscapedMethodNameInIntelliSenseList()
@@ -862,9 +844,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact]
-    public async Task EscapedParameterNameInIntelliSenseList()
-    {
-        await VerifyItemExistsAsync("""
+    public Task EscapedParameterNameInIntelliSenseList()
+        => VerifyItemExistsAsync("""
             public abstract class Base
             {
                 public abstract void goo(int @class);
@@ -875,12 +856,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo(int @class)", "void Base.goo(int @class)");
-    }
 
     [WpfFact]
-    public async Task RefParameter()
-    {
-        await VerifyItemExistsAsync("""
+    public Task RefParameter()
+        => VerifyItemExistsAsync("""
             public abstract class Base
             {
                 public abstract void goo(int x, ref string y);
@@ -891,12 +870,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo(int x, ref string y)", "void Base.goo(int x, ref string y)");
-    }
 
     [WpfFact]
-    public async Task OutParameter()
-    {
-        await VerifyItemExistsAsync("""
+    public Task OutParameter()
+        => VerifyItemExistsAsync("""
             public abstract class Base
             {
                 public abstract void goo(int x, out string y);
@@ -907,12 +884,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$
             }
             """, "goo(int x, out string y)", "void Base.goo(int x, out string y)");
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-    public async Task GenericMethodTypeParametersNotRenamed()
-    {
-        await VerifyItemExistsAsync("""
+    public Task GenericMethodTypeParametersNotRenamed()
+        => VerifyItemExistsAsync("""
             abstract class CGoo    
             {    
                public virtual X Something<X>(X arg)    
@@ -925,12 +900,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 override $$    
             }
             """, "Something<X>(X arg)");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute1()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAttribute1()
+        => VerifyCustomCommitProviderAsync("""
             namespace InteliSenseIssue
             {
                 [AttributeUsage(AttributeTargets.All)]
@@ -962,12 +935,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute2()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAttribute2()
+        => VerifyCustomCommitProviderAsync("""
             namespace InteliSenseIssue
             {
                 [AttributeUsage(AttributeTargets.All)]
@@ -1001,12 +972,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute3()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAttribute3()
+        => VerifyCustomCommitProviderAsync("""
             namespace InteliSenseIssue
             {
                 [AttributeUsage(AttributeTargets.All)]
@@ -1036,12 +1005,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute4()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAttribute4()
+        => VerifyCustomCommitProviderAsync("""
             namespace InteliSenseIssue
             {
                 [AttributeUsage(AttributeTargets.All)]
@@ -1075,12 +1042,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute5()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAttribute5()
+        => VerifyCustomCommitProviderAsync("""
             namespace InteliSenseIssue
             {
                 [AttributeUsage(AttributeTargets.All)]
@@ -1112,12 +1077,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute6()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAttribute6()
+        => VerifyCustomCommitProviderAsync("""
             namespace InteliSenseIssue
             {
                 [AttributeUsage(AttributeTargets.All)]
@@ -1153,12 +1116,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77193")]
-    public async Task CommitBeforeAttribute7()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAttribute7()
+        => VerifyCustomCommitProviderAsync("""
             namespace InteliSenseIssue
             {
                 [AttributeUsage(AttributeTargets.All)]
@@ -1188,15 +1149,13 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
     #endregion
 
     #region "Commit tests"
 
     [WpfFact]
-    public async Task CommitInEmptyClass()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInEmptyClass()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                     override $$
@@ -1210,12 +1169,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529714")]
-    public async Task CommitGenericMethodTypeParametersNotRenamed()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitGenericMethodTypeParametersNotRenamed()
+        => VerifyCustomCommitProviderAsync("""
             abstract class CGoo    
             {    
                 public virtual X Something<X>(X arg)    
@@ -1243,12 +1200,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitMethodBeforeMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitMethodBeforeMethod()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 override $$
@@ -1266,12 +1221,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public void goo() { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitMethodAfterMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitMethodAfterMethod()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 public void goo() { }
@@ -1289,12 +1242,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543798")]
-    public async Task CommitOptionalParameterValuesAreGenerated()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitOptionalParameterValuesAreGenerated()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             abstract public class Base
@@ -1322,12 +1273,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAttributesAreNotGenerated()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAttributesAreNotGenerated()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public class Base
@@ -1361,12 +1310,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitInaccessibleParameterAttributesAreNotGenerated()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInaccessibleParameterAttributesAreNotGenerated()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public class Class1
@@ -1398,12 +1345,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitVoidMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitVoidMethod()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 public virtual void goo() { }
@@ -1427,12 +1372,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitVoidMethodWithParams()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitVoidMethodWithParams()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 public virtual void goo(int bar, int quux) { }
@@ -1456,12 +1399,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitNonVoidMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitNonVoidMethod()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 public virtual int goo() { }
@@ -1485,12 +1426,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitNonVoidMethodWithParams()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitNonVoidMethodWithParams()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 public virtual int goo(int bar, int quux) { }
@@ -1514,12 +1453,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitProtectedMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitProtectedMethod()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 protected virtual void goo() { }
@@ -1543,12 +1480,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitInternalMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInternalMethod()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 internal virtual void goo() { }
@@ -1572,12 +1507,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitProtectedInternalMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitProtectedInternalMethod()
+        => VerifyCustomCommitProviderAsync("""
             public class c
             {
                 protected internal virtual void goo() { }
@@ -1601,12 +1534,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAbstractMethodThrows()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAbstractMethodThrows()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             abstract class c
@@ -1634,12 +1565,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitOverrideAsAbstract()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitOverrideAsAbstract()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 public virtual void goo() { };
@@ -1660,12 +1589,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public abstract override void goo();$$
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitOverrideAsUnsafeSealed()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitOverrideAsUnsafeSealed()
+        => VerifyCustomCommitProviderAsync("""
             class c
             {
                 public virtual void goo() { };
@@ -1689,12 +1616,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitInsertProperty()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInsertProperty()
+        => VerifyCustomCommitProviderAsync("""
             public class c
             {
                 public virtual int goo { get; set; }
@@ -1726,12 +1651,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitInsertPropertyAfterMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInsertPropertyAfterMethod()
+        => VerifyCustomCommitProviderAsync("""
             public class c
             {
                 public virtual int goo { get; set; }
@@ -1765,12 +1688,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitInsertPropertyBeforeMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInsertPropertyBeforeMethod()
+        => VerifyCustomCommitProviderAsync("""
             public class c
             {
                 public virtual int goo { get; set; }
@@ -1804,12 +1725,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public void a() { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitPropertyInaccessibleGet()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitPropertyInaccessibleGet()
+        => VerifyCustomCommitProviderAsync("""
             public class c
             {
                 public virtual int goo { private get; set; }
@@ -1836,12 +1755,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitPropertyInaccessibleSet()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitPropertyInaccessibleSet()
+        => VerifyCustomCommitProviderAsync("""
             public class c
             {
                 public virtual int goo { private set; get; }
@@ -1868,12 +1785,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitInsertPropertyInaccessibleParameterAttributesAreNotGenerated()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInsertPropertyInaccessibleParameterAttributesAreNotGenerated()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             namespace ClassLibrary1
@@ -1931,12 +1846,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAccessibleEvent()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAccessibleEvent()
+        => VerifyCustomCommitProviderAsync("""
             using System;
             public class a
             {
@@ -1959,12 +1872,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public override event EventHandler goo;$$
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitEventAfterMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitEventAfterMethod()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public class a
@@ -1991,12 +1902,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 public override event EventHandler goo;$$
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitGenericMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitGenericMethod()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public class a
@@ -2024,12 +1933,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitMethodWithNullableAttributes()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitMethodWithNullableAttributes()
+        => VerifyCustomCommitProviderAsync("""
             #nullable enable
 
             class C
@@ -2057,12 +1964,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitMethodInNullableDisableContext()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitMethodInNullableDisableContext()
+        => VerifyCustomCommitProviderAsync("""
             #nullable enable
 
             class C
@@ -2094,12 +1999,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitToStringIsExplicitlyNonNullReturning()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitToStringIsExplicitlyNonNullReturning()
+        => VerifyCustomCommitProviderAsync("""
             #nullable enable
 
             namespace System
@@ -2133,12 +2036,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitInsertIndexer()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitInsertIndexer()
+        => VerifyCustomCommitProviderAsync("""
             public class MyIndexer<T>
             {
                 private T[] arr = new T[100];
@@ -2192,12 +2093,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAbstractIndexer()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAbstractIndexer()
+        => VerifyCustomCommitProviderAsync("""
             public class MyIndexer<T>
             {
                 private T[] arr = new T[100];
@@ -2231,7 +2130,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     // The following two scenarios are already verified through 'VerifyCommit',
     // which also tests everything at the end of the file (truncating input markup at $$)
@@ -2239,9 +2137,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     // public void CommitInsertAtEndOfFileAfterMethod()
 
     [WpfFact]
-    public async Task CommitFormats()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitFormats()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2265,12 +2162,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitSimplifiesParameterTypes()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitSimplifiesParameterTypes()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public abstract class Base
@@ -2298,12 +2193,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitSimplifiesReturnType()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitSimplifiesReturnType()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public abstract class Base
@@ -2331,12 +2224,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitEscapedMethodName()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitEscapedMethodName()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public abstract class Base
@@ -2364,12 +2255,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitEscapedPropertyName()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitEscapedPropertyName()
+        => VerifyCustomCommitProviderAsync("""
             public abstract class Base
             {
                 public virtual int @class { get; set; }
@@ -2401,12 +2290,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitEscapedParameterName()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitEscapedParameterName()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public abstract class Base
@@ -2434,12 +2321,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitRefParameter()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitRefParameter()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public abstract class Base
@@ -2467,12 +2352,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitOutParameter()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitOutParameter()
+        => VerifyCustomCommitProviderAsync("""
             using System;
 
             public abstract class Base
@@ -2500,12 +2383,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-    public async Task TestUnsafe1()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task TestUnsafe1()
+        => VerifyCustomCommitProviderAsync("""
             public class A
             {
                 public unsafe virtual void F()
@@ -2533,12 +2414,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-    public async Task TestUnsafe2()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task TestUnsafe2()
+        => VerifyCustomCommitProviderAsync("""
             public class A
             {
                 public unsafe virtual void F()
@@ -2566,12 +2445,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-    public async Task TestUnsafe3()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task TestUnsafe3()
+        => VerifyCustomCommitProviderAsync("""
             public class A
             {
                 public unsafe virtual void F()
@@ -2599,12 +2476,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544560")]
-    public async Task TestUnsafe4()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task TestUnsafe4()
+        => VerifyCustomCommitProviderAsync("""
             public class A
             {
                 public virtual void F(int* i)
@@ -2632,12 +2507,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545534")]
-    public async Task TestPrivateVirtualProperty()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task TestPrivateVirtualProperty()
+        => VerifyCustomCommitProviderAsync("""
             public class B
             {
                 public virtual int Goo
@@ -2670,7 +2543,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636706")]
     public async Task CrossLanguageParameterizedPropertyOverride()
@@ -2752,9 +2624,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     #region "Commit: With Trivia"
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-    public async Task CommitSurroundingTriviaDirective()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitSurroundingTriviaDirective()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2782,12 +2653,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
             #endif
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-    public async Task CommitBeforeTriviaDirective()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeTriviaDirective()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2815,12 +2684,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 #endif
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAfterTriviaDirective()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAfterTriviaDirective()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2848,12 +2715,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529199")]
-    public async Task CommitBeforeComment1()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeComment1()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2879,12 +2744,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 /* comment */
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitBeforeComment2()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeComment2()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2908,12 +2771,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 } /* comment */
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitBeforeComment3()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeComment3()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2937,12 +2798,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 } /* comment */
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAfterComment1()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAfterComment1()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -2968,12 +2827,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAfterComment2()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAfterComment2()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -3001,12 +2858,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAfterComment3()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAfterComment3()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -3031,12 +2886,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitAfterComment4()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAfterComment4()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -3061,12 +2914,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitBeforeAndAfterComment()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitBeforeAndAfterComment()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void goo() { }
@@ -3094,12 +2945,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 /* comment */
             }
             """);
-    }
 
     [WpfFact]
-    public async Task DoNotFormatFile()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task DoNotFormatFile()
+        => VerifyCustomCommitProviderAsync("""
             class Program
             {
             int zip;
@@ -3133,7 +2982,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736742")]
     public async Task AcrossPartialTypes1()
@@ -3252,9 +3100,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact]
-    public async Task CommitRequiredKeywordAdded()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitRequiredKeywordAdded()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual required int Prop { get; }
@@ -3281,14 +3128,12 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfTheory]
     [InlineData("required override")]
     [InlineData("override required")]
-    public async Task CommitRequiredKeywordPreserved(string ordering)
-    {
-        await VerifyCustomCommitProviderAsync($$"""
+    public Task CommitRequiredKeywordPreserved(string ordering)
+        => VerifyCustomCommitProviderAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" LanguageVersion="{{TestOptions.Regular11.LanguageVersion.ToDisplayString()}}">
                     <Document>class Base
@@ -3319,14 +3164,12 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfTheory]
     [InlineData("required override")]
     [InlineData("override required")]
-    public async Task CommitRequiredKeywordPreservedWhenBaseIsNotRequired(string ordering)
-    {
-        await VerifyCustomCommitProviderAsync($$"""
+    public Task CommitRequiredKeywordPreservedWhenBaseIsNotRequired(string ordering)
+        => VerifyCustomCommitProviderAsync($$"""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" LanguageVersion="{{TestOptions.Regular11.LanguageVersion.ToDisplayString()}}">
                     <Document>class Base
@@ -3357,12 +3200,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitRequiredKeywordRemovedForMethods()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitRequiredKeywordRemovedForMethods()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual void M() { }
@@ -3386,12 +3227,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task CommitRequiredKeywordRemovedForIndexers()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitRequiredKeywordRemovedForIndexers()
+        => VerifyCustomCommitProviderAsync("""
             class Base
             {
                 public virtual int this[int i] { get { } set { } }
@@ -3423,7 +3262,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     #endregion
 
@@ -3458,9 +3296,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     #endregion
 
     [WpfFact]
-    public async Task DuplicateMember()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task DuplicateMember()
+        => VerifyCustomCommitProviderAsync("""
             class Program
             {
                 public virtual void goo() {}
@@ -3486,7 +3323,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact]
     public async Task LeaveTrailingTriviaAlone()
@@ -3525,9 +3361,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
-    public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Property()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task NotImplementedQualifiedWhenSystemUsingNotPresent_Property()
+        => VerifyCustomCommitProviderAsync("""
             abstract class C
             {
                 public abstract int goo { get; set; };
@@ -3559,12 +3394,10 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/8257")]
-    public async Task NotImplementedQualifiedWhenSystemUsingNotPresent_Method()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task NotImplementedQualifiedWhenSystemUsingNotPresent_Method()
+        => VerifyCustomCommitProviderAsync("""
             abstract class C
             {
                 public abstract void goo();
@@ -3588,7 +3421,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task FilterOutMethodsWithNonRoundTrippableSymbolKeys()
@@ -3722,9 +3554,8 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/39909")]
-    public async Task CommitAddsMissingImports()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitAddsMissingImports()
+        => VerifyCustomCommitProviderAsync("""
             namespace NS1
             {
                 using NS2;
@@ -3779,7 +3610,6 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47941")]
     public Task OverrideInRecordWithoutExplicitOverriddenMember()

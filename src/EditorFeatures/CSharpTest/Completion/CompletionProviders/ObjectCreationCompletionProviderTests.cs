@@ -21,21 +21,18 @@ public sealed class ObjectCreationCompletionProviderTests : AbstractCSharpComple
         => typeof(ObjectCreationCompletionProvider);
 
     [Fact]
-    public async Task InObjectCreation()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task InObjectCreation()
+        => VerifyItemExistsAsync(@"
 class MyGeneric<T> { }
 
 void goo()
 {
    MyGeneric<string> goo = new $$
 }", "MyGeneric<string>");
-    }
 
     [Fact]
-    public async Task NotInAnonymousTypeObjectCreation1()
-    {
-        await VerifyItemIsAbsentAsync(@"
+    public Task NotInAnonymousTypeObjectCreation1()
+        => VerifyItemIsAbsentAsync(@"
 class C
 {
     void M()
@@ -43,12 +40,10 @@ class C
         var x = new[] { new { Goo = ""asdf"", Bar = 1 }, new $$
     }
 }", "<anonymous type: string Goo, int Bar>");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854497")]
-    public async Task NotVoid()
-    {
-        await VerifyItemIsAbsentAsync(@"
+    public Task NotVoid()
+        => VerifyItemIsAbsentAsync(@"
 class C
 {
     void M()
@@ -56,12 +51,10 @@ class C
         var x = new $$
     }
 }", "void");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-    public async Task InYieldReturn()
-    {
-        await VerifyItemExistsAsync(@"using System;
+    public Task InYieldReturn()
+        => VerifyItemExistsAsync(@"using System;
 using System.Collections.Generic;
 
 class Program
@@ -71,12 +64,10 @@ class Program
         yield return new $$
     }
 }", "FieldAccessException");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-    public async Task InAsyncMethodReturnStatement()
-    {
-        await VerifyItemExistsAsync(@"using System;
+    public Task InAsyncMethodReturnStatement()
+        => VerifyItemExistsAsync(@"using System;
 using System.Threading.Tasks;
 
 class Program
@@ -87,12 +78,10 @@ class Program
         return new $$
     }
 }", "FieldAccessException");
-    }
 
     [Fact]
-    public async Task InAsyncMethodReturnValueTask()
-    {
-        await VerifyItemExistsAsync(MakeMarkup(@"using System;
+    public Task InAsyncMethodReturnValueTask()
+        => VerifyItemExistsAsync(MakeMarkup(@"using System;
 using System.Threading.Tasks;
 
 class Program
@@ -102,7 +91,6 @@ class Program
         return new $$;
     }
 }"), "string");
-    }
 
     [Fact]
     public async Task IsCommitCharacterTest()
@@ -151,9 +139,8 @@ class Program
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-    public async Task SuggestAlias()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task SuggestAlias()
+        => VerifyItemExistsAsync(@"
 using D = System.Globalization.DigitShapes; 
 class Program
 {
@@ -162,12 +149,10 @@ class Program
         D d=  new $$
     }
 }", "D");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
-    public async Task SuggestAlias2()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task SuggestAlias2()
+        => VerifyItemExistsAsync(@"
 namespace N
 {
 using D = System.Globalization.DigitShapes; 
@@ -181,12 +166,10 @@ class Program
 }
 
 ", "D");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075275")]
-    public async Task CommitAlias()
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CommitAlias()
+        => VerifyProviderCommitAsync(@"
 using D = System.Globalization.DigitShapes; 
 class Program
 {
@@ -203,12 +186,10 @@ class Program
         D d=  new D(
     }
 }", '(');
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
-    public async Task AfterNewFollowedByAssignment()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task AfterNewFollowedByAssignment()
+        => VerifyItemExistsAsync(@"
 class Location {}
 enum EAB { A, B }
 class Goo
@@ -227,12 +208,10 @@ class Goo
 }
 
 ", "Location");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1090377")]
-    public async Task AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
+        => VerifyItemExistsAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -241,12 +220,10 @@ class Program
         bool b = false;
     }
 }", "Program");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2836")]
-    public async Task AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
+        => VerifyItemExistsAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -256,12 +233,10 @@ class Program
         b = false;
     }
 }", "Program");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2836")]
-    public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
+        => VerifyItemExistsAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -271,12 +246,10 @@ class Program
         i += 5;
     }
 }", "Program");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2836")]
-    public async Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
-    {
-        await VerifyItemExistsAsync(@"
+    public Task AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
+        => VerifyItemExistsAsync(@"
 class Program
 {
     static void Main(string[] args)
@@ -286,12 +259,10 @@ class Program
         i <<= 4;
     }
 }", "Program");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
-    public async Task CommitObjectWithParenthesis1()
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CommitObjectWithParenthesis1()
+        => VerifyProviderCommitAsync(@"
 class C
 {
     void M1()
@@ -306,12 +277,10 @@ class C
         object o = new object(
     }
 }", '(');
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
-    public async Task CommitObjectWithParenthesis2()
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CommitObjectWithParenthesis2()
+        => VerifyProviderCommitAsync(@"
 class C
 {
     void M1()
@@ -330,12 +299,10 @@ class C
 
     void M2(object o) { }
 }", '(');
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
-    public async Task DoNotCommitObjectWithOpenBrace1()
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task DoNotCommitObjectWithOpenBrace1()
+        => VerifyProviderCommitAsync(@"
 class C
 {
     void M1()
@@ -350,12 +317,10 @@ class C
         object o = new {
     }
 }", '{');
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4115")]
-    public async Task DoNotCommitObjectWithOpenBrace2()
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task DoNotCommitObjectWithOpenBrace2()
+        => VerifyProviderCommitAsync(@"
 class C
 {
     void M1()
@@ -374,32 +339,26 @@ class C
 
     void M2(object o) { }
 }", '{');
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4310")]
-    public async Task InExpressionBodiedProperty()
-    {
-        await VerifyItemExistsAsync(@"class C
+    public Task InExpressionBodiedProperty()
+        => VerifyItemExistsAsync(@"class C
 {
     object Object => new $$
 }
 ", "object");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4310")]
-    public async Task InExpressionBodiedMethod()
-    {
-        await VerifyItemExistsAsync(@"class C
+    public Task InExpressionBodiedMethod()
+        => VerifyItemExistsAsync(@"class C
 {
     object GetObject() => new $$
 }
 ", "object");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15804")]
-    public async Task BeforeAttributeParsedAsImplicitArray()
-    {
-        await VerifyItemExistsAsync(@"class Program
+    public Task BeforeAttributeParsedAsImplicitArray()
+        => VerifyItemExistsAsync(@"class Program
 {
     Program p = new $$ 
 
@@ -407,12 +366,10 @@ class C
     static void Main() { }
 }
 ", "Program");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14084")]
-    public async Task InMethodCallBeforeAssignment1()
-    {
-        await VerifyItemExistsAsync(@"namespace ConsoleApplication1
+    public Task InMethodCallBeforeAssignment1()
+        => VerifyItemExistsAsync(@"namespace ConsoleApplication1
 {
     class Program
     {
@@ -428,12 +385,10 @@ class C
     }
 }
 ", "TimeSpan");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14084")]
-    public async Task InMethodCallBeforeAssignment2()
-    {
-        await VerifyItemExistsAsync(@"namespace ConsoleApplication1
+    public Task InMethodCallBeforeAssignment2()
+        => VerifyItemExistsAsync(@"namespace ConsoleApplication1
 {
     class Program
     {
@@ -449,12 +404,10 @@ class C
     }
 }
 ", "TimeSpan");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
-    public async Task InPropertyWithSameNameAsGenericTypeArgument1()
-    {
-        await VerifyItemExistsAsync(@"namespace ConsoleApplication1
+    public Task InPropertyWithSameNameAsGenericTypeArgument1()
+        => VerifyItemExistsAsync(@"namespace ConsoleApplication1
 {
     class Program
     {
@@ -471,12 +424,10 @@ class C
     }
 }
 ", "List<Bar>");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
-    public async Task InPropertyWithSameNameAsGenericTypeArgument2()
-    {
-        await VerifyItemExistsAsync(@"namespace ConsoleApplication1
+    public Task InPropertyWithSameNameAsGenericTypeArgument2()
+        => VerifyItemExistsAsync(@"namespace ConsoleApplication1
 {
     class Program
     {
@@ -488,12 +439,10 @@ class C
     }
 }
 ", "List<Bar>");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
-    public async Task InPropertyWithSameNameAsGenericTypeArgument3()
-    {
-        await VerifyItemExistsAsync(@"namespace ConsoleApplication1
+    public Task InPropertyWithSameNameAsGenericTypeArgument3()
+        => VerifyItemExistsAsync(@"namespace ConsoleApplication1
 {
     class Program
     {
@@ -505,12 +454,10 @@ class C
     }
 }
 ", "List<Bar>");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
-    public async Task InPropertyWithSameNameAsGenericTypeArgument4()
-    {
-        await VerifyItemExistsAsync(@"namespace ConsoleApplication1
+    public Task InPropertyWithSameNameAsGenericTypeArgument4()
+        => VerifyItemExistsAsync(@"namespace ConsoleApplication1
 {
     class Program
     {
@@ -527,12 +474,10 @@ class C
     class C<T> { }
 }
 ", "C<A>");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21674")]
-    public async Task PropertyWithSameNameAsOtherType()
-    {
-        await VerifyItemExistsAsync(@"namespace ConsoleApplication1
+    public Task PropertyWithSameNameAsOtherType()
+        => VerifyItemExistsAsync(@"namespace ConsoleApplication1
 {
     class Program
     {
@@ -548,12 +493,10 @@ class C
     class B { }
 }
 ", "A");
-    }
 
     [Fact]
-    public async Task NullableTypeCreation()
-    {
-        await VerifyItemExistsAsync(@"#nullable enable
+    public Task NullableTypeCreation()
+        => VerifyItemExistsAsync(@"#nullable enable
 namespace ConsoleApplication1
 {
     class Program
@@ -566,12 +509,10 @@ namespace ConsoleApplication1
     }
 }
 ", "object");
-    }
 
     [Fact]
-    public async Task NullableTypeCreation_AssignedNull()
-    {
-        await VerifyItemExistsAsync(@"#nullable enable
+    public Task NullableTypeCreation_AssignedNull()
+        => VerifyItemExistsAsync(@"#nullable enable
 namespace ConsoleApplication1
 {
     class Program
@@ -584,12 +525,10 @@ namespace ConsoleApplication1
     }
 }
 ", "object");
-    }
 
     [Fact]
-    public async Task NullableTypeCreation_NestedNull()
-    {
-        await VerifyItemExistsAsync(@"#nullable enable
+    public Task NullableTypeCreation_NestedNull()
+        => VerifyItemExistsAsync(@"#nullable enable
 
 using System.Collections.Generic;
 
@@ -605,14 +544,12 @@ namespace ConsoleApplication1
     }
 }
 ", "List<object?>");
-    }
 
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task CreateObjectAndCommitWithCustomizedCommitChar(char commitChar)
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CreateObjectAndCommitWithCustomizedCommitChar(char commitChar)
+        => VerifyProviderCommitAsync(@"
 class Program
 {
     void Bar()
@@ -627,14 +564,12 @@ class Program
         object o = new object(){commitChar}
     }}
 }}", commitChar: commitChar);
-    }
 
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task CreateNullableObjectAndCommitWithCustomizedCommitChar(char commitChar)
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CreateNullableObjectAndCommitWithCustomizedCommitChar(char commitChar)
+        => VerifyProviderCommitAsync(@"
 class Program
 {
     void Bar()
@@ -649,14 +584,12 @@ class Program
         object? o = new object(){commitChar}
     }}
 }}", commitChar: commitChar);
-    }
 
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task CreateStringAsLocalAndCommitWithCustomizedCommitChar(char commitChar)
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CreateStringAsLocalAndCommitWithCustomizedCommitChar(char commitChar)
+        => VerifyProviderCommitAsync(@"
 class Program
 {
     void Bar()
@@ -671,14 +604,12 @@ class Program
         string o = new string(){commitChar}
     }}
 }}", commitChar: commitChar);
-    }
 
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task CreateGenericListAsLocalAndCommitWithCustomizedChar(char commitChar)
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CreateGenericListAsLocalAndCommitWithCustomizedChar(char commitChar)
+        => VerifyProviderCommitAsync(@"
 using System.Collections.Generic;
 class Program
 {
@@ -695,12 +626,10 @@ class Program
         List<int> o = new List<int>(){commitChar}
     }}
 }}", commitChar: commitChar);
-    }
 
     [Fact]
-    public async Task CreateGenericListAsFieldAndCommitWithSemicolon()
-    {
-        await VerifyProviderCommitAsync(@"
+    public Task CreateGenericListAsFieldAndCommitWithSemicolon()
+        => VerifyProviderCommitAsync(@"
 using System.Collections.Generic;
 class Program
 {
@@ -711,7 +640,6 @@ class Program
 {
     private List<int> o = new List<int>();
 }", commitChar: ';');
-    }
 
     private static string MakeMarkup(string source, string languageVersion = "Preview")
     {

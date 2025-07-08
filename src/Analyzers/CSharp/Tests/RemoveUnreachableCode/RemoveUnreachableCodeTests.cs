@@ -328,9 +328,8 @@ public sealed class RemoveUnreachableCodeTests
             """);
 
     [Fact]
-    public async Task TestMissingOnReachableLabel()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestMissingOnReachableLabel()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(object o)
@@ -368,7 +367,6 @@ public sealed class RemoveUnreachableCodeTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestInLambda()

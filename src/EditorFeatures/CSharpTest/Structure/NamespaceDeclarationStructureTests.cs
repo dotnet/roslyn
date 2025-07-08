@@ -17,9 +17,8 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
     internal override AbstractSyntaxStructureProvider CreateProvider() => new NamespaceDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestNamespace()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNamespace()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$namespace N{|textspan:
@@ -28,12 +27,10 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithLeadingComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNamespaceWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -45,12 +42,10 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithNestedUsings()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNamespaceWithNestedUsings()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -62,12 +57,10 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithNestedUsingsWithLeadingComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNamespaceWithNestedUsingsWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -82,12 +75,10 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true),
             Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestNamespaceWithNestedComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNamespaceWithNestedComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -99,5 +90,4 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
-    }
 }

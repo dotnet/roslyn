@@ -655,9 +655,8 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             """, options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
-    public async Task WithRefIntrinsicTypeInForeach()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task WithRefIntrinsicTypeInForeach()
+        => TestInRegularAndScriptAsync("""
             class E
             {
                 public ref int Current => throw null;
@@ -682,7 +681,6 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                 }
             }
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
     public Task SuggestVarOnFrameworkType()
@@ -1737,9 +1735,8 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             """, options: ImplicitTypeWhereApparent());
 
     [Fact]
-    public async Task SuggestVarNotificationLevelSilent()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestVarNotificationLevelSilent()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1752,12 +1749,10 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             options: ImplicitTypeSilentEnforcement(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Hidden);
-    }
 
     [Fact]
-    public async Task SuggestVarNotificationLevelInfo()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestVarNotificationLevelInfo()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1770,12 +1765,10 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Info);
-    }
 
     [Fact]
-    public async Task SuggestVarNotificationLevelWarning()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestVarNotificationLevelWarning()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1788,12 +1781,10 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning);
-    }
 
     [Fact]
-    public async Task SuggestVarNotificationLevelError()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task SuggestVarNotificationLevelError()
+        => TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1806,7 +1797,6 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Error);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
     public async Task SuggestVarOnLocalWithIntrinsicArrayType()
@@ -2076,9 +2066,8 @@ new TestParameters(options: ImplicitTypeEverywhere()));
 options: ImplicitTypeEverywhere());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
-    public async Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void M(out int x)
@@ -2087,7 +2076,6 @@ options: ImplicitTypeEverywhere());
                 }
             }
             """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]
     public Task DoNotSuggestVarOnStackAllocExpressions_SpanType()

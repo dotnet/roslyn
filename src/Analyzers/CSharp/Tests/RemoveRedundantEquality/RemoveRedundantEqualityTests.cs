@@ -18,9 +18,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class RemoveRedundantEqualityTests
 {
     [Fact]
-    public async Task TestSimpleCaseForEqualsTrue()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSimpleCaseForEqualsTrue()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -37,7 +36,6 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSimpleCaseForEqualsFalse_NoDiagnostics()
@@ -60,9 +58,8 @@ public sealed class RemoveRedundantEqualityTests
             """);
 
     [Fact]
-    public async Task TestSimpleCaseForNotEqualsFalse()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSimpleCaseForNotEqualsFalse()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -79,7 +76,6 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestSimpleCaseForNotEqualsTrue()
@@ -102,9 +98,8 @@ public sealed class RemoveRedundantEqualityTests
             """);
 
     [Fact]
-    public async Task TestNullable_NoDiagnostics()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TestNullable_NoDiagnostics()
+        => VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public bool M1(bool? x)
@@ -113,12 +108,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWhenConstant_NoDiagnostics()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TestWhenConstant_NoDiagnostics()
+        => VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public const bool MyTrueConstant = true;
@@ -129,12 +122,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOverloadedOperator_NoDiagnostics()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TestOverloadedOperator_NoDiagnostics()
+        => VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public static bool operator ==(C a, bool b) => false;
@@ -146,12 +137,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOnLeftHandSide()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestOnLeftHandSide()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -168,12 +157,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInArgument()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestInArgument()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -190,12 +177,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestFixAll()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -232,12 +217,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48236")]
-    public async Task TestNullableValueTypes_DoesNotCrash()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task TestNullableValueTypes_DoesNotCrash()
+        => VerifyCS.VerifyAnalyzerAsync("""
             public class C
             {
                 public bool M1(int? x)
@@ -246,12 +229,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleCaseForIsFalse()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSimpleCaseForIsFalse()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -268,12 +249,10 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSimpleCaseForIsTrue1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSimpleCaseForIsTrue1()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class C
             {
                 public bool M1(bool x)
@@ -290,7 +269,6 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestSimpleCaseForIsTrue2()

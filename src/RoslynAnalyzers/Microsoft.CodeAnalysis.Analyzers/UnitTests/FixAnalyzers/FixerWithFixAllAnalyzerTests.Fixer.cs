@@ -18,9 +18,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
         #region CSharp tests
 
         [Fact]
-        public async Task CSharp_VerifyFix_NonSealedTypeAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task CSharp_VerifyFix_NonSealedTypeAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -76,12 +75,10 @@ class C1 : CodeFixProvider
     }
 }
 ");
-        }
 
         [Fact]
-        public async Task CSharp_VerifyFix_SealedTypeAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task CSharp_VerifyFix_SealedTypeAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -137,7 +134,6 @@ sealed class C1 : CodeFixProvider
     }
 }
 ");
-        }
 
         [Fact]
         public async Task CSharp_NoDiagnosticAsync()
@@ -200,9 +196,8 @@ class C2 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_VerifyFixAllAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task CSharp_VerifyFixAllAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -299,16 +294,14 @@ sealed class C2 : CodeFixProvider
     }
 }
 ");
-        }
 
         #endregion
 
         #region VisualBasic tests
 
         [Fact()]
-        public async Task VisualBasic_VerifyFix_NonSealedTypeAsync()
-        {
-            await VerifyVB.VerifyCodeFixAsync(@"
+        public Task VisualBasic_VerifyFix_NonSealedTypeAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -359,12 +352,10 @@ Class C1
     End Function
 End Class
 ");
-        }
 
         [Fact]
-        public async Task VisualBasic_VerifyFix_SealedTypeAsync()
-        {
-            await VerifyVB.VerifyCodeFixAsync(@"
+        public Task VisualBasic_VerifyFix_SealedTypeAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -415,7 +406,6 @@ NotInheritable Class C1
     End Function
 End Class
 ");
-        }
 
         [Fact]
         public async Task VisualBasic_NoDiagnosticAsync()
@@ -472,9 +462,8 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyFixAllAsync()
-        {
-            await VerifyVB.VerifyCodeFixAsync(@"
+        public Task VisualBasic_VerifyFixAllAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -561,7 +550,6 @@ NotInheritable Class C2
     End Function
 End Class
 ");
-        }
 
         #endregion
     }

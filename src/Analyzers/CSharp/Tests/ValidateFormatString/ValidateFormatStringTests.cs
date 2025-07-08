@@ -831,9 +831,8 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
 
     [Fact]
-    public async Task Net45TestOutOfBounds()
-    {
-        await TestDiagnosticInfoAsync("""
+    public Task Net45TestOutOfBounds()
+        => TestDiagnosticInfoAsync("""
                         < Workspace >
                             < Project Language = "C#" AssemblyName="Assembly1" CommonReferencesNet45="true"> 
              <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -854,7 +853,6 @@ public sealed class ValidateFormatStringTests : AbstractCSharpDiagnosticProvider
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
 
     [Fact]
     public Task VerbatimMultipleLinesPlaceholderOutOfBounds()

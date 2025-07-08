@@ -19,21 +19,18 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:class $$C{|textspan:
                 {
                     void M();
                 }|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:[Bar]
                 [Baz]
                 |}{|#0:public class $$C|}{|textspan2:
@@ -43,12 +40,10 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a doc comment.
                 [Bar, Baz]
@@ -59,12 +54,10 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47889")]
-    public async Task RecordWithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task RecordWithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a doc comment.
                 [Bar, Baz]
@@ -75,12 +68,10 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task RecordStructWithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task RecordStructWithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a doc comment.
                 [Bar, Baz]
@@ -91,12 +82,10 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithDocComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithDocComments()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:/// <summary>This is a doc comment.</summary>
                 |}{|#0:public class $$C|}{|textspan2:
                 {
@@ -105,12 +94,10 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task WithMultilineDocComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithMultilineDocComments()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:/// <summary>This is a doc comment.</summary>
                 /// <remarks>
                 /// Comments are cool
@@ -122,5 +109,4 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

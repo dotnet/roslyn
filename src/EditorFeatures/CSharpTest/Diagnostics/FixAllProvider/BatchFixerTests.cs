@@ -100,9 +100,8 @@ public sealed partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBa
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/320")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument_QualifyWithThis()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocument_QualifyWithThis()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -153,7 +152,6 @@ public sealed partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBa
                 </Project>
             </Workspace>
             """);
-    }
 
     #endregion
 }

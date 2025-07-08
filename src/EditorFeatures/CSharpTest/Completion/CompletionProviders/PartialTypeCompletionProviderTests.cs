@@ -19,41 +19,34 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
         => typeof(PartialTypeCompletionProvider);
 
     [Fact]
-    public async Task TestRecommendTypesWithoutPartial()
-    {
-        await VerifyItemIsAbsentAsync("""
+    public Task TestRecommendTypesWithoutPartial()
+        => VerifyItemIsAbsentAsync("""
             class C { }
 
             partial class $$
             """, "C");
-    }
 
     [Fact]
-    public async Task TestPartialClass1()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestPartialClass1()
+        => VerifyItemExistsAsync("""
             partial class C { }
 
             partial class $$
             """, "C");
-    }
 
     [Fact]
-    public async Task TestPartialGenericClass1()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestPartialGenericClass1()
+        => VerifyItemExistsAsync("""
             class Bar { }
 
             partial class C<Bar> { }
 
             partial class $$
             """, "C<Bar>");
-    }
 
     [Fact]
-    public async Task TestPartialGenericClassCommitOnParen()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestPartialGenericClassCommitOnParen()
+        => VerifyProviderCommitAsync("""
             class Bar { }
 
             partial class C<Bar> { }
@@ -66,12 +59,10 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial class C<
             """, '<');
-    }
 
     [Fact]
-    public async Task TestPartialGenericClassCommitOnTab()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestPartialGenericClassCommitOnTab()
+        => VerifyProviderCommitAsync("""
             class Bar { }
 
             partial class C<Bar> { }
@@ -84,12 +75,10 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial class C<Bar>
             """, null);
-    }
 
     [Fact]
-    public async Task TestPartialGenericClassCommitOnSpace()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestPartialGenericClassCommitOnSpace()
+        => VerifyProviderCommitAsync("""
             partial class C<T> { }
 
             partial class $$
@@ -98,62 +87,50 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial class C<T> 
             """, ' ');
-    }
 
     [Fact]
-    public async Task TestPartialClassWithModifiers()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestPartialClassWithModifiers()
+        => VerifyItemExistsAsync("""
             partial class C { }
 
             internal partial class $$
             """, "C");
-    }
 
     [Fact]
-    public async Task TestPartialStruct()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestPartialStruct()
+        => VerifyItemExistsAsync("""
             partial struct S { }
 
             partial struct $$
             """, "S");
-    }
 
     [Fact]
-    public async Task TestPartialInterface()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestPartialInterface()
+        => VerifyItemExistsAsync("""
             partial interface I { }
 
             partial interface $$
             """, "I");
-    }
 
     [Fact]
-    public async Task TestTypeKindMatches1()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestTypeKindMatches1()
+        => VerifyNoItemsExistAsync("""
             partial struct S { }
 
             partial class $$
             """);
-    }
 
     [Fact]
-    public async Task TestTypeKindMatches2()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestTypeKindMatches2()
+        => VerifyNoItemsExistAsync("""
             partial class C { }
 
             partial struct $$
             """);
-    }
 
     [Fact]
-    public async Task TestPartialClassesInSameNamespace()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestPartialClassesInSameNamespace()
+        => VerifyItemExistsAsync("""
             namespace N
             {
                 partial class Goo { }
@@ -164,12 +141,10 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
                 partial class $$
             }
             """, "Goo");
-    }
 
     [Fact]
-    public async Task TestNotPartialClassesAcrossDifferentNamespaces()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestNotPartialClassesAcrossDifferentNamespaces()
+        => VerifyNoItemsExistAsync("""
             namespace N
             {
                 partial class Goo { }
@@ -177,12 +152,10 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial class $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotPartialClassesInOuterNamespaces()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestNotPartialClassesInOuterNamespaces()
+        => VerifyNoItemsExistAsync("""
             partial class C { }
 
             namespace N
@@ -190,23 +163,19 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
                 partial class $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotPartialClassesInOuterClass()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestNotPartialClassesInOuterClass()
+        => VerifyNoItemsExistAsync("""
             partial class C
             {
                 partial class $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestClassWithConstraint()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestClassWithConstraint()
+        => VerifyProviderCommitAsync("""
             partial class C1<T> where T : System.Exception { }
 
             partial class $$
@@ -215,28 +184,22 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial class C1<T>
             """, null);
-    }
 
     [Fact]
-    public async Task TestDoNotSuggestCurrentMember()
-    {
-        await VerifyNoItemsExistAsync(@"partial class F$$");
-    }
+    public Task TestDoNotSuggestCurrentMember()
+        => VerifyNoItemsExistAsync(@"partial class F$$");
 
     [Fact]
-    public async Task TestNotInTrivia()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestNotInTrivia()
+        => VerifyNoItemsExistAsync("""
             partial class C1 { }
 
             partial class //$$
             """);
-    }
 
     [Fact]
-    public async Task TestPartialClassWithReservedName()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestPartialClassWithReservedName()
+        => VerifyProviderCommitAsync("""
             partial class @class { }
 
             partial class $$
@@ -245,12 +208,10 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial class @class
             """, null);
-    }
 
     [Fact]
-    public async Task TestPartialGenericClassWithReservedName()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestPartialGenericClassWithReservedName()
+        => VerifyProviderCommitAsync("""
             partial class @class<T> { }
 
             partial class $$
@@ -259,12 +220,10 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial class @class<T>
             """, null);
-    }
 
     [Fact]
-    public async Task TestPartialGenericInterfaceWithVariance()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestPartialGenericInterfaceWithVariance()
+        => VerifyProviderCommitAsync("""
             partial interface I<out T> { }
 
             partial interface $$
@@ -273,5 +232,4 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
 
             partial interface I<out T>
             """, null);
-    }
 }

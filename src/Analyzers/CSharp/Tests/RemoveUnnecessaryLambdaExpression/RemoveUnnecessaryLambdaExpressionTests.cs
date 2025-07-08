@@ -709,9 +709,8 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-    public async Task TestWithConstraint1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithConstraint1()
+        => TestInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -754,12 +753,10 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
-    public async Task TestWithConstraint2()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestWithConstraint2()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -781,7 +778,6 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
     public Task TestMissingOnLambdaWithDynamic_1()
@@ -892,9 +888,8 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
-    public async Task ParenthesizeIfParseChanges()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task ParenthesizeIfParseChanges()
+        => TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -925,7 +920,6 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public static bool operator >(Func<string> y, C x) { return true; }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]
     public Task TestNotWithSideEffects()

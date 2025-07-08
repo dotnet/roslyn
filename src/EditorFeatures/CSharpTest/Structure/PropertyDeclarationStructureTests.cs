@@ -17,9 +17,8 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
     internal override AbstractSyntaxStructureProvider CreateProvider() => new PropertyDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestProperty1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestProperty1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -30,12 +29,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestProperty2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -51,12 +48,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestProperty3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -73,12 +68,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty4()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestProperty4()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -95,12 +88,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty5()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestProperty5()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -113,12 +104,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestProperty6()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestProperty6()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo{|textspan:
@@ -135,12 +124,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyWithLeadingComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestPropertyWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -154,12 +141,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyWithWithExpressionBodyAndComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestPropertyWithWithExpressionBodyAndComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
@@ -168,12 +153,10 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestPropertyWithSpaceAfterIdentifier()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestPropertyWithSpaceAfterIdentifier()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public int Goo    {|textspan:
@@ -184,5 +167,4 @@ public sealed class PropertyDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

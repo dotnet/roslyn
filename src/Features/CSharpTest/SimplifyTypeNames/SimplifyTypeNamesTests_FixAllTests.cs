@@ -18,9 +18,8 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -117,14 +116,12 @@ class Program2
         </Document>
     </Project>
 </Workspace>", options: PreferIntrinsicTypeEverywhere);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -221,14 +218,12 @@ class Program2
         </Document>
     </Project>
 </Workspace>", options: PreferIntrinsicTypeEverywhere);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -325,14 +320,12 @@ class Program2
         </Document>
     </Project>
 </Workspace>", options: PreferIntrinsicTypeEverywhere);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_SimplifyMemberAccess()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInSolution_SimplifyMemberAccess()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -573,7 +566,6 @@ class ProgramB3
         </Document>
     </Project>
 </Workspace>");
-    }
 
     #endregion
 }

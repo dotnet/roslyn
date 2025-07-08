@@ -32,9 +32,8 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
         };
 
     [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-    public async Task CommitProducesExpressionBodyProperties()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitProducesExpressionBodyProperties()
+        => VerifyCustomCommitProviderAsync("""
             class B
             {
                 public virtual int A { get; set; }
@@ -53,12 +52,10 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-    public async Task CommitProducesExpressionBodyGetterOnlyProperty()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitProducesExpressionBodyGetterOnlyProperty()
+        => VerifyCustomCommitProviderAsync("""
             class B
             {
                 public virtual int A { get; }
@@ -77,12 +74,10 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-    public async Task CommitProducesExpressionBodyMethod()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task CommitProducesExpressionBodyMethod()
+        => VerifyCustomCommitProviderAsync("""
             class B
             {
                 public virtual int A() => 2;
@@ -101,5 +96,4 @@ public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSh
                 }
             }
             """);
-    }
 }

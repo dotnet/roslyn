@@ -341,9 +341,8 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
     }
 
     [WpfFact]
-    public async Task TestRegexGroupBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexGroupBracket1()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -354,12 +353,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRegexGroupBracket2()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexGroupBracket2()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -370,12 +367,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRegexUnclosedGroupBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexUnclosedGroupBracket1()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -386,12 +381,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRegexCommentBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexCommentBracket1()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -402,12 +395,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRegexCommentBracket2()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexCommentBracket2()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -418,12 +409,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRegexUnclosedCommentBracket()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexUnclosedCommentBracket()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -434,12 +423,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestRegexCharacterClassBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexCharacterClassBracket1()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -450,12 +437,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """, swapAnglesWithBrackets: true);
-    }
 
     [WpfFact]
-    public async Task TestRegexCharacterClassBracket2()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexCharacterClassBracket2()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -466,12 +451,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """, swapAnglesWithBrackets: true);
-    }
 
     [WpfFact]
-    public async Task TestRegexUnclosedCharacterClassBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexUnclosedCharacterClassBracket1()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -482,12 +465,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """, swapAnglesWithBrackets: true);
-    }
 
     [WpfFact]
-    public async Task TestRegexNegativeCharacterClassBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexNegativeCharacterClassBracket1()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -498,12 +479,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """, swapAnglesWithBrackets: true);
-    }
 
     [WpfFact]
-    public async Task TestRegexNegativeCharacterClassBracket2()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestRegexNegativeCharacterClassBracket2()
+        => TestBraceHighlightingAsync("""
             using System.Text.RegularExpressions;
 
             class C
@@ -514,12 +493,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """, swapAnglesWithBrackets: true);
-    }
 
     [WpfFact]
-    public async Task TestJsonBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestJsonBracket1()
+        => TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -528,12 +505,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestJsonBracket2()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestJsonBracket2()
+        => TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -542,12 +517,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestJsonBracket_RawStrings()
-    {
-        await TestBraceHighlightingAsync(""""
+    public Task TestJsonBracket_RawStrings()
+        => TestBraceHighlightingAsync(""""
             class C
             {
                 void Goo()
@@ -556,12 +529,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """");
-    }
 
     [WpfFact]
-    public async Task TestUnmatchedJsonBracket1()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestUnmatchedJsonBracket1()
+        => TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -570,12 +541,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestJsonBracket_NoComment_NotLikelyJson()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestJsonBracket_NoComment_NotLikelyJson()
+        => TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -584,12 +553,10 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestJsonBracket_NoComment_LikelyJson()
-    {
-        await TestBraceHighlightingAsync("""
+    public Task TestJsonBracket_NoComment_LikelyJson()
+        => TestBraceHighlightingAsync("""
             class C
             {
                 void Goo()
@@ -598,7 +565,6 @@ public sealed class BraceHighlightingTests : AbstractBraceHighlightingTests
                 }
             }
             """);
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/32791")]
     [InlineData(@"$$ /* goo */ public class C { }")]

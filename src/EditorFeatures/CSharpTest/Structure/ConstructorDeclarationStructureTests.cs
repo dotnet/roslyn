@@ -18,9 +18,8 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ConstructorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestConstructor1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -29,12 +28,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructor2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -43,12 +40,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructor3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -57,12 +52,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructor4()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor4()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -71,12 +64,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructor5()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor5()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C() // .ctor{|textspan:
@@ -85,12 +76,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructor6()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor6()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C() /* .ctor */{|textspan:
@@ -99,12 +88,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
-    public async Task TestConstructor7()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor7()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -114,12 +101,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68778")]
-    public async Task TestConstructor8()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor8()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -129,12 +114,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructor9()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor9()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -146,12 +129,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructor10()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor10()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public C(){|textspan:
@@ -164,12 +145,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructorWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructorWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -181,19 +160,13 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestConstructorMissingCloseParenAndBody()
-    {
-        // Expected behavior is that the class should be outlined, but the constructor should not.
-
-
-        await VerifyNoBlockSpansAsync("""
+    public Task TestConstructorMissingCloseParenAndBody()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     $$C(
                 }
                 """);
-    }
 }

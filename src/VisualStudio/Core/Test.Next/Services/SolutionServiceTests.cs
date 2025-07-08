@@ -288,15 +288,12 @@ public sealed class SolutionServiceTests
     }
 
     [Fact]
-    public async Task TestUpdateDocumentInfo()
-    {
-        await VerifySolutionUpdate(@"class Test { void Method() { } }", s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
-    }
+    public Task TestUpdateDocumentInfo()
+        => VerifySolutionUpdate(@"class Test { void Method() { } }", s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
 
     [Fact]
-    public async Task TestAddUpdateRemoveProjects()
-    {
-        await VerifySolutionUpdate(@"class Test { void Method() { } }", s =>
+    public Task TestAddUpdateRemoveProjects()
+        => VerifySolutionUpdate(@"class Test { void Method() { } }", s =>
         {
             var existingProjectId = s.ProjectIds.First();
 
@@ -315,7 +312,6 @@ public sealed class SolutionServiceTests
 
             return document.Project.Solution;
         });
-    }
 
     [Fact]
     public async Task TestAdditionalDocument()

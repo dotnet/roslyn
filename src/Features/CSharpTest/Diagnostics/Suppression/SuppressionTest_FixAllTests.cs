@@ -24,9 +24,8 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
         {
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInDocument()
-            {
-                await TestInRegularAndScriptAsync("""
+            public Task TestFixAllInDocument()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -115,13 +114,11 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         </Project>
                     </Workspace>
                     """);
-            }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInProject()
-            {
-                await TestInRegularAndScriptAsync("""
+            public Task TestFixAllInProject()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -208,13 +205,11 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         </Project>
                     </Workspace>
                     """);
-            }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInSolution()
-            {
-                await TestInRegularAndScriptAsync("""
+            public Task TestFixAllInSolution()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -305,13 +300,11 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         </Project>
                     </Workspace>
                     """);
-            }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInContainingMember()
-            {
-                await TestMissingInRegularAndScriptAsync("""
+            public Task TestFixAllInContainingMember()
+                => TestMissingInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -333,13 +326,11 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         </Project>
                     </Workspace>
                     """);
-            }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInContainingType()
-            {
-                await TestInRegularAndScriptAsync("""
+            public Task TestFixAllInContainingType()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -426,7 +417,6 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                         </Project>
                     </Workspace>
                     """);
-            }
         }
     }
 
@@ -781,9 +771,8 @@ using System.Diagnostics.CodeAnalysis;
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-            public async Task TestFixAllInContainingMember()
-            {
-                await TestMissingInRegularAndScriptAsync("""
+            public Task TestFixAllInContainingMember()
+                => TestMissingInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -804,7 +793,6 @@ using System.Diagnostics.CodeAnalysis;
                         </Project>
                     </Workspace>
                     """);
-            }
 
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]

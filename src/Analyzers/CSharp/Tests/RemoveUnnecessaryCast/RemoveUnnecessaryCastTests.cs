@@ -8264,9 +8264,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUnecessaryCastInConditional1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x)
@@ -8283,12 +8282,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUnecessaryCastInConditional2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x)
@@ -8305,12 +8302,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUnecessaryCastInConditional3()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8327,12 +8322,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional4()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUnecessaryCastInConditional4()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8349,7 +8342,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
     public Task RemoveUnecessaryCastInConditional5()
@@ -8377,9 +8369,8 @@ public sealed class RemoveUnnecessaryCastTests
         }.RunAsync();
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnnecessaryCastInConditional6()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUnnecessaryCastInConditional6()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8396,12 +8387,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnnecessaryCastInConditional7()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUnnecessaryCastInConditional7()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8418,7 +8407,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20742")]
     public async Task DoNotRemoveNamedArgToParamsParameter1()
@@ -8443,9 +8431,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20742")]
-    public async Task DoRemoveNamedArgToParamsParameter1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task DoRemoveNamedArgToParamsParameter1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M()
@@ -8472,12 +8459,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20742")]
-    public async Task DoRemoveNamedArgToParamsParameter2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task DoRemoveNamedArgToParamsParameter2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M()
@@ -8504,12 +8489,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ObjectCastInInterpolation1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task ObjectCastInInterpolation1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M(int x, int z)
@@ -8526,12 +8509,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ObjectCastInInterpolation2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task ObjectCastInInterpolation2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M(int x, int z)
@@ -8548,12 +8529,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIdentityDoubleCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestIdentityDoubleCast()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M(object x)
@@ -8570,7 +8549,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestUnintendedReferenceComparison1()
@@ -9241,9 +9219,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47800")]
-    public async Task RemoveIntPtrCastsAsIdentity()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveIntPtrCastsAsIdentity()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -9264,12 +9241,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47800")]
-    public async Task RemoveUIntPtrCastsAsIdentity()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUIntPtrCastsAsIdentity()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -9290,7 +9265,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49140")]
     public async Task DoNotRemoveBitwiseNotOfUnsignedExtendedValue1()
@@ -12384,9 +12358,8 @@ public sealed class RemoveUnnecessaryCastTests
         }.RunAsync();
 
     [Fact, WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task CanRemoveCastToObjectInStringInterpolation_NullableDisable()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task CanRemoveCastToObjectInStringInterpolation_NullableDisable()
+        => VerifyCS.VerifyCodeFixAsync("""
             #nullable disable
 
             class C
@@ -12407,12 +12380,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task CanRemoveCastToObjectInStringInterpolation_NullableEnable()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task CanRemoveCastToObjectInStringInterpolation_NullableEnable()
+        => VerifyCS.VerifyCodeFixAsync("""
             #nullable enable
 
             class C
@@ -12433,12 +12404,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task CanRemoveCastToNullableObjectInStringInterpolation()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task CanRemoveCastToNullableObjectInStringInterpolation()
+        => VerifyCS.VerifyCodeFixAsync("""
             #nullable enable
 
             class C
@@ -12459,7 +12428,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28867")]
     public async Task DoNotRemoveNullableCastInConditional()

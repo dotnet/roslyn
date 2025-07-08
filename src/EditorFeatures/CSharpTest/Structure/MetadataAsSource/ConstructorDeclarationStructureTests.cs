@@ -17,20 +17,17 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ConstructorDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     $$C();
                 }
                 """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:[Bar]
@@ -38,12 +35,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:// Summary:
@@ -53,12 +48,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAttributesAndModifiers()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:// Summary:
@@ -68,12 +61,10 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestConstructor10()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestConstructor10()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public C(){|textspan:
@@ -86,5 +77,4 @@ public sealed class ConstructorDeclarationStructureTests : AbstractCSharpSyntaxN
                 }
                 """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

@@ -31,91 +31,74 @@ public sealed partial class CodeGenerationTests
     public class CSharp
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddNamespace()
-        {
-            await TestAddNamespaceAsync("namespace [|N1|] { }", @"namespace N1 {
+        public Task AddNamespace()
+            => TestAddNamespaceAsync("namespace [|N1|] { }", @"namespace N1 {
     namespace N2
     {
     }
 }",
                 name: "N2");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddField()
-        {
-            await TestAddFieldAsync("class [|C|] { }", @"class C
+        public Task AddField()
+            => TestAddFieldAsync("class [|C|] { }", @"class C
 {
     public int F;
 }",
                 type: GetTypeSymbol(typeof(int)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddStaticField()
-        {
-            await TestAddFieldAsync("class [|C|] { }", @"class C
+        public Task AddStaticField()
+            => TestAddFieldAsync("class [|C|] { }", @"class C
 {
     private static string F;
 }",
                 type: GetTypeSymbol(typeof(string)),
                 accessibility: Accessibility.Private,
                 modifiers: new Editing.DeclarationModifiers(isStatic: true));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddArrayField()
-        {
-            await TestAddFieldAsync("class [|C|] { }", @"class C
+        public Task AddArrayField()
+            => TestAddFieldAsync("class [|C|] { }", @"class C
 {
     public int[] F;
 }",
                 type: CreateArrayType(typeof(int)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddUnsafeField()
-        {
-            await TestAddFieldAsync("class [|C|] { }", @"class C
+        public Task AddUnsafeField()
+            => TestAddFieldAsync("class [|C|] { }", @"class C
 {
     public unsafe int F;
 }",
                 modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
                 type: GetTypeSymbol(typeof(int)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddFieldToCompilationUnit()
-        {
-            await TestAddFieldAsync("", "public int F;\n",
+        public Task AddFieldToCompilationUnit()
+            => TestAddFieldAsync("", "public int F;\n",
                 type: GetTypeSymbol(typeof(int)), addToCompilationUnit: true);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddConstructor()
-        {
-            await TestAddConstructorAsync("class [|C|] { }", @"class C
+        public Task AddConstructor()
+            => TestAddConstructorAsync("class [|C|] { }", @"class C
 {
     public C()
     {
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddConstructorWithoutBody()
-        {
-            await TestAddConstructorAsync("class [|C|] { }", @"class C
+        public Task AddConstructorWithoutBody()
+            => TestAddConstructorAsync("class [|C|] { }", @"class C
 {
     public C();
 }",
                 context: new CodeGenerationContext(generateMethodBodies: false));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddConstructorResolveNamespaceImport()
-        {
-            await TestAddConstructorAsync("class [|C|] { }", @"using System;
+        public Task AddConstructorResolveNamespaceImport()
+            => TestAddConstructorAsync("class [|C|] { }", @"using System;
 
 class C
 {
@@ -124,96 +107,77 @@ class C
     }
 }",
                 parameters: Parameters(Parameter(typeof(DateTime), "dt"), Parameter(typeof(int), "i")));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddChainedConstructor()
-        {
-            await TestAddConstructorAsync("class [|C|] { public C(int i) { } }", "class C { public C() : this(42) { } public C(int i) { } }",
+        public Task AddChainedConstructor()
+            => TestAddConstructorAsync("class [|C|] { public C(int i) { } }", "class C { public C() : this(42) { } public C(int i) { } }",
                 thisArguments: [CS.SyntaxFactory.ParseExpression("42")]);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddStaticConstructor()
-        {
-            await TestAddConstructorAsync("class [|C|] { }", @"class C
+        public Task AddStaticConstructor()
+            => TestAddConstructorAsync("class [|C|] { }", @"class C
 {
     static C()
     {
     }
 }",
                 modifiers: new Editing.DeclarationModifiers(isStatic: true));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544082")]
-        public async Task AddClass()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddClass()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public class C
     {
     }
 }");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddClassEscapeName()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddClassEscapeName()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public class @class
     {
     }
 }",
                 name: "class");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddClassUnicodeName()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddClassUnicodeName()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public class classæøå
     {
     }
 }",
                 name: "classæøå");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
-        public async Task AddStaticClass()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddStaticClass()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public static class C
     {
     }
 }",
                 modifiers: new Editing.DeclarationModifiers(isStatic: true));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
-        public async Task AddStaticAbstractClass()
-        {
-            // note that 'abstract' is dropped here
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddStaticAbstractClass()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public static class C
     {
     }
 }",
                 modifiers: new Editing.DeclarationModifiers(isStatic: true, isAbstract: true));
-        }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
         [InlineData(Accessibility.NotApplicable)]
         [InlineData(Accessibility.Internal)]
         [InlineData(Accessibility.Public)]
-        public async Task AddFileClass(Accessibility accessibility)
-        {
-            // note: when invalid combinations of modifiers+accessibility are present here,
-            // we actually drop the accessibility. This is similar to what is done if someone declares a 'static abstract class C { }'.
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddFileClass(Accessibility accessibility)
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     file class C
     {
@@ -221,7 +185,6 @@ class C
 }",
                 accessibility: accessibility,
                 modifiers: new Editing.DeclarationModifiers(isFile: true));
-        }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
         [InlineData("struct", TypeKind.Struct)]
@@ -241,9 +204,8 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
-        public async Task AddSealedClass()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddSealedClass()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     private sealed class C
     {
@@ -251,12 +213,10 @@ class C
 }",
                 accessibility: Accessibility.Private,
                 modifiers: new Editing.DeclarationModifiers(isSealed: true));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544405")]
-        public async Task AddAbstractClass()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddAbstractClass()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     protected internal abstract class C
     {
@@ -264,12 +224,10 @@ class C
 }",
                 accessibility: Accessibility.ProtectedOrInternal,
                 modifiers: new Editing.DeclarationModifiers(isAbstract: true));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddStruct()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddStruct()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     internal struct S
     {
@@ -278,12 +236,10 @@ class C
                 name: "S",
                 accessibility: Accessibility.Internal,
                 typeKind: TypeKind.Struct);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
-        public async Task AddSealedStruct()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddSealedStruct()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public struct S
     {
@@ -293,12 +249,10 @@ class C
                 modifiers: new Editing.DeclarationModifiers(isSealed: true),
                 accessibility: Accessibility.Public,
                 typeKind: TypeKind.Struct);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddInterface()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddInterface()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public interface I
     {
@@ -306,24 +260,20 @@ class C
 }",
                 name: "I",
                 typeKind: TypeKind.Interface);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544080")]
-        public async Task AddEnum()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddEnum()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public enum E
     {
     }
 }", "E",
                 typeKind: TypeKind.Enum);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544527")]
-        public async Task AddEnumWithValues()
-        {
-            await TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
+        public Task AddEnumWithValues()
+            => TestAddNamedTypeAsync("namespace [|N|] { }", @"namespace N
 {
     public enum E
     {
@@ -333,40 +283,33 @@ class C
 }", "E",
                 typeKind: TypeKind.Enum,
                 members: Members(CreateEnumField("F1", 1), CreateEnumField("F2", 2)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544080")]
-        public async Task AddDelegateType()
-        {
-            await TestAddDelegateTypeAsync("class [|C|] { }", @"class C
+        public Task AddDelegateType()
+            => TestAddDelegateTypeAsync("class [|C|] { }", @"class C
 {
     public delegate int D(string s);
 }",
                 returnType: typeof(int),
                 parameters: Parameters(Parameter(typeof(string), "s")));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546224")]
-        public async Task AddSealedDelegateType()
-        {
-            await TestAddDelegateTypeAsync("class [|C|] { }", @"class C
+        public Task AddSealedDelegateType()
+            => TestAddDelegateTypeAsync("class [|C|] { }", @"class C
 {
     public delegate int D(string s);
 }",
                 returnType: typeof(int),
                 parameters: Parameters(Parameter(typeof(string), "s")),
                 modifiers: new Editing.DeclarationModifiers(isSealed: true));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddEvent()
-        {
-            await TestAddEventAsync("class [|C|] { }", @"class C
+        public Task AddEvent()
+            => TestAddEventAsync("class [|C|] { }", @"class C
 {
     public event System.Action E;
 }",
                 context: new CodeGenerationContext(addImports: false));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddCustomEventToClassFromSourceSymbol()
@@ -402,20 +345,17 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddUnsafeEvent()
-        {
-            await TestAddEventAsync("class [|C|] { }", @"class C
+        public Task AddUnsafeEvent()
+            => TestAddEventAsync("class [|C|] { }", @"class C
 {
     public unsafe event System.Action E;
 }",
                 modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
                 context: new CodeGenerationContext(addImports: false));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddEventWithAccessors()
-        {
-            await TestAddEventAsync("class [|C|] { }", @"class C
+        public Task AddEventWithAccessors()
+            => TestAddEventAsync("class [|C|] { }", @"class C
 {
     public event System.Action E
     {
@@ -431,19 +371,16 @@ class C
                 addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol([], Accessibility.NotApplicable, []),
                 removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol([], Accessibility.NotApplicable, []),
                 context: new CodeGenerationContext(addImports: false));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddMethodToClass()
-        {
-            await TestAddMethodAsync("class [|C|] { }", @"class C
+        public Task AddMethodToClass()
+            => TestAddMethodAsync("class [|C|] { }", @"class C
 {
     public void M()
     {
     }
 }",
                 returnType: typeof(void));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddMethodToClassFromSourceSymbol()
@@ -465,9 +402,8 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddMethodToClassEscapedName()
-        {
-            await TestAddMethodAsync("class [|C|] { }", @"using System;
+        public Task AddMethodToClassEscapedName()
+            => TestAddMethodAsync("class [|C|] { }", @"using System;
 
 class C
 {
@@ -477,12 +413,10 @@ class C
 }",
                 name: "static",
                 returnType: typeof(DateTime));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddStaticMethodToStruct()
-        {
-            await TestAddMethodAsync("struct [|S|] { }", @"struct S
+        public Task AddStaticMethodToStruct()
+            => TestAddMethodAsync("struct [|S|] { }", @"struct S
 {
     public static int M()
     {
@@ -492,12 +426,10 @@ class C
                 modifiers: new Editing.DeclarationModifiers(isStatic: true),
                 returnType: typeof(int),
                 statements: "return 0;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddSealedOverrideMethod()
-        {
-            await TestAddMethodAsync("class [|C|] { }", @"class C
+        public Task AddSealedOverrideMethod()
+            => TestAddMethodAsync("class [|C|] { }", @"class C
 {
     public sealed override int GetHashCode()
     {
@@ -508,34 +440,28 @@ class C
                 modifiers: new Editing.DeclarationModifiers(isOverride: true, isSealed: true),
                 returnType: typeof(int),
                 statements: "return 0;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAbstractMethod()
-        {
-            await TestAddMethodAsync("abstract class [|C|] { }", @"abstract class C
+        public Task AddAbstractMethod()
+            => TestAddMethodAsync("abstract class [|C|] { }", @"abstract class C
 {
     public abstract int M();
 }",
                 modifiers: new Editing.DeclarationModifiers(isAbstract: true),
                 returnType: typeof(int));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddMethodWithoutBody()
-        {
-            await TestAddMethodAsync("class [|C|] { }", @"class C
+        public Task AddMethodWithoutBody()
+            => TestAddMethodAsync("class [|C|] { }", @"class C
 {
     public int M();
 }",
                 returnType: typeof(int),
                 context: new CodeGenerationContext(generateMethodBodies: false));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddGenericMethod()
-        {
-            await TestAddMethodAsync("class [|C|] { }", @"class C
+        public Task AddGenericMethod()
+            => TestAddMethodAsync("class [|C|] { }", @"class C
 {
     public int M<T>()
     {
@@ -545,12 +471,10 @@ class C
                 returnType: typeof(int),
                 typeParameters: [CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")],
                 statements: "return new T().GetHashCode();");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddVirtualMethod()
-        {
-            await TestAddMethodAsync("class [|C|] { }", @"class C
+        public Task AddVirtualMethod()
+            => TestAddMethodAsync("class [|C|] { }", @"class C
 {
     protected virtual int M()
     {
@@ -561,12 +485,10 @@ class C
                 modifiers: new Editing.DeclarationModifiers(isVirtual: true),
                 returnType: typeof(int),
                 statements: "return 0;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddUnsafeNewMethod()
-        {
-            await TestAddMethodAsync("class [|C|] { }", @"class C
+        public Task AddUnsafeNewMethod()
+            => TestAddMethodAsync("class [|C|] { }", @"class C
 {
     public unsafe new string ToString()
     {
@@ -577,7 +499,6 @@ class C
                 modifiers: new Editing.DeclarationModifiers(isNew: true, isUnsafe: true),
                 returnType: typeof(string),
                 statements: "return String.Empty;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddExplicitImplementationOfUnsafeMethod()
@@ -615,9 +536,8 @@ class C : I
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddTrueFalseOperators()
-        {
-            await TestAddOperatorsAsync(@"
+        public Task AddTrueFalseOperators()
+            => TestAddOperatorsAsync(@"
 class [|C|]
 {
 }", @"
@@ -637,12 +557,10 @@ class C
                 parameters: Parameters(Parameter("C", "other")),
                 returnType: typeof(bool),
                 statements: "return false;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddUnaryOperators()
-        {
-            await TestAddOperatorsAsync(@"
+        public Task AddUnaryOperators()
+            => TestAddOperatorsAsync(@"
 class [|C|]
 {
 }", @"
@@ -689,12 +607,10 @@ class C
                 parameters: Parameters(Parameter("C", "other")),
                 returnType: typeof(object),
                 statements: "return null;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddBinaryOperators()
-        {
-            await TestAddOperatorsAsync(@"
+        public Task AddBinaryOperators()
+            => TestAddOperatorsAsync(@"
 class [|C|]
 {
 }", @"
@@ -765,12 +681,10 @@ class C
                 parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                 returnType: typeof(object),
                 statements: "return null;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddComparisonOperators()
-        {
-            await TestAddOperatorsAsync(@"
+        public Task AddComparisonOperators()
+            => TestAddOperatorsAsync(@"
 class [|C|]
 {
 }", @"
@@ -817,22 +731,18 @@ class C
                 parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                 returnType: typeof(bool),
                 statements: "return true;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddUnsupportedOperator()
-        {
-            await TestAddUnsupportedOperatorAsync("class [|C|] { }",
+        public Task AddUnsupportedOperator()
+            => TestAddUnsupportedOperatorAsync("class [|C|] { }",
                 operatorKind: CodeGenerationOperatorKind.Like,
                 parameters: Parameters(Parameter("C", "a"), Parameter("C", "b")),
                 returnType: typeof(bool),
                 statements: "return true;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddExplicitConversion()
-        {
-            await TestAddConversionAsync(@"class [|C|] { }", @"class C
+        public Task AddExplicitConversion()
+            => TestAddConversionAsync(@"class [|C|] { }", @"class C
 {
     public static explicit operator int(C other)
     {
@@ -842,12 +752,10 @@ class C
                 toType: typeof(int),
                 fromType: Parameter("C", "other"),
                 statements: "return 0;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddImplicitConversion()
-        {
-            await TestAddConversionAsync(@"class [|C|] { }", @"class C
+        public Task AddImplicitConversion()
+            => TestAddConversionAsync(@"class [|C|] { }", @"class C
 {
     public static implicit operator int(C other)
     {
@@ -858,66 +766,51 @@ class C
                 fromType: Parameter("C", "other"),
                 isImplicit: true,
                 statements: "return 0;");
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddStatements()
-        {
-            await TestAddStatementsAsync("class C { public void [|M|]() { Console.WriteLine(1); } }", "class C { public void M() { Console.WriteLine(1); $$} }", "Console.WriteLine(2);");
-        }
+        public Task AddStatements()
+            => TestAddStatementsAsync("class C { public void [|M|]() { Console.WriteLine(1); } }", "class C { public void M() { Console.WriteLine(1); $$} }", "Console.WriteLine(2);");
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/840265")]
-        public async Task AddDefaultParameterWithNonDefaultValueToMethod()
-        {
-            await TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(string text =\"Hello\") { } }",
+        public Task AddDefaultParameterWithNonDefaultValueToMethod()
+            => TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(string text =\"Hello\") { } }",
                 Parameters(Parameter(typeof(string), "text", true, "Hello")));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddDefaultParameterWithDefaultValueToMethod()
-        {
-            await TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(double number =0) { } }",
+        public Task AddDefaultParameterWithDefaultValueToMethod()
+            => TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(double number =0) { } }",
                 Parameters(Parameter(typeof(double), "number", true)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddParametersToMethod()
-        {
-            await TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(int num, string text =\"Hello!\", float floating =0.5F) { } }",
+        public Task AddParametersToMethod()
+            => TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(int num, string text =\"Hello!\", float floating =0.5F) { } }",
                 Parameters(Parameter(typeof(int), "num"), Parameter(typeof(string), "text", true, "Hello!"), Parameter(typeof(float), "floating", true, .5f)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/841365")]
-        public async Task AddParamsParameterToMethod()
-        {
-            await TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(params char[]characters) { } }",
+        public Task AddParamsParameterToMethod()
+            => TestAddParametersAsync("class C { public void [|M|]() { } }", "class C { public void M(params char[]characters) { } }",
                 Parameters(Parameter(typeof(char[]), "characters", isParams: true)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544015")]
-        public async Task AddAutoProperty()
-        {
-            await TestAddPropertyAsync("class [|C|] { }", @"class C
+        public Task AddAutoProperty()
+            => TestAddPropertyAsync("class [|C|] { }", @"class C
 {
     public int P { get; internal set; }
 }",
                 type: typeof(int),
                 setterAccessibility: Accessibility.Internal);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddUnsafeAutoProperty()
-        {
-            await TestAddPropertyAsync("class [|C|] { }", @"class C
+        public Task AddUnsafeAutoProperty()
+            => TestAddPropertyAsync("class [|C|] { }", @"class C
 {
     public unsafe int P { get; internal set; }
 }",
                 type: typeof(int),
                 modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
                 setterAccessibility: Accessibility.Internal);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task AddPropertyToClassFromSourceSymbol()
@@ -945,19 +838,16 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddIndexer1()
-        {
-            await TestAddPropertyAsync("class [|C|] { }", "class C { public string this[int i] => String.Empty; }",
+        public Task AddIndexer1()
+            => TestAddPropertyAsync("class [|C|] { }", "class C { public string this[int i] => String.Empty; }",
                 type: typeof(string),
                 parameters: Parameters(Parameter(typeof(int), "i")),
                 getStatements: "return String.Empty;",
                 isIndexer: true);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddIndexer2()
-        {
-            await TestAddPropertyAsync("class [|C|] { }", @"class C
+        public Task AddIndexer2()
+            => TestAddPropertyAsync("class [|C|] { }", @"class C
 {
     public string this[int i]
     {
@@ -976,12 +866,10 @@ class C
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
                 });
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddParameterfulProperty()
-        {
-            await TestAddPropertyAsync("class [|C|] { }", @"class C
+        public Task AddParameterfulProperty()
+            => TestAddPropertyAsync("class [|C|] { }", @"class C
 {
     public string get_P(int i, int j)
     {
@@ -996,175 +884,121 @@ class C
                 getStatements: "return String.Empty;",
                 setStatements: "",
                 parameters: Parameters(Parameter(typeof(int), "i"), Parameter(typeof(int), "j")));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToTypes()
-        {
-            await TestAddAttributeAsync("class [|C|] { }", @"[System.Serializable]
+        public Task AddAttributeToTypes()
+            => TestAddAttributeAsync("class [|C|] { }", @"[System.Serializable]
 class C { }", typeof(SerializableAttribute));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromTypes()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>(@"[System.Serializable] class [|C|] { }", "class C { }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromTypes()
+            => TestRemoveAttributeAsync<SyntaxNode>(@"[System.Serializable] class [|C|] { }", "class C { }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToMethods()
-        {
-            await TestAddAttributeAsync("class C { public void [|M()|] { } }", "class C { [System.Serializable] public void M() { } }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToMethods()
+            => TestAddAttributeAsync("class C { public void [|M()|] { } }", "class C { [System.Serializable] public void M() { } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromMethods()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public void [|M()|] { } }", "class C { public void M() { } }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromMethods()
+            => TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public void [|M()|] { } }", "class C { public void M() { } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToFields()
-        {
-            await TestAddAttributeAsync("class C { [|public int F|]; }", "class C { [System.Serializable] public int F; }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToFields()
+            => TestAddAttributeAsync("class C { [|public int F|]; }", "class C { [System.Serializable] public int F; }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromFields()
-        {
-            await TestRemoveAttributeAsync<FieldDeclarationSyntax>("class C { [System.Serializable] public int [|F|]; }", "class C { public int F; }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromFields()
+            => TestRemoveAttributeAsync<FieldDeclarationSyntax>("class C { [System.Serializable] public int [|F|]; }", "class C { public int F; }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToProperties()
-        {
-            await TestAddAttributeAsync("class C { public int [|P|] { get; set; }}", "class C { [System.Serializable] public int P { get; set; } }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToProperties()
+            => TestAddAttributeAsync("class C { public int [|P|] { get; set; }}", "class C { [System.Serializable] public int P { get; set; } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromProperties()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public int [|P|] { get; set; }}", "class C { public int P { get; set; } }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromProperties()
+            => TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public int [|P|] { get; set; }}", "class C { public int P { get; set; } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToPropertyAccessor()
-        {
-            await TestAddAttributeAsync("class C { public int P { [|get|]; set; }}", "class C { public int P { [System.Serializable] get; set; }}", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToPropertyAccessor()
+            => TestAddAttributeAsync("class C { public int P { [|get|]; set; }}", "class C { public int P { [System.Serializable] get; set; }}", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromPropertyAccessor()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("class C { public int P { [System.Serializable] [|get|]; set; } }", "class C { public int P { get; set; } }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromPropertyAccessor()
+            => TestRemoveAttributeAsync<SyntaxNode>("class C { public int P { [System.Serializable] [|get|]; set; } }", "class C { public int P { get; set; } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToEnums()
-        {
-            await TestAddAttributeAsync("enum [|C|] { One, Two }", @"[System.Serializable]
+        public Task AddAttributeToEnums()
+            => TestAddAttributeAsync("enum [|C|] { One, Two }", @"[System.Serializable]
 enum C { One, Two }", typeof(SerializableAttribute));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromEnums()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("[System.Serializable] enum [|C|] { One, Two }", "enum C { One, Two }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromEnums()
+            => TestRemoveAttributeAsync<SyntaxNode>("[System.Serializable] enum [|C|] { One, Two }", "enum C { One, Two }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToEnumMembers()
-        {
-            await TestAddAttributeAsync("enum C { [|One|], Two }", "enum C { [System.Serializable] One, Two }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToEnumMembers()
+            => TestAddAttributeAsync("enum C { [|One|], Two }", "enum C { [System.Serializable] One, Two }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromEnumMembers()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("enum C { [System.Serializable] [|One|], Two }", "enum C { One, Two }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromEnumMembers()
+            => TestRemoveAttributeAsync<SyntaxNode>("enum C { [System.Serializable] [|One|], Two }", "enum C { One, Two }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToIndexer()
-        {
-            await TestAddAttributeAsync("class C { public int [|this[int y]|] { get; set; }}", "class C { [System.Serializable] public int this[int y] { get; set; } }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToIndexer()
+            => TestAddAttributeAsync("class C { public int [|this[int y]|] { get; set; }}", "class C { [System.Serializable] public int this[int y] { get; set; } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromIndexer()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public int [|this[int y]|] { get; set; }}", "class C { public int this[int y] { get; set; } }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromIndexer()
+            => TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public int [|this[int y]|] { get; set; }}", "class C { public int this[int y] { get; set; } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToOperator()
-        {
-            await TestAddAttributeAsync("class C { public static C operator [|+|] (C c1, C c2) { return new C(); }}", "class C { [System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToOperator()
+            => TestAddAttributeAsync("class C { public static C operator [|+|] (C c1, C c2) { return new C(); }}", "class C { [System.Serializable] public static C operator +(C c1, C c2) { return new C(); } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromOperator()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public static C operator [|+|](C c1, C c2) { return new C(); }}", "class C { public static C operator +(C c1, C c2) { return new C(); } }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromOperator()
+            => TestRemoveAttributeAsync<SyntaxNode>("class C { [System.Serializable] public static C operator [|+|](C c1, C c2) { return new C(); }}", "class C { public static C operator +(C c1, C c2) { return new C(); } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToDelegate()
-        {
-            await TestAddAttributeAsync("delegate int [|D()|];", @"[System.Serializable]
+        public Task AddAttributeToDelegate()
+            => TestAddAttributeAsync("delegate int [|D()|];", @"[System.Serializable]
 delegate int D();", typeof(SerializableAttribute));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromDelegate()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("[System.Serializable] delegate int [|D()|];", "delegate int D();", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromDelegate()
+            => TestRemoveAttributeAsync<SyntaxNode>("[System.Serializable] delegate int [|D()|];", "delegate int D();", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToParam()
-        {
-            await TestAddAttributeAsync("class C { public void M([|int x|]) { } }", "class C { public void M([System.Serializable] int x) { } }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToParam()
+            => TestAddAttributeAsync("class C { public void M([|int x|]) { } }", "class C { public void M([System.Serializable] int x) { } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromParam()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("class C { public void M([System.Serializable] [|int x|]) { } }", "class C { public void M(int x) { } }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromParam()
+            => TestRemoveAttributeAsync<SyntaxNode>("class C { public void M([System.Serializable] [|int x|]) { } }", "class C { public void M(int x) { } }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToTypeParam()
-        {
-            await TestAddAttributeAsync("class C<[|T|]> { }", "class C<[System.Serializable] T> { }", typeof(SerializableAttribute));
-        }
+        public Task AddAttributeToTypeParam()
+            => TestAddAttributeAsync("class C<[|T|]> { }", "class C<[System.Serializable] T> { }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeFromTypeParam()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>("class C<[System.Serializable] [|T|]> { }", "class C<T> { }", typeof(SerializableAttribute));
-        }
+        public Task RemoveAttributeFromTypeParam()
+            => TestRemoveAttributeAsync<SyntaxNode>("class C<[System.Serializable] [|T|]> { }", "class C<T> { }", typeof(SerializableAttribute));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeToCompilationUnit()
-        {
-            await TestAddAttributeAsync("[|class C { } class D {} |]", @"[assembly: System.Serializable]
+        public Task AddAttributeToCompilationUnit()
+            => TestAddAttributeAsync("[|class C { } class D {} |]", @"[assembly: System.Serializable]
 
 class C { }
 class D { }", typeof(SerializableAttribute), AssemblyKeyword);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeWithWrongTarget()
-        {
-            await Assert.ThrowsAsync<AggregateException>(async () =>
+        public Task AddAttributeWithWrongTarget()
+            => Assert.ThrowsAsync<AggregateException>(async () =>
                 await TestAddAttributeAsync("[|class C { } class D {} |]", "", typeof(SerializableAttribute), RefKeyword));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task AddAttributeWithArrayParams()
-        {
-            await TestAddAttributeAsync("""
+        public Task AddAttributeWithArrayParams()
+            => TestAddAttributeAsync("""
                 using System; 
                 class ExampleAttribute : Attribute
                 {
@@ -1201,42 +1035,34 @@ class D { }", typeof(SerializableAttribute), AssemblyKeyword);
                 var attribute = method.GetAttributes().Single();
                 return attribute;
             });
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeWithTrivia()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
+        public Task RemoveAttributeWithTrivia()
+            => TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
 [System.Serializable] // Comment 2
 /* Comment 3*/ class [|C|] { }", @"// Comment 1
 /* Comment 3*/ class C { }", typeof(SerializableAttribute));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeWithTrivia_NewLine()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
+        public Task RemoveAttributeWithTrivia_NewLine()
+            => TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
 [System.Serializable]
 /* Comment 3*/ class [|C|] { }", @"// Comment 1
 /* Comment 3*/ class C { }", typeof(SerializableAttribute));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeWithMultipleAttributes()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
+        public Task RemoveAttributeWithMultipleAttributes()
+            => TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
 /*Comment2*/[ /*Comment3*/ System.Serializable /*Comment4*/, /*Comment5*/System.Flags /*Comment6*/] /*Comment7*/
 /* Comment 8*/
 class [|C|] { }", @"// Comment 1
 /*Comment2*/[ /*Comment3*/  /*Comment5*/System.Flags /*Comment6*/] /*Comment7*/
 /* Comment 8*/
 class C { }", typeof(SerializableAttribute));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task RemoveAttributeWithMultipleAttributeLists()
-        {
-            await TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
+        public Task RemoveAttributeWithMultipleAttributeLists()
+            => TestRemoveAttributeAsync<SyntaxNode>(@"// Comment 1
 /*Comment2*/[ /*Comment3*/ System.Serializable /*Comment4*/, /*Comment5*/System.Flags /*Comment6*/] /*Comment7*/
 [ /*Comment9*/ System.Obsolete /*Comment10*/] /*Comment11*/
 /* Comment12*/
@@ -1245,7 +1071,6 @@ class [|C|] { }", @"// Comment 1
 [ /*Comment9*/ System.Obsolete /*Comment10*/] /*Comment11*/
 /* Comment12*/
 class C { }", typeof(SerializableAttribute));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestUpdateModifiers()
@@ -1264,9 +1089,8 @@ class C { }", typeof(SerializableAttribute));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task TestUpdateAccessibility()
-        {
-            await TestUpdateDeclarationAsync<ClassDeclarationSyntax>(@"// Comment 0
+        public Task TestUpdateAccessibility()
+            => TestUpdateDeclarationAsync<ClassDeclarationSyntax>(@"// Comment 0
 public static class [|C|] // Comment 1
 {
     // Comment 2
@@ -1275,12 +1099,10 @@ internal static class C // Comment 1
 {
     // Comment 2
 }", accessibility: Accessibility.Internal);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
-        public async Task TestUpdateDeclarationType()
-        {
-            await TestUpdateDeclarationAsync<MethodDeclarationSyntax>(@"
+        public Task TestUpdateDeclarationType()
+            => TestUpdateDeclarationAsync<MethodDeclarationSyntax>(@"
 public static class C
 {
     // Comment 1
@@ -1291,7 +1113,6 @@ public static class C
     // Comment 1
     public static int F() { return 0; }
 }", getType: GetTypeSymbol(typeof(int)));
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestUpdateDeclarationMembers()
@@ -1340,9 +1161,8 @@ public static class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-        public async Task SortAroundDestructor()
-        {
-            await TestGenerateFromSourceSymbolAsync("public class [|C|] { public C(){} public int this[int index]{get{return 0;}set{value = 0;}} }", "public class [|C|] { ~C(){} }", @"public class C {
+        public Task SortAroundDestructor()
+            => TestGenerateFromSourceSymbolAsync("public class [|C|] { public C(){} public int this[int index]{get{return 0;}set{value = 0;}} }", "public class [|C|] { ~C(){} }", @"public class C {
     public C()
     {
     }
@@ -1360,12 +1180,10 @@ public static class C
         }
     }
 }", onlyGenerateMembers: true);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
-        public async Task SortOperators()
-        {
-            await TestGenerateFromSourceSymbolAsync(@"
+        public Task SortOperators()
+            => TestGenerateFromSourceSymbolAsync(@"
 namespace N
 {
     public class [|C|]
@@ -1432,13 +1250,11 @@ namespace N
 }",
                 forceLanguage: LanguageNames.CSharp,
                 context: new CodeGenerationContext(generateMethodBodies: false));
-        }
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665008")]
-    public async Task TestExtensionMethods()
-    {
-        await TestGenerateFromSourceSymbolAsync(@"
+    public Task TestExtensionMethods()
+        => TestGenerateFromSourceSymbolAsync(@"
 public static class [|C|]
 {
     public static void ExtMethod1(this string s, int y, string z) {}
@@ -1448,12 +1264,10 @@ public static class [|C|]
 }",
             context: new CodeGenerationContext(generateMethodBodies: false),
             onlyGenerateMembers: true);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530829")]
-    public async Task TestVBPropertiesWithParams()
-    {
-        await TestGenerateFromSourceSymbolAsync(@"
+    public Task TestVBPropertiesWithParams()
+        => TestGenerateFromSourceSymbolAsync(@"
 Namespace N
     Public Class [|C|]
         Public Overridable Property IndexProp(ByVal p1 As Integer) As String
@@ -1474,12 +1288,10 @@ End Namespace
     }
 }",
             context: new CodeGenerationContext(generateMethodBodies: false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
-    public async Task TestRefParamsWithDefaultValue()
-    {
-        await TestGenerateFromSourceSymbolAsync(@"
+    public Task TestRefParamsWithDefaultValue()
+        => TestGenerateFromSourceSymbolAsync(@"
 Public Class [|C|]
     Public Sub Goo(x As Integer, Optional ByRef y As Integer = 10, Optional ByRef z As Object = Nothing)
     End Sub
@@ -1489,12 +1301,10 @@ End Class", "public class [|C|] {}", @"public class C
 }",
             context: new CodeGenerationContext(generateMethodBodies: false),
             onlyGenerateMembers: true);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/848357")]
-    public async Task TestConstraints()
-    {
-        await TestGenerateFromSourceSymbolAsync(@"
+    public Task TestConstraints()
+        => TestGenerateFromSourceSymbolAsync(@"
 namespace N
 {
     public class [|C|]<T, U> where T : struct where U : class
@@ -1520,5 +1330,4 @@ namespace N
 }",
             context: new CodeGenerationContext(generateMethodBodies: false),
             onlyGenerateMembers: true);
-    }
 }

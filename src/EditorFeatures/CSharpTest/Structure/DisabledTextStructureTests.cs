@@ -17,9 +17,8 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
     internal override AbstractSyntaxStructureProvider CreateProvider() => new DisabledTextTriviaStructureProvider();
 
     [Fact]
-    public async Task TestDisabledIf()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestDisabledIf()
+        => VerifyBlockSpansAsync("""
                 #if false
                 {|span:$$Blah
                 Blah
@@ -27,12 +26,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                 #endif
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestDisabledElse()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestDisabledElse()
+        => VerifyBlockSpansAsync("""
                 #if true
                 #else
                 {|span:$$Blah
@@ -41,12 +38,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                 #endif
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestDisabledElIf()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestDisabledElIf()
+        => VerifyBlockSpansAsync("""
                 #if true
                 #elif false
                 {|span:$$Blah
@@ -55,12 +50,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                 #endif
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
-    public async Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task DisabledCodeWithEmbeddedPreprocessorDirectivesShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if false
                 {|span:    void $$M()
@@ -73,12 +66,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531360")]
-    public async Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task DisabledCodeShouldNotCollapseUnlessItFollowsADirective()
+        => VerifyNoBlockSpansAsync("""
                 class P {
                 #if false
                 {|span:    void M()
@@ -90,12 +81,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                 #endif
                     }
                 """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -108,12 +97,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-    public async Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NestedDisabledCodePreProcessorDirectivesWithElseShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -128,12 +115,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-    public async Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NestedDisabledCodePreProcessorDirectivesWithElifShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -148,12 +133,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=459257")]
-    public async Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NestedDisabledCodePreProcessorDirectivesWithElseAndElifShouldCollapseEntireDisabledRegion()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -170,12 +153,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion2()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                     void M()
@@ -189,12 +170,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion3()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -207,12 +186,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070677")]
-    public async Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NestedDisabledCodePreProcessorDirectivesShouldCollapseEntireDisabledRegion4()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -234,12 +211,10 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100600")]
-    public async Task PreprocessorDirectivesInTrailingTrivia()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task PreprocessorDirectivesInTrailingTrivia()
+        => VerifyBlockSpansAsync("""
                 class P {
                 #if Goo
                 {|span:    void $$M()
@@ -261,5 +236,4 @@ public sealed class DisabledTextStructureTests : AbstractCSharpSyntaxTriviaStruc
                     }
                 """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

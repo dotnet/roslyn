@@ -23,9 +23,8 @@ public sealed class AddOrRemoveAccessibilityModifiersFixAllTests(ITestOutputHelp
 
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6611")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInContainingType_DoesNotCrashInDuplicateProgramInTopLevelStatements()
-    {
-        await TestAsync("""
+    public Task TestFixAllInContainingType_DoesNotCrashInDuplicateProgramInTopLevelStatements()
+        => TestAsync("""
             Console.WriteLine("Hello, World!");
             class {|FixAllInContainingType:Program|}
             {
@@ -36,5 +35,4 @@ public sealed class AddOrRemoveAccessibilityModifiersFixAllTests(ITestOutputHelp
             {
             }
             """, TestParameters.Default.parseOptions);
-    }
 }

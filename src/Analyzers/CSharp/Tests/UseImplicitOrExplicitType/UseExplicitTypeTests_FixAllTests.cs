@@ -17,9 +17,8 @@ public partial class UseExplicitTypeTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocumentScope_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -124,14 +123,12 @@ public partial class UseExplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject_PreferExplicitTypeEverywhere()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInProject_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -236,14 +233,12 @@ public partial class UseExplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInSolution_PreferExplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -348,14 +343,12 @@ public partial class UseExplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ExplicitTypeEverywhere());
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocumentScope_PreferExplicitTypeExceptWhereApparent()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -396,7 +389,6 @@ public partial class UseExplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ExplicitTypeExceptWhereApparent());
-    }
 
     #endregion
 }

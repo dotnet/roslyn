@@ -122,9 +122,8 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -160,12 +159,10 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
     }
 }");
-        }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases_2Async()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCases_2Async()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -204,12 +201,10 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
     }
 }");
-        }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -256,12 +251,10 @@ class MyAnalyzer2 : DiagnosticAnalyzer
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -312,12 +305,10 @@ class MyAnalyzer : DiagnosticAnalyzer
         context.RegisterOperationAction(AnalyzeOperation, OperationKind.Invocation);
     }
 }");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -350,12 +341,10 @@ Class MyAnalyzer(Of T As Structure)
     End Sub
 End Class
 ");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_2Async()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCases_2Async()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -392,12 +381,10 @@ Class MyAnalyzer(Of T As Structure)
     End Sub
 End Class
 ");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCases_OperationAnalyzerRegistrationAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -437,12 +424,10 @@ Class MyAnalyzer2
 	End Sub
 End Class
 ");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCases_NestedOperationAnalyzerRegistrationAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -484,7 +469,6 @@ MustInherit Class MyAnalyzer
 	End Sub
 End Class
 ");
-        }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
 #pragma warning disable RS0030 // Do not use banned APIs

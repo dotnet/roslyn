@@ -17,9 +17,8 @@ public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStru
     internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider();
 
     [Fact]
-    public async Task TestSwitchStatement1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestSwitchStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -31,12 +30,10 @@ public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStru
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestSwitchStatement2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestSwitchStatement2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -60,5 +57,4 @@ public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStru
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

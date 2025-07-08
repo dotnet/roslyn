@@ -306,43 +306,28 @@ public sealed class StaticKeywordRecommenderTests : KeywordRecommenderTests
         => await VerifyAbsenceAsync(@"delegate $$");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
-    public async Task TestNotBetweenUsings()
-    {
-        await VerifyWorkerAsync("""
+    public Task TestNotBetweenUsings()
+        => VerifyWorkerAsync("""
             using Goo;
             $$
             using Bar;
             """, absent: true);
 
-        // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-        //await VerifyWorkerAsync(source, absent: true, Options.Script);
-    }
-
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
-    public async Task TestNotBetweenGlobalUsings_01()
-    {
-        await VerifyWorkerAsync("""
+    public Task TestNotBetweenGlobalUsings_01()
+        => VerifyWorkerAsync("""
             global using Goo;
             $$
             using Bar;
             """, absent: true);
 
-        // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-        //await VerifyWorkerAsync(source, absent: true, Options.Script);
-    }
-
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
-    public async Task TestNotBetweenGlobalUsings_02()
-    {
-        await VerifyWorkerAsync("""
+    public Task TestNotBetweenGlobalUsings_02()
+        => VerifyWorkerAsync("""
             global using Goo;
             $$
             global using Bar;
             """, absent: true);
-
-        // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
-        //await VerifyWorkerAsync(source, absent: true, Options.Script);
-    }
 
     [Theory, CombinatorialData]
     public Task TestNotAfterNestedAbstract([CombinatorialValues("class", "struct", "record", "record struct", "record class")] string declarationKind)

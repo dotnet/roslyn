@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+    public Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass$$
             {
@@ -27,12 +26,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-    }
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnField_ShouldFail()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+    public Task ReorderMethodParameters_InvokeOnField_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -43,18 +40,14 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-    }
 
     [Fact]
-    public async Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"class C { void $$M() { } }", expectedSuccess: true);
-    }
+    public Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"class C { void $$M() { } }", expectedSuccess: true);
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+    public Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 public static C $$operator +(C a, C b)
@@ -63,5 +56,4 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-    }
 }

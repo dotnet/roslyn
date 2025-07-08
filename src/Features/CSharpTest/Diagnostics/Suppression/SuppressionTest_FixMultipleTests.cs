@@ -62,9 +62,8 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
             [WorkItem("https://github.com/dotnet/roslyn/issues/6455")]
-            public async Task TestFixMultipleInDocument()
-            {
-                await TestInRegularAndScriptAsync("""
+            public Task TestFixMultipleInDocument()
+                => TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -155,7 +154,6 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
                         </Project>
                     </Workspace>
                     """);
-            }
         }
 
         #endregion

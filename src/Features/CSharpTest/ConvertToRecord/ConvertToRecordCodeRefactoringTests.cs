@@ -96,9 +96,8 @@ public sealed class ConvertToRecordCodeRefactoringTests
     }
 
     [Fact]
-    public async Task TestNoProperties_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestNoProperties_NoAction()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -108,12 +107,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPartialClass_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestPartialClass_NoAction()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public partial class [|C|]
@@ -127,12 +124,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExplicitProperty_NoAction1()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestExplicitProperty_NoAction1()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -147,12 +142,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExplicitProperty_NoAction2()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestExplicitProperty_NoAction2()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -174,12 +167,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExplicitProperty_NoAction3()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestExplicitProperty_NoAction3()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -188,12 +179,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPrivateGetProperty_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestPrivateGetProperty_NoAction()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -202,12 +191,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSetProperty()
-    {
-        await TestRefactoringAsync("""
+    public Task TestSetProperty()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -221,12 +208,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record [|C|](int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitPropertyOnStruct()
-    {
-        await TestRefactoringAsync("""
+    public Task TestInitPropertyOnStruct()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public struct [|C|]
@@ -243,12 +228,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPrivateSetProperty()
-    {
-        await TestRefactoringAsync("""
+    public Task TestPrivateSetProperty()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -265,12 +248,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveSimpleProperty()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMoveSimpleProperty()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -284,12 +265,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReadonlyProperty()
-    {
-        await TestRefactoringAsync("""
+    public Task TestReadonlyProperty()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -303,12 +282,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record [|C|](int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInitPropertyOnReadonlyStruct()
-    {
-        await TestRefactoringAsync("""
+    public Task TestInitPropertyOnReadonlyStruct()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public readonly struct [|C|]
@@ -322,17 +299,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public readonly record struct [|C|](int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertySimpleInheritance()
-    {
-        // three of the same error on C because the generated
-        // EqualityConstract, Equals, and PrintMembers are all declared override
-        // and there's nothing to override.
-        // The other errors are copy constructor expected in B, and the
-        // "records can't inherit from class" on B as well
-        await TestRefactoringAsync("""
+    public Task TestMovePropertySimpleInheritance()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class B
@@ -354,12 +324,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record {|CS0115:{|CS0115:{|CS0115:{|CS8867:C|}|}|}|}(int P) : {|CS8864:B|};
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertySimpleRecordInheritance()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertySimpleRecordInheritance()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public record B
@@ -383,12 +351,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P) : B;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertyPositionalParameterRecordInheritance()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertyPositionalParameterRecordInheritance()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public record B(int Foo, int Bar);
@@ -406,12 +372,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int Foo, int Bar, int P) : B(Foo, Bar);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertyPositionalParameterRecordInheritanceWithComments()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertyPositionalParameterRecordInheritanceWithComments()
+        => TestRefactoringAsync("""
             namespace N
             {
                 /// <summary> B </summary>
@@ -441,12 +405,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int Foo, int Bar, int P) : B(Foo, Bar);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertyAndReorderWithPositionalParameterRecordInheritance()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertyAndReorderWithPositionalParameterRecordInheritance()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public record B(int Foo, int Bar);
@@ -471,12 +433,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, int Bar, int Foo) : B(Foo, Bar);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertySimpleInterfaceInheritance()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertySimpleInterfaceInheritance()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public interface IInterface
@@ -511,12 +471,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveMultiplePropertiesWithInterfaceImplementation()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMoveMultiplePropertiesWithInterfaceImplementation()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -540,12 +498,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveMultipleProperties()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMoveMultipleProperties()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -560,12 +516,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveMultiplePropertiesOnStruct()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMoveMultiplePropertiesOnStruct()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public struct [|C|]
@@ -580,12 +534,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record struct C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveMultiplePropertiesOnReadonlyStruct()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMoveMultiplePropertiesOnReadonlyStruct()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public readonly struct [|C|]
@@ -600,13 +552,11 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public readonly record struct C(int P, bool B);
             }
             """);
-    }
 
     // if there are both init and set properties, convert both but keep set property override
     [Fact]
-    public async Task TestSetAndInitProperties()
-    {
-        await TestRefactoringAsync("""
+    public Task TestSetAndInitProperties()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -625,12 +575,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveMultiplePropertiesOnGeneric()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMoveMultiplePropertiesOnGeneric()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C<TA, TB>|]
@@ -645,12 +593,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C<TA, TB>(TA? P, TB? B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMoveMultiplePropertiesOnGenericWithConstraints()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMoveMultiplePropertiesOnGenericWithConstraints()
+        => TestRefactoringAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -674,12 +620,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                         where TB : IEnumerable<TA>;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithAttributes()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithAttributes()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -701,12 +645,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C([property: Obsolete("P is Obsolete", error: true)] int P, [property: Obsolete("B will be obsolete, error: false")] bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithAttributesAndComments1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithAttributesAndComments1()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -732,12 +674,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C([property: Obsolete("P is Obsolete", error: true)] int P, [property: Obsolete("B will be obsolete, error: false")] bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithAttributesAndComments2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithAttributesAndComments2()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -759,12 +699,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C([/*comment before*/ property: Obsolete("P is Obsolete", error: true)] int P, [property: Obsolete("B will be obsolete, error: false") /* comment after*/] bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEquals1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEquals1()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -784,12 +722,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualsWithFields()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualsWithFields()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -813,12 +749,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepSimpleEqualsWithConstFields()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepSimpleEqualsWithConstFields()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -847,12 +781,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualsWithConstAndStaticFieldsAndProps()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualsWithConstAndStaticFieldsAndProps()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -880,12 +812,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEquals2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEquals2()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -905,12 +835,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteInvertedEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteInvertedEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -930,12 +858,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteEqualsDoubleComparison()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteEqualsDoubleComparison()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -955,12 +881,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepEqualsMissingComparison()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepEqualsMissingComparison()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -986,12 +910,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepEqualsSelfComparison1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepEqualsSelfComparison1()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1017,12 +939,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepEqualsSelfComparison2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepEqualsSelfComparison2()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1048,12 +968,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepEqualsWithSideEffect()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepEqualsWithSideEffect()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -1085,12 +1003,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepEqualsIncorrectComparison()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepEqualsIncorrectComparison()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1116,12 +1032,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepWrongInvertedEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepWrongInvertedEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1147,12 +1061,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepOrEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepOrEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1188,12 +1100,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteIfCastEquals1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteIfCastEquals1()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1218,12 +1128,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteIfCastEquals2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteIfCastEquals2()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1248,12 +1156,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteInvertedIfCastEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteInvertedIfCastEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1278,12 +1184,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepWrongInvertedIfCastEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepWrongInvertedIfCastEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1321,12 +1225,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteIfThenCastEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteIfThenCastEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1352,12 +1254,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteIfChainEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteIfChainEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1393,12 +1293,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteIfElseChainEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteIfElseChainEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1434,12 +1332,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteInvertedIfChainEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteInvertedIfChainEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1471,12 +1367,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteAsCastEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteAsCastEquals()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1497,12 +1391,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteAsCastEqualsWithIsNotNull()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteAsCastEqualsWithIsNotNull()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1523,12 +1415,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepAsCastEqualsWithIncorrectIsNull()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepAsCastEqualsWithIncorrectIsNull()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1556,12 +1446,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteAsCastEqualsWithIsNull()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteAsCastEqualsWithIsNull()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1582,12 +1470,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleTypeEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleTypeEquals()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -1611,12 +1497,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleTypeEqualsWithAdditionalInterface()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleTypeEqualsWithAdditionalInterface()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -1645,12 +1529,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleTypeEqualsAndObjectEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleTypeEqualsAndObjectEquals()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -1679,12 +1561,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteTypeEqualsIfChain()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteTypeEqualsIfChain()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -1723,12 +1603,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteObjectAndTypeEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteObjectAndTypeEquals()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -1757,12 +1635,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepIncorrectObjectAndDeleteCorrectTypeEquals()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepIncorrectObjectAndDeleteCorrectTypeEquals()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -1807,12 +1683,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteHashCode1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteHashCode1()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1835,12 +1709,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteHashCode2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteHashCode2()
+        => TestRefactoringAsync("""
             using System.Collections.Generic;
 
             namespace N
@@ -1867,12 +1739,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepComplexHashCode()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepComplexHashCode()
+        => TestRefactoringAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -1912,12 +1782,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableObjectParam1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableObjectParam1()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1940,12 +1808,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableObjectParam2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableObjectParam2()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1968,12 +1834,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableObjectParam3()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableObjectParam3()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -1996,12 +1860,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithObjectParam()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithObjectParam()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2024,12 +1886,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteEqualOperatorsWithExpressionBodies()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteEqualOperatorsWithExpressionBodies()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2050,12 +1910,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithSameTypeParams()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithSameTypeParams()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2078,12 +1936,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableTypeParams()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleEqualOperatorsWithNullableTypeParams()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2106,12 +1962,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepSideEffectOperator1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepSideEffectOperator1()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -2153,12 +2007,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepSideEffectOperator2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepSideEffectOperator2()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -2200,12 +2052,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepSideEffectOperator_WhenSameParamUsed1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepSideEffectOperator_WhenSameParamUsed1()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -2245,12 +2095,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepSideEffectOperator_WhenSameParamUsed2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepSideEffectOperator_WhenSameParamUsed2()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -2290,12 +2138,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteClone()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteClone()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2315,12 +2161,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleCopyConstructor()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleCopyConstructor()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2341,12 +2185,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteCopyConstructorWithFields()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteCopyConstructorWithFields()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2372,12 +2214,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteCopyConstructorWithConstAndStaticFieldsAndProps()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteCopyConstructorWithConstAndStaticFieldsAndProps()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2406,12 +2246,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepCopyConstructorWithoutFieldAccess()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepCopyConstructorWithoutFieldAccess()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2442,12 +2280,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimplePrimaryConstructor()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimplePrimaryConstructor()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2468,12 +2304,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDeleteSimpleExpressionPrimaryConstructor()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDeleteSimpleExpressionPrimaryConstructor()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2490,12 +2324,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndModifyOrderFromPrimaryConstructor()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndModifyOrderFromPrimaryConstructor()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2516,12 +2348,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(bool B, int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndModifyPrimaryConstructorOrderAndDefaults()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndModifyPrimaryConstructorOrderAndDefaults()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2542,12 +2372,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(bool B = false, int P = 0);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesWithOperators()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesWithOperators()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2579,12 +2407,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesWithStaticMemberAndInvocation()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesWithStaticMemberAndInvocation()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public static class Stuff
@@ -2629,12 +2455,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesWithReferences()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesWithReferences()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public record R(int Foo, int Bar)
@@ -2686,12 +2510,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesWithNullOperations()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesWithNullOperations()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public record R(int? Foo, int Bar)
@@ -2743,12 +2565,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesWithIsExpressions()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesWithIsExpressions()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2780,12 +2600,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesWithSwitchExpressions()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesWithSwitchExpressions()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2827,12 +2645,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesWithSideEffects()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesWithSideEffects()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -2870,12 +2686,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesComplex()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesComplex()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2910,12 +2724,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerValuesPatternVariable()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerValuesPatternVariable()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2956,12 +2768,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndProvideThisInitializerDefaultAndNull()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndProvideThisInitializerDefaultAndNull()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -2995,12 +2805,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepComplexPrimaryConstructor1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepComplexPrimaryConstructor1()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -3034,12 +2842,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepComplexPrimaryConstructor2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepComplexPrimaryConstructor2()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -3071,12 +2877,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndKeepComplexPrimaryConstructor3()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndKeepComplexPrimaryConstructor3()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -3106,12 +2910,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithMultiplePotentialPrimaryConstructors()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithMultiplePotentialPrimaryConstructors()
+        => TestRefactoringAsync("""
             using System;
 
             namespace N
@@ -3146,12 +2948,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithSimpleDocComments()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithSimpleDocComments()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3183,28 +2983,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithMultilineDocComments()
-    {
-        // this is what it should be
-        //            var changedMarkup = @"
-        //namespace N
-        //{
-        //    /** 
-        //     * <summary>
-        //     * some summary
-        //     * </summary>
-        //     * <param name=""P""> P is an int </param>
-        //     * <param name=""B""> B is a bool </param>
-        //     */
-        //    public record C(int P, bool B);
-        //}
-        //";
-
-        // this is what it is currently
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithMultilineDocComments()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3244,24 +3026,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithMultilineDocComments_NoClassSummary()
-    {
-        // this is what it should be
-        //            var changedMarkup = @"
-        //namespace N
-        //{
-        //    /**
-        //     * <param name=""P""> P is an int </param>
-        //     * <param name=""B""> B is a bool </param>
-        //     */
-        //    public record C(int P, bool B);
-        //}
-        //";
-        // this is what it is currently
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithMultilineDocComments_NoClassSummary()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3293,12 +3061,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithMixedDocComments1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithMixedDocComments1()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3334,29 +3100,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithMixedDocComments2()
-    {
-        // class-level comment should be default
-        // This is what it should be
-        //            var changedMarkup = @"
-        //namespace N
-        //{
-        //    /** 
-        //     * <summary>
-        //     * some summary
-        //     * </summary>
-        //     * <param name=""P""> P is an int </param>
-        //     * <param name=""B""> B is a bool </param>
-        //     */
-        //    public record C(int P, bool B);
-        //}
-        //";
-
-        // this is what it is right now
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithMixedDocComments2()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3392,29 +3139,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithMixedDocComments3()
-    {
-        // this is what it should be
-        //            var changedMarkup = @"
-        //namespace N
-        //{
-        //    /** 
-        //     * <summary>
-        //     * some summary
-        //     * </summary>
-        //     * <param name=""P""> P is an int
-        //     * with a multiline comment </param>
-        //     * <param name=""B""> B is a bool </param>
-        //     */
-        //    public record C(int P, bool B);
-        //}
-        //";
-
-        // this is what it actually is
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithMixedDocComments3()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3452,12 +3180,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithDocComments_NoClassSummary()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithDocComments_NoClassSummary()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3482,12 +3208,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithDocComments_MissingPropertySummary()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithDocComments_MissingPropertySummary()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3515,12 +3239,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithDocComments_AdditionalClassSection()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithDocComments_AdditionalClassSection()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3558,12 +3280,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithDocComments_NestedPropertyElements()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithDocComments_NestedPropertyElements()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3597,12 +3317,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithDocAndNonDocComments1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithDocAndNonDocComments1()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3640,12 +3358,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesWithDocAndNonDocComments2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesWithDocAndNonDocComments2()
+        => TestRefactoringAsync("""
             namespace N
             {
 
@@ -3683,12 +3399,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P, bool B);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializer()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializer()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3723,12 +3437,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerWithNullableReferenceTypes()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerWithNullableReferenceTypes()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3762,12 +3474,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerWithNullableValueTypes()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerWithNullableValueTypes()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3801,12 +3511,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerInSameClass1()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerInSameClass1()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3836,12 +3544,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerInSameClass2()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerInSameClass2()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3875,12 +3581,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerInSameClass3()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerInSameClass3()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3904,12 +3608,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerWithNestedInitializers()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerWithNestedInitializers()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public record Foo
@@ -3949,12 +3651,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerKeepSomeProperties()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerKeepSomeProperties()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -3998,12 +3698,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndRefactorInitializerWithDefault()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndRefactorInitializerWithDefault()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -4037,12 +3735,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMovePropertiesAndDoNotRefactorInitializerWithExistingConstructor()
-    {
-        await TestRefactoringAsync("""
+    public Task TestMovePropertiesAndDoNotRefactorInitializerWithExistingConstructor()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -4090,7 +3786,6 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestMovePropertiesAndRefactorInitializerInSeparateFile()
@@ -4165,9 +3860,8 @@ public sealed class ConvertToRecordCodeRefactoringTests
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1932546")]
-    public async Task TestInvalidObjectCreation()
-    {
-        await TestRefactoringAsync("""
+    public Task TestInvalidObjectCreation()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -4206,12 +3900,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72032")]
-    public async Task TestConstructorWithoutBody()
-    {
-        await TestRefactoringAsync("""
+    public Task TestConstructorWithoutBody()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C|]
@@ -4232,7 +3924,6 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72067")]
     public Task TestMovePropertiesAndRefactorInitializer_SourceGeneratedDocuments()
@@ -4268,9 +3959,8 @@ public sealed class ConvertToRecordCodeRefactoringTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78664")]
-    public async Task TestDoesNotCrashOnAbstractMethod()
-    {
-        await TestRefactoringAsync("""
+    public Task TestDoesNotCrashOnAbstractMethod()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public abstract class [|C|]
@@ -4289,12 +3979,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78664")]
-    public async Task TestDoesNotCrashOnAbstractCloneMethod()
-    {
-        await TestRefactoringAsync("""
+    public Task TestDoesNotCrashOnAbstractCloneMethod()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public abstract class [|C|]
@@ -4310,7 +3998,6 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public abstract record C(string? S);
             }
             """);
-    }
 
 #pragma warning disable RS1042 // Do not implement
     private sealed class ConvertToRecordTestGenerator : ISourceGenerator
@@ -4344,9 +4031,8 @@ public sealed class ConvertToRecordCodeRefactoringTests
     #region selection
 
     [Fact]
-    public async Task TestSelectOnProperty_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestSelectOnProperty_NoAction()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class C
@@ -4355,12 +4041,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectOnNamespace_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestSelectOnNamespace_NoAction()
+        => TestNoRefactoringAsync("""
             namespace [|N|]
             {
                 public class C
@@ -4369,12 +4053,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectLargeRegionIncludingNamespace_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestSelectLargeRegionIncludingNamespace_NoAction()
+        => TestNoRefactoringAsync("""
             namespace [|N
             {
                 public clas|]s C
@@ -4383,12 +4065,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectMultipleMembersWithinClass()
-    {
-        await TestRefactoringAsync("""
+    public Task TestSelectMultipleMembersWithinClass()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class C
@@ -4413,12 +4093,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectRegionIncludingClass()
-    {
-        await TestRefactoringAsync("""
+    public Task TestSelectRegionIncludingClass()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public class [|C
@@ -4432,12 +4110,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectClassKeyword()
-    {
-        await TestRefactoringAsync("""
+    public Task TestSelectClassKeyword()
+        => TestRefactoringAsync("""
             namespace N
             {
                 public cl[||]ass C
@@ -4451,12 +4127,10 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 public record C(int P);
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectBaseClassItem_NoAction()
-    {
-        await TestNoRefactoringAsync("""
+    public Task TestSelectBaseClassItem_NoAction()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class B {}
@@ -4467,7 +4141,6 @@ public sealed class ConvertToRecordCodeRefactoringTests
                 }
             }
             """);
-    }
 
     #endregion
 

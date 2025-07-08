@@ -14,53 +14,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
 public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
     [WpfFact]
-    public async Task TestMissing_OnMatchingFileName()
-    {
-        await TestMissingInRegularAndScriptAsync(@"[||]class test1 { }");
-    }
+    public Task TestMissing_OnMatchingFileName()
+        => TestMissingInRegularAndScriptAsync(@"[||]class test1 { }");
 
     [WpfFact]
-    public async Task TestMissing_Nested_OnMatchingFileName_Simple()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestMissing_Nested_OnMatchingFileName_Simple()
+        => TestMissingInRegularAndScriptAsync("""
             class outer
             { 
                 [||]class test1 { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task TestMatchingFileName_CaseSensitive()
-    {
-        await TestActionCountAsync(@"[||]class Test1 { }", count: 2);
-    }
+    public Task TestMatchingFileName_CaseSensitive()
+        => TestActionCountAsync(@"[||]class Test1 { }", count: 2);
 
     [WpfFact]
-    public async Task TestForSpans1()
-    {
-        await TestActionCountAsync("""
+    public Task TestForSpans1()
+        => TestActionCountAsync("""
             [|clas|]s Class1 { }
              class Class2 { }
             """, count: 3);
-    }
 
     [WpfFact]
-    public async Task TestForSpans2()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task TestForSpans2()
+        => TestMoveTypeToNewFileAsync("""
             [||]class Class1 { }
              class Class2 { }
             """, @"class Class2 { }", "Class1.cs", """
             class Class1 { }
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14008")]
-    public async Task TestMoveToNewFileWithFolders()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestMoveToNewFileWithFolders()
+        => TestMoveTypeToNewFileAsync(
             """
 
             <Workspace>
@@ -79,45 +68,37 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             class Class1 { }
                     
             """, destinationDocumentContainers: ["A", "B"]);
-    }
 
     [WpfFact]
-    public async Task TestForSpans3()
-    {
-        await TestActionCountAsync("""
+    public Task TestForSpans3()
+        => TestActionCountAsync("""
             [|class Class1|] { }
             class Class2 { }
             """, count: 3);
-    }
 
     [WpfFact]
-    public async Task TestForSpans4()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task TestForSpans4()
+        => TestMoveTypeToNewFileAsync("""
             class Class1[||] { }
             class Class2 { }
             """, @"class Class2 { }", "Class1.cs", """
             class Class1 { }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveTypeWithNoContainerNamespace()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeWithNoContainerNamespace()
+        => TestMoveTypeToNewFileAsync("""
             [||]class Class1 { }
             class Class2 { }
             """, @"class Class2 { }", "Class1.cs", """
             class Class1 { }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveTypeWithWithUsingsAndNoContainerNamespace()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeWithWithUsingsAndNoContainerNamespace()
+        => TestMoveTypeToNewFileAsync("""
             // Banner Text
             using System;
 
@@ -132,12 +113,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             class Class1 { }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveTypeWithWithMembers()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeWithWithMembers()
+        => TestMoveTypeToNewFileAsync("""
             // Banner Text
             using System;
 
@@ -165,12 +144,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveTypeWithWithMembers2()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeWithWithMembers2()
+        => TestMoveTypeToNewFileAsync("""
             // Banner Text
             using System;
 
@@ -213,48 +190,40 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveAnInterface()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveAnInterface()
+        => TestMoveTypeToNewFileAsync("""
             [||]interface IMoveType { }
             class Class2 { }
             """, @"class Class2 { }", "IMoveType.cs", """
             interface IMoveType { }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveAStruct()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveAStruct()
+        => TestMoveTypeToNewFileAsync("""
             [||]struct MyStruct { }
             class Class2 { }
             """, @"class Class2 { }", "MyStruct.cs", """
             struct MyStruct { }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveAnEnum()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveAnEnum()
+        => TestMoveTypeToNewFileAsync("""
             [||]enum MyEnum { }
             class Class2 { }
             """, @"class Class2 { }", "MyEnum.cs", """
             enum MyEnum { }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveTypeWithWithContainerNamespace()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeWithWithContainerNamespace()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 [||]class Class1 { }
@@ -271,12 +240,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 class Class1 { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task MoveTypeWithWithFileScopedNamespace()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeWithWithFileScopedNamespace()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1;
 
             [||]class Class1 { }
@@ -292,12 +259,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             class Class1 { }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_Simple()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypeToNewFile_Simple()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 class Class1 
@@ -324,12 +289,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 
             }
             """);
-    }
 
     [WpfFact]
-    public async Task MoveNestedTypePreserveModifiers()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypePreserveModifiers()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 abstract class Class1 
@@ -356,12 +319,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14004")]
-    public async Task MoveNestedTypeToNewFile_Attributes1()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypeToNewFile_Attributes1()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 [Outer]
@@ -392,12 +353,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14484")]
-    public async Task MoveNestedTypeToNewFile_Comments1()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task MoveNestedTypeToNewFile_Comments1()
+        => TestMoveTypeToNewFileAsync(
             """
             namespace N1
             {
@@ -430,12 +389,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_Simple_DottedName()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypeToNewFile_Simple_DottedName()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 class Class1 
@@ -462,12 +419,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 
             }
             """, index: 1);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72632")]
-    public async Task MoveNestedTypeToNewFile_Simple_DottedName_WithPrimaryConstructor()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypeToNewFile_Simple_DottedName_WithPrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
             internal class Outer()
             {
                 private class Inner[||]
@@ -486,12 +441,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """, index: 1);
-    }
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_ParentHasOtherMembers()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypeToNewFile_ParentHasOtherMembers()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 class Class1 
@@ -525,12 +478,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 
             }
             """);
-    }
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_HasOtherTopLevelMembers()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypeToNewFile_HasOtherTopLevelMembers()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 class Class1 
@@ -571,12 +522,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task MoveNestedTypeToNewFile_HasMembers()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveNestedTypeToNewFile_HasMembers()
+        => TestMoveTypeToNewFileAsync("""
             namespace N1
             {
                 class Class1 
@@ -615,12 +564,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13969")]
-    public async Task MoveTypeInFileWithComplexHierarchy()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeInFileWithComplexHierarchy()
+        => TestMoveTypeToNewFileAsync("""
             namespace OuterN1.N1
             {
                 namespace InnerN2.N2
@@ -725,12 +672,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveTypeUsings1()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTypeUsings1()
+        => TestMoveTypeToNewFileAsync("""
 
             // Only used by inner type.
             using System;
@@ -765,12 +710,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16283")]
-    public async Task TestLeadingTrivia1()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestLeadingTrivia1()
+        => TestMoveTypeToNewFileAsync(
             """
 
             class Outer
@@ -800,12 +743,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
-    public async Task TestInsertFinalNewLine()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestInsertFinalNewLine()
+        => TestMoveTypeToNewFileAsync(
             """
 
             class Outer
@@ -837,12 +778,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
 
             """,
             options: Option(FormattingOptions2.InsertFinalNewLine, true));
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17171")]
-    public async Task TestInsertFinalNewLine2()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestInsertFinalNewLine2()
+        => TestMoveTypeToNewFileAsync(
             """
 
             class Outer
@@ -873,12 +812,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
             """,
             options: Option(FormattingOptions2.InsertFinalNewLine, false));
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/16282")]
-    public async Task MoveTypeRemoveOuterInheritanceTypes()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task MoveTypeRemoveOuterInheritanceTypes()
+        => TestMoveTypeToNewFileAsync(
             """
 
             class Outer : IComparable { 
@@ -899,12 +836,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
-    public async Task MoveTypeWithDirectives1()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task MoveTypeWithDirectives1()
+        => TestMoveTypeToNewFileAsync(
             """
             using System;
 
@@ -948,12 +883,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
             #endif
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17930")]
-    public async Task MoveTypeWithDirectives2()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task MoveTypeWithDirectives2()
+        => TestMoveTypeToNewFileAsync(
             """
             using System;
 
@@ -1002,12 +935,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
-    public async Task MoveTypeWithDirectives3()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task MoveTypeWithDirectives3()
+        => TestMoveTypeToNewFileAsync(
             """
             public class Goo
             {
@@ -1034,12 +965,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 #endregion
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")]
-    public async Task MoveTypeWithDirectives4()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task MoveTypeWithDirectives4()
+        => TestMoveTypeToNewFileAsync(
             """
             public class Goo
             {
@@ -1077,12 +1006,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 #endregion
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
-    public async Task TestLeadingBlankLines1()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestLeadingBlankLines1()
+        => TestMoveTypeToNewFileAsync(
             """
             // Banner Text
             using System;
@@ -1128,12 +1055,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/21456")]
-    public async Task TestLeadingBlankLines2()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestLeadingBlankLines2()
+        => TestMoveTypeToNewFileAsync(
             """
             // Banner Text
             using System;
@@ -1179,12 +1104,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestLeadingCommentInContainer()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestLeadingCommentInContainer()
+        => TestMoveTypeToNewFileAsync(
             """
             // Banner Text
             using System;
@@ -1230,12 +1153,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestLeadingCommentInContainer2()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestLeadingCommentInContainer2()
+        => TestMoveTypeToNewFileAsync(
             """
             // Banner Text
             using System;
@@ -1279,12 +1200,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestTrailingCommentInContainer()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestTrailingCommentInContainer()
+        => TestMoveTypeToNewFileAsync(
             """
             // Banner Text
             using System;
@@ -1330,12 +1249,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31377")]
-    public async Task TestTrailingCommentInContainer2()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestTrailingCommentInContainer2()
+        => TestMoveTypeToNewFileAsync(
             """
             // Banner Text
             using System;
@@ -1378,12 +1295,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/50329")]
-    public async Task MoveRecordToNewFilePreserveUsings()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveRecordToNewFilePreserveUsings()
+        => TestMoveTypeToNewFileAsync("""
             using System;
 
             [||]record CacheContext(String Message);
@@ -1395,12 +1310,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             record CacheContext(String Message);
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveClassToNewFilePreserveUsings_PrimaryConstructor()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveClassToNewFilePreserveUsings_PrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
             using System;
 
             [||]class CacheContext(String Message);
@@ -1412,12 +1325,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             class CacheContext(String Message);
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveStructToNewFilePreserveUsings_PrimaryConstructor()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveStructToNewFilePreserveUsings_PrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
             using System;
 
             [||]struct CacheContext(String Message);
@@ -1429,12 +1340,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             struct CacheContext(String Message);
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveInterfaceToNewFilePreserveUsings_PrimaryConstructor()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveInterfaceToNewFilePreserveUsings_PrimaryConstructor()
+        => TestMoveTypeToNewFileAsync("""
             using System;
 
             [||]interface CacheContext(String Message);
@@ -1448,12 +1357,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             interface CacheContext(String Message);
 
             """);
-    }
 
     [WpfFact]
-    public async Task MoveClassInTopLevelStatements()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveClassInTopLevelStatements()
+        => TestMoveTypeToNewFileAsync("""
 
             using ConsoleApp1;
             using System;
@@ -1479,12 +1386,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 public string Hello => "Hello";
             }
             """);
-    }
 
     [WpfFact]
-    public async Task MissingInTopLevelStatementsOnly()
-    {
-        await TestMissingAsync("""
+    public Task MissingInTopLevelStatementsOnly()
+        => TestMissingAsync("""
 
             using ConsoleApp1;
             using System;
@@ -1493,12 +1398,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             [||]Console.WriteLine(c.ToString());
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveInNamespace_WithAttributes1()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveInNamespace_WithAttributes1()
+        => TestMoveTypeToNewFileAsync("""
 
             using Sytem.Reflection;
 
@@ -1532,12 +1435,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveInNamespace_WithAttributes2()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveInNamespace_WithAttributes2()
+        => TestMoveTypeToNewFileAsync("""
 
             using Sytem.Reflection;
 
@@ -1573,12 +1474,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveInNamespace_WithAttributes3()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveInNamespace_WithAttributes3()
+        => TestMoveTypeToNewFileAsync("""
 
             namespace N
             {
@@ -1609,12 +1508,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveTopLevel_WithAttributes1()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTopLevel_WithAttributes1()
+        => TestMoveTypeToNewFileAsync("""
 
             [Test]
             class [||]A
@@ -1636,12 +1533,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/55544")]
-    public async Task MoveTopLevel_WithAttributes2()
-    {
-        await TestMoveTypeToNewFileAsync("""
+    public Task MoveTopLevel_WithAttributes2()
+        => TestMoveTypeToNewFileAsync("""
 
             [Test]
             class [||]A
@@ -1665,7 +1560,6 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             }
 
             """);
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/63114")]
     [InlineData("class")]
@@ -1673,9 +1567,8 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
     [InlineData("interface")]
     [InlineData("enum")]
     [InlineData("record")]
-    public async Task MoveNestedTypeFromInterface(string memberType)
-    {
-        await TestMoveTypeToNewFileAsync($$"""
+    public Task MoveNestedTypeFromInterface(string memberType)
+        => TestMoveTypeToNewFileAsync($$"""
 
             interface I
             {
@@ -1697,12 +1590,10 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/74703")]
-    public async Task TestUpdateFileName()
-    {
-        await TestMoveTypeToNewFileAsync(
+    public Task TestUpdateFileName()
+        => TestMoveTypeToNewFileAsync(
             """
 
             <Workspace>
@@ -1723,5 +1614,4 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             class Class1 { }
                     
             """, destinationDocumentContainers: ["A", "B"]);
-    }
 }

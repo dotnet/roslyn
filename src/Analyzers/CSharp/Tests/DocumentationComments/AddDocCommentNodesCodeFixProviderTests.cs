@@ -35,9 +35,8 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NoNodesBefore()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_NoNodesBefore()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -58,12 +57,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NoNodesAfter()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_NoNodesAfter()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -84,12 +81,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NodesBeforeAndAfter()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_NodesBeforeAndAfter()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -111,12 +106,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NodesBeforeAndAfter_RawTextInComment()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_NodesBeforeAndAfter_RawTextInComment()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -140,12 +133,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NodesBeforeAndAfter_WithContent()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_NodesBeforeAndAfter_WithContent()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -167,12 +158,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_NestedInSummaryTag()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_NestedInSummaryTag()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -191,12 +180,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_BeforeNode_EverythingOnOneLine()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_BeforeNode_EverythingOnOneLine()
+        => TestAsync("""
             class Program
             {
                 /// <summary></summary> <param name="j"></param>
@@ -211,12 +198,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_AfterNode_EverythingOnOneLine()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_AfterNode_EverythingOnOneLine()
+        => TestAsync("""
             class Program
             {
                 /// <summary></summary> <param name="j"></param>
@@ -231,12 +216,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_BeforeNode_JustParamNode()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_BeforeNode_JustParamNode()
+        => TestAsync("""
             class Program
             {
                 /// <param name="j"></param>
@@ -251,12 +234,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_AfterNode_JustParamNode()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_AfterNode_JustParamNode()
+        => TestAsync("""
             class Program
             {
                 /// <param name="j"></param>
@@ -271,12 +252,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_MultipleDocComments()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_MultipleDocComments()
+        => TestAsync("""
             class Program
             {
                 /// <summary></summary>
@@ -301,12 +280,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Ctor()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_Ctor()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -327,12 +304,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public Program(int i, int j, int k) {}
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Delegate()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_Delegate()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -353,12 +328,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public delegate int Goo(int [|i|], int j, int k);
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Operator()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_Operator()
+        => TestAsync("""
             public struct MyStruct
             {
                 public int Val { get; }
@@ -400,13 +373,11 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 }
             }
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument_MultipleParamNodesInVariousPlaces()
-    {
-        await TestAsync("""
+    public Task TestFixAllInDocument_MultipleParamNodesInVariousPlaces()
+        => TestAsync("""
             class Program
             {
                 /// <summary>
@@ -428,13 +399,11 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 public void Fizz(int i, int j, int k, int l) {}
             }
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        await TestAsync("""
+    public Task TestFixAllInDocument()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -539,13 +508,11 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        await TestAsync("""
+    public Task TestFixAllInProject()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -638,13 +605,11 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        await TestAsync("""
+    public Task TestFixAllInSolution()
+        => TestAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DocumentationMode="Diagnose">
                     <Document>
@@ -733,13 +698,11 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/52738")]
-    public async Task AddsParamTag_Record()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_Record()
+        => TestAsync("""
             /// <summary>
             /// 
             /// </summary>
@@ -754,12 +717,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
             /// <param name="Third"></param>
             record R(int First, int Second, int Third);
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Class()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_Class()
+        => TestAsync("""
             /// <summary>
             /// 
             /// </summary>
@@ -774,12 +735,10 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
             /// <param name="Third"></param>
             class R(int First, int Second, int Third);
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddDocCommentNodes)]
-    public async Task AddsParamTag_Struct()
-    {
-        await TestAsync("""
+    public Task AddsParamTag_Struct()
+        => TestAsync("""
             /// <summary>
             /// 
             /// </summary>
@@ -794,5 +753,4 @@ public sealed class AddDocCommentNodesCodesFixProviderTests : AbstractCSharpDiag
             /// <param name="Third"></param>
             struct R(int First, int Second, int Third);
             """);
-    }
 }

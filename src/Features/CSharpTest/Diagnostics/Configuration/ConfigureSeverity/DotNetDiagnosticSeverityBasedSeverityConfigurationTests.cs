@@ -56,9 +56,8 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
         protected override int CodeActionIndex => 0;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_Empty_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -81,12 +80,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -109,12 +106,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidHeader_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -142,12 +137,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainExistingEntry_None()
-        {
-            await TestMissingInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_MaintainExistingEntry_None()
+            => TestMissingInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -159,12 +152,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidRule_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -190,13 +181,11 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/45446")]
-        public async Task ConfigureEditorconfig_MissingRule_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_MissingRule_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -222,12 +211,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RegexHeaderMatch_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RegexHeaderMatch_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program/file.cs">
@@ -252,12 +239,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RegexHeaderNonMatch_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RegexHeaderNonMatch_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program/file.cs">
@@ -287,12 +272,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureGlobalconfig_Empty_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureGlobalconfig_Empty_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -315,12 +298,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureGlobalconfig_RuleExists_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureGlobalconfig_RuleExists_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -343,12 +324,10 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureGlobalconfig_InvalidHeader_None()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureGlobalconfig_InvalidHeader_None()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -376,6 +355,5 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
     }
 }

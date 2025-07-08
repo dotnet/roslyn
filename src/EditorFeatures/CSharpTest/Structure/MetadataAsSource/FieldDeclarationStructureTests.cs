@@ -18,20 +18,17 @@ public sealed class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     internal override AbstractSyntaxStructureProvider CreateProvider() => new FieldDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 class Goo
                 {
                     public int $$goo
                 }
                 """);
-    }
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:[Goo]
@@ -39,12 +36,10 @@ public sealed class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -54,12 +49,10 @@ public sealed class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAttributesAndModifiers()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -69,5 +62,4 @@ public sealed class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

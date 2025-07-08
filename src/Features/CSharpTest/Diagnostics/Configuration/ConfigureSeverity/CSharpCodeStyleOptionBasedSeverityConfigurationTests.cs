@@ -35,9 +35,8 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
         protected override int CodeActionIndex => 4;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_Error()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_Empty_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -79,12 +78,10 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_ExistingRule_Error()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_ExistingRule_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -131,12 +128,10 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_ExistingRuleDotNetHeader_Error()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_ExistingRuleDotNetHeader_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -183,12 +178,10 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_ChooseBestHeader_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -238,12 +231,10 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -293,6 +284,5 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
     }
 }

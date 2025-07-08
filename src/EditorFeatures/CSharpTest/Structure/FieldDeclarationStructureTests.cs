@@ -16,9 +16,8 @@ public sealed class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     internal override AbstractSyntaxStructureProvider CreateProvider() => new FieldDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestFieldWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestFieldWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
@@ -27,5 +26,4 @@ public sealed class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 }

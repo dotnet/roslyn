@@ -1692,9 +1692,8 @@ public sealed class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int {|#0:P|} { get; set; }
@@ -1705,12 +1704,10 @@ public sealed class RemoveUnusedMembersTests
                 .WithLocation(0)
                 .WithArguments("MyClass.P")
                 .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int P { get; set; }
@@ -1718,7 +1715,6 @@ public sealed class RemoveUnusedMembersTests
                 public int M2() => P;
             }
             """, []);
-    }
 
     [Fact]
     public async Task IndexerIsIncrementedAndValueUsed()
@@ -1763,9 +1759,8 @@ public sealed class RemoveUnusedMembersTests
                     .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task IndexerIsIncrementedAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task IndexerIsIncrementedAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int this[int x] { get { return 0; } set { } }
@@ -1773,7 +1768,6 @@ public sealed class RemoveUnusedMembersTests
                 public int M2(int x) => this[x];
             }
             """, []);
-    }
 
     [Fact]
     public async Task FieldIsTargetOfCompoundAssignmentAndValueUsed()
@@ -1860,9 +1854,8 @@ public sealed class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int {|#0:P|} { get; set; }
@@ -1873,12 +1866,10 @@ public sealed class RemoveUnusedMembersTests
                 .WithLocation(0)
                 .WithArguments("MyClass.P")
                 .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int P { get; set; }
@@ -1886,7 +1877,6 @@ public sealed class RemoveUnusedMembersTests
                 public int M2() => P;
             }
             """, []);
-    }
 
     [Fact]
     public async Task IndexerIsTargetOfCompoundAssignmentAndValueUsed()
@@ -1917,9 +1907,8 @@ public sealed class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int {|#0:this|}[int x] { get { return 0; } set { } }
@@ -1930,12 +1919,10 @@ public sealed class RemoveUnusedMembersTests
                 .WithLocation(0)
                 .WithArguments("MyClass.this")
                 .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
                 private int this[int x] { get { return 0; } set { } }
@@ -1943,7 +1930,6 @@ public sealed class RemoveUnusedMembersTests
                 public int M2(int x) => this[x];
             }
             """, []);
-    }
 
     [Fact]
     public async Task FieldIsTargetOfAssignmentAndParenthesized()

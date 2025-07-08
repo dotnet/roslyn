@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
-    public async Task ReturnsSourceFileFromSourceLink()
-    {
-        await RunTestAsync(async path =>
+    public Task ReturnsSourceFileFromSourceLink()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -49,12 +48,10 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
             Assert.Equal(sourceFilePath, result!.FilePath);
             Assert.True(result.FromRemoteLocation);
         });
-    }
 
     [Fact]
-    public async Task NoUrlFoundReturnsNull()
-    {
-        await RunTestAsync(async path =>
+    public Task NoUrlFoundReturnsNull()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -77,5 +74,4 @@ public sealed class PdbSourceDocumentLoaderServiceTests : AbstractPdbSourceDocum
 
             Assert.Null(result);
         });
-    }
 }

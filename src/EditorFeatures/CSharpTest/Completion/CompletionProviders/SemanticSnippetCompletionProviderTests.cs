@@ -23,9 +23,8 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
         => typeof(CSharpSnippetCompletionProvider);
 
     [WpfFact]
-    public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
+        => VerifyCustomCommitProviderAsync("""
             class Program
             {
                 public void Method()
@@ -44,12 +43,10 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
+        => VerifyCustomCommitProviderAsync("""
             class Program
             {
                 public void Method()
@@ -68,5 +65,4 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """);
-    }
 }

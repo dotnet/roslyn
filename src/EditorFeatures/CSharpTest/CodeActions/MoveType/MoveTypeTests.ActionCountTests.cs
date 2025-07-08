@@ -14,68 +14,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType;
 public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 {
     [Fact]
-    public async Task MoveType_ActionCounts_RenameOnly()
-    {
-        // Fixes offered will be rename type to match file, rename file to match type.
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_ActionCounts_RenameOnly()
+        => TestActionCountAsync(@"namespace N1
 {
     class Class1[||]
     {
     }
 }", count: 2);
-    }
 
     [Fact]
-    public async Task MoveType_AvailableBeforeHeader()
-    {
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_AvailableBeforeHeader()
+        => TestActionCountAsync(@"namespace N1
 {
     [||]
     class Class1
     {
     }
 }", count: 2);
-    }
 
     [Fact]
-    public async Task MoveType_AvailableBeforeAttributeOnHeader()
-    {
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_AvailableBeforeAttributeOnHeader()
+        => TestActionCountAsync(@"namespace N1
 {
     [||][X]
     class Class1
     {
     }
 }", count: 2);
-    }
 
     [Fact]
-    public async Task MoveType_AvailableOnHeaderIncludingWhitespaceAndAttribute()
-    {
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_AvailableOnHeaderIncludingWhitespaceAndAttribute()
+        => TestActionCountAsync(@"namespace N1
 {[|
     [X]
     class Class1
     {|]
     }
 }", count: 2);
-    }
 
     [Fact]
-    public async Task MoveType_AvailableAfterHeader()
-    {
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_AvailableAfterHeader()
+        => TestActionCountAsync(@"namespace N1
 {
     class Class1
     [||]{
     }
 }", count: 2);
-    }
 
     [Fact]
-    public async Task MoveType_AvailableIncludingDocumentationCommentAndHeader()
-    {
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_AvailableIncludingDocumentationCommentAndHeader()
+        => TestActionCountAsync(@"namespace N1
 {
     [|/// <summary>
     /// Documentation comment.
@@ -84,12 +72,10 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
     }
 }", count: 2);
-    }
 
     [Fact]
-    public async Task MoveType_AvailableIncludingDocumentationCommentAndAttributeAndHeader()
-    {
-        await TestActionCountAsync(@"using System;
+    public Task MoveType_AvailableIncludingDocumentationCommentAndAttributeAndHeader()
+        => TestActionCountAsync(@"using System;
 namespace N1
 {
     [|/// <summary>
@@ -100,23 +86,19 @@ namespace N1
     {
     }
 }", count: 2);
-    }
 
     [Fact]
-    public async Task MoveType_NotAvailableBeforeType()
-    {
-        await TestMissingInRegularAndScriptAsync(@"[|namespace N1
+    public Task MoveType_NotAvailableBeforeType()
+        => TestMissingInRegularAndScriptAsync(@"[|namespace N1
 {|]
     class Class1
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task MoveType_NotAvailableInsideType()
-    {
-        await TestMissingInRegularAndScriptAsync(@"namespace N1
+    public Task MoveType_NotAvailableInsideType()
+        => TestMissingInRegularAndScriptAsync(@"namespace N1
 {
     class Class1
     {[|
@@ -125,12 +107,10 @@ namespace N1
         }|]
     }
 }");
-    }
 
     [Fact]
-    public async Task MoveType_NotAvailableAfterType()
-    {
-        await TestMissingInRegularAndScriptAsync(@"namespace N1
+    public Task MoveType_NotAvailableAfterType()
+        => TestMissingInRegularAndScriptAsync(@"namespace N1
 {
     class Class1
     {
@@ -143,12 +123,10 @@ namespace N1
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task MoveType_NotAvailableAroundDocumentationCommentAboveHeader()
-    {
-        await TestMissingInRegularAndScriptAsync(@"namespace N1
+    public Task MoveType_NotAvailableAroundDocumentationCommentAboveHeader()
+        => TestMissingInRegularAndScriptAsync(@"namespace N1
 {
     [|/// <summary>
     /// Documentation comment.
@@ -157,12 +135,10 @@ namespace N1
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task MoveType_NotAvailableAroundAttributeAboveHeader()
-    {
-        await TestMissingInRegularAndScriptAsync(@"using System;
+    public Task MoveType_NotAvailableAroundAttributeAboveHeader()
+        => TestMissingInRegularAndScriptAsync(@"using System;
 namespace N1
 {
     [|[Obsolete]|]
@@ -170,12 +146,10 @@ namespace N1
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task MoveType_NotAvailableAroundDocumentationCommentAndAttributeAboveHeader()
-    {
-        await TestMissingInRegularAndScriptAsync(@"using System;
+    public Task MoveType_NotAvailableAroundDocumentationCommentAndAttributeAboveHeader()
+        => TestMissingInRegularAndScriptAsync(@"using System;
 namespace N1
 {
     [|/// <summary>
@@ -186,12 +160,10 @@ namespace N1
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task MoveType_NotAvailableInsideDocumentationCommentAndAttributeAboveHeader()
-    {
-        await TestMissingInRegularAndScriptAsync(@"using System;
+    public Task MoveType_NotAvailableInsideDocumentationCommentAndAttributeAboveHeader()
+        => TestMissingInRegularAndScriptAsync(@"using System;
 namespace N1
 {
     /// <summary>
@@ -202,13 +174,10 @@ namespace N1
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task MoveType_ActionCounts_MoveOnly()
-    {
-        // Fixes offered will be move type to new file.
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_ActionCounts_MoveOnly()
+        => TestActionCountAsync(@"namespace N1
 {
     class Class1[||]
     {
@@ -218,13 +187,10 @@ namespace N1
     {
     }
 }", count: 1);
-    }
 
     [Fact]
-    public async Task MoveType_ActionCounts_RenameAndMove()
-    {
-        // Fixes offered will be move type, rename type to match file, rename file to match type.
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_ActionCounts_RenameAndMove()
+        => TestActionCountAsync(@"namespace N1
 {
     class Class1[||]
     {
@@ -234,18 +200,10 @@ namespace N1
     {
     }
 }", count: 3);
-    }
 
     [Fact]
-    public async Task MoveType_ActionCounts_All()
-    {
-        // Fixes offered will be
-        // 1. move type to InnerType.cs
-        // 2. move type to OuterType.InnerType.cs
-        // 3. rename file to InnerType.cs
-        // 4. rename file to OuterType.InnerType.cs
-        // 5. rename type to test1 (which is the default document name given by TestWorkspace).
-        await TestActionCountAsync(@"namespace N1
+    public Task MoveType_ActionCounts_All()
+        => TestActionCountAsync(@"namespace N1
 {
     class OuterType
     {
@@ -258,5 +216,4 @@ namespace N1
     {
     }
 }", count: 5);
-    }
 }

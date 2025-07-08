@@ -45,9 +45,8 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
         }.RunAsync();
 
     [Fact]
-    public async Task TestUseExpressionBody1()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBody1()
+        => TestWithUseExpressionBody("""
             class C
             {
                 int Bar() { return 0; }
@@ -68,7 +67,6 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 int this[int i] => Bar();
             }
             """);
-    }
 
     [Fact]
     public async Task TestMissingWithSetter()
@@ -115,9 +113,8 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
     }
 
     [Fact]
-    public async Task TestUseExpressionBody3()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBody3()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -138,12 +135,10 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 int this[int i] => throw new NotImplementedException();
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseExpressionBody4()
-    {
-        await TestWithUseExpressionBody("""
+    public Task TestUseExpressionBody4()
+        => TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -164,12 +159,10 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 int this[int i] => throw new NotImplementedException(); // comment
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBody1()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBody1()
+        => TestWithUseBlockBody("""
             class C
             {
                 int Bar() { return 0; }
@@ -190,7 +183,6 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public Task TestUseBlockBodyForAccessorEventWhenAccessorWantExpression1()
@@ -225,9 +217,8 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
         }.RunAsync();
 
     [Fact]
-    public async Task TestUseBlockBody3()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBody3()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
@@ -248,12 +239,10 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUseBlockBody4()
-    {
-        await TestWithUseBlockBody("""
+    public Task TestUseBlockBody4()
+        => TestWithUseBlockBody("""
             using System;
 
             class C
@@ -274,5 +263,4 @@ public sealed class UseExpressionBodyForIndexersAnalyzerTests
                 }
             }
             """);
-    }
 }

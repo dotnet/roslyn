@@ -18,9 +18,8 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
     internal override AbstractSyntaxStructureProvider CreateProvider() => new BlockSyntaxStructureProvider();
 
     [Fact]
-    public async Task TestTryBlock1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestTryBlock1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -38,12 +37,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestUnsafe1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestUnsafe1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -55,12 +52,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestFixed1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestFixed1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -72,12 +67,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestUsing1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestUsing1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -89,12 +82,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestLock1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestLock1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -106,12 +97,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestForStatement1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestForStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -123,12 +112,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestForEachStatement1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestForEachStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -140,12 +127,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestCompoundForEachStatement1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestCompoundForEachStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -157,12 +142,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestWhileStatement1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestWhileStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -174,12 +157,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestDoStatement1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestDoStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -192,12 +173,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestIfStatement1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIfStatement1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -209,12 +188,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestIfStatement2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIfStatement2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -229,12 +206,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestIfStatement3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIfStatement3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -248,12 +223,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestElseClause1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestElseClause1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -268,12 +241,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestElseClause2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestElseClause2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -288,12 +259,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestIfElse1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIfElse1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -308,12 +277,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestIfElse2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIfElse2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -330,12 +297,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestIfElse3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIfElse3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -351,12 +316,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestNestedBlock()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNestedBlock()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -368,12 +331,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestNestedBlockInSwitchSection1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNestedBlockInSwitchSection1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -389,12 +350,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestNestedBlockInSwitchSection2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestNestedBlockInSwitchSection2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -411,12 +370,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem(52493, "https://github.com/dotnet/roslyn/issues/")]
-    public async Task LocalFunctionInTopLevelStatement_AutoCollapse()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task LocalFunctionInTopLevelStatement_AutoCollapse()
+        => VerifyBlockSpansAsync("""
                 Goo();
                 Bar();
 
@@ -427,12 +384,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
-    public async Task LocalFunctionInBodyRespectOption1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task LocalFunctionInBodyRespectOption1()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 void M()
@@ -446,12 +401,10 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
             """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68513")]
-    public async Task LocalFunctionInBodyRespectOption2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task LocalFunctionInBodyRespectOption2()
+        => VerifyBlockSpansAsync("""
             class C
             {
                 void M()
@@ -467,5 +420,4 @@ public sealed class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructur
             CollapseLocalFunctionsWhenCollapsingToDefinitions = true,
         }, Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
            Region("textspan2", "hint2", "// comment ...", autoCollapse: true));
-    }
 }

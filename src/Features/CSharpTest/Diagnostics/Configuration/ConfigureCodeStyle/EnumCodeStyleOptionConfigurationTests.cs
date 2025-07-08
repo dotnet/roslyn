@@ -49,9 +49,8 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
         protected override int CodeActionIndex => 0;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_Empty_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -92,12 +91,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_UnusedLocalVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -138,12 +135,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -187,12 +182,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_ConflictingDotnetDiagnosticEntry()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -235,12 +228,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidHeader_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -286,12 +277,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainSeverity_UnusedLocalVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_MaintainSeverity_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -332,12 +321,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidRule_UnusedLocalVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -381,7 +368,6 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
@@ -390,9 +376,8 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
         protected override int CodeActionIndex => 1;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_DiscardVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_Empty_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -433,12 +418,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_DiscardVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -479,12 +462,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_DiscardVariable_WithoutSeveritySuffix()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_DiscardVariable_WithoutSeveritySuffix()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -525,12 +506,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidHeader_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -576,12 +555,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainSeverity_DiscardVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_MaintainSeverity_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -622,12 +599,10 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidRule_DiscardVariable()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -671,6 +646,5 @@ public abstract partial class EnumCodeStyleOptionConfigurationTests : AbstractSu
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
     }
 }

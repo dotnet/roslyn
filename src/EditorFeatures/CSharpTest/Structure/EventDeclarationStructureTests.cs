@@ -17,9 +17,8 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EventDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestEvent1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEvent1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -30,12 +29,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestEvent2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEvent2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -51,12 +48,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestEvent3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEvent3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -73,12 +68,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestEvent4()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEvent4()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -95,12 +88,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestEvent5()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEvent5()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$event EventHandler E{|textspan:
@@ -117,12 +108,10 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestEventWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEventWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -136,5 +125,4 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

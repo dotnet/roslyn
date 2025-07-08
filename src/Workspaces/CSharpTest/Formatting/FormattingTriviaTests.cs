@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
 public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
 {
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
-    public async Task PreprocessorNullable()
-    {
-        await AssertFormatAsync(@"
+    public Task PreprocessorNullable()
+        => AssertFormatAsync(@"
 #nullable
 class C
 {
@@ -41,12 +40,10 @@ class C
         #nullable    disable
     }
 }");
-    }
 
     [Fact]
-    public async Task PreprocessorInEmptyFile()
-    {
-        await AssertFormatAsync(@"
+    public Task PreprocessorInEmptyFile()
+        => AssertFormatAsync(@"
 
 #line 1000
 #error
@@ -55,20 +52,16 @@ class C
             #line 1000
         #error
                         ");
-    }
 
     [Fact]
-    public async Task Comment1()
-    {
-        await AssertFormatAsync(@"// single line comment
+    public Task Comment1()
+        => AssertFormatAsync(@"// single line comment
 class C { }", @"             // single line comment
             class C {           }");
-    }
 
     [Fact]
-    public async Task Comment2()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment2()
+        => AssertFormatAsync(@"class C
 {
     // single line comment
     int i;
@@ -77,24 +70,20 @@ class C { }", @"             // single line comment
                 // single line comment
     int i;
 }");
-    }
 
     [Fact]
-    public async Task Comment3()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment3()
+        => AssertFormatAsync(@"class C
 {
     // single line comment
 }", @"class C 
 {
                 // single line comment
 }");
-    }
 
     [Fact]
-    public async Task Comment4()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment4()
+        => AssertFormatAsync(@"class C
 {
     // single line comment
     //  single line comment 2
@@ -105,12 +94,10 @@ class C { }", @"             // single line comment
 //  single line comment 2
     void Method() { }
 }");
-    }
 
     [Fact]
-    public async Task Comment5()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment5()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -124,12 +111,10 @@ class C { }", @"             // single line comment
     //  single line comment 2
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment6()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment6()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -145,12 +130,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment7()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment7()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -170,12 +153,10 @@ class C { }", @"             // single line comment
     //  single line comment 2
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment8()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment8()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -191,12 +172,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment9()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment9()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -212,12 +191,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment10()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment10()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -235,12 +212,10 @@ class C { }", @"             // single line comment
 /* multiline comment */
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment11()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment11()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -268,12 +243,10 @@ class C { }", @"             // single line comment
  */
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment12()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment12()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -301,12 +274,10 @@ class C { }", @"             // single line comment
              */
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment13()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment13()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     { // test
@@ -318,12 +289,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment14()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment14()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     { // test
@@ -339,12 +308,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment15()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment15()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     { /* test */
@@ -356,12 +323,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment16()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment16()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     { /* test 
@@ -377,12 +342,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment17()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment17()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -400,12 +363,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment18()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment18()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -425,12 +386,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment19()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment19()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -452,12 +411,10 @@ class C { }", @"             // single line comment
         int i = 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment20()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment20()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -479,14 +436,12 @@ class C { }", @"             // single line comment
                                  */
 }
 }");
-    }
 
     // for now, formatting engine doesn't re-indent token if the indentation line contains noisy
     // chars
     [Fact]
-    public async Task Comment21()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment21()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -499,14 +454,12 @@ class C { }", @"             // single line comment
                             /* */ int i = 10;
 }
 }");
-    }
 
     // for now, formatting engine doesn't re-indent token if the indentation line contains noisy
     // chars
     [Fact]
-    public async Task Comment22()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment22()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -520,12 +473,10 @@ class C { }", @"             // single line comment
                                 /* */ 10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment23()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment23()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -537,12 +488,10 @@ class C { }", @"             // single line comment
                             int /* */ i             = /* */         10;
 }
 }");
-    }
 
     [Fact]
-    public async Task Comment24()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment24()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -557,12 +506,10 @@ class C { }", @"             // single line comment
          */   int i             =          10;
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment1()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment1()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -578,12 +525,10 @@ class C { }", @"             // single line comment
                 int i             =          10;
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment2()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment2()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {     /**
@@ -597,12 +542,10 @@ class C { }", @"             // single line comment
                 int i             =          10;
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment3()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment3()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -618,12 +561,10 @@ class C { }", @"             // single line comment
                          */
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment4()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment4()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -637,12 +578,10 @@ class C { }", @"             // single line comment
                          */
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment5()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment5()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -654,12 +593,10 @@ class C { }", @"             // single line comment
                 int i             =          10; /** */
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment6()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment6()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -673,12 +610,10 @@ class C { }", @"             // single line comment
                     /** */ 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment7()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment7()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {     ///
@@ -692,12 +627,10 @@ class C { }", @"             // single line comment
                 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment8()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment8()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -713,12 +646,10 @@ class C { }", @"             // single line comment
                 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment9()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment9()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -734,12 +665,10 @@ class C { }", @"             // single line comment
                         ///
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment10()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment10()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -759,12 +688,10 @@ class C { }", @"             // single line comment
                 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment11()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment11()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -786,12 +713,10 @@ class C { }", @"             // single line comment
                 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task DocComment12()
-    {
-        await AssertFormatAsync(@"class C
+    public Task DocComment12()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -809,12 +734,10 @@ class C { }", @"             // single line comment
                 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task MixCommentAndDocComment1()
-    {
-        await AssertFormatAsync(@"class C
+    public Task MixCommentAndDocComment1()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -834,12 +757,10 @@ class C { }", @"             // single line comment
                 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task MixCommentAndDocComment2()
-    {
-        await AssertFormatAsync(@"class C
+    public Task MixCommentAndDocComment2()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -867,12 +788,10 @@ class C { }", @"             // single line comment
                 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task MixCommentAndDocComment3()
-    {
-        await AssertFormatAsync(@"class C
+    public Task MixCommentAndDocComment3()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -898,12 +817,10 @@ class C { }", @"             // single line comment
 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task MixCommentAndDocComment4()
-    {
-        await AssertFormatAsync(@"class C
+    public Task MixCommentAndDocComment4()
+        => AssertFormatAsync(@"class C
 {
     /// <text></text>
     /// test 3
@@ -927,12 +844,10 @@ void Method() {
 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task Preprocessor1()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor1()
+        => AssertFormatAsync(@"class C
 {
 #if true
 #endif
@@ -948,12 +863,10 @@ void Method() {
 int i = 10; 
 }
 }");
-    }
 
     [Fact]
-    public async Task Preprocessor2()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor2()
+        => AssertFormatAsync(@"class C
 {
 #if true
     void Method()
@@ -971,12 +884,10 @@ int i = 10;
 }
     #endif
 ");
-    }
 
     [Fact]
-    public async Task Preprocessor3()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor3()
+        => AssertFormatAsync(@"class C
 {
 #if true
     void Method()
@@ -998,14 +909,10 @@ int i = 10;
     #endif
 }
 }");
-    }
 
     [Fact]
-    public async Task Preprocessor4()
-    {
-
-        // turn off transformation check - conditional directive preprocessor
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor4()
+        => AssertFormatAsync(@"class C
 {
 #if true
     void Method()
@@ -1027,12 +934,10 @@ int i = 10;
     #endif
 }
 ");
-    }
 
     [Fact]
-    public async Task Preprocessor5()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor5()
+        => AssertFormatAsync(@"class C
 {
     #region Test
     int i = 10;
@@ -1052,12 +957,10 @@ void Method() {
 }
 }
 ");
-    }
 
     [Fact]
-    public async Task Preprocessor6()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor6()
+        => AssertFormatAsync(@"class C
 {
     #region Test
     int i = 10;
@@ -1077,12 +980,10 @@ void Method() {
 }
 }
 ");
-    }
 
     [Fact]
-    public async Task Preprocessor7()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor7()
+        => AssertFormatAsync(@"class C
 {
     #region Test
     int i = 10;
@@ -1102,12 +1003,10 @@ void Method() {
 #endregion
 }
 ");
-    }
 
     [Fact]
-    public async Task Preprocessor8()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor8()
+        => AssertFormatAsync(@"class C
 {
     #region Test
     int i = 10;
@@ -1129,14 +1028,10 @@ int i = 10;
 }
 }
 ");
-    }
 
     [Fact]
-    public async Task MixAll()
-    {
-
-        // turn off transformation check since it doesn't work for conditional directive yet.
-        await AssertFormatAsync(@"class C
+    public Task MixAll()
+        => AssertFormatAsync(@"class C
 {
     #region Test
 
@@ -1171,12 +1066,10 @@ void Method() {
 #endregion
 }
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
-    public async Task Preprocessor9()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor9()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -1198,12 +1091,10 @@ void Method() {
 }
 }
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
-    public async Task Preprocessor10()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Preprocessor10()
+        => AssertFormatAsync(@"class C
 {
     void Method()
     {
@@ -1223,12 +1114,10 @@ void Method() {
 }
 }
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537765")]
-    public async Task Comment25()
-    {
-        await AssertFormatAsync(@"class C
+    public Task Comment25()
+        => AssertFormatAsync(@"class C
 {
     void Goo()//method
     {
@@ -1245,12 +1134,10 @@ double y;
                     }
 }
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537765")]
-    public async Task Comment26()
-    {
-        await AssertFormatAsync(@"public class Class1
+    public Task Comment26()
+        => AssertFormatAsync(@"public class Class1
 {
     void Goo()
     {
@@ -1264,7 +1151,6 @@ double y;
 /**/int x;
     }
 }");
-    }
 
     [Fact]
     public async Task Comment27()
@@ -1282,9 +1168,8 @@ double y;
     }
 
     [Fact]
-    public async Task Comment28()
-    {
-        await AssertFormatAsync(@"public class Class1
+    public Task Comment28()
+        => AssertFormatAsync(@"public class Class1
 {
     void Goo()
     {
@@ -1303,12 +1188,10 @@ double y;
             
     }
 }");
-    }
 
     [Fact]
-    public async Task Comment29()
-    {
-        await AssertFormatAsync(@"public class Class1
+    public Task Comment29()
+        => AssertFormatAsync(@"public class Class1
 {
     void Goo()
     {
@@ -1321,20 +1204,16 @@ double y;
         int			/**/ i = 10;
     }
 }");
-    }
 
     [Fact]
-    public async Task Comment30()
-    {
-        await AssertFormatAsync(@"
+    public Task Comment30()
+        => AssertFormatAsync(@"
 // Test", @"
 // Test");
-    }
 
     [Fact]
-    public async Task Comment31()
-    {
-        await AssertFormatAsync(@"/// <summary>
+    public Task Comment31()
+        => AssertFormatAsync(@"/// <summary>
 ///
 /// </summary>
 class Program
@@ -1353,12 +1232,10 @@ class Program
     }
 }
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")]
-    public async Task Comment32()
-    {
-        await AssertFormatAsync(@"class Program
+    public Task Comment32()
+        => AssertFormatAsync(@"class Program
 {
     ///<summary>
     ///     TestMethod
@@ -1373,12 +1250,10 @@ class Program
     void Method() { }
 }
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542316")]
-    public async Task CommentInExpression()
-    {
-        await AssertFormatAsync(@"using System;
+    public Task CommentInExpression()
+        => AssertFormatAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -1405,26 +1280,20 @@ class Program
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
-    public async Task FormatInvalidCode_1()
-    {
-        await AssertFormatAsync(@"> Roslyn.Utilities.dll!   Basic", @">	Roslyn.Utilities.dll! 	Basic");
-    }
+    public Task FormatInvalidCode_1()
+        => AssertFormatAsync(@"> Roslyn.Utilities.dll!   Basic", @">	Roslyn.Utilities.dll! 	Basic");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542546")]
-    public async Task FormatInvalidCode_2()
-    {
-        await AssertFormatAsync(@"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic", @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic");
-    }
+    public Task FormatInvalidCode_2()
+        => AssertFormatAsync(@"> Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic", @">	Roslyn.Utilities.dll! Line 43 + 0x5 bytes	Basic");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537895")]
-    public async Task EmbededStatement1()
-    {
-        await AssertFormatAsync(@"using System;
+    public Task EmbededStatement1()
+        => AssertFormatAsync(@"using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -1453,12 +1322,10 @@ class Program
             #endregion
     }
 }");
-    }
 
     [Fact]
-    public async Task RefKeywords()
-    {
-        await AssertFormatAsync(@"class C
+    public Task RefKeywords()
+        => AssertFormatAsync(@"class C
 {
     static void Main(string[] args)
     {
@@ -1483,7 +1350,6 @@ class Program
             );
     }
 }");
-    }
 
     [Fact]
     public void NewLineOptions_LineFeedOnly()

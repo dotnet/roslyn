@@ -17,20 +17,17 @@ public sealed class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeSt
     internal override AbstractSyntaxStructureProvider CreateProvider() => new MethodDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 class Goo
                 {
                     public string $$Bar(int x);
                 }
                 """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:[Goo]
@@ -38,12 +35,10 @@ public sealed class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeSt
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -53,12 +48,10 @@ public sealed class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeSt
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAttributesAndModifiers()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -68,12 +61,10 @@ public sealed class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeSt
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestMethod3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestMethod3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public string Goo(){|textspan:
@@ -86,5 +77,4 @@ public sealed class MethodDeclarationStructureTests : AbstractCSharpSyntaxNodeSt
                 }
                 """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

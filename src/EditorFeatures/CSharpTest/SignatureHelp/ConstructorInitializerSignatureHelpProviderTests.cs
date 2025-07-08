@@ -281,16 +281,14 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     #region "Current Parameter Name"
 
     [Fact]
-    public async Task TestCurrentParameterName()
-    {
-        await VerifyCurrentParameterNameAsync("""
+    public Task TestCurrentParameterName()
+        => VerifyCurrentParameterNameAsync("""
             class Goo
             {
                 public Goo(int a, int b) { }
                 public Goo() : this(b: 2, a: $$
             }
             """, "a");
-    }
 
     #endregion
 
@@ -621,12 +619,10 @@ public sealed class ConstructorInitializerSignatureHelpProviderTests : AbstractC
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-    public async Task InvokedWithNoToken()
-    {
-        await TestAsync("""
+    public Task InvokedWithNoToken()
+        => TestAsync("""
             // goo($$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082601")]
     public async Task TestInvocationWithBadParameterList()

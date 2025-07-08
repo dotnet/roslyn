@@ -228,9 +228,8 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestConditionalLogicalOrOperatorAlwaysInfersBool(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestConditionalLogicalOrOperatorAlwaysInfersBool(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -240,13 +239,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestConditionalLogicalAndOperatorAlwaysInfersBool(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestConditionalLogicalAndOperatorAlwaysInfersBool(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -256,12 +253,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrOperatorInference1()
-    {
-        await TestAsync("""
+    public Task TestLogicalOrOperatorInference1()
+        => TestAsync("""
             using System;
             class C
             {
@@ -271,12 +266,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", TestMode.Node);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrOperatorInference2()
-    {
-        await TestAsync("""
+    public Task TestLogicalOrOperatorInference2()
+        => TestAsync("""
             using System;
             class C
             {
@@ -286,13 +279,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrOperatorInference3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalOrOperatorInference3(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -302,12 +293,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrOperatorInference4()
-    {
-        await TestAsync("""
+    public Task TestLogicalOrOperatorInference4()
+        => TestAsync("""
             using System;
             class C
             {
@@ -321,13 +310,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "Program", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrOperatorInference5(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalOrOperatorInference5(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -341,12 +328,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrOperatorInference6()
-    {
-        await TestAsync("""
+    public Task TestLogicalOrOperatorInference6()
+        => TestAsync("""
             using System;
             class C
             {
@@ -356,13 +341,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Int32", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrOperatorInference7(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalOrOperatorInference7(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -372,12 +355,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndOperatorInference1()
-    {
-        await TestAsync("""
+    public Task TestLogicalAndOperatorInference1()
+        => TestAsync("""
             using System;
             class C
             {
@@ -387,12 +368,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", TestMode.Node);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndOperatorInference2()
-    {
-        await TestAsync("""
+    public Task TestLogicalAndOperatorInference2()
+        => TestAsync("""
             using System;
             class C
             {
@@ -402,13 +381,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndOperatorInference3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalAndOperatorInference3(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -418,12 +395,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndOperatorInference4()
-    {
-        await TestAsync("""
+    public Task TestLogicalAndOperatorInference4()
+        => TestAsync("""
             using System;
             class C
             {
@@ -437,13 +412,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "Program", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndOperatorInference5(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalAndOperatorInference5(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -457,12 +430,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndOperatorInference6()
-    {
-        await TestAsync("""
+    public Task TestLogicalAndOperatorInference6()
+        => TestAsync("""
             using System;
             class C
             {
@@ -472,13 +443,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Int32", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndOperatorInference7(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalAndOperatorInference7(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -488,12 +457,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorOperatorInference1()
-    {
-        await TestAsync("""
+    public Task TestLogicalXorOperatorInference1()
+        => TestAsync("""
             using System;
             class C
             {
@@ -503,12 +470,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", TestMode.Node);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorOperatorInference2()
-    {
-        await TestAsync("""
+    public Task TestLogicalXorOperatorInference2()
+        => TestAsync("""
             using System;
             class C
             {
@@ -518,13 +483,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorOperatorInference3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalXorOperatorInference3(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -534,12 +497,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorOperatorInference4()
-    {
-        await TestAsync("""
+    public Task TestLogicalXorOperatorInference4()
+        => TestAsync("""
             using System;
             class C
             {
@@ -553,13 +514,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "Program", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorOperatorInference5(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalXorOperatorInference5(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -573,12 +532,10 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorOperatorInference6()
-    {
-        await TestAsync("""
+    public Task TestLogicalXorOperatorInference6()
+        => TestAsync("""
             using System;
             class C
             {
@@ -588,13 +545,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Int32", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorOperatorInference7(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalXorOperatorInference7(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -604,13 +559,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrEqualsOperatorInference1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalOrEqualsOperatorInference1(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -620,13 +573,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalOrEqualsOperatorInference2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalOrEqualsOperatorInference2(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -636,13 +587,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndEqualsOperatorInference1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalAndEqualsOperatorInference1(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -652,13 +601,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalAndEqualsOperatorInference2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalAndEqualsOperatorInference2(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -668,13 +615,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorEqualsOperatorInference1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalXorEqualsOperatorInference1(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -684,13 +629,11 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617633")]
-    public async Task TestLogicalXorEqualsOperatorInference2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLogicalXorEqualsOperatorInference2(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -700,7 +643,6 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
                 }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
     public Task TestReturnInConstructor(TestMode mode)
@@ -1122,9 +1064,8 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-    public async Task TestYieldReturnInMethod([CombinatorialValues("IEnumerable", "IEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
-    {
-        await TestAsync($@"using System.Collections.Generic;
+    public Task TestYieldReturnInMethod([CombinatorialValues("IEnumerable", "IEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
+        => TestAsync($@"using System.Collections.Generic;
 
 class C
 {{
@@ -1133,12 +1074,10 @@ class C
         yield return [|abc|]
     }}
 }}", "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestYieldReturnInMethodNullableReference([CombinatorialValues("IEnumerable", "IEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
-    {
-        await TestAsync($@"#nullable enable
+    public Task TestYieldReturnInMethodNullableReference([CombinatorialValues("IEnumerable", "IEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
+        => TestAsync($@"#nullable enable
 using System.Collections.Generic;
 
 class C
@@ -1148,12 +1087,10 @@ class C
         yield return [|abc|]
     }}
 }}", "global::System.String?", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestYieldReturnInAsyncMethod([CombinatorialValues("IAsyncEnumerable", "IAsyncEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
-    {
-        await TestAsync($@"namespace System.Collections.Generic
+    public Task TestYieldReturnInAsyncMethod([CombinatorialValues("IAsyncEnumerable", "IAsyncEnumerator", "InvalidGenericType")] string returnTypeName, TestMode mode)
+        => TestAsync($@"namespace System.Collections.Generic
 {{
     interface {returnTypeName}<T> {{ }}
     class C
@@ -1164,25 +1101,21 @@ class C
         }}
     }}
 }}", "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestYieldReturnInvalidTypeInMethod([CombinatorialValues("int[]", "InvalidNonGenericType", "InvalidGenericType<int, int>")] string returnType, TestMode mode)
-    {
-        await TestAsync($@"class C
+    public Task TestYieldReturnInvalidTypeInMethod([CombinatorialValues("int[]", "InvalidNonGenericType", "InvalidGenericType<int, int>")] string returnType, TestMode mode)
+        => TestAsync($@"class C
 {{
     {returnType} M()
     {{
         yield return [|abc|]
     }}
 }}", "global::System.Object", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30235")]
-    public async Task TestYieldReturnInLocalFunction(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestYieldReturnInLocalFunction(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1196,12 +1129,10 @@ class C
                 }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestYieldReturnInPropertyGetter(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestYieldReturnInPropertyGetter(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1215,12 +1146,10 @@ class C
                 }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestYieldReturnInPropertySetter(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestYieldReturnInPropertySetter(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1234,7 +1163,6 @@ class C
                 }
             }
             """, "global::System.Object", mode);
-    }
 
     [Theory, CombinatorialData]
     public Task TestYieldReturnAsGlobalStatement(TestMode mode)
@@ -1842,9 +1770,8 @@ class C
             """, "global::System.String", mode);
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInImplicitArrayCreationSimple(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInImplicitArrayCreationSimple(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1855,12 +1782,10 @@ class C
               }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInImplicitArrayCreation1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInImplicitArrayCreation1(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1874,12 +1799,10 @@ class C
               int Goo() { return 2; }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInImplicitArrayCreation2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInImplicitArrayCreation2(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1892,12 +1815,10 @@ class C
               int Bar() { return 1; }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInImplicitArrayCreation3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInImplicitArrayCreation3(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1908,12 +1829,10 @@ class C
               }
             }
             """, "global::System.Object", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInImplicitArrayCreationInferredAsNullable(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInImplicitArrayCreationInferredAsNullable(TestMode mode)
+        => TestAsync("""
             #nullable enable
 
             using System.Collections.Generic;
@@ -1928,12 +1847,10 @@ class C
               object? Bar() { return null; }
             }
             """, "global::System.Object?", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInEqualsValueClauseSimple(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInEqualsValueClauseSimple(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1944,12 +1861,10 @@ class C
               }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInEqualsValueClause(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInEqualsValueClause(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1962,12 +1877,10 @@ class C
               int Bar() { return 1; }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInitializerInEqualsValueClauseNullableElement(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInitializerInEqualsValueClauseNullableElement(TestMode mode)
+        => TestAsync("""
             #nullable enable
 
             using System.Collections.Generic;
@@ -1980,13 +1893,11 @@ class C
               }
             }
             """, "global::System.String?", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
-    public async Task TestCollectionInitializer1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestCollectionInitializer1(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1997,12 +1908,10 @@ class C
               }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestCollectionInitializerNullableElement(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestCollectionInitializerNullableElement(TestMode mode)
+        => TestAsync("""
             #nullable enable
 
             using System.Collections.Generic;
@@ -2015,13 +1924,11 @@ class C
               }
             }
             """, "global::System.String?", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
-    public async Task TestCollectionInitializer2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestCollectionInitializer2(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -2032,13 +1939,11 @@ class C
               }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
-    public async Task TestCollectionInitializer3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestCollectionInitializer3(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -2049,12 +1954,10 @@ class C
               }
             }
             """, "global::System.String", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
-    public async Task TestCustomCollectionInitializerAddMethod1()
-    {
-        await TestAsync("""
+    public Task TestCustomCollectionInitializerAddMethod1()
+        => TestAsync("""
             class C : System.Collections.IEnumerable
             {
                 void M()
@@ -2071,13 +1974,11 @@ class C
                 }
             }
             """, "global::System.Int32", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
-    public async Task TestCustomCollectionInitializerAddMethod2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestCustomCollectionInitializerAddMethod2(TestMode mode)
+        => TestAsync("""
             class C : System.Collections.IEnumerable
             {
                 void M()
@@ -2094,13 +1995,11 @@ class C
                 }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
-    public async Task TestCustomCollectionInitializerAddMethod3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestCustomCollectionInitializerAddMethod3(TestMode mode)
+        => TestAsync("""
             class C : System.Collections.IEnumerable
             {
                 void M()
@@ -2117,12 +2016,10 @@ class C
                 }
             }
             """, "global::System.String", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestCustomCollectionInitializerAddMethodWithNullableParameter(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestCustomCollectionInitializerAddMethodWithNullableParameter(TestMode mode)
+        => TestAsync("""
             class C : System.Collections.IEnumerable
             {
                 void M()
@@ -2139,12 +2036,10 @@ class C
                 }
             }
             """, "global::System.String?", mode);
-    }
 
     [Fact]
-    public async Task TestArrayInference1()
-    {
-        await TestAsync("""
+    public Task TestArrayInference1()
+        => TestAsync("""
             class A
             {
                 void Goo()
@@ -2153,12 +2048,10 @@ class C
                 }
             }
             """, "global::A", TestMode.Node);
-    }
 
     [Fact]
-    public async Task TestArrayInference1_Position()
-    {
-        await TestAsync("""
+    public Task TestArrayInference1_Position()
+        => TestAsync("""
             class A
             {
                 void Goo()
@@ -2167,12 +2060,10 @@ class C
                 }
             }
             """, "global::A[]", TestMode.Position);
-    }
 
     [Fact]
-    public async Task TestArrayInference2()
-    {
-        await TestAsync("""
+    public Task TestArrayInference2()
+        => TestAsync("""
             class A
             {
                 void Goo()
@@ -2181,12 +2072,10 @@ class C
                 }
             }
             """, "global::A", TestMode.Node);
-    }
 
     [Fact]
-    public async Task TestArrayInference2_Position()
-    {
-        await TestAsync("""
+    public Task TestArrayInference2_Position()
+        => TestAsync("""
             class A
             {
                 void Goo()
@@ -2195,12 +2084,10 @@ class C
                 }
             }
             """, "global::A[][]", TestMode.Position);
-    }
 
     [Fact]
-    public async Task TestArrayInference3()
-    {
-        await TestAsync("""
+    public Task TestArrayInference3()
+        => TestAsync("""
             class A
             {
                 void Goo()
@@ -2209,12 +2096,10 @@ class C
                 }
             }
             """, "global::A[]", TestMode.Node);
-    }
 
     [Fact]
-    public async Task TestArrayInference3_Position()
-    {
-        await TestAsync("""
+    public Task TestArrayInference3_Position()
+        => TestAsync("""
             class A
             {
                 void Goo()
@@ -2223,12 +2108,10 @@ class C
                 }
             }
             """, "global::A[][]", TestMode.Position);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestArrayInference4(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestArrayInference4(TestMode mode)
+        => TestAsync("""
             using System;
             class A
             {
@@ -2238,13 +2121,11 @@ class C
                 }
             }
             """, "global::System.Func<global::System.Int32, global::System.Int32>", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
-    public async Task TestInsideLambda2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestInsideLambda2(TestMode mode)
+        => TestAsync("""
             using System;
             class C
             {
@@ -2254,12 +2135,10 @@ class C
               }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestInsideLambdaNullableReturn(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestInsideLambdaNullableReturn(TestMode mode)
+        => TestAsync("""
             #nullable enable
 
             using System;
@@ -2271,13 +2150,11 @@ class C
               }
             }
             """, "global::System.String?", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
-    public async Task TestPointer1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestPointer1(TestMode mode)
+        => TestAsync("""
             class C
             {
               void M(int* i)
@@ -2286,13 +2163,11 @@ class C
               }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539813")]
-    public async Task TestDynamic1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestDynamic1(TestMode mode)
+        => TestAsync("""
             class C
             {
               void M(dynamic i)
@@ -2301,12 +2176,10 @@ class C
               }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestChecked1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestChecked1(TestMode mode)
+        => TestAsync("""
             class C
             {
               void M()
@@ -2315,13 +2188,11 @@ class C
               }
             }
             """, "global::System.String", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
-    public async Task TestAwaitTaskOfT(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAwaitTaskOfT(TestMode mode)
+        => TestAsync("""
             using System.Threading.Tasks;
             class C
             {
@@ -2331,12 +2202,10 @@ class C
               }
             }
             """, "global::System.Threading.Tasks.Task<global::System.Int32>", mode);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestAwaitTaskOfTNullableValue(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAwaitTaskOfTNullableValue(TestMode mode)
+        => TestAsync("""
             #nullable enable
 
             using System.Threading.Tasks;
@@ -2348,13 +2217,11 @@ class C
               }
             }
             """, "global::System.Threading.Tasks.Task<global::System.String?>", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
-    public async Task TestAwaitTaskOfTaskOfT(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAwaitTaskOfTaskOfT(TestMode mode)
+        => TestAsync("""
             using System.Threading.Tasks;
             class C
             {
@@ -2364,13 +2231,11 @@ class C
               }
             }
             """, "global::System.Threading.Tasks.Task<global::System.Threading.Tasks.Task<global::System.Int32>>", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553584")]
-    public async Task TestAwaitTask(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAwaitTask(TestMode mode)
+        => TestAsync("""
             using System.Threading.Tasks;
             class C
             {
@@ -2380,13 +2245,11 @@ class C
               }
             }
             """, "global::System.Threading.Tasks.Task", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
-    public async Task TestLockStatement(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestLockStatement(TestMode mode)
+        => TestAsync("""
             class C
             {
               void M()
@@ -2397,13 +2260,11 @@ class C
               }
             }
             """, "global::System.Object", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/617622")]
-    public async Task TestAwaitExpressionInLockStatement(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAwaitExpressionInLockStatement(TestMode mode)
+        => TestAsync("""
             class C
             {
               async void M()
@@ -2414,13 +2275,11 @@ class C
               }
             }
             """, "global::System.Threading.Tasks.Task<global::System.Object>", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-    public async Task TestReturnFromAsyncTaskOfT(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestReturnFromAsyncTaskOfT(TestMode mode)
+        => TestAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -2431,13 +2290,11 @@ class C
                 }
             }
             """, "global::System.Int32", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
-    public async Task TestAttributeArguments1(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAttributeArguments1(TestMode mode)
+        => TestAsync("""
             [A([|dd|], ee, Y = ff)]
             class AAttribute : System.Attribute
             {
@@ -2450,13 +2307,11 @@ class C
                 }
             }
             """, "global::System.DayOfWeek", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
-    public async Task TestAttributeArguments2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAttributeArguments2(TestMode mode)
+        => TestAsync("""
             [A(dd, [|ee|], Y = ff)]
             class AAttribute : System.Attribute
             {
@@ -2469,13 +2324,11 @@ class C
                 }
             }
             """, "global::System.Double", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853840")]
-    public async Task TestAttributeArguments3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAttributeArguments3(TestMode mode)
+        => TestAsync("""
             [A(dd, ee, Y = [|ff|])]
             class AAttribute : System.Attribute
             {
@@ -2488,13 +2341,11 @@ class C
                 }
             }
             """, "global::System.String", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/757111")]
-    public async Task TestReturnStatementWithinDelegateWithinAMethodCall(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestReturnStatementWithinDelegateWithinAMethodCall(TestMode mode)
+        => TestAsync("""
             using System;
 
             class Program
@@ -2511,47 +2362,39 @@ class C
                 }
             }
             """, "global::System.String", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
-    public async Task TestCatchFilterClause(TestMode mode)
-    {
-        await TestInMethodAsync("""
+    public Task TestCatchFilterClause(TestMode mode)
+        => TestInMethodAsync("""
             try
             { }
             catch (Exception) if ([|M()|])
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
-    public async Task TestCatchFilterClause1(TestMode mode)
-    {
-        await TestInMethodAsync("""
+    public Task TestCatchFilterClause1(TestMode mode)
+        => TestInMethodAsync("""
             try
             { }
             catch (Exception) if ([|M|])
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994388")]
-    public async Task TestCatchFilterClause2()
-    {
-        await TestInMethodAsync("""
+    public Task TestCatchFilterClause2()
+        => TestInMethodAsync("""
             try
             { }
             catch (Exception) if ([|M|].N)
             }
             """, "global::System.Object", TestMode.Node);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
-    public async Task TestAwaitExpressionWithChainingMethod()
-    {
-        await TestAsync("""
+    public Task TestAwaitExpressionWithChainingMethod()
+        => TestAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -2563,12 +2406,10 @@ class C
                 }
             }
             """, "global::System.Threading.Tasks.Task<global::System.Boolean>", TestMode.Node);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/643")]
-    public async Task TestAwaitExpressionWithChainingMethod2()
-    {
-        await TestAsync("""
+    public Task TestAwaitExpressionWithChainingMethod2()
+        => TestAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -2580,12 +2421,10 @@ class C
                 }
             }
             """, "global::System.Threading.Tasks.Task<global::System.Object>", TestMode.Node);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4233")]
-    public async Task TestAwaitExpressionWithGenericMethod1()
-    {
-        await TestAsync("""
+    public Task TestAwaitExpressionWithGenericMethod1()
+        => TestAsync("""
             using System.Threading.Tasks;
 
             public class C
@@ -2598,13 +2437,11 @@ class C
                 private async Task<T> X<T>(T t) { return t; }
             }
             """, "global::System.Boolean", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4233")]
-    public async Task TestAwaitExpressionWithGenericMethod2(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestAwaitExpressionWithGenericMethod2(TestMode mode)
+        => TestAsync("""
             using System.Threading.Tasks;
 
             public class C
@@ -2617,15 +2454,11 @@ class C
                 private async Task<T> X<T>(T t) { return t; }
             }
             """, "global::System.Boolean", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4483")]
-    public async Task TestNullCoalescingOperator1(TestMode mode)
-    {
-        // In position mode, we are inferring that the thing to the right is an object, because it's being assigned to a local of type object.
-        // In node mode, we are inferring the node is an object? because it's to the left of the ??.
-        await TestAsync("""
+    public Task TestNullCoalescingOperator1(TestMode mode)
+        => TestAsync("""
 class C
 {
     void M()
@@ -2634,15 +2467,11 @@ class C
     }
 }
 """, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4483")]
-    public async Task TestNullCoalescingOperator2(TestMode mode)
-    {
-        // In position mode, we are inferring that the thing to the right is an object, because it's being assigned to a local of type object.
-        // In node mode, we are inferring the node is an object? because it's to the left of the ??.
-        await TestAsync("""
+    public Task TestNullCoalescingOperator2(TestMode mode)
+        => TestAsync("""
 class C
 {
     void M()
@@ -2651,16 +2480,11 @@ class C
     }
 }
 """, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/4483")]
-    public async Task TestNullCoalescingOperator3(TestMode mode)
-    {
-        // In position mode, we are inferring that the thing to the right is an object, because it's to the right of the first ??
-        // and thus must be the same type as the object being assigned to.
-        // In node mode, we are inferring the node is an object? because it's to the left of the ??.
-        await TestAsync("""
+    public Task TestNullCoalescingOperator3(TestMode mode)
+        => TestAsync("""
 class C
 {
     void M()
@@ -2669,12 +2493,10 @@ class C
     }
 }
 """, mode == TestMode.Node ? "global::System.Object?" : "global::System.Object", mode);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5126")]
-    public async Task TestSelectLambda()
-    {
-        await TestAsync("""
+    public Task TestSelectLambda()
+        => TestAsync("""
 using System.Collections.Generic;
 using System.Linq;
 
@@ -2686,12 +2508,10 @@ class C
     }
 }
 """, "global::System.Object", TestMode.Node);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5126")]
-    public async Task TestSelectLambda2()
-    {
-        await TestAsync("""
+    public Task TestSelectLambda2()
+        => TestAsync("""
 using System.Collections.Generic;
 using System.Linq;
 
@@ -2703,13 +2523,11 @@ class C
     }
 }
 """, "global::System.String", TestMode.Node);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/1903")]
-    public async Task TestSelectLambda3(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestSelectLambda3(TestMode mode)
+        => TestAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2723,12 +2541,10 @@ class C
                 }
             }
             """, "global::B", mode);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6765")]
-    public async Task TestDefaultStatement1()
-    {
-        await TestAsync("""
+    public Task TestDefaultStatement1()
+        => TestAsync("""
 class C
 {
     static void Main(string[] args)
@@ -2737,12 +2553,10 @@ class C
     }
 }
 """, "global::System.ConsoleModifiers", TestMode.Position);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6765")]
-    public async Task TestDefaultStatement2()
-    {
-        await TestAsync("""
+    public Task TestDefaultStatement2()
+        => TestAsync("""
 class C
 {
     static void Goo(System.ConsoleModifiers arg)
@@ -2751,12 +2565,10 @@ class C
     }
 }
 """, "global::System.ConsoleModifiers", TestMode.Position);
-    }
 
     [Fact]
-    public async Task TestWhereCall()
-    {
-        await TestAsync("""
+    public Task TestWhereCall()
+        => TestAsync("""
 using System.Collections.Generic;
 class C
 {
@@ -2766,12 +2578,10 @@ class C
     }
 }
 """, "global::System.Collections.Generic.IEnumerable<global::System.Int32>", TestMode.Node);
-    }
 
     [Fact]
-    public async Task TestWhereCall2()
-    {
-        await TestAsync("""
+    public Task TestWhereCall2()
+        => TestAsync("""
 using System.Collections.Generic;
 class C
 {
@@ -2781,12 +2591,10 @@ class C
     }
 }
 """, "global::System.Collections.Generic.IEnumerable<global::System.Object>", TestMode.Node);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12755")]
-    public async Task TestObjectCreationBeforeArrayIndexing()
-    {
-        await TestAsync("""
+    public Task TestObjectCreationBeforeArrayIndexing()
+        => TestAsync("""
             using System;
             class C
             {
@@ -2798,7 +2606,6 @@ class C
               }
             }
             """, "global::C", TestMode.Position);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25305")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/15468")]
@@ -2818,9 +2625,8 @@ class C
 @"[|(string? s, _)|] =", "(global::System.String? s, global::System.Object _)", TestMode.Node);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13402")]
-    public async Task TestObjectCreationBeforeBlock()
-    {
-        await TestAsync("""
+    public Task TestObjectCreationBeforeBlock()
+        => TestAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -2830,12 +2636,10 @@ class C
                 }
             }
             """, "global::Program", TestMode.Position);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestInferringThroughGenericFunctionWithNullableReturn(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestInferringThroughGenericFunctionWithNullableReturn(TestMode mode)
+        => TestAsync("""
             #nullable enable
 
             class Program
@@ -2848,12 +2652,10 @@ class C
                 static T Identity<T>(T value) { return value; }
             }
             """, "global::System.String?", mode);
-    }
 
     [Fact]
-    public async Task TestInferringThroughGenericFunctionMissingArgument()
-    {
-        await TestAsync("""
+    public Task TestInferringThroughGenericFunctionMissingArgument()
+        => TestAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -2864,12 +2666,10 @@ class C
                 static T Identity<T>(T value) { return value; }
             }
             """, "global::System.String", TestMode.Position);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestInferringThroughGenericFunctionTooManyArguments(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestInferringThroughGenericFunctionTooManyArguments(TestMode mode)
+        => TestAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -2880,7 +2680,6 @@ class C
                 static T Identity<T>(T value) { return value; }
             }
             """, "global::System.Object", mode);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/14277"), CombinatorialData]
     public Task TestValueInNestedTuple1(TestMode mode)
@@ -2898,9 +2697,8 @@ class C
 @"(int, string) x = (1, [||]);", "global::System.String", TestMode.Position);
 
     [Theory, CombinatorialData]
-    public async Task TestInferringInEnumHasFlags(TestMode mode)
-    {
-        await TestAsync("""
+    public Task TestInferringInEnumHasFlags(TestMode mode)
+        => TestAsync("""
             using System.IO;
 
             class Program
@@ -2912,7 +2710,6 @@ class C
                 }
             }
             """, "global::System.IO.FileAttributes", mode);
-    }
 
     [Theory]
     [InlineData("")]
@@ -2957,9 +2754,8 @@ class C
     [InlineData("Color.Green or Re")]
     [InlineData("not ")]
     [InlineData("not Re")]
-    public async Task TestEnumInPatterns_Is_PropertyPattern(string partialWritten)
-    {
-        await TestAsync(@$"
+    public Task TestEnumInPatterns_Is_PropertyPattern(string partialWritten)
+        => TestAsync(@$"
 public enum Color
 {{
     Red,
@@ -2976,12 +2772,10 @@ class C
     }}
 }}
 ", "global::Color", TestMode.Position);
-    }
 
     [Fact]
-    public async Task TestEnumInPatterns_SwitchStatement_PropertyPattern()
-    {
-        await TestAsync("""
+    public Task TestEnumInPatterns_SwitchStatement_PropertyPattern()
+        => TestAsync("""
             public enum Color
             {
                 Red,
@@ -3000,12 +2794,10 @@ class C
                 }
             }
             """, "global::Color", TestMode.Position);
-    }
 
     [Fact]
-    public async Task TestEnumInPatterns_SwitchExpression_PropertyPattern()
-    {
-        await TestAsync("""
+    public Task TestEnumInPatterns_SwitchExpression_PropertyPattern()
+        => TestAsync("""
             public enum Color
             {
                 Red,
@@ -3024,12 +2816,10 @@ class C
                 }
             }
             """, "global::Color", TestMode.Position);
-    }
 
     [Fact]
-    public async Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern()
-    {
-        await TestAsync("""
+    public Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern()
+        => TestAsync("""
             public enum Color
             {
                 Red,
@@ -3049,12 +2839,10 @@ class C
                 }
             }
             """, "global::Color", TestMode.Position);
-    }
 
     [Fact]
-    public async Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern_Field()
-    {
-        await TestAsync("""
+    public Task TestEnumInPatterns_SwitchStatement_ExtendedPropertyPattern_Field()
+        => TestAsync("""
             public enum Color
             {
                 Red,
@@ -3074,14 +2862,11 @@ class C
                 }
             }
             """, "global::Color", TestMode.Position);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70803")]
-    public async Task TestArgumentToBaseRecordPrimaryConstructor()
-    {
-        await TestAsync("""
+    public Task TestArgumentToBaseRecordPrimaryConstructor()
+        => TestAsync("""
             class Base(int Alice, int Bob);
             class Derived(int Other) : Base([||]
             """, "global::System.Int32", TestMode.Position);
-    }
 }

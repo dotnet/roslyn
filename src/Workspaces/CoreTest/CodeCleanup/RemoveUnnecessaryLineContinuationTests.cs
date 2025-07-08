@@ -20,29 +20,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup;
 public sealed class RemoveUnnecessaryLineContinuationTests
 {
     [Fact]
-    public async Task ColonTrivia()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonTrivia()
+        => VerifyAsync(CreateMethod(@"[|
         ::: Console.WriteLine("")|]"), CreateMethod(@"
         Console.WriteLine("")"));
-    }
 
     [Fact]
-    public async Task ColonTrivia_EndOfLine()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonTrivia_EndOfLine()
+        => VerifyAsync(CreateMethod(@"[|
         ::: 
 
         Console.WriteLine("")|]"), CreateMethod(@"
 
 
         Console.WriteLine("")"));
-    }
 
     [Fact]
-    public async Task ColonTrivia_LineContinuation()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonTrivia_LineContinuation()
+        => VerifyAsync(CreateMethod(@"[|
         ::: _
         _
         _
@@ -51,12 +46,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
 
         Console.WriteLine("")"));
-    }
 
     [Fact]
-    public async Task ColonTrivia_LineContinuation2()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonTrivia_LineContinuation2()
+        => VerifyAsync(CreateMethod(@"[|
         ::: 
         _
         _
@@ -65,12 +58,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
 
         Console.WriteLine("")"));
-    }
 
     [Fact]
-    public async Task ColonTrivia_LineContinuation3()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonTrivia_LineContinuation3()
+        => VerifyAsync(CreateMethod(@"[|
         ::: 
         _
         
@@ -79,12 +70,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
 
         Console.WriteLine("")"));
-    }
 
     [Fact]
-    public async Task ColonTrivia_LineContinuation_Comment()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonTrivia_LineContinuation_Comment()
+        => VerifyAsync(CreateMethod(@"[|
         ::: 
         _
         ' test
@@ -93,24 +82,20 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                        _
         ' test
         Console.WriteLine("")"));
-    }
 
     [Fact]
-    public async Task LineContinuation()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task LineContinuation()
+        => VerifyAsync(CreateMethod(@"[|
         Console.WriteLine("""") _
 
         Console.WriteLine("""")|]"), CreateMethod(@"
         Console.WriteLine("""")
 
         Console.WriteLine("""")"));
-    }
 
     [Fact]
-    public async Task LineContinuation_MultipleLines()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task LineContinuation_MultipleLines()
+        => VerifyAsync(CreateMethod(@"[|
         Console.WriteLine("""") _
         _
         _
@@ -119,12 +104,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
         _
         _
         Console.WriteLine("""")"));
-    }
 
     [Fact]
-    public async Task LineContinuation_MultipleLines2()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task LineContinuation_MultipleLines2()
+        => VerifyAsync(CreateMethod(@"[|
         Console.WriteLine("""") _
         _
         _
@@ -135,12 +118,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
 
         Console.WriteLine("""")"));
-    }
 
     [Fact]
-    public async Task LineContinuation_Invalid()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task LineContinuation_Invalid()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() _             _ 
         ' test 
         : ' test
@@ -151,120 +132,96 @@ public sealed class RemoveUnnecessaryLineContinuationTests
          ' test
         _
         Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_SingleLine()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_SingleLine()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() : Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine() : Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_SingleLine_MultipleColon()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_SingleLine_MultipleColon()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() :::: Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine() : Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_SingleLine_SkippedTokens()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_SingleLine_SkippedTokens()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() _ : Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine() _ : Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_BeforeColonToken()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_BeforeColonToken()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() _ 
          : Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine()
         Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_BeforeColonToken2()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_BeforeColonToken2()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() _  _
          : Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine() _  _
           Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_Comment_BeforeColonToken()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_Comment_BeforeColonToken()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() _ ' test
          : Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine() _ ' test
         Console.WriteLine()"), LanguageVersion.VisualBasic15);
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_Comment_BeforeColonTokenV16()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_Comment_BeforeColonTokenV16()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() _ ' test
          : Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine() _ ' test
         Console.WriteLine()"), LanguageVersion.VisualBasic16);
-    }
 
     [Fact]
-    public async Task ColonToken_MultipleLine()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_MultipleLine()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() : 
          Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine()
         Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_AfterColonToken()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_AfterColonToken()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() : _
          Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine()
         Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_AfterColonToken2()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_AfterColonToken2()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() : _
          _
          Console.WriteLine()|]"), CreateMethod(@"
         Console.WriteLine()
 
         Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_AfterColonToken_MultipleLine()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_AfterColonToken_MultipleLine()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() : _
          _
          _|]"), CreateMethod(@"
         Console.WriteLine()
 
 "));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_AfterColonToken_Mixed()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_AfterColonToken_Mixed()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() : _
          _
          :
@@ -275,12 +232,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
 
 
         Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() : _
          _
          : ' test
@@ -291,12 +246,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
         ' test
         _
         Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_LineContinuation_Mix()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_LineContinuation_Mix()
+        => VerifyAsync(CreateMethod(@"[|
          Console.WriteLine() _ : _
          _
          : ' test
@@ -307,34 +260,28 @@ public sealed class RemoveUnnecessaryLineContinuationTests
           ' test
          _
          Console.WriteLine()"));
-    }
 
     [Fact]
-    public async Task ColonToken_If()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ColonToken_If()
+        => VerifyAsync(CreateMethod(@"[|
         If True Then :
         End If|]"), CreateMethod(@"
         If True Then
         End If"));
-    }
 
     [Fact]
-    public async Task ImplicitLineContinuation()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ImplicitLineContinuation()
+        => VerifyAsync(CreateMethod(@"[|
         Dim i = _
                 1 + _
                 2|]"), CreateMethod(@"
         Dim i =
                 1 +
                 2"));
-    }
 
     [Fact]
-    public async Task ImplicitLineContinuation_Multiple()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ImplicitLineContinuation_Multiple()
+        => VerifyAsync(CreateMethod(@"[|
         Dim i = _
                 _
                 1 + _
@@ -343,12 +290,10 @@ public sealed class RemoveUnnecessaryLineContinuationTests
                 _
                 1 +
                 2"));
-    }
 
     [Fact]
-    public async Task LineContinuation_Mix()
-    {
-        await VerifyAsync(@"[|Class _
+    public Task LineContinuation_Mix()
+        => VerifyAsync(@"[|Class _
  A
     Inherits _
         System _
@@ -439,12 +384,10 @@ End _
         Function
 End _
     Class");
-    }
 
     [Fact]
-    public async Task ImplicitLineContinuation_Invalid()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task ImplicitLineContinuation_Invalid()
+        => VerifyAsync(CreateMethod(@"[|
         Dim i = _ _
                 _ _
                 1 + _ _
@@ -453,36 +396,28 @@ End _
                 _ _
                 1 + _ _
                 2"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544470")]
-    public async Task AttributeTargetColon()
-    {
-        await VerifyAsync(@"[|<Assembly: _
+    public Task AttributeTargetColon()
+        => VerifyAsync(@"[|<Assembly: _
 CLSCompliant>|]", @"<Assembly: _
 CLSCompliant>");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529428")]
-    public async Task LineContinuationInImport()
-    {
-        await VerifyAsync(@"[|Imports System _
+    public Task LineContinuationInImport()
+        => VerifyAsync(@"[|Imports System _
 
 |]", @"Imports System
 
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529425")]
-    public async Task ColonInOption()
-    {
-        await VerifyAsync(@"[|Option Infer On :: Option Explicit Off|]", @"Option Infer On : Option Explicit Off");
-    }
+    public Task ColonInOption()
+        => VerifyAsync(@"[|Option Infer On :: Option Explicit Off|]", @"Option Infer On : Option Explicit Off");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544524")]
-    public async Task LineContinuationInNamedFieldInitializer()
-    {
-        await VerifyAsync(@"[|Class C
+    public Task LineContinuationInNamedFieldInitializer()
+        => VerifyAsync(@"[|Class C
     Sub S()
         Dim o = New With
             {
@@ -499,12 +434,10 @@ End Class|]", @"Class C
             }
     End Sub
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
-    public async Task IfPart_Colon1()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task IfPart_Colon1()
+        => VerifyAsync(@"[|Module M
     Sub S()
         If True Then
             : Return : End If
@@ -515,12 +448,10 @@ End Module|]", @"Module M
             Return : End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
-    public async Task IfPart_Colon2()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task IfPart_Colon2()
+        => VerifyAsync(@"[|Module M
     Sub S()
         If True Then : 
             Return : End If
@@ -531,12 +462,10 @@ End Module|]", @"Module M
             Return : End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
-    public async Task IfPart_Colon3()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task IfPart_Colon3()
+        => VerifyAsync(@"[|Module M
     Sub S()
         If True Then : Return
         : End If
@@ -547,12 +476,10 @@ End Module|]", @"Module M
         End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")]
-    public async Task IfPart_Colon4()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task IfPart_Colon4()
+        => VerifyAsync(@"[|Module M
     Sub S()
         If True Then : Return : 
         End If
@@ -563,12 +490,10 @@ End Module|]", @"Module M
         End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544521")]
-    public async Task LabelColon()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task LabelColon()
+        => VerifyAsync(@"[|Module Program
     Sub S()
         L: 
     End Sub
@@ -577,12 +502,10 @@ End Module|]", @"Module Program
 L:
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544521")]
-    public async Task LabelColon_ColonTrivia()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task LabelColon_ColonTrivia()
+        => VerifyAsync(@"[|Module Program
     Sub S()
         L:::::::::  
     End Sub
@@ -591,12 +514,10 @@ End Module|]", @"Module Program
 L:
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-    public async Task LineContinuation_MixedWithImplicitLineContinuation()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task LineContinuation_MixedWithImplicitLineContinuation()
+        => VerifyAsync(@"[|Module Program
     Sub Main(
  _
         args _
@@ -609,20 +530,16 @@ End Module|]", @"Module Program
         As String)
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544549")]
-    public async Task ColonTrivia_EndOfFile()
-    {
-        await VerifyAsync(@"[|:::::::
+    public Task ColonTrivia_EndOfFile()
+        => VerifyAsync(@"[|:::::::
 |]", @"
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545538")]
-    public async Task ColonTriviaBeforeCommentTrivia()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task ColonTriviaBeforeCommentTrivia()
+        => VerifyAsync(@"[|Module M
     Sub Main()
         Dim b = <x/>.@x : '
     End Sub
@@ -631,12 +548,10 @@ End Module|]", @"Module M
         Dim b = <x/>.@x  '
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
-    public async Task InsideWithStatementWithMemberCall()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task InsideWithStatementWithMemberCall()
+        => VerifyAsync(@"[|Module Program
     Sub Main()
         With ""
             Dim y = From x In "" Distinct
@@ -651,12 +566,10 @@ End Module|]", @"Module Program
         End With
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
-    public async Task InsideWithStatementWithMemberCall2()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task InsideWithStatementWithMemberCall2()
+        => VerifyAsync(@"[|Module Program
     Sub Main()
         With ""
             Dim y = From x In """" Distinct :
@@ -671,12 +584,10 @@ End Module|]", @"Module Program
         End With
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
-    public async Task InsideWithStatementWithMemberCall3()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task InsideWithStatementWithMemberCall3()
+        => VerifyAsync(@"[|Module Program
     Sub Main()
         With ""
             .ToLower()
@@ -691,12 +602,10 @@ End Module|]", @"Module Program
         End With
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545540")]
-    public async Task InsideWithStatementWithMemberCall4()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task InsideWithStatementWithMemberCall4()
+        => VerifyAsync(@"[|Module Program
     Sub Main()
         With """"
             .ToLower() :
@@ -711,12 +620,10 @@ End Module|]", @"Module Program
         End With
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607791")]
-    public async Task InsideWithStatementWithDictionaryAccess()
-    {
-        await VerifyAsync(@"[|Imports System.Collections
+    public Task InsideWithStatementWithDictionaryAccess()
+        => VerifyAsync(@"[|Imports System.Collections
 Module Program
     Sub Main()
         With New Hashtable
@@ -735,12 +642,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607791")]
-    public async Task InsideWithStatementWithDictionaryAccess2()
-    {
-        await VerifyAsync(@"[|Imports System.Collections
+    public Task InsideWithStatementWithDictionaryAccess2()
+        => VerifyAsync(@"[|Imports System.Collections
 Module Program
     Sub Main()
         With New Hashtable
@@ -757,12 +662,10 @@ Module Program
         End With
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529821")]
-    public async Task InsideObjectInitializer()
-    {
-        await VerifyAsync(@"[|Imports System.Runtime.CompilerServices
+    public Task InsideObjectInitializer()
+        => VerifyAsync(@"[|Imports System.Runtime.CompilerServices
  
 Module Program
     Sub Main()
@@ -783,12 +686,10 @@ Module Program
                  End Sub}
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545545")]
-    public async Task LineContinuationBetweenXmlAndDot()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task LineContinuationBetweenXmlAndDot()
+        => VerifyAsync(@"[|Module Program
     Sub Main()
         Dim y = <?xml version=""1.0""?><root/> _
         .ToString()
@@ -799,12 +700,10 @@ End Module|]", @"Module Program
         .ToString()
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545545")]
-    public async Task LineContinuationBetweenXmlAndDot1()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task LineContinuationBetweenXmlAndDot1()
+        => VerifyAsync(@"[|Module Program
     Sub Main()
         Dim x = <x/>.. _
             .<x>
@@ -815,12 +714,10 @@ End Module|]", @"Module Program
             .<x>
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545565")]
-    public async Task LineContinuationBeforeFromQueryExpression()
-    {
-        await VerifyAsync(@"[|Class C
+    public Task LineContinuationBeforeFromQueryExpression()
+        => VerifyAsync(@"[|Class C
     Sub Main()
         Call _
         From x In """" Distinct.ToString()
@@ -831,12 +728,10 @@ End Class|]", @"Class C
         From x In """" Distinct.ToString()
     End Sub
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545565")]
-    public async Task LineContinuationBeforeFromAggregateExpression()
-    {
-        await VerifyAsync(@"[|Class C
+    public Task LineContinuationBeforeFromAggregateExpression()
+        => VerifyAsync(@"[|Class C
     Sub Main()
         Call _
             Aggregate x In {1} Into Count().ToString()
@@ -847,12 +742,10 @@ End Class|]", @"Class C
             Aggregate x In {1} Into Count().ToString()
     End Sub
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530635")]
-    public async Task LineContinuationAtEndOfLambdaExpression1()
-    {
-        await VerifyAsync(@"[|Interface I
+    public Task LineContinuationAtEndOfLambdaExpression1()
+        => VerifyAsync(@"[|Interface I
     Property A As Action
 End Interface
  
@@ -869,12 +762,10 @@ Class C
     Property A As Action = Sub() Return _
     Implements I.A
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530635")]
-    public async Task LineContinuationAtEndOfLambdaExpression2()
-    {
-        await VerifyAsync(@"[|Interface I
+    public Task LineContinuationAtEndOfLambdaExpression2()
+        => VerifyAsync(@"[|Interface I
     Property A As Action
 End Interface
  
@@ -895,36 +786,30 @@ Class C
                            End Sub _
     Implements I.A
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546798")]
-    public async Task LineContinuationAfterDot()
-    {
-        await VerifyAsync(CreateMethod(@"[|
+    public Task LineContinuationAfterDot()
+        => VerifyAsync(CreateMethod(@"[|
         System.Diagnostics. _
             Debug.Assert(True)|]"), CreateMethod(@"
         System.Diagnostics.
             Debug.Assert(True)"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530621")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-    public async Task DoNotRemoveLineContinuationAfterColonInSingleLineIfStatement()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task DoNotRemoveLineContinuationAfterColonInSingleLineIfStatement()
+        => VerifyAsync(@"[|Module Program
     Dim x = Sub() If True Then Dim y : _
                                Exit Sub
 End Module|]", @"Module Program
     Dim x = Sub() If True Then Dim y : _
                                Exit Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-    public async Task DoNotRemoveLineContinuationInSingleLineIfStatement()
-    {
-        await VerifyAsync(@"[|
+    public Task DoNotRemoveLineContinuationInSingleLineIfStatement()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main()
         ' Single Line If with explicit line continuations
@@ -945,13 +830,11 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-    public async Task DoNotRemoveLineContinuationInNestedSingleLineIfStatement()
-    {
-        await VerifyAsync(@"[|
+    public Task DoNotRemoveLineContinuationInNestedSingleLineIfStatement()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main()
         ' Nested Single Line If with explicit line continuations
@@ -1000,12 +883,10 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-    public async Task DoNotRemoveLineContinuationInStringInterpolation1()
-    {
-        await VerifyAsync(@"[|
+    public Task DoNotRemoveLineContinuationInStringInterpolation1()
+        => VerifyAsync(@"[|
 Module Program
     Dim x = $""{ _
             1}""
@@ -1016,12 +897,10 @@ Module Program
             1}""
 End Module
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-    public async Task DoNotRemoveLineContinuationInStringInterpolation2()
-    {
-        await VerifyAsync(@"[|
+    public Task DoNotRemoveLineContinuationInStringInterpolation2()
+        => VerifyAsync(@"[|
 Module Program
     Dim x = $""{1 _
                }""
@@ -1032,12 +911,10 @@ Module Program
                }""
 End Module
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-    public async Task DoNotRemoveLineContinuationInStringInterpolation3()
-    {
-        await VerifyAsync(@"[|
+    public Task DoNotRemoveLineContinuationInStringInterpolation3()
+        => VerifyAsync(@"[|
 Module Program
     Dim x = $""{ _
 
@@ -1054,15 +931,13 @@ Module Program
 }""
 End Module
 ");
-    }
 
     [Theory]
     [InlineData("_")]
     [InlineData("_ ' Comment")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
-    public async Task LineContinuationInString1(string continuation)
-    {
-        await VerifyAsync($@"[|
+    public Task LineContinuationInString1(string continuation)
+        => VerifyAsync($@"[|
 Module Program
     Dim x = ""1"" {continuation}
             & ""2"" {continuation}
@@ -1075,12 +950,10 @@ Module Program
             & ""3""
 End Module
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
-    public async Task LineContinuationInString2()
-    {
-        await VerifyAsync($@"[|
+    public Task LineContinuationInString2()
+        => VerifyAsync($@"[|
 Module Program
     Dim x = ""1"" & _
             ""2"" & _
@@ -1093,12 +966,10 @@ Module Program
             ""3""
 End Module
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69696")]
-    public async Task LineContinuationInString3()
-    {
-        await VerifyAsync($@"[|
+    public Task LineContinuationInString3()
+        => VerifyAsync($@"[|
 Module Program
     Dim x = ""1"" & ' Comment
             ""2"" & ' Comment
@@ -1111,12 +982,10 @@ Module Program
             ""3""
 End Module
 ");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
-    public async Task DoNotRemoveLineContinuationInVisualBasic9()
-    {
-        await VerifyAsync(@"[|
+    public Task DoNotRemoveLineContinuationInVisualBasic9()
+        => VerifyAsync(@"[|
 Module Program
     Function Add( _
         i As Integer, _
@@ -1137,7 +1006,6 @@ Module Program
     End Function
 End Module
 ", langVersion: LanguageVersion.VisualBasic9);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
     public async Task RemoveLineContinuationInVisualBasic10_11_12_And_14()

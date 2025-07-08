@@ -1896,9 +1896,8 @@ parseOptions: TestOptions.Regular);
             """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionCall()
-    {
-        await TestExactActionSetOfferedAsync("""
+    public Task ExtractLocalFunctionCall()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main()
@@ -1908,7 +1907,6 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, [FeaturesResources.Extract_local_function]);
-    }
 
     [Fact]
     public Task ExtractLocalFunctionCall_2()
@@ -1938,9 +1936,8 @@ parseOptions: TestOptions.Regular);
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionCallWithCapture()
-    {
-        await TestExactActionSetOfferedAsync("""
+    public Task ExtractLocalFunctionCallWithCapture()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main(string[] args)
@@ -1950,7 +1947,6 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, [FeaturesResources.Extract_local_function]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
     public Task ExtractLocalFunctionDeclaration()
@@ -3727,9 +3723,8 @@ class Program
             """);
 
     [Fact]
-    public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
-    {
-        await TestExactActionSetOfferedAsync("""
+    public Task TestMissingWhenOnlyLocalFunctionCallSelected()
+        => TestExactActionSetOfferedAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3741,7 +3736,6 @@ class Program
                 }
             }
             """, [FeaturesResources.Extract_local_function]);
-    }
 
     [Fact]
     public Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
@@ -4164,9 +4158,8 @@ class Program
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
+        => TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4205,12 +4198,10 @@ class Program
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
+        => TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4252,7 +4243,6 @@ class Program
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply()
@@ -4355,9 +4345,8 @@ class Program
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
-    public async Task TestOnInvalidUsingStatement_MultipleStatements()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestOnInvalidUsingStatement_MultipleStatements()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 void M()
@@ -4381,7 +4370,6 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
     public Task TestMissingOnInvalidUsingStatement()

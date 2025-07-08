@@ -66,9 +66,8 @@ End Module", "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signatu
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/60253")]
-        public async Task TestReferenceAssembly(bool signaturesOnly)
-        {
-            await GenerateAndVerifySourceAsync(@"
+        public Task TestReferenceAssembly(bool signaturesOnly)
+            => GenerateAndVerifySourceAsync(@"
 <Assembly: System.Runtime.CompilerServices.ReferenceAssembly>
 Module M
     Public Class D
@@ -82,7 +81,6 @@ Friend Module M
         Public Sub New()
     End Class
 End Module", signaturesOnly: signaturesOnly);
-        }
 
         // This test depends on the version of mscorlib used by the TestWorkspace and may 
         // change in the future

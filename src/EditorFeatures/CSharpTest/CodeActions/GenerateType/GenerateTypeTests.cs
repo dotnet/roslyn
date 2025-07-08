@@ -5141,9 +5141,8 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")]
-    public async Task TestGenerateTypeOutsideCurrentProject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestGenerateTypeOutsideCurrentProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                                     <ProjectReference>Assembly2</ProjectReference>
@@ -5180,12 +5179,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-    public async Task TestGenerateTypeInFolderNotDefaultNamespace_0()
-    {
-        await TestAddDocumentInRegularAndScriptAsync("""
+    public Task TestGenerateTypeInFolderNotDefaultNamespace_0()
+        => TestAddDocumentInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DefaultNamespace = "Namespace1.Namespace2">
                                     <Document FilePath="Test1.cs">
@@ -5209,12 +5206,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: [],
             expectedDocumentName: "ClassB.cs");
-    }
 
     [WpfFact]
-    public async Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
-    {
-        await TestAddDocumentInRegularAndScriptAsync("""
+    public Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
+        => TestAddDocumentInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DefaultNamespace = "Namespace1.Namespace2">
                                     <Document FilePath="Test1.cs">
@@ -5239,12 +5234,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             new TestParameters(
                 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
                 options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
-    }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
-    public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
-    {
-        await TestAddDocumentInRegularAndScriptAsync("""
+    public Task TestGenerateTypeInFolderNotDefaultNamespace_1()
+        => TestAddDocumentInRegularAndScriptAsync("""
             <Workspace>
                                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" DefaultNamespace = "Namespace1.Namespace2" >
                                     <Document FilePath="Test1.cs" Folders="Namespace1\Namespace2">
@@ -5268,23 +5261,19 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             """,
             expectedContainers: ["Namespace1", "Namespace2"],
             expectedDocumentName: "ClassB.cs");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/612700")]
-    public async Task TestGenerateTypeWithNoBraces()
-    {
-        await TestInRegularAndScriptAsync(@"class Test : [|Base|]", """
+    public Task TestGenerateTypeWithNoBraces()
+        => TestInRegularAndScriptAsync(@"class Test : [|Base|]", """
             class Test : Base
             internal class Base
             {
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-    public async Task TestWithProperties1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithProperties1()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5320,12 +5309,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public DateTime Age { get; set; }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-    public async Task TestWithProperties2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithProperties2()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5361,12 +5348,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public DateTime Age { get; set; }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/940003")]
-    public async Task TestWithProperties3()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithProperties3()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5402,12 +5387,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public DateTime Age { get; set; }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1082031")]
-    public async Task TestWithProperties4()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithProperties4()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -5434,12 +5417,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 public DateTime Age { get; set; }
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-    public async Task TestWithNameOf()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithNameOf()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -5460,12 +5441,10 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
             {
             }
             """, index: 1);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032176"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073099")]
-    public async Task TestWithNameOf2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestWithNameOf2()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M()
@@ -5486,7 +5465,6 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestWithUsingStatic()

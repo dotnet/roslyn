@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
     public class ConcatenationAllocationAnalyzerTests
     {
         [Fact]
-        public async Task ConcatenationAllocation_Basic1Async()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task ConcatenationAllocation_Basic1Async()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -28,12 +27,10 @@ public class MyClass
         string s0 = ""hello"" + 0.ToString() + ""world"" + 1.ToString();
     }
 }");
-        }
 
         [Fact]
-        public async Task ConcatenationAllocation_Basic2Async()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task ConcatenationAllocation_Basic2Async()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -47,17 +44,14 @@ public class MyClass
                 // Test0.cs(9,21): warning HAA0201: Considering using StringBuilder
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ConcatenationAllocationAnalyzer.StringConcatenationAllocationRule).WithLocation(9, 21));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Theory]
         [InlineData("string s0 = nameof(System.String) + '-';")]
         [InlineData("string s0 = nameof(System.String) + true;")]
         [InlineData("string s0 = nameof(System.String) + new System.IntPtr();")]
         [InlineData("string s0 = nameof(System.String) + new System.UIntPtr();")]
-        public async Task ConcatenationAllocation_DoNotWarnForOptimizedValueTypesAsync(string statement)
-        {
-            await VerifyCS.VerifyAnalyzerAsync($@"using System;
+        public Task ConcatenationAllocation_DoNotWarnForOptimizedValueTypesAsync(string statement)
+            => VerifyCS.VerifyAnalyzerAsync($@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -68,16 +62,14 @@ public class MyClass
         {statement}
     }}
 }}");
-        }
 
         [Theory]
         [InlineData(@"const string s0 = nameof(System.String) + ""."" + nameof(System.String);")]
         [InlineData(@"const string s0 = nameof(System.String) + ""."";")]
         [InlineData(@"string s0 = nameof(System.String) + ""."" + nameof(System.String);")]
         [InlineData(@"string s0 = nameof(System.String) + ""."";")]
-        public async Task ConcatenationAllocation_DoNotWarnForConstAsync(string statement)
-        {
-            await VerifyCS.VerifyAnalyzerAsync($@"using System;
+        public Task ConcatenationAllocation_DoNotWarnForConstAsync(string statement)
+            => VerifyCS.VerifyAnalyzerAsync($@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -88,13 +80,11 @@ public class MyClass
         {statement}
     }}
 }}");
-        }
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Non_constant_value_types_in_CSharp_string_concatenationAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task Non_constant_value_types_in_CSharp_string_concatenationAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -110,7 +100,5 @@ public class MyClass
                 // Test0.cs(11,45): warning HAA0202: Value type (System.DateTime) is being boxed to a reference type for a string concatenation.
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ConcatenationAllocationAnalyzer.ValueTypeToReferenceTypeInAStringConcatenationRule).WithLocation(11, 45).WithArguments("System.DateTime"));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
     }
 }

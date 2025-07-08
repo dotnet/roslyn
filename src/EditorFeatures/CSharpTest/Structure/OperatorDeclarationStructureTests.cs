@@ -17,9 +17,8 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
     internal override AbstractSyntaxStructureProvider CreateProvider() => new OperatorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestOperator1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -28,12 +27,10 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -45,12 +42,10 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -63,12 +58,10 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator4()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator4()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -80,12 +73,10 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator5()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator5()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static int operator +(int i){|textspan:
@@ -97,12 +88,10 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperatorWithLeadingComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperatorWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -114,5 +103,4 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

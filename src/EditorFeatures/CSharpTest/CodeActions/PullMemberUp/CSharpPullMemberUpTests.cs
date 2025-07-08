@@ -59,9 +59,8 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
     }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenNoOptionsService()
-    {
-        await TestActionCountAsync(@"
+    public Task TestNoRefactoringProvidedWhenNoOptionsService()
+        => TestActionCountAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -77,12 +76,10 @@ namespace PushUpTest
         }
     }
 }", 0);
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenPullFieldInInterfaceViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenPullFieldInInterfaceViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 namespace PushUpTest
 {
     public interface ITestInterface
@@ -94,12 +91,10 @@ namespace PushUpTest
         public int yo[||]u = 10086;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenMethodDeclarationAlreadyExistsInInterfaceViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenMethodDeclarationAlreadyExistsInInterfaceViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 namespace PushUpTest
 {
     public interface ITestInterface
@@ -115,12 +110,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenPropertyDeclarationAlreadyExistsInInterfaceViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenPropertyDeclarationAlreadyExistsInInterfaceViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -134,12 +127,10 @@ namespace PushUpTest
         public int TestPr[||]operty { get; private set; }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenEventDeclarationAlreadyExistsToInterfaceViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenEventDeclarationAlreadyExistsToInterfaceViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -153,12 +144,10 @@ namespace PushUpTest
         public event EventHandler Event1, Eve[||]nt2, Event3;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedInNestedTypesViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedInNestedTypesViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 namespace PushUpTest
 {
     public interface ITestInterface
@@ -173,12 +162,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullMethodUpToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodUpToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -210,12 +197,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullAbstractMethodToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullAbstractMethodToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public interface IInterface
@@ -239,12 +224,10 @@ namespace PushUpTest
         public abstract void TestMethod();
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullGenericsUpToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullGenericsUpToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -274,12 +257,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullSingleEventToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullSingleEventToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -325,12 +306,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullOneEventFromMultipleEventsToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullOneEventFromMultipleEventsToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -356,12 +335,10 @@ namespace PushUpTest
         public event EventHandler Event1, Event2, Event3;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullPublicEventWithAccessorsToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPublicEventWithAccessorsToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -407,12 +384,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullPropertyWithPrivateSetterToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyWithPrivateSetterToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -438,12 +413,10 @@ namespace PushUpTest
         public int TestProperty { get; private set; }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullPropertyWithPrivateGetterToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyWithPrivateGetterToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -469,12 +442,10 @@ namespace PushUpTest
         public int TestProperty{ private get; set; }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullMemberFromInterfaceToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMemberFromInterfaceToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -499,12 +470,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullIndexerWithOnlySetterToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullIndexerWithOnlySetterToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -538,12 +507,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullIndexerWithOnlyGetterToInterfaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullIndexerWithOnlyGetterToInterfaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -577,12 +544,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullPropertyToInterfaceWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyToInterfaceWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -622,12 +587,10 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToInterfaceWithoutAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToInterfaceWithoutAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -675,12 +638,10 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodWithNewReturnTypeToInterfaceWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodWithNewReturnTypeToInterfaceWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -726,12 +687,10 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodWithNewParamTypeToInterfaceWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodWithNewParamTypeToInterfaceWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -779,12 +738,10 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullEventToInterfaceWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullEventToInterfaceWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -844,12 +801,10 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -887,12 +842,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyToClassWithAddUsingsViaQuickAction2()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">public class Base
@@ -929,12 +882,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullPropertyToClassWithoutDuplicatingUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyToClassWithoutDuplicatingUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -975,12 +926,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullPropertyWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1034,12 +983,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodWithNewNonDeclaredBodyTypeToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodWithNewNonDeclaredBodyTypeToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1083,12 +1030,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithOverlappingUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithOverlappingUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1152,12 +1097,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithUnnecessaryFirstUsingViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithUnnecessaryFirstUsingViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1217,12 +1160,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithUnusedBaseUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithUnusedBaseUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1274,12 +1215,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithRetainCommentsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithRetainCommentsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1326,12 +1265,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithRetainPreImportCommentsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithRetainPreImportCommentsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1375,12 +1312,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithRetainPostImportCommentsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithRetainPostImportCommentsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1424,12 +1359,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithLambdaUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithLambdaUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1480,12 +1413,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithUnusedUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithUnusedUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1537,12 +1468,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassKeepSystemFirstViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1612,12 +1541,10 @@ namespace A_TestNs2
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassKeepSystemFirstViaQuickAction2()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1686,12 +1613,10 @@ namespace A_TestNs2
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithExtensionViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithExtensionViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1773,12 +1698,10 @@ namespace TestNs2
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithExtensionViaQuickAction2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithExtensionViaQuickAction2()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1885,12 +1808,10 @@ namespace TestNs4
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithAliasUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithAliasUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1943,12 +1864,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullPropertyToClassWithBaseAliasUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyToClassWithBaseAliasUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -1998,12 +1917,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithMultipleNamespacedUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithMultipleNamespacedUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace TestNs1
 {
     using System;
@@ -2051,12 +1968,10 @@ namespace TestNs2
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithNestedNamespacedUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithNestedNamespacedUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace TestNs1
 {
     namespace InnerNs1
@@ -2133,12 +2048,10 @@ namespace TestNs2
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithNewNamespaceUsingViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithNewNamespaceUsingViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2192,12 +2105,10 @@ namespace X.Y
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithFileNamespaceUsingViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithFileNamespaceUsingViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2245,12 +2156,10 @@ class Other
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithUnusedNamespaceUsingViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithUnusedNamespaceUsingViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2303,12 +2212,10 @@ namespace X.Y
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithMultipleNamespacesAndCommentsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithMultipleNamespacesAndCommentsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 // comment 1
 
 namespace TestNs1
@@ -2361,12 +2268,10 @@ namespace TestNs2
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithMultipleNamespacedUsingsAndCommentsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithMultipleNamespacedUsingsAndCommentsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 // comment 1
 
 namespace TestNs1
@@ -2422,12 +2327,10 @@ namespace TestNs2
     }
 }
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithNamespacedUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithNamespacedUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2489,12 +2392,10 @@ namespace ClassLibrary1
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodToClassWithDuplicateNamespacedUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToClassWithDuplicateNamespacedUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2558,12 +2459,10 @@ namespace ClassLibrary1
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodWithNewReturnTypeToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodWithNewReturnTypeToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2607,12 +2506,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodWithNewParamTypeToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodWithNewParamTypeToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2658,12 +2555,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullMethodWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2711,12 +2606,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullEventToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullEventToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2774,12 +2667,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullFieldToClassWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullFieldToClassWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2817,12 +2708,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46010")]
-    public async Task TestPullFieldToClassNoConstructorWithAddUsingsViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullFieldToClassNoConstructorWithAddUsingsViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
@@ -2860,12 +2749,10 @@ public class Derived : Base
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenPullOverrideMethodUpToClassViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenPullOverrideMethodUpToClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -2881,12 +2768,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenPullOverridePropertyUpToClassViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenPullOverridePropertyUpToClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -2900,12 +2785,10 @@ namespace PushUpTest
         public override int TestPr[||]operty { get; private set; }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenPullOverrideEventUpToClassViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenPullOverrideEventUpToClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -2940,14 +2823,10 @@ namespace PushUpTest
         };
     }
 }");
-    }
 
     [Fact]
-    public async Task TestNoRefactoringProvidedWhenPullSameNameFieldUpToClassViaQuickAction()
-    {
-        // Fields share the same name will be thought as 'override', since it will cause error
-        // if two same name fields exist in one class
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestNoRefactoringProvidedWhenPullSameNameFieldUpToClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -2960,12 +2839,10 @@ namespace PushUpTest
         public int y[||]ou = 10086;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullMethodToOrdinaryClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodToOrdinaryClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -2994,12 +2871,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullOneFieldsToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullOneFieldsToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -3022,12 +2897,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullGenericsUpToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullGenericsUpToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -3056,12 +2929,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullOneFieldFromMultipleFieldsToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullOneFieldFromMultipleFieldsToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -3085,12 +2956,10 @@ namespace PushUpTest
         public int you, someone = 10086;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullMiddleFieldWithValueToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMiddleFieldWithValueToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -3114,12 +2983,10 @@ namespace PushUpTest
         public int you, someone = 10086;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullOneEventFromMultipleToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullOneEventFromMultipleToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -3147,12 +3014,10 @@ namespace PushUpTest
         private static event EventHandler Event1, Event4;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullEventToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullEventToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -3179,12 +3044,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullEventWithBodyToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullEventWithBodyToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -3231,12 +3094,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullPropertyToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -3261,12 +3122,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullIndexerToClassViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullIndexerToClassViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class Base 
@@ -3299,12 +3158,10 @@ namespace PushUpTest
         private int j;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestPullMethodUpAcrossProjectViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullMethodUpAcrossProjectViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
         <ProjectReference>CSAssembly2</ProjectReference>
@@ -3356,12 +3213,10 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task TestPullPropertyUpAcrossProjectViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyUpAcrossProjectViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
         <ProjectReference>CSAssembly2</ProjectReference>
@@ -3415,12 +3270,10 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task TestPullFieldUpAcrossProjectViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullFieldUpAcrossProjectViaQuickAction()
+        => TestWithPullMemberDialogAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly1"" CommonReferences=""true"">
         <ProjectReference>CSAssembly2</ProjectReference>
@@ -3466,14 +3319,10 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task TestPullMethodUpToVBClassViaQuickAction()
-    {
-        // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in
-        // AbstractCodeGenerationService will return null.
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestPullMethodUpToVBClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <ProjectReference>VBAssembly</ProjectReference>
@@ -3495,12 +3344,10 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task TestPullMethodUpToVBInterfaceViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestPullMethodUpToVBInterfaceViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
     <ProjectReference>VBAssembly</ProjectReference>
@@ -3522,12 +3369,10 @@ namespace Destination
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact]
-    public async Task TestPullFieldUpToVBClassViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestPullFieldUpToVBClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <ProjectReference>VBAssembly</ProjectReference>
@@ -3546,12 +3391,10 @@ namespace Destination
     </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task TestPullPropertyUpToVBClassViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestPullPropertyUpToVBClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 <Workspace>
   <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
     <ProjectReference>VBAssembly</ProjectReference>
@@ -3574,12 +3417,10 @@ public class TestClass : VBClass
   </Project>
 </Workspace>
 ");
-    }
 
     [Fact]
-    public async Task TestPullPropertyUpToVBInterfaceViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"<Workspace>
+    public Task TestPullPropertyUpToVBInterfaceViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <ProjectReference>VBAssembly</ProjectReference>
         <Document>
@@ -3601,12 +3442,10 @@ public class TestClass : VBInterface
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task TestPullEventUpToVBClassViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestPullEventUpToVBClassViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <ProjectReference>VBAssembly</ProjectReference>
@@ -3625,12 +3464,10 @@ public class TestClass : VBInterface
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task TestPullEventUpToVBInterfaceViaQuickAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestPullEventUpToVBInterfaceViaQuickAction()
+        => TestQuickActionNotProvidedAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
     <ProjectReference>VBAssembly</ProjectReference>
@@ -3649,12 +3486,10 @@ public class TestClass : VBInterface
     </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
-    public async Task TestPullMethodWithToClassWithAddUsingsInsideNamespaceViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(
+    public Task TestPullMethodWithToClassWithAddUsingsInsideNamespaceViaQuickAction()
+        => TestWithPullMemberDialogAsync(
             @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
@@ -3714,12 +3549,10 @@ namespace N
 </Workspace>
 ",
             options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
-    public async Task TestPullMethodWithToClassWithAddUsingsSystemUsingsLastViaQuickAction()
-    {
-        await TestWithPullMemberDialogAsync(
+    public Task TestPullMethodWithToClassWithAddUsingsSystemUsingsLastViaQuickAction()
+        => TestWithPullMemberDialogAsync(
             @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
@@ -3804,7 +3637,6 @@ namespace N2
             {
                 { GenerationOptions.PlaceSystemNamespaceFirst, false },
             });
-    }
 
     [Fact, WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
     public Task TestPullMethodToClassWithDirective()
@@ -4077,9 +3909,8 @@ public class Bar : BaseClass
     }
 
     [Fact]
-    public async Task PullPartialMethodUpToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullPartialMethodUpToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4125,12 +3956,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task PullExtendedPartialMethodUpToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullExtendedPartialMethodUpToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4176,12 +4005,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task PullMultipleNonPublicMethodsToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullMultipleNonPublicMethodsToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4231,12 +4058,10 @@ namespace PushUpTest
         {}
     }
 }");
-    }
 
     [Fact]
-    public async Task PullMultipleNonPublicEventsToInterface()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullMultipleNonPublicEventsToInterface()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4266,12 +4091,10 @@ namespace PushUpTest
         public event EventHandler Event3;
     }
 }");
-    }
 
     [Fact]
-    public async Task PullMethodToInnerInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullMethodToInnerInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4299,12 +4122,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task PullDifferentMembersFromClassToPartialInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullDifferentMembersFromClassToPartialInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4370,12 +4191,10 @@ namespace PushUpTest
     {
     }
 }", index: 1);
-    }
 
     [Fact]
-    public async Task TestPullAsyncMethod()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullAsyncMethod()
+        => TestWithPullMemberDialogAsync(@"
 using System.Threading.Tasks;
 
 internal interface IPullUp { }
@@ -4401,12 +4220,10 @@ internal class PullUp : IPullUp
         await Task.Delay(1000);
     }
 }");
-    }
 
     [Fact]
-    public async Task PullMethodWithAbstractOptionToClassViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullMethodWithAbstractOptionToClassViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -4436,12 +4253,10 @@ namespace PushUpTest
         }
     }
 }", [("TestMethod", true)], index: 1);
-    }
 
     [Fact]
-    public async Task PullAbstractMethodToClassViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullAbstractMethodToClassViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class Base
@@ -4464,12 +4279,10 @@ namespace PushUpTest
     {
     }
 }", [("TestMethod", true)], index: 0);
-    }
 
     [Fact]
-    public async Task PullMultipleEventsToClassViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullMultipleEventsToClassViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4496,12 +4309,10 @@ namespace PushUpTest
     {
     }
 }", index: 1);
-    }
 
     [Fact]
-    public async Task PullMultipleAbstractEventsToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullMultipleAbstractEventsToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4531,12 +4342,10 @@ namespace PushUpTest
         public abstract event EventHandler Event4;
     }
 }");
-    }
 
     [Fact]
-    public async Task PullAbstractEventToClassViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullAbstractEventToClassViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4562,12 +4371,10 @@ namespace PushUpTest
         private static abstract event EventHandler Event1, Event4;
     }
 }", [("Event3", false)]);
-    }
 
     [Fact]
-    public async Task PullNonPublicEventToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullNonPublicEventToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4593,12 +4400,10 @@ namespace PushUpTest
         public event EventHandler Event3;
     }
 }", [("Event3", false)]);
-    }
 
     [Fact]
-    public async Task PullSingleNonPublicEventToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullSingleNonPublicEventToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4624,12 +4429,10 @@ namespace PushUpTest
         public event EventHandler Event3;
     }
 }", [("Event3", false)]);
-    }
 
     [Fact]
-    public async Task TestPullNonPublicEventWithAddAndRemoveMethodToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullNonPublicEventWithAddAndRemoveMethodToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4675,12 +4478,10 @@ namespace PushUpTest
         }
     }
 }", [("Event1", false)]);
-    }
 
     [Fact]
-    public async Task PullFieldsToClassViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullFieldsToClassViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4707,12 +4508,10 @@ namespace PushUpTest
     {
     }
 }", index: 1);
-    }
 
     [Fact]
-    public async Task PullNonPublicPropertyWithArrowToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullNonPublicPropertyWithArrowToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4738,12 +4537,10 @@ namespace PushUpTest
         public readonly double TestProperty => 2.717;
     }
 }");
-    }
 
     [Fact]
-    public async Task PullNonPublicPropertyToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullNonPublicPropertyToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4777,12 +4574,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task PullNonPublicPropertyWithSingleAccessorToInterfaceViaDialog()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullNonPublicPropertyWithSingleAccessorToInterfaceViaDialog()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4814,12 +4609,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34268")]
-    public async Task TestPullPropertyToAbstractClassViaDialogWithMakeAbstractOption()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullPropertyToAbstractClassViaDialogWithMakeAbstractOption()
+        => TestWithPullMemberDialogAsync(@"
 abstract class B
 {
 }
@@ -4837,12 +4630,10 @@ class D : B
 {
     override int X => 7;
 }", selection: [("X", true)], index: 1);
-    }
 
     [Fact]
-    public async Task PullEventUpToAbstractClassViaDialogWithMakeAbstractOption()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task PullEventUpToAbstractClassViaDialogWithMakeAbstractOption()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4870,12 +4661,10 @@ namespace PushUpTest
         private event EventHandler Event4;
     }
 }", selection: [("Event3", true)], index: 1);
-    }
 
     [Fact]
-    public async Task TestPullEventWithAddAndRemoveMethodToClassViaDialogWithMakeAbstractOption()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestPullEventWithAddAndRemoveMethodToClassViaDialogWithMakeAbstractOption()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 namespace PushUpTest
 {
@@ -4921,15 +4710,13 @@ namespace PushUpTest
         }
     }
 }", [("Event1", true)], index: 1);
-    }
 
     #endregion Dialog
 
     #region Selections and caret position
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestArgsIsPartOfHeader()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestArgsIsPartOfHeader()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -4968,12 +4755,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringCaretBeforeAttributes()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringCaretBeforeAttributes()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5012,12 +4797,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMissingRefactoringCaretBetweenAttributes()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestMissingRefactoringCaretBetweenAttributes()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5037,12 +4820,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringSelectionWithAttributes1()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionWithAttributes1()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5077,12 +4858,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringSelectionWithAttributes2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionWithAttributes2()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5117,12 +4896,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringSelectionWithAttributes3()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionWithAttributes3()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5158,12 +4935,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMissingRefactoringInAttributeList()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestMissingRefactoringInAttributeList()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5181,12 +4956,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMissingRefactoringSelectionAttributeList()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestMissingRefactoringSelectionAttributeList()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5206,12 +4979,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMissingRefactoringCaretInAttributeList()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestMissingRefactoringCaretInAttributeList()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5231,12 +5002,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMissingRefactoringCaretBetweenAttributeLists()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestMissingRefactoringCaretBetweenAttributeLists()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5256,12 +5025,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMissingRefactoringSelectionAttributeList2()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestMissingRefactoringSelectionAttributeList2()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5281,12 +5048,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestMissingRefactoringSelectAttributeList()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestMissingRefactoringSelectAttributeList()
+        => TestQuickActionNotProvidedAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5304,12 +5069,10 @@ namespace PushUpTest
         }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringCaretLocAfterAttributes1()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringCaretLocAfterAttributes1()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5344,12 +5107,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringCaretLocAfterAttributes2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringCaretLocAfterAttributes2()
+        => TestWithPullMemberDialogAsync(@"
 using System;
 
 namespace PushUpTest
@@ -5392,12 +5153,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringCaretLoc1()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringCaretLoc1()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class A
@@ -5424,12 +5183,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringSelection()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelection()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class A
@@ -5456,12 +5213,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringSelectionComments()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionComments()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class A
@@ -5490,12 +5245,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringSelectionComments2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionComments2()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class A
@@ -5528,12 +5281,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35180")]
-    public async Task TestRefactoringSelectionComments3()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionComments3()
+        => TestWithPullMemberDialogAsync(@"
 namespace PushUpTest
 {
     public class A
@@ -5566,12 +5317,10 @@ namespace PushUpTest
     {
     }
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionFieldKeyword1_NoAction()
-    {
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestRefactoringSelectionFieldKeyword1_NoAction()
+        => TestQuickActionNotProvidedAsync(@"
 public class BaseClass
 {
 }
@@ -5580,12 +5329,10 @@ public class Bar : BaseClass
 {
     pub[|l|]ic int Goo = 10;
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionFieldKeyword2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionFieldKeyword2()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5602,12 +5349,10 @@ public class BaseClass
 public class Bar : BaseClass
 {
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionFieldAfterSemicolon()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionFieldAfterSemicolon()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5624,12 +5369,10 @@ public class BaseClass
 public class Bar : BaseClass
 {
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionFieldEntireDeclaration()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionFieldEntireDeclaration()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5646,12 +5389,10 @@ public class BaseClass
 public class Bar : BaseClass
 {
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionMultipleFieldsInDeclaration1()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionMultipleFieldsInDeclaration1()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5669,12 +5410,10 @@ public class BaseClass
 public class Bar : BaseClass
 {
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionMultipleFieldsInDeclaration2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionMultipleFieldsInDeclaration2()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5692,12 +5431,10 @@ public class Bar : BaseClass
 {
     public int Foo = 9;
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionMultipleFieldsInDeclaration3()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionMultipleFieldsInDeclaration3()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5715,12 +5452,10 @@ public class Bar : BaseClass
 {
     public int Goo = 10;
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionMultipleMembers1()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionMultipleMembers1()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5748,13 +5483,11 @@ public class BaseClass
 public class Bar : BaseClass
 {
 }");
-    }
 
     // Some of these have weird whitespace spacing that might suggest a bug
     [Fact]
-    public async Task TestRefactoringSelectionMultipleMembers2()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionMultipleMembers2()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5786,12 +5519,10 @@ public class Bar : BaseClass
         return 5;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionMultipleMembers3()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionMultipleMembers3()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5821,12 +5552,10 @@ public class Bar : BaseClass
 {
     public int Foo = 9;
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionMultipleMembers4()
-    {
-        await TestWithPullMemberDialogAsync(@"
+    public Task TestRefactoringSelectionMultipleMembers4()
+        => TestWithPullMemberDialogAsync(@"
 public class BaseClass
 {
 }
@@ -5858,13 +5587,10 @@ public class Bar : BaseClass
         return 5;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionIncompleteField_NoAction1()
-    {
-        // we expect a diagnostic/error, but also we shouldn't provide the refactoring
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestRefactoringSelectionIncompleteField_NoAction1()
+        => TestQuickActionNotProvidedAsync(@"
 public class BaseClass
 {
 }
@@ -5873,13 +5599,10 @@ public class Bar : BaseClass
 {
     publ[||] int Goo = 10;
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionIncompleteField_NoAction2()
-    {
-        // we expect a diagnostic/error, but also we shouldn't provide the refactoring
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestRefactoringSelectionIncompleteField_NoAction2()
+        => TestQuickActionNotProvidedAsync(@"
 public class BaseClass
 {
 }
@@ -5888,13 +5611,10 @@ public class Bar : BaseClass
 {
     [|publicc int Goo = 10;|]
 }");
-    }
 
     [Fact]
-    public async Task TestRefactoringSelectionIncompleteMethod_NoAction()
-    {
-        // we expect a diagnostic/error, but also we shouldn't provide the refactoring
-        await TestQuickActionNotProvidedAsync(@"
+    public Task TestRefactoringSelectionIncompleteMethod_NoAction()
+        => TestQuickActionNotProvidedAsync(@"
 public class BaseClass
 {
 }
@@ -5905,6 +5625,5 @@ public class Bar : BaseClass
         return 5;
     }
 }");
-    }
     #endregion
 }

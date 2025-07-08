@@ -357,21 +357,18 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription("class System.Console"));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
-    public async Task TestDocumentationInUsingDirectiveWithAlias()
-    {
-        await TestAsync("""
+    public Task TestDocumentationInUsingDirectiveWithAlias()
+        => TestAsync("""
             using I$$ = IGoo;
             ///<summary>summary for interface IGoo</summary>
             interface IGoo {  }
             """,
             MainDescription("interface IGoo"),
             Documentation("summary for interface IGoo"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
-    public async Task TestDocumentationInUsingDirectiveWithAlias2()
-    {
-        await TestAsync("""
+    public Task TestDocumentationInUsingDirectiveWithAlias2()
+        => TestAsync("""
             using I = IGoo;
             ///<summary>summary for interface IGoo</summary>
             interface IGoo {  }
@@ -379,12 +376,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription("interface IGoo"),
             Documentation("summary for interface IGoo"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
-    public async Task TestDocumentationInUsingDirectiveWithAlias3()
-    {
-        await TestAsync("""
+    public Task TestDocumentationInUsingDirectiveWithAlias3()
+        => TestAsync("""
             using I = IGoo;
             ///<summary>summary for interface IGoo</summary>
             interface IGoo 
@@ -395,31 +390,26 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription("interface IGoo"),
             Documentation("summary for interface IGoo"));
-    }
 
     [Fact]
-    public async Task TestThis()
-    {
-        await TestWithUsingsAsync("""
+    public Task TestThis()
+        => TestWithUsingsAsync("""
 
             ///<summary>summary for Class C</summary>
             class C { string M() {  return thi$$s.ToString(); } }
             """,
             MainDescription("class C"),
             Documentation("summary for Class C"));
-    }
 
     [Fact]
-    public async Task TestClassWithDocComment()
-    {
-        await TestAsync("""
+    public Task TestClassWithDocComment()
+        => TestAsync("""
 
             ///<summary>Hello!</summary>
             class C { void M() { $$C obj; } }
             """,
             MainDescription("class C"),
             Documentation("Hello!"));
-    }
 
     [Fact]
     public async Task TestSingleLineDocComments()
@@ -620,16 +610,14 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
     }
 
     [Fact]
-    public async Task TestMethodWithDocComment()
-    {
-        await TestInClassAsync("""
+    public Task TestMethodWithDocComment()
+        => TestInClassAsync("""
 
             ///<summary>Hello!</summary>
             void M() { M$$() }
             """,
             MainDescription("void C.M()"),
             Documentation("Hello!"));
-    }
 
     [Fact]
     public Task TestInt32()
@@ -720,9 +708,8 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 """));
 
     [Fact]
-    public async Task TestListOfSomethingFromSource()
-    {
-        await TestAsync("""
+    public Task TestListOfSomethingFromSource()
+        => TestAsync("""
 
             ///<summary>Generic List</summary>
             public class GenericList<T> { Generic$$List<int> t; }
@@ -733,7 +720,6 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
                 T {FeaturesResources.is_} int
                 """));
-    }
 
     [Fact]
     public Task TestListOfT()
@@ -808,9 +794,8 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription($"T {FeaturesResources.in_} C<T>"));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538636")]
-    public async Task TestTypeParameterWithDocComment()
-    {
-        await TestAsync("""
+    public Task TestTypeParameterWithDocComment()
+        => TestAsync("""
 
             ///<summary>Hello!</summary>
             ///<typeparam name="T">T is Type Parameter</typeparam>
@@ -818,7 +803,6 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"T {FeaturesResources.in_} C<T>"),
             Documentation("T is Type Parameter"));
-    }
 
     [Fact]
     public Task TestTypeParameter1_Bug931949()
@@ -976,21 +960,18 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription("void C.M()"));
 
     [Fact]
-    public async Task TestMethodReferenceInSameMethodWithDocComment()
-    {
-        await TestInClassAsync("""
+    public Task TestMethodReferenceInSameMethodWithDocComment()
+        => TestInClassAsync("""
 
             ///<summary>Hello World</summary>
             void M() { M$$(); }
             """,
             MainDescription("void C.M()"),
             Documentation("Hello World"));
-    }
 
     [Fact]
-    public async Task TestFieldInMethodBuiltIn()
-    {
-        await TestInClassAsync("""
+    public Task TestFieldInMethodBuiltIn()
+        => TestInClassAsync("""
             int field;
 
             void M()
@@ -999,7 +980,6 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"({FeaturesResources.field}) int C.field"));
-    }
 
     [Fact]
     public Task TestFieldInMethodBuiltIn2()
@@ -1167,31 +1147,26 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription("int int.operator >>>(int left, int right)"));
 
     [Fact]
-    public async Task TestOperatorCustomTypeBuiltIn_01()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeBuiltIn_01()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c = c +$$ c; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeBuiltIn_02()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeBuiltIn_02()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c = c >>>$$ c; }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_01()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_01()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c = c +$$ c; }
@@ -1199,12 +1174,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator +(C a, C b)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_02()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_02()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c = unchecked (c +$$ c); }
@@ -1212,12 +1185,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator +(C a, C b)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_03()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_03()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c = unchecked (c +$$ c); }
@@ -1226,12 +1197,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator +(C a, C b)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_04()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_04()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c = checked (c +$$ c); }
@@ -1240,12 +1209,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator checked +(C a, C b)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_05()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_05()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c =  $$-c; }
@@ -1253,12 +1220,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator -(C a)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_06()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_06()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c =  unchecked ($$-c); }
@@ -1266,12 +1231,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator -(C a)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_07()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_07()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c =  unchecked ($$-c); }
@@ -1280,12 +1243,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator -(C a)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_08()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_08()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c =  checked ($$-c); }
@@ -1294,12 +1255,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator checked -(C a)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_09()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_09()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c = c >>>$$ c; }
@@ -1307,12 +1266,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator >>>(C a, C b)"));
-    }
 
     [Fact]
-    public async Task TestOperatorCustomTypeOverload_10()
-    {
-        await TestAsync("""
+    public Task TestOperatorCustomTypeOverload_10()
+        => TestAsync("""
             class C
             {
                 static void M() { C c; c >>>=$$ c; }
@@ -1320,13 +1277,11 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription("C C.operator >>>(C a, C b)"));
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task TestInstanceIncrementOperators_Postfix([CombinatorialValues("++", "--")] string op)
-    {
-        await TestWithOptionsAsync(
+    public Task TestInstanceIncrementOperators_Postfix([CombinatorialValues("++", "--")] string op)
+        => TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
             $$$"""
             class C
@@ -1336,13 +1291,11 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"void C.operator {op}()"));
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task TestInstanceIncrementOperators_Postfix_Checked([CombinatorialValues("++", "--")] string op)
-    {
-        await TestWithOptionsAsync(
+    public Task TestInstanceIncrementOperators_Postfix_Checked([CombinatorialValues("++", "--")] string op)
+        => TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
             $$$"""
             class C
@@ -1352,13 +1305,11 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"void C.operator checked {op}()"));
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task TestInstanceIncrementOperators_Prefix([CombinatorialValues("++", "--")] string op)
-    {
-        await TestWithOptionsAsync(
+    public Task TestInstanceIncrementOperators_Prefix([CombinatorialValues("++", "--")] string op)
+        => TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
             $$$"""
             class C
@@ -1368,13 +1319,11 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"void C.operator {op}()"));
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task TestInstanceIncrementOperators_Prefix_Checked([CombinatorialValues("++", "--")] string op)
-    {
-        await TestWithOptionsAsync(
+    public Task TestInstanceIncrementOperators_Prefix_Checked([CombinatorialValues("++", "--")] string op)
+        => TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
             $$$"""
             class C
@@ -1384,13 +1333,11 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"void C.operator checked {op}()"));
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task TestInstanceCompoundAssignmentOperators([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
-    {
-        await TestWithOptionsAsync(
+    public Task TestInstanceCompoundAssignmentOperators([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+        => TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
             $$$"""
             class C
@@ -1400,13 +1347,11 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"void C.operator {op}(int x)"));
-    }
 
     [Theory]
     [CombinatorialData]
-    public async Task TestInstanceCompoundAssignmentOperators_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
-    {
-        await TestWithOptionsAsync(
+    public Task TestInstanceCompoundAssignmentOperators_Checked([CombinatorialValues("+=", "-=", "*=", "/=")] string op)
+        => TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.Preview),
             $$$"""
             class C
@@ -1416,12 +1361,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"void C.operator checked {op}(int x)"));
-    }
 
     [Fact]
-    public async Task TestFieldInMethodMinimal()
-    {
-        await TestInClassAsync("""
+    public Task TestFieldInMethodMinimal()
+        => TestInClassAsync("""
             DateTime field;
 
             void M()
@@ -1430,12 +1373,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"({FeaturesResources.field}) DateTime C.field"));
-    }
 
     [Fact]
-    public async Task TestFieldInMethodQualified()
-    {
-        await TestInClassAsync("""
+    public Task TestFieldInMethodQualified()
+        => TestInClassAsync("""
             System.IO.FileInfo file;
 
             void M()
@@ -1444,23 +1385,19 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"({FeaturesResources.field}) System.IO.FileInfo C.file"));
-    }
 
     [Fact]
-    public async Task TestMemberOfStructFromSource()
-    {
-        await TestAsync("""
+    public Task TestMemberOfStructFromSource()
+        => TestAsync("""
             struct MyStruct {
             public static int SomeField; }
             static class Test { int a = MyStruct.Some$$Field; }
             """,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestMemberOfStructFromSourceWithDocComment()
-    {
-        await TestAsync("""
+    public Task TestMemberOfStructFromSourceWithDocComment()
+        => TestAsync("""
             struct MyStruct {
             ///<summary>My Field</summary>
             public static int SomeField; }
@@ -1468,23 +1405,19 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
             Documentation("My Field"));
-    }
 
     [Fact]
-    public async Task TestMemberOfStructInsideMethodFromSource()
-    {
-        await TestAsync("""
+    public Task TestMemberOfStructInsideMethodFromSource()
+        => TestAsync("""
             struct MyStruct {
             public static int SomeField; }
             static class Test { static void Method() { int a = MyStruct.Some$$Field; } }
             """,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestMemberOfStructInsideMethodFromSourceWithDocComment()
-    {
-        await TestAsync("""
+    public Task TestMemberOfStructInsideMethodFromSourceWithDocComment()
+        => TestAsync("""
             struct MyStruct {
             ///<summary>My Field</summary>
             public static int SomeField; }
@@ -1492,12 +1425,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
             Documentation("My Field"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestPartialMethodDocComment_01()
-    {
-        await TestAsync("""
+    public Task TestPartialMethodDocComment_01()
+        => TestAsync("""
             partial class MyClass
             {
                 ///<summary>My Method Definition</summary>
@@ -1512,12 +1443,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"void MyClass.MyMethod()"),
             Documentation("My Method Implementation"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestPartialMethodDocComment_02()
-    {
-        await TestAsync("""
+    public Task TestPartialMethodDocComment_02()
+        => TestAsync("""
             partial class MyClass
             {
                 ///<summary>My Method Definition</summary>
@@ -1531,12 +1460,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"void MyClass.MyMethod()"),
             Documentation("My Method Definition"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestPartialMethodDocComment_03()
-    {
-        await TestAsync("""
+    public Task TestPartialMethodDocComment_03()
+        => TestAsync("""
             partial class MyClass
             {
                 public partial void MyMethod();
@@ -1550,12 +1477,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"void MyClass.MyMethod()"),
             Documentation("My Method Implementation"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestPartialMethodDocComment_04()
-    {
-        await TestAsync("""
+    public Task TestPartialMethodDocComment_04()
+        => TestAsync("""
             partial class MyClass
             {
                 ///<summary>My Method Definition</summary>
@@ -1565,12 +1490,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"void MyClass.MyMethod()"),
             Documentation("My Method Definition"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestPartialMethodDocComment_05()
-    {
-        await TestAsync("""
+    public Task TestPartialMethodDocComment_05()
+        => TestAsync("""
             partial class MyClass
             {
                 ///<summary>My Method Implementation</summary>
@@ -1580,12 +1503,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"void MyClass.MyMethod()"),
             Documentation("My Method Implementation"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
-    public async Task TestPartialMethodDocComment_06()
-    {
-        await TestAsync("""
+    public Task TestPartialMethodDocComment_06()
+        => TestAsync("""
             partial class MyClass
             {
                 ///<summary>My Method Definition</summary>
@@ -1597,7 +1518,6 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"void MyClass.MyMethod()"),
             Documentation("My Method Definition"));
-    }
 
     [Fact]
     public Task TestMetadataFieldMinimal()
@@ -1605,10 +1525,8 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription($"({FeaturesResources.field}) static readonly DateTime DateTime.MaxValue"));
 
     [Fact]
-    public async Task TestMetadataFieldQualified1()
-    {
-        // NOTE: we qualify the field type, but not the type that contains the field in Dev10
-        await TestAsync("""
+    public Task TestMetadataFieldQualified1()
+        => TestAsync("""
             class C {
                 void M()
                 {
@@ -1617,7 +1535,6 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """,
             MainDescription($"({FeaturesResources.field}) static readonly System.DateTime System.DateTime.MaxValue"));
-    }
 
     [Fact]
     public Task TestMetadataFieldQualified2()
@@ -1714,9 +1631,8 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription("class System.String"));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
-    public async Task TestAwaitKeywordOnGenericTaskReturningAsync()
-    {
-        await TestAsync("""
+    public Task TestAwaitKeywordOnGenericTaskReturningAsync()
+        => TestAsync("""
             using System.Threading.Tasks;
             class C
             {
@@ -1727,12 +1643,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
-    public async Task TestAwaitKeywordInDeclarationStatement()
-    {
-        await TestAsync("""
+    public Task TestAwaitKeywordInDeclarationStatement()
+        => TestAsync("""
             using System.Threading.Tasks;
             class C
             {
@@ -1743,12 +1657,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
-    public async Task TestAwaitKeywordOnTaskReturningAsync()
-    {
-        await TestAsync("""
+    public Task TestAwaitKeywordOnTaskReturningAsync()
+        => TestAsync("""
             using System.Threading.Tasks;
             class C
             {
@@ -1758,12 +1670,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """, MainDescription(FeaturesResources.Awaited_task_returns_no_value));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
-    public async Task TestNestedAwaitKeywords1()
-    {
-        await TestAsync("""
+    public Task TestNestedAwaitKeywords1()
+        => TestAsync("""
             using System;
             using System.Threading.Tasks;
             class AsyncExample2
@@ -1797,12 +1707,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
                          TResult {FeaturesResources.is_} int
                          """));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
-    public async Task TestNestedAwaitKeywords2()
-    {
-        await TestAsync("""
+    public Task TestNestedAwaitKeywords2()
+        => TestAsync("""
             using System;
             using System.Threading.Tasks;
             class AsyncExample2
@@ -1832,12 +1740,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
-    public async Task TestAwaitablePrefixOnCustomAwaiter()
-    {
-        await TestAsync("""
+    public Task TestAwaitablePrefixOnCustomAwaiter()
+        => TestAsync("""
             using System;
             using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
@@ -1859,12 +1765,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 public void GetResult() { }
             }
             """, MainDescription($"({CSharpFeaturesResources.awaitable}) class C"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
-    public async Task TestTaskType()
-    {
-        await TestAsync("""
+    public Task TestTaskType()
+        => TestAsync("""
             using System.Threading.Tasks;
             class C
             {
@@ -1874,12 +1778,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """, MainDescription($"({CSharpFeaturesResources.awaitable}) class System.Threading.Tasks.Task"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
-    public async Task TestTaskOfTType()
-    {
-        await TestAsync("""
+    public Task TestTaskOfTType()
+        => TestAsync("""
             using System;
             using System.Threading.Tasks;
             class C
@@ -1894,12 +1796,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
                          TResult {FeaturesResources.is_} int
                          """));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7100")]
-    public async Task TestDynamicIsntAwaitable()
-    {
-        await TestAsync("""
+    public Task TestDynamicIsntAwaitable()
+        => TestAsync("""
 
             class C
             {
@@ -1911,7 +1811,6 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
 
             """, MainDescription("dynamic C.D()"));
-    }
 
     [Fact]
     public Task TestStringLiteral()
@@ -2939,9 +2838,8 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             MainDescription($"({FeaturesResources.local_variable}) A<B?> y"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26648")]
-    public async Task NullableReference_InMethod()
-    {
-        await TestWithOptionsAsync(
+    public Task NullableReference_InMethod()
+        => TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
             """
 
@@ -2960,7 +2858,6 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                 }
             }
             """, MainDescription("string? C.Goo(IEnumerable<object?> arg)"));
-    }
 
     [Fact]
     public Task NestedInGeneric()
@@ -4948,9 +4845,8 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78171")]
-    public async Task TestPreprocessingSymbol()
-    {
-        await TestAsync("""
+    public Task TestPreprocessingSymbol()
+        => TestAsync("""
             using System.Threading;
             using System.Threading.Tasks;
 
@@ -4968,7 +4864,6 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                 }
             }
             """, MainDescription("NET"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
     public async Task TestIndexedProperty()
@@ -5052,9 +4947,8 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             MainDescription(@"class C<T>"));
 
     [Fact]
-    public async Task TestAwaitableMethod()
-    {
-        await VerifyWithMscorlib45Async("""
+    public Task TestAwaitableMethod()
+        => VerifyWithMscorlib45Async("""
             using System.Threading.Tasks;	
             class C	
             {	
@@ -5064,12 +4958,10 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                 }	
             }
             """, MainDescription($"({CSharpFeaturesResources.awaitable}) Task C.Goo()"));
-    }
 
     [Fact]
-    public async Task ObsoleteItem()
-    {
-        await TestAsync("""
+    public Task ObsoleteItem()
+        => TestAsync("""
 
             using System;
 
@@ -5082,12 +4974,10 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                 }
             }
             """, MainDescription($"[{CSharpFeaturesResources.deprecated}] void Program.goo()"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751070")]
-    public async Task DynamicOperator()
-    {
-        await TestAsync("""
+    public Task DynamicOperator()
+        => TestAsync("""
 
 
             public class Test
@@ -5103,7 +4993,6 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                 }
             }
             """, MainDescription("dynamic dynamic.operator ==(dynamic left, dynamic right)"));
-    }
 
     [Fact]
     public Task TextOnlyDocComment()
@@ -5170,9 +5059,8 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             """, Documentation("goo"));
 
     [Fact]
-    public async Task TextOnlyDocComment_Metadata()
-    {
-        await TestWithMetadataReferenceHelperAsync("""
+    public Task TextOnlyDocComment_Metadata()
+        => TestWithMetadataReferenceHelperAsync("""
 
             class G
             {
@@ -5190,12 +5078,10 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             {
             }
             """, "C#", "C#", Documentation("goo"));
-    }
 
     [Fact]
-    public async Task TestTrimConcatMultiLine_Metadata()
-    {
-        await TestWithMetadataReferenceHelperAsync("""
+    public Task TestTrimConcatMultiLine_Metadata()
+        => TestWithMetadataReferenceHelperAsync("""
 
             class G
             {
@@ -5214,12 +5100,10 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             {
             }
             """, "C#", "C#", Documentation("goo bar"));
-    }
 
     [Fact]
-    public async Task TestCref_Metadata()
-    {
-        await TestWithMetadataReferenceHelperAsync("""
+    public Task TestCref_Metadata()
+        => TestWithMetadataReferenceHelperAsync("""
 
             class G
             {
@@ -5237,12 +5121,10 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             {
             }
             """, "C#", "C#", Documentation("C C"));
-    }
 
     [Fact]
-    public async Task ExcludeTextOutsideSummaryBlock_Metadata()
-    {
-        await TestWithMetadataReferenceHelperAsync("""
+    public Task ExcludeTextOutsideSummaryBlock_Metadata()
+        => TestWithMetadataReferenceHelperAsync("""
 
             class G
             {
@@ -5262,7 +5144,6 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             {
             }
             """, "C#", "C#", Documentation("green"));
-    }
 
     [Fact]
     public Task Param()
@@ -5281,9 +5162,8 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             """, Documentation("First parameter of C.Goo<T>(string[], T)"));
 
     [Fact]
-    public async Task Param_Metadata()
-    {
-        await TestWithMetadataReferenceHelperAsync("""
+    public Task Param_Metadata()
+        => TestWithMetadataReferenceHelperAsync("""
 
             class G
             {
@@ -5306,7 +5186,6 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                 }
             }
             """, "C#", "C#", Documentation("First parameter of C.Goo<T>(string[], T)"));
-    }
 
     [Fact]
     public Task Param2()
@@ -5325,9 +5204,8 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             """, Documentation("Another parameter of C.Goo<T>(string[], T)"));
 
     [Fact]
-    public async Task Param2_Metadata()
-    {
-        await TestWithMetadataReferenceHelperAsync("""
+    public Task Param2_Metadata()
+        => TestWithMetadataReferenceHelperAsync("""
 
             class G
             {
@@ -5350,7 +5228,6 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                 }
             }
             """, "C#", "C#", Documentation("Another parameter of C.Goo<T>(string[], T)"));
-    }
 
     [Fact]
     public Task TypeParam()
@@ -5544,9 +5421,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
         Text("cref."))));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812720")]
-    public async Task ClassificationOfCrefsFromMetadata()
-    {
-        await TestWithMetadataReferenceHelperAsync("""
+    public Task ClassificationOfCrefsFromMetadata()
+        => TestWithMetadataReferenceHelperAsync("""
 
             class G
             {
@@ -5580,12 +5456,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                     Punctuation.CloseParen,
                     WhiteSpace(" "),
                     Text("method"))));
-    }
 
     [Fact]
-    public async Task FieldAvailableInBothLinkedFiles()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task FieldAvailableInBothLinkedFiles()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -5605,7 +5479,6 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """, [MainDescription($"({FeaturesResources.field}) int C.x"), Usage("")]);
-    }
 
     [Fact]
     public async Task FieldUnavailableInOneLinkedFile()
@@ -5759,9 +5632,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962353")]
-    public async Task NoValidSymbolsInLinkedDocuments()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task NoValidSymbolsInLinkedDocuments()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -5784,12 +5656,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
-    public async Task LocalsValidInLinkedDocuments()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task LocalsValidInLinkedDocuments()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -5808,12 +5678,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage("")]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
-    public async Task LocalWarningInLinkedDocuments()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task LocalWarningInLinkedDocuments()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="PROJ1">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -5842,12 +5710,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true)]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
-    public async Task LabelsValidInLinkedDocuments()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task LabelsValidInLinkedDocuments()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -5866,12 +5732,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """, [MainDescription($"({FeaturesResources.label}) LABEL"), Usage("")]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
-    public async Task RangeVariablesValidInLinkedDocuments()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task RangeVariablesValidInLinkedDocuments()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -5891,12 +5755,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """, [MainDescription($"({FeaturesResources.range_variable}) int y"), Usage("")]);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019766")]
-    public async Task PointerAccessibility()
-    {
-        await TestAsync("""
+    public Task PointerAccessibility()
+        => TestAsync("""
             class C
             {
                 unsafe static void Main()
@@ -5908,12 +5770,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 }
             }
             """, MainDescription("bool void*.operator ==(void* left, void* right)"));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
-    public async Task AwaitingTaskOfArrayType()
-    {
-        await TestAsync("""
+    public Task AwaitingTaskOfArrayType()
+        => TestAsync("""
 
             using System.Threading.Tasks;
 
@@ -5925,12 +5785,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 }
             }
             """, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "int[]")));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
-    public async Task AwaitingTaskOfDynamic()
-    {
-        await TestAsync("""
+    public Task AwaitingTaskOfDynamic()
+        => TestAsync("""
 
             using System.Threading.Tasks;
 
@@ -5942,12 +5800,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 }
             }
             """, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "dynamic")));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-    public async Task MethodOverloadDifferencesIgnored()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task MethodOverloadDifferencesIgnored()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -5971,12 +5827,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """, MainDescription($"void C.Do(int x)"));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-    public async Task MethodOverloadDifferencesIgnored_ContainingType()
-    {
-        await VerifyWithReferenceWorkerAsync("""
+    public Task MethodOverloadDifferencesIgnored_ContainingType()
+        => VerifyWithReferenceWorkerAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -6023,7 +5877,6 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """, MainDescription($"void Methods1.Do(string x)"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4868")]
     public Task QuickInfoExceptions()
@@ -6705,65 +6558,50 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
         MainDescription("Test.Test()"));
 
     [Fact]
-    public async Task TestRefStruct()
-    {
-        await TestAsync("ref struct X$$ {}", MainDescription("ref struct X"));
-    }
+    public Task TestRefStruct()
+        => TestAsync("ref struct X$$ {}", MainDescription("ref struct X"));
 
     [Fact]
-    public async Task TestRefStruct_Nested()
-    {
-        await TestAsync("""
+    public Task TestRefStruct_Nested()
+        => TestAsync("""
 
             namespace Nested
             {
                 ref struct X$$ {}
             }
             """, MainDescription("ref struct Nested.X"));
-    }
 
     [Fact]
-    public async Task TestReadOnlyStruct()
-    {
-        await TestAsync("readonly struct X$$ {}", MainDescription("readonly struct X"));
-    }
+    public Task TestReadOnlyStruct()
+        => TestAsync("readonly struct X$$ {}", MainDescription("readonly struct X"));
 
     [Fact]
-    public async Task TestReadOnlyStruct_Nested()
-    {
-        await TestAsync("""
+    public Task TestReadOnlyStruct_Nested()
+        => TestAsync("""
 
             namespace Nested
             {
                 readonly struct X$$ {}
             }
             """, MainDescription("readonly struct Nested.X"));
-    }
 
     [Fact]
-    public async Task TestReadOnlyRefStruct()
-    {
-        await TestAsync("readonly ref struct X$$ {}", MainDescription("readonly ref struct X"));
-    }
+    public Task TestReadOnlyRefStruct()
+        => TestAsync("readonly ref struct X$$ {}", MainDescription("readonly ref struct X"));
 
     [Fact]
-    public async Task TestReadOnlyRefStruct_Nested()
-    {
-        await TestAsync("""
+    public Task TestReadOnlyRefStruct_Nested()
+        => TestAsync("""
 
             namespace Nested
             {
                 readonly ref struct X$$ {}
             }
             """, MainDescription("readonly ref struct Nested.X"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22450")]
-    public async Task TestRefLikeTypesNoDeprecated()
-    {
-
-        // There should be no [deprecated] attribute displayed.
-        await VerifyWithReferenceWorkerAsync("""
+    public Task TestRefLikeTypesNoDeprecated()
+        => VerifyWithReferenceWorkerAsync("""
 
             <Workspace>
                 <Project Language="C#" LanguageVersion="7.2" CommonReferences="true">
@@ -6783,7 +6621,6 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 </Project>
             </Workspace>
             """, MainDescription($"ref struct TestRef"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
     public Task PropertyWithSameNameAsOtherType()
@@ -7709,9 +7546,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             NullabilityAnalysis(""));
 
     [Fact]
-    public async Task TestInheritdocInlineSummary()
-    {
-        await TestInClassAsync("""
+    public Task TestInheritdocInlineSummary()
+        => TestInClassAsync("""
 
             /// <summary>Summary documentation</summary>
             /// <remarks>Remarks documentation</remarks>
@@ -7722,12 +7558,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription("void C.M(int x, int y)"),
             Documentation("Summary documentation"));
-    }
 
     [Fact]
-    public async Task TestInheritdocTwoLevels1()
-    {
-        await TestInClassAsync("""
+    public Task TestInheritdocTwoLevels1()
+        => TestInClassAsync("""
 
             /// <summary>Summary documentation</summary>
             /// <remarks>Remarks documentation</remarks>
@@ -7741,12 +7575,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription("void C.M(int x, int y)"),
             Documentation("Summary documentation"));
-    }
 
     [Fact]
-    public async Task TestInheritdocTwoLevels2()
-    {
-        await TestInClassAsync("""
+    public Task TestInheritdocTwoLevels2()
+        => TestInClassAsync("""
 
             /// <summary>Summary documentation</summary>
             /// <remarks>Remarks documentation</remarks>
@@ -7760,12 +7592,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription("void C.M(int x, int y)"),
             Documentation("Summary documentation"));
-    }
 
     [Fact]
-    public async Task TestInheritdocWithTypeParamRef()
-    {
-        await TestInClassAsync("""
+    public Task TestInheritdocWithTypeParamRef()
+        => TestInClassAsync("""
 
             public class Program
             {
@@ -7789,12 +7619,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription("Test<int> Test<int>.Clone()"),
             Documentation("Clones a Test<T>."));
-    }
 
     [Fact]
-    public async Task TestInheritdocWithTypeParamRef1()
-    {
-        await TestWithOptionsAsync(TestOptions.Regular8,
+    public Task TestInheritdocWithTypeParamRef1()
+        => TestWithOptionsAsync(TestOptions.Regular8,
             """
 
             public interface ITest
@@ -7817,12 +7645,10 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             item => Assert.Equal(
                 item.Sections.First(section => section.Kind == QuickInfoSectionKinds.DocumentationComments).TaggedParts.Select(p => p.Tag).ToArray(),
                 ["Text", "Space", "TypeParameter", "Text"]));
-    }
 
     [Fact]
-    public async Task TestInheritdocCycle1()
-    {
-        await TestInClassAsync("""
+    public Task TestInheritdocCycle1()
+        => TestInClassAsync("""
 
             /// <inheritdoc cref="M(int, int)"/>
             void M(int x) { }
@@ -7832,36 +7658,30 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription("void C.M(int x, int y)"),
             Documentation(""));
-    }
 
     [Fact]
-    public async Task TestInheritdocCycle2()
-    {
-        await TestInClassAsync("""
+    public Task TestInheritdocCycle2()
+        => TestInClassAsync("""
 
             /// <inheritdoc cref="M(int)"/>
             void $$M(int x) { }
             """,
             MainDescription("void C.M(int x)"),
             Documentation(""));
-    }
 
     [Fact]
-    public async Task TestInheritdocCycle3()
-    {
-        await TestInClassAsync("""
+    public Task TestInheritdocCycle3()
+        => TestInClassAsync("""
 
             /// <inheritdoc cref="M"/>
             void $$M(int x) { }
             """,
             MainDescription("void C.M(int x)"),
             Documentation(""));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38794")]
-    public async Task TestLinqGroupVariableDeclaration()
-    {
-        await TestInClassAsync("""
+    public Task TestLinqGroupVariableDeclaration()
+        => TestInClassAsync("""
 
             void M(string[] a)
             {
@@ -7871,7 +7691,6 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription($"({FeaturesResources.range_variable}) IGrouping<int, string> g"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38283")]
     public Task QuickInfoOnIndexerCloseBracket()
@@ -8434,9 +8253,8 @@ MainDescription("(field) int C.Prop.field"));
             MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53135")]
-    public async Task TestDocumentationCData()
-    {
-        await TestAsync("""
+    public Task TestDocumentationCData()
+        => TestAsync("""
             using I$$ = IGoo;
             /// <summary>
             /// summary for interface IGoo
@@ -8452,12 +8270,10 @@ MainDescription("(field) int C.Prop.field"));
 
                 List<string> y = null;
                 """));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37503")]
-    public async Task DoNotNormalizeWhitespaceForCode()
-    {
-        await TestAsync("""
+    public Task DoNotNormalizeWhitespaceForCode()
+        => TestAsync("""
             using I$$ = IGoo;
             /// <summary>
             /// Normalize    this, and <c>Also        this</c>
@@ -8475,12 +8291,10 @@ MainDescription("(field) int C.Prop.field"));
                 line 1
                 line     2
                 """));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57262")]
-    public async Task DoNotNormalizeLeadingWhitespaceForCode()
-    {
-        await TestAsync("""
+    public Task DoNotNormalizeLeadingWhitespaceForCode()
+        => TestAsync("""
             using I$$ = IGoo;
             /// <summary>
             ///       Normalize    this, and <c>Also        this</c>
@@ -8498,24 +8312,20 @@ MainDescription("(field) int C.Prop.field"));
                 line 1
                     line     2
                 """));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57262")]
-    public async Task ParsesEmptySummary()
-    {
-        await TestAsync("""
+    public Task ParsesEmptySummary()
+        => TestAsync("""
             using I$$ = IGoo;
             /// <summary></summary>
             interface IGoo {  }
             """,
             MainDescription("interface IGoo"),
             Documentation(""));
-    }
 
     [Fact]
-    public async Task TestStaticAbstract_ImplicitImplementation()
-    {
-        await TestAsync(
+    public Task TestStaticAbstract_ImplicitImplementation()
+        => TestAsync(
             """
 
             interface I1
@@ -8532,12 +8342,10 @@ MainDescription("(field) int C.Prop.field"));
             """,
             MainDescription("void C1_1.M1()"),
             Documentation("Summary text"));
-    }
 
     [Fact]
-    public async Task TestStaticAbstract_ImplicitImplementation_FromReference()
-    {
-        await TestAsync(
+    public Task TestStaticAbstract_ImplicitImplementation_FromReference()
+        => TestAsync(
             """
 
             interface I1
@@ -8559,12 +8367,10 @@ MainDescription("(field) int C.Prop.field"));
             """,
             MainDescription("void C1_1.M1()"),
             Documentation("Summary text"));
-    }
 
     [Fact]
-    public async Task TestStaticAbstract_FromTypeParameterReference()
-    {
-        await TestAsync(
+    public Task TestStaticAbstract_FromTypeParameterReference()
+        => TestAsync(
             """
 
             interface I1
@@ -8581,12 +8387,10 @@ MainDescription("(field) int C.Prop.field"));
             """,
             MainDescription("void I1.M1()"),
             Documentation("Summary text"));
-    }
 
     [Fact]
-    public async Task TestStaticAbstract_ExplicitInheritdoc_ImplicitImplementation()
-    {
-        await TestAsync(
+    public Task TestStaticAbstract_ExplicitInheritdoc_ImplicitImplementation()
+        => TestAsync(
             """
 
             interface I1
@@ -8604,12 +8408,10 @@ MainDescription("(field) int C.Prop.field"));
             """,
             MainDescription("void C1_1.M1()"),
             Documentation("Summary text"));
-    }
 
     [Fact]
-    public async Task TestStaticAbstract_ExplicitImplementation()
-    {
-        await TestAsync(
+    public Task TestStaticAbstract_ExplicitImplementation()
+        => TestAsync(
             """
 
             interface I1
@@ -8626,12 +8428,10 @@ MainDescription("(field) int C.Prop.field"));
             """,
             MainDescription("void C1_1.M1()"),
             Documentation("Summary text"));
-    }
 
     [Fact]
-    public async Task TestStaticAbstract_ExplicitInheritdoc_ExplicitImplementation()
-    {
-        await TestAsync(
+    public Task TestStaticAbstract_ExplicitInheritdoc_ExplicitImplementation()
+        => TestAsync(
             """
 
             interface I1
@@ -8649,7 +8449,6 @@ MainDescription("(field) int C.Prop.field"));
             """,
             MainDescription("void C1_1.M1()"),
             Documentation("Summary text"));
-    }
 
     [Fact]
     public Task QuickInfoLambdaReturnType_01()
@@ -9130,9 +8929,8 @@ AnonymousTypes(
                 """"));
 
     [Fact]
-    public async Task TestArgsInTopLevel()
-    {
-        await TestWithOptionsAsync(
+    public Task TestArgsInTopLevel()
+        => TestWithOptionsAsync(
             Options.Regular, """
 
             forach (var arg in $$args)
@@ -9141,12 +8939,10 @@ AnonymousTypes(
 
             """,
             MainDescription($"({FeaturesResources.parameter}) string[] args"));
-    }
 
     [Fact]
-    public async Task TestArgsInNormalProgram()
-    {
-        await TestAsync("""
+    public Task TestArgsInNormalProgram()
+        => TestAsync("""
 
             class Program
             {
@@ -9160,12 +8956,10 @@ AnonymousTypes(
 
             """,
             MainDescription($"({FeaturesResources.parameter}) string[] args"));
-    }
 
     [Fact]
-    public async Task TestParameterInMethodAttributeNameof()
-    {
-        await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), """
+    public Task TestParameterInMethodAttributeNameof()
+        => TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), """
 
             class Program
             {
@@ -9175,12 +8969,10 @@ AnonymousTypes(
 
             """,
             MainDescription($"({FeaturesResources.parameter}) string s"));
-    }
 
     [Fact]
-    public async Task TestParameterInMethodParameterAttributeNameof()
-    {
-        await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), """
+    public Task TestParameterInMethodParameterAttributeNameof()
+        => TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), """
 
             class Program
             {
@@ -9189,12 +8981,10 @@ AnonymousTypes(
 
             """,
             MainDescription($"({FeaturesResources.parameter}) string s"));
-    }
 
     [Fact]
-    public async Task TestParameterInLocalFunctionAttributeNameof()
-    {
-        await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), """
+    public Task TestParameterInLocalFunctionAttributeNameof()
+        => TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), """
 
             class Program
             {
@@ -9207,12 +8997,10 @@ AnonymousTypes(
 
             """,
             MainDescription($"({FeaturesResources.parameter}) string s"));
-    }
 
     [Fact]
-    public async Task TestScopedParameter()
-    {
-        await TestAsync("""
+    public Task TestScopedParameter()
+        => TestAsync("""
             ref struct R { }
             class Program
             {
@@ -9229,12 +9017,10 @@ AnonymousTypes(
             }
             """,
             MainDescription($"void Program.F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, out R r8)"));
-    }
 
     [Fact]
-    public async Task TestScopedLocal()
-    {
-        await TestAsync("""
+    public Task TestScopedLocal()
+        => TestAsync("""
             class Program
             {
                 static void Main()
@@ -9246,12 +9032,10 @@ AnonymousTypes(
             }
             """,
             MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66854")]
-    public async Task TestNullableRefTypeVar1()
-    {
-        await TestAsync("""
+    public Task TestNullableRefTypeVar1()
+        => TestAsync("""
             #nullable enable
 
             class C
@@ -9264,12 +9048,10 @@ AnonymousTypes(
             }
             """,
             MainDescription($"class System.String?"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66854")]
-    public async Task TestNullableRefTypeVar2()
-    {
-        await TestAsync("""
+    public Task TestNullableRefTypeVar2()
+        => TestAsync("""
             #nullable disable
 
             class C
@@ -9287,99 +9069,71 @@ AnonymousTypes(
             }
             """,
             MainDescription($"class System.String"));
-    }
 
     [Fact]
-    public async Task TestUsingAliasToType1()
-    {
-        await TestAsync(@"using X = $$int;",
+    public Task TestUsingAliasToType1()
+        => TestAsync(@"using X = $$int;",
             MainDescription($"struct System.Int32"));
-    }
 
     [Fact]
-    public async Task TestUsingAliasToType1_A()
-    {
-        await TestAsync(@"using $$X = int;",
+    public Task TestUsingAliasToType1_A()
+        => TestAsync(@"using $$X = int;",
             MainDescription($"struct System.Int32"));
-    }
 
     [Fact]
-    public async Task TestUsingAliasToType2()
-    {
-        await TestAsync(@"using X = ($$int a, int b);",
+    public Task TestUsingAliasToType2()
+        => TestAsync(@"using X = ($$int a, int b);",
             MainDescription($"struct System.Int32"));
-    }
 
     [Fact]
-    public async Task TestUsingAliasToType2_A()
-    {
-        await TestAsync(@"using $$X = (int a, int b);",
+    public Task TestUsingAliasToType2_A()
+        => TestAsync(@"using $$X = (int a, int b);",
             MainDescription($"(int a, int b)"));
-    }
 
     [Fact]
-    public async Task TestUsingAliasToType3()
-    {
-        await TestAsync(@"using X = $$(int a, int b);");
-    }
+    public Task TestUsingAliasToType3()
+        => TestAsync(@"using X = $$(int a, int b);");
 
     [Fact]
-    public async Task TestUsingAliasToType4()
-    {
-        await TestAsync(@"using unsafe X = $$delegate*<int,int>;");
-    }
+    public Task TestUsingAliasToType4()
+        => TestAsync(@"using unsafe X = $$delegate*<int,int>;");
 
     [Fact]
-    public async Task TestUsingAliasToType4_A()
-    {
-        await TestAsync(@"using unsafe $$X = delegate*<int,int>;",
+    public Task TestUsingAliasToType4_A()
+        => TestAsync(@"using unsafe $$X = delegate*<int,int>;",
             MainDescription($"delegate*<int, int>"));
-    }
 
     [Fact]
-    public async Task TestUsingAliasToType5()
-    {
-        await TestAsync(@"using unsafe X = $$int*;",
+    public Task TestUsingAliasToType5()
+        => TestAsync(@"using unsafe X = $$int*;",
             MainDescription($"struct System.Int32"));
-    }
 
     [Fact]
-    public async Task TestUsingAliasToType5_A()
-    {
-        await TestAsync(@"using unsafe $$X = int*;",
+    public Task TestUsingAliasToType5_A()
+        => TestAsync(@"using unsafe $$X = int*;",
             MainDescription($"int*"));
-    }
 
     [Fact]
-    public async Task TestCollectionExpression_Start()
-    {
-        await TestAsync("int[] x = $$[1, 2]",
+    public Task TestCollectionExpression_Start()
+        => TestAsync("int[] x = $$[1, 2]",
             MainDescription($"int[]"));
-    }
 
     [Fact]
-    public async Task TestCollectionExpression_Middle()
-    {
-        await TestAsync("int[] x = [1 $$, 2]");
-    }
+    public Task TestCollectionExpression_Middle()
+        => TestAsync("int[] x = [1 $$, 2]");
 
     [Fact]
-    public async Task TestCollectionExpression_End()
-    {
-        await TestAsync("int[] x = [1, 2]$$",
+    public Task TestCollectionExpression_End()
+        => TestAsync("int[] x = [1, 2]$$",
             MainDescription($"int[]"));
-    }
 
     [Fact]
-    public async Task TestCollectionExpression_Start_Typeless()
-    {
-        await TestAsync("var x = $$[1, 2]");
-    }
+    public Task TestCollectionExpression_Start_Typeless()
+        => TestAsync("var x = $$[1, 2]");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71638")]
-    public async Task TestAnonymousType()
-    {
-        await VerifyWithMscorlib45Async("""
+    public Task TestAnonymousType()
+        => VerifyWithMscorlib45Async("""
             _ = new
             {
                 @string = ""
@@ -9394,7 +9148,6 @@ AnonymousTypes(
                     'a {{FeaturesResources.is_}} new { string @string }
                 """)
         ]);
-    }
 
     [Theory, CombinatorialData]
     public async Task UsingStatement_Class(bool simpleUsing, bool implementsIDisposable)

@@ -36,9 +36,8 @@ public sealed partial class TypeInferrerTests
     }
 
     [Fact]
-    public async Task TestDeclaration1()
-    {
-        await TestDelegateAsync("""
+    public Task TestDeclaration1()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -48,12 +47,10 @@ public sealed partial class TypeInferrerTests
               }
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestAssignment1()
-    {
-        await TestDelegateAsync("""
+    public Task TestAssignment1()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -64,12 +61,10 @@ public sealed partial class TypeInferrerTests
               }
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestArgument1()
-    {
-        await TestDelegateAsync("""
+    public Task TestArgument1()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -81,12 +76,10 @@ public sealed partial class TypeInferrerTests
               void Bar(Func<int> f);
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestConstructor1()
-    {
-        await TestDelegateAsync("""
+    public Task TestConstructor1()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -98,12 +91,10 @@ public sealed partial class TypeInferrerTests
               public C(Func<int> f);
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestDelegateConstructor1()
-    {
-        await TestDelegateAsync("""
+    public Task TestDelegateConstructor1()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -113,12 +104,10 @@ public sealed partial class TypeInferrerTests
               }
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestCastExpression1()
-    {
-        await TestDelegateAsync("""
+    public Task TestCastExpression1()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -128,12 +117,10 @@ public sealed partial class TypeInferrerTests
               }
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestCastExpression2()
-    {
-        await TestDelegateAsync("""
+    public Task TestCastExpression2()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -143,12 +130,10 @@ public sealed partial class TypeInferrerTests
               }
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestReturnFromMethod()
-    {
-        await TestDelegateAsync("""
+    public Task TestReturnFromMethod()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -158,12 +143,10 @@ public sealed partial class TypeInferrerTests
               }
             }
             """, "System.Func<int>");
-    }
 
     [Fact]
-    public async Task TestInsideLambda1()
-    {
-        await TestDelegateAsync("""
+    public Task TestInsideLambda1()
+        => TestDelegateAsync("""
             using System;
             class C
             {
@@ -173,5 +156,4 @@ public sealed partial class TypeInferrerTests
               }
             }
             """, "System.Func<string, bool>");
-    }
 }

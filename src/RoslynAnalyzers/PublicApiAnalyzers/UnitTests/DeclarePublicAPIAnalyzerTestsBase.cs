@@ -314,27 +314,22 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         }
 
         [Fact]
-        public async Task EmptyPublicAPIFilesAsync()
-        {
-            await VerifyCSharpAsync(@"", @"", @"");
-        }
+        public Task EmptyPublicAPIFilesAsync()
+            => VerifyCSharpAsync(@"", @"", @"");
 
         [Fact]
-        public async Task SimpleMissingTypeAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task SimpleMissingTypeAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
                     private C() { }
                 }
                 """, @"", @"", GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C"));
-        }
 
         [Fact, WorkItem(2690, "https://github.com/dotnet/wpf/issues/2690")]
-        public async Task XamlGeneratedNamespaceWorkaroundAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task XamlGeneratedNamespaceWorkaroundAsync()
+            => VerifyCSharpAsync($$"""
 
                 namespace XamlGeneratedNamespace {
                     {{EnabledModifierCSharp}} sealed class GeneratedInternalTypeHelper
@@ -342,12 +337,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     }
                 }
                 """, @"", @"");
-        }
 
         [Fact]
-        public async Task SimpleMissingMember_CSharpAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task SimpleMissingMember_CSharpAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -371,16 +364,14 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.Method() -> void"),
                 // Test0.cs(7,43): error RS0016: Symbol 'C.ArrowExpressionProperty.get -> int' is not part of the declared API.
                 GetCSharpResultAt(7, 37 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.ArrowExpressionProperty.get -> int"));
-        }
 
         [Theory]
         [InlineData("string ", "string!")]
         [InlineData("string?", "string?")]
         [InlineData("int    ", "int")]
         [InlineData("int?   ", "int?")]
-        public async Task SimpleMissingMember_CSharp_NullableTypes(string csharp, string message)
-        {
-            await VerifyCSharpAsync($$"""
+        public Task SimpleMissingMember_CSharp_NullableTypes(string csharp, string message)
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} class C
                 {
@@ -404,12 +395,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, DeclareNewApiRule, $"C.Method({message} p) -> void"),
                 // Test0.cs(7,43): error RS0016: Symbol 'C.ArrowExpressionProperty.get -> int' is not part of the declared API.
                 GetCSharpResultAt(7, 41 + EnabledModifierCSharp.Length, DeclareNewApiRule, $"C.ArrowExpressionProperty.get -> {message}"));
-        }
 
         [Fact, WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
-        public async Task SimpleMissingMember_BasicAsync()
-        {
-            await VerifyBasicAsync($"""
+        public Task SimpleMissingMember_BasicAsync()
+            => VerifyBasicAsync($"""
 
                 Imports System
 
@@ -451,12 +440,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 GetBasicResultAt(21, 21, DeclareNewApiRule, "C.NormalAutoProperty() -> Integer"),
                 // Test0.vb(21,21): warning RS0016: Symbol 'C.NormalAutoProperty(AutoPropertyValue As Integer) -> Void' is not part of the declared API.
                 GetBasicResultAt(21, 21, DeclareNewApiRule, "C.NormalAutoProperty(AutoPropertyValue As Integer) -> Void"));
-        }
 
         [Fact(), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
-        public async Task SimpleMissingMember_Basic1Async()
-        {
-            await VerifyBasicAsync($"""
+        public Task SimpleMissingMember_Basic1Async()
+            => VerifyBasicAsync($"""
 
                 Imports System
                 {EnabledModifierVB} Class C
@@ -496,12 +483,10 @@ C.ReadOnlyProperty1() -> Integer
 C.ReadOnlyProperty2() -> Integer
 C.WriteOnlyProperty0(Value As Integer) -> Void
 ", @"");
-        }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextWithImplicitConstructorAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ShippedTextWithImplicitConstructorAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -512,12 +497,10 @@ C
 C -> void()", @"",
                 // PublicAPI.Shipped.txt(3,1): warning RS0017: Symbol 'C -> void()' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(3, 1, ShippedFileName, RemoveDeletedApiRule, "C -> void()"));
-        }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextForImplicitConstructorAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ShippedTextForImplicitConstructorAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -525,12 +508,10 @@ C -> void()", @"",
                 """, @"
 C
 C.C() -> void", @"");
-        }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task UnshippedTextForImplicitConstructorAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task UnshippedTextForImplicitConstructorAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -538,12 +519,10 @@ C.C() -> void", @"");
                 """, @"
 C", @"
 C.C() -> void");
-        }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextWithMissingImplicitConstructorAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ShippedTextWithMissingImplicitConstructorAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -552,12 +531,10 @@ C.C() -> void");
 C", @"",
                 // Test0.cs(2,14): warning RS0016: Symbol 'C.C() -> void' is not part of the declared API.
                 GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.C() -> void"));
-        }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextWithImplicitConstructorAndBreakingCodeChangeAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ShippedTextWithImplicitConstructorAndBreakingCodeChangeAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -568,12 +545,10 @@ C
 C.C() -> void", @"",
                 // PublicAPI.Shipped.txt(3,1): warning RS0017: Symbol 'C.C() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(3, 1, ShippedFileName, RemoveDeletedApiRule, "C.C() -> void"));
-        }
 
         [Fact]
-        public async Task SimpleMemberAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task SimpleMemberAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -590,12 +565,10 @@ C.Property.get -> int
 C.Property.set -> void
 C.Method() -> void
 ", @"");
-        }
 
         [Fact]
-        public async Task SplitBetweenShippedUnshippedAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task SplitBetweenShippedUnshippedAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -612,12 +585,10 @@ C.Property.set -> void
 ", @"
 C.Method() -> void
 ");
-        }
 
         [Fact]
-        public async Task EnumSplitBetweenFilesAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task EnumSplitBetweenFilesAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} enum E 
                 {
@@ -633,12 +604,10 @@ E.V2 = 2 -> E
 ", @"
 E.V3 = 3 -> E
 ");
-        }
 
         [Fact]
-        public async Task SimpleRemovedMemberAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task SimpleRemovedMemberAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -655,7 +624,6 @@ C.Method() -> void
 ", $@"
 {DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
 ");
-        }
 
         [Theory]
         [CombinatorialData]
@@ -790,9 +758,8 @@ C.Property.get -> int", expected);
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task DuplicateObliviousSymbolsInSameApiFileAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task DuplicateObliviousSymbolsInSameApiFileAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -808,13 +775,11 @@ C.Property.get -> int", expected);
                 ~C.Property.get -> int
                 {|{{DuplicatedSymbolInApiFileId}}:~C.Property.get -> int|}
                 """, @"");
-        }
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task DuplicateSymbolUsingObliviousInSameApiFilesAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task DuplicateSymbolUsingObliviousInSameApiFilesAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -831,13 +796,11 @@ C.Property.get -> int", expected);
                 {|{{DuplicatedSymbolInApiFileId}}:~C.Property.get -> int|}
 
                 """, @"");
-        }
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task DuplicateSymbolUsingObliviousInDifferentApiFilesAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task DuplicateSymbolUsingObliviousInDifferentApiFilesAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -854,13 +817,11 @@ C.Property.set -> void
                 #nullable enable
                 {|{{DuplicatedSymbolInApiFileId}}:C.Property.get -> int|}
                 """);
-        }
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task MultipleDuplicateSymbolsUsingObliviousInDifferentApiFilesAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task MultipleDuplicateSymbolsUsingObliviousInDifferentApiFilesAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -880,12 +841,10 @@ C.Property.set -> void
                 {|{{DuplicatedSymbolInApiFileId}}:C.Property.get -> int|}
                 {|{{DuplicatedSymbolInApiFileId}}:~C.Property.set -> void|}
                 """);
-        }
 
         [Fact, WorkItem(773, "https://github.com/dotnet/roslyn-analyzers/issues/773")]
-        public async Task ApiFileShippedWithNonExistentMembersAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ApiFileShippedWithNonExistentMembersAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -904,7 +863,6 @@ C.Method() -> void
 ", $@"",
                 // PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, ShippedFileName, RemoveDeletedApiRule, "C.Method() -> void"));
-        }
 
         [Fact, WorkItem(773, "https://github.com/dotnet/roslyn-analyzers/issues/773")]
         public async Task ApiFileShippedWithNonExistentMembers_TestFullPathAsync()
@@ -1276,9 +1234,8 @@ C.M(int p1 = 0) -> void
         }
 
         [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
-        public async Task TestMultipleOverloadsWithOptionalParameter_OneIsObsoleteAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TestMultipleOverloadsWithOptionalParameter_OneIsObsoleteAsync()
+            => VerifyCSharpAsync($$"""
 
                 using System;
 
@@ -1292,12 +1249,10 @@ C.M(int p1 = 0) -> void
                 """, @"C
 C.C() -> void
 C.M(char p1 = '0') -> void", "C.M(int p1 = 0) -> void");
-        }
 
         [Fact]
-        public async Task ObliviousMember_SimpleAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_SimpleAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -1325,14 +1280,12 @@ C.Property.set -> void", @"",
                 GetCSharpResultAt(7, 40 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.ArrowExpressionProperty.get -> string"),
                 GetCSharpResultAt(7, 40 + EnabledModifierCSharp.Length, ObliviousApiRule, "ArrowExpressionProperty.get")
                 );
-        }
 
         [Theory]
         [InlineData("string ", "string", "string!")]
         [InlineData("string?", "string", "string?")]
-        public async Task ObliviousMember_Simple_NullableTypes(string csharp, string unannotated, string annotated)
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_Simple_NullableTypes(string csharp, string unannotated, string annotated)
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} class C
                 {
@@ -1355,12 +1308,10 @@ C.Property.set -> void", @"",
                 GetCSharpResultAt(5, 25 + EnabledModifierCSharp.Length, AnnotateApiRule, $"C.Property.get -> {annotated}"),
                 GetCSharpResultAt(6, 14 + EnabledModifierCSharp.Length, AnnotateApiRule, $"C.Method({annotated} x) -> {annotated}"),
                 GetCSharpResultAt(7, 41 + EnabledModifierCSharp.Length, AnnotateApiRule, $"C.ArrowExpressionProperty.get -> {annotated}"));
-        }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsObliviousAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_AlreadyMarkedAsObliviousAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -1412,12 +1363,10 @@ D<T>.E<T>.E() -> void", @"",
                 GetCSharpResultAt(20, 30 + EnabledModifierCSharp.Length, ObliviousApiRule, "this.get"),
                 GetCSharpResultAt(20, 50 + EnabledModifierCSharp.Length, ObliviousApiRule, "this.set")
                 );
-        }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithClassConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithClassConstraintAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -1447,12 +1396,10 @@ E.F<T>.F() -> void
                 GetCSharpResultAt(11, 8 + EnabledModifierCSharp.Length, ObliviousApiRule, "D<T>"),
                 GetCSharpResultAt(12, 25 + EnabledModifierCSharp.Length, ObliviousApiRule, "F<T>")
                 );
-        }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithNotNullConstraintAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithNotNullConstraintAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -1468,12 +1415,10 @@ C.C() -> void
 C.M<T>(T t) -> void
 C.M2<T>(T t) -> void
 ", @"");
-        }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraintsAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraintsAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} interface I { }
                 {{EnabledModifierCSharp}} class C
@@ -1503,12 +1448,10 @@ C.M3b<T, U>() -> void
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M2<T>"),
                 GetCSharpResultAt(7, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M3<T, U>")
                 );
-        }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraints2Async()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraints2Async()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} interface I<T> { }
                 {{EnabledModifierCSharp}} class C
@@ -1530,12 +1473,10 @@ C.C() -> void
 ", @"",
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M1<T>")
                 );
-        }
 
         [Fact]
-        public async Task ObliviousMember_NestedEnumIsNotObliviousAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousMember_NestedEnumIsNotObliviousAsync()
+            => VerifyCSharpAsync($$"""
 
                 {{EnabledModifierCSharp}} class C
                 {
@@ -1551,12 +1492,10 @@ C.C() -> void
 C.E
 C.E.None = 0 -> C.E
 C.E.Some = 1 -> C.E", @"");
-        }
 
         [Fact]
-        public async Task NestedEnumIsNotObliviousAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task NestedEnumIsNotObliviousAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} class C
@@ -1573,12 +1512,10 @@ C.C() -> void
 C.E
 C.E.None = 0 -> C.E
 C.E.Some = 1 -> C.E", @"");
-        }
 
         [Fact]
-        public async Task ObliviousTypeArgumentInContainingTypeAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousTypeArgumentInContainingTypeAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} class C<T>
@@ -1599,21 +1536,10 @@ C<T>.Nested.Nested() -> void
 ~C<T>.field -> C<string>.Nested", @"",
                 GetCSharpResultAt(11, 22, ObliviousApiRule, "field")
                 );
-        }
 
         [Fact]
-        public async Task ImplicitContainingType_TClassAsync()
-        {
-
-            // Note: although the code is entirely nullable-enabled, the compiler uses a containing type that is
-            // `C<T~>` so there is an oblivious symbol. This only happens when the type parameter is constrained
-            // such that it could be annotated in C# 8 (`T?` would have been allowed).
-            //
-            // One recourse is to use a suppression around such APIs:
-            // #pragma warning disable RS0041 // uses oblivious reference types
-            //
-            // Another recourse is to make the containing type explicit: `C<T>.Nested`
-            await VerifyCSharpAsync($$"""
+        public Task ImplicitContainingType_TClassAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} class C<T> where T : class
@@ -1634,12 +1560,10 @@ C<T>.field2 -> C<T!>.Nested", @"",
                 // /0/Test0.cs(7,19): warning RS0041: Symbol 'field' uses some oblivious reference types.
                 GetCSharpResultAt(7, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "field")
                 );
-        }
 
         [Fact]
-        public async Task ImplicitContainingType_TOpenAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ImplicitContainingType_TOpenAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} class C<T>
@@ -1656,7 +1580,6 @@ C<T>.Nested
 C<T>.Nested.Nested() -> void
 C<T>.field -> C<T>.Nested
 C<T>.field2 -> C<T>.Nested", @"");
-        }
 
         [Fact]
         public async Task SkippedNamespace_ExactMatches()
@@ -1869,9 +1792,8 @@ C.C(int value) -> void", unshippedText, "C.C() -> void");
         }
 
         [Fact]
-        public async Task TestSimpleMissingMember_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestSimpleMissingMember_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     {{EnabledModifierCSharp}} int Field;
@@ -1895,15 +1817,13 @@ C.Method() -> void
 C.NewField -> int
 C.Property.get -> int
 C.Property.set -> void");
-        }
 
         [Theory]
         [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
         [InlineData("\r\n")] // Windows line ending.
         [InlineData("\n")] // Linux line ending.
-        public async Task TestUseExistingLineEndingsAsync(string lineEnding)
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestUseExistingLineEndingsAsync(string lineEnding)
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     private C() { }
@@ -1912,25 +1832,21 @@ C.Property.set -> void");
                     {{EnabledModifierCSharp}} int {|{{AddNewApiId}}:Field3|}; // Newly added field, not in current public API.
                 }
                 """, @"", $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int", $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int{lineEnding}C.Field3 -> int");
-        }
 
         [Fact]
         [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
-        public async Task TestUseOSLineEndingAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestUseOSLineEndingAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     private C() { }
                     {{EnabledModifierCSharp}} int {|{{AddNewApiId}}:Field1|}; // Newly added field, not in current public API.
                 }
                 """, @"", $"C", $"C{Environment.NewLine}C.Field1 -> int");
-        }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithoutNullabilityAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestSimpleMissingMember_Fix_WithoutNullabilityAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} class C
                 {
@@ -1940,7 +1856,6 @@ C.Property.set -> void");
 C.C() -> void", @"C
 C.C() -> void
 C.NewField -> string");
-        }
 
         [InlineData(0)]
         [InlineData(1)]
@@ -1990,9 +1905,8 @@ C.NewField -> string"));
         }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithNullabilityAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestSimpleMissingMember_Fix_WithNullabilityAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} class C
                 {
@@ -2002,12 +1916,10 @@ C.NewField -> string"));
 C.C() -> void", @"C
 C.C() -> void
 C.NewField -> string?");
-        }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithNullability2Async()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestSimpleMissingMember_Fix_WithNullability2Async()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} class C
                 {
@@ -2020,12 +1932,10 @@ C.OldField -> string?", @"C
 C.C() -> void
 C.NewField -> string?
 C.OldField -> string?");
-        }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithNullability3Async()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TestSimpleMissingMember_Fix_WithNullability3Async()
+            => VerifyCSharpAsync($$"""
                 #nullable enable
                 {{EnabledModifierCSharp}} class C
                 {
@@ -2037,12 +1947,10 @@ C
 C.C() -> void
 C.NewField -> string?
 C.OldField -> string?", "");
-        }
 
         [Fact]
-        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullabilityAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullabilityAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     {{EnabledModifierCSharp}} string {|{{ObliviousApiId}}:{|{{AddNewApiId}}:ChangedField|}|}; // oblivious
@@ -2054,12 +1962,10 @@ C.OldField -> string?", "");
                 """, @"C
 C.C() -> void
 ~C.ChangedField -> string");
-        }
 
         [Fact, WorkItem(3793, "https://github.com/dotnet/roslyn-analyzers/issues/3793")]
-        public async Task ObliviousApiDiagnosticInGeneratedFileStillWarnAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task ObliviousApiDiagnosticInGeneratedFileStillWarnAsync()
+            => VerifyCSharpAsync($$"""
 
                 // <autogenerated />
                 {{EnabledModifierCSharp}} class C
@@ -2074,12 +1980,10 @@ C.ObliviousField -> string",
                 // /0/Test0.cs(5,19): warning RS0041: Symbol 'ObliviousField' uses some oblivious reference types.
                 GetCSharpResultAt(5, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "ObliviousField")
                 );
-        }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnMethodAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TypeArgumentRefersToTypeParameter_OnMethodAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} static class C
@@ -2095,12 +1999,10 @@ C.ObliviousField -> string",
                 // /0/Test0.cs(5,24): warning RS0016: Symbol 'static C.M<T>() -> void' is not part of the declared API.
                 GetCSharpResultAt(5, 18 + EnabledModifierCSharp.Length, DeclareNewApiRule, "static C.M<T>() -> void")
                 );
-        }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnTypeAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TypeArgumentRefersToTypeParameter_OnTypeAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} static class C<T>
@@ -2111,12 +2013,10 @@ C.ObliviousField -> string",
                 // /0/Test0.cs(3,21): warning RS0016: Symbol 'C<T>' is not part of the declared API.
                 GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C<T>")
                 );
-        }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnType_SecondTypeArgumentAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TypeArgumentRefersToTypeParameter_OnType_SecondTypeArgumentAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} static class C<T1, T2>
@@ -2134,12 +2034,10 @@ C.ObliviousField -> string",
                 // /0/Test0.cs(3,21): warning RS0041: Symbol 'C<T1, T2>' uses some oblivious reference types.
                 GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, ObliviousApiRule, "C<T1, T2>")
                 );
-        }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnType_ObliviousReferenceAsync()
-        {
-            await VerifyCSharpAsync($$"""
+        public Task TypeArgumentRefersToTypeParameter_OnType_ObliviousReferenceAsync()
+            => VerifyCSharpAsync($$"""
 
                 #nullable enable
                 {{EnabledModifierCSharp}} static class C<T>
@@ -2157,7 +2055,6 @@ C.ObliviousField -> string",
                 // /0/Test0.cs(3,21): warning RS0041: Symbol 'C<T>' uses some oblivious reference types.
                 GetCSharpResultAt(3, 15 + EnabledModifierCSharp.Length, ObliviousApiRule, "C<T>")
                 );
-        }
 
         [Fact]
         public async Task ApiFileShippedWithDuplicateNullableEnableAsync()
@@ -2193,22 +2090,17 @@ C.ObliviousField -> string",
         }
 
         [Fact]
-        public async Task ApiFileShippedWithoutNullableEnable_AvoidUnnecessaryDiagnosticAsync()
-        {
-
-            // Only oblivious APIs, so no need to warn about lack of '#nullable enable'
-            await VerifyCSharpAsync($$"""
+        public Task ApiFileShippedWithoutNullableEnable_AvoidUnnecessaryDiagnosticAsync()
+            => VerifyCSharpAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                 }
                 """, $@"C
 C.C() -> void", $@"", System.Array.Empty<DiagnosticResult>());
-        }
 
         [Fact]
-        public async Task TestAddAndRemoveMembers_CSharp_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestAddAndRemoveMembers_CSharp_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     {{EnabledModifierCSharp}} int Field;
@@ -2235,23 +2127,19 @@ C.Method() -> void
 C.NewField -> int
 C.Property.get -> int
 C.Property.set -> void");
-        }
 
         [Fact]
-        public async Task TestSimpleMissingType_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestSimpleMissingType_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
                 }
                 """, @"", @"", @"C");
-        }
 
         [Fact]
-        public async Task TestMultipleMissingTypeAndMember_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestMultipleMissingTypeAndMember_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
@@ -2263,12 +2151,10 @@ C.Property.set -> void");
 C.Field -> int
 C2
 C2.C2() -> void");
-        }
 
         [Fact]
-        public async Task TestMultipleMissingTypeAndMember_CaseSensitiveFixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestMultipleMissingTypeAndMember_CaseSensitiveFixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
@@ -2286,24 +2172,20 @@ C.Field_C -> int
 C.Field_d -> int
 C2
 C2.C2() -> void");
-        }
 
         [Fact]
-        public async Task TestChangingMethodSignatureForAnUnshippedMethod_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestChangingMethodSignatureForAnUnshippedMethod_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     private C() { }
                     {{EnabledModifierCSharp}} void {|{{AddNewApiId}}:Method|}(int p1){ }
                 }
                 """, @"C", $$"""{|{{RemoveApiId}}:C.Method() -> void|}""", @"C.Method(int p1) -> void");
-        }
 
         [Fact]
-        public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix_WithNullabilityAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestChangingMethodSignatureForAnUnshippedMethod_Fix_WithNullabilityAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     private C() { }
@@ -2311,12 +2193,10 @@ C2.C2() -> void");
                 }
                 """, $@"#nullable enable
 C", $$"""{|{{RemoveApiId}}:C.Method(string p1) -> void|}""", @"C.Method(object? p1) -> void");
-        }
 
         [Fact]
-        public async Task TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     private C() { }
@@ -2327,7 +2207,6 @@ C", $$"""{|{{RemoveApiId}}:C.Method(string p1) -> void|}""", @"C.Method(object? 
                 """, @"C
 C.Method(int p1) -> void
 C.Method(int p1, int p2) -> void", $$"""{|{{RemoveApiId}}:C.Method() -> void|}""", @"C.Method(char p1) -> void");
-        }
 
         [Fact]
         public async Task TestAddingNewPublicOverload_FixAsync()
@@ -2364,9 +2243,8 @@ C.Method(int p1, int p2) -> void", $$"""{|{{RemoveApiId}}:C.Method() -> void|}""
         }
 
         [Fact]
-        public async Task TestMissingTypeAndMemberAndNestedMembers_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestMissingTypeAndMemberAndNestedMembers_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
@@ -2385,12 +2263,10 @@ C.CC.Field -> int
 C.Field -> int
 C2
 C2.C2() -> void");
-        }
 
         [Fact]
-        public async Task TestMissingNestedGenericMembersAndStaleMembers_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestMissingNestedGenericMembersAndStaleMembers_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
@@ -2434,12 +2310,10 @@ C2.C2() -> void");
                 C2
                 C2.C2() -> void
                 """);
-        }
 
         [Fact]
-        public async Task TestWithExistingUnshippedNestedMembers_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestWithExistingUnshippedNestedMembers_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
@@ -2461,12 +2335,10 @@ C.CC.Field -> int
 C.Field -> int
 C2
 C2.C2() -> void");
-        }
 
         [Fact]
-        public async Task TestWithExistingUnshippedNestedGenericMembers_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestWithExistingUnshippedNestedGenericMembers_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class C
                 {
                     private C() { }
@@ -2491,12 +2363,10 @@ C.CC.CC() -> void
 C.CC.Field -> int
 C.CC<T>
 C.CC<T>.Field -> int");
-        }
 
         [Fact]
-        public async Task TestWithExistingShippedNestedMembers_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestWithExistingShippedNestedMembers_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
@@ -2515,12 +2385,10 @@ C.CC.Field -> int", @"", @"C
 C.Field -> int
 C2
 C2.C2() -> void");
-        }
 
         [Fact]
-        public async Task TestOnlyRemoveStaleSiblingEntries_FixAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestOnlyRemoveStaleSiblingEntries_FixAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:C|}
                 {
                     private C() { }
@@ -2547,7 +2415,6 @@ C2.C2() -> void");
                 C2
                 C2.C2() -> void
                 """);
-        }
 
         [Theory]
         [InlineData("", "")]
@@ -2579,9 +2446,8 @@ C.Property.get -> int{expectedEndOfFile}";
         }
 
         [Fact]
-        public async Task MissingType_AAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task MissingType_AAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:A|}|} { }
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
@@ -2594,12 +2460,10 @@ B
 B.B() -> void
 D
 D.D() -> void");
-        }
 
         [Fact]
-        public async Task MissingType_CAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task MissingType_CAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|} { }
                 {{EnabledModifierCSharp}} class D { }
@@ -2612,12 +2476,10 @@ C
 C.C() -> void
 D
 D.D() -> void");
-        }
 
         [Fact]
-        public async Task MissingType_EAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task MissingType_EAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:E|}|} { }
@@ -2630,12 +2492,10 @@ D
 D.D() -> void
 E
 E.E() -> void");
-        }
 
         [Fact]
-        public async Task MissingType_Unordered_AAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task MissingType_Unordered_AAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:A|}|} { }
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
@@ -2648,12 +2508,10 @@ D
 D.D() -> void
 B
 B.B() -> void");
-        }
 
         [Fact]
-        public async Task MissingType_Unordered_CAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task MissingType_Unordered_CAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|} { }
                 {{EnabledModifierCSharp}} class D { }
@@ -2666,12 +2524,10 @@ D
 D.D() -> void
 B
 B.B() -> void");
-        }
 
         [Fact]
-        public async Task MissingType_Unordered_EAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task MissingType_Unordered_EAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:E|}|} { }
@@ -2684,12 +2540,10 @@ B
 B.B() -> void
 E
 E.E() -> void");
-        }
 
         [Fact, WorkItem(2195, "https://github.com/dotnet/roslyn-analyzers/issues/2195")]
-        public async Task TestPartialTypeAsync()
-        {
-            await VerifyCSharpAdditionalFileFixAsync($$"""
+        public Task TestPartialTypeAsync()
+            => VerifyCSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} partial class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
                 {
                 }
@@ -2699,12 +2553,10 @@ E.E() -> void");
                 }
                 """, @"", @"", @"C
 C.C() -> void");
-        }
 
         [Fact, WorkItem(4133, "https://github.com/dotnet/roslyn-analyzers/issues/4133")]
-        public async Task Record_ImplicitProperty_FixAsync()
-        {
-            await VerifyNet50CSharpAdditionalFileFixAsync($$"""
+        public Task Record_ImplicitProperty_FixAsync()
+            => VerifyNet50CSharpAdditionalFileFixAsync($$"""
                 {{EnabledModifierCSharp}} record R(int {|{{AddNewApiId}}:P|});
                 """, """
                 #nullable enable
@@ -2731,13 +2583,11 @@ C.C() -> void");
                 R.R(int P) -> void
                 R.P.get -> int
                 """);
-        }
 
         [Fact]
         [WorkItem(6759, "https://github.com/dotnet/roslyn-analyzers/issues/6759")]
-        public async Task TestExperimentalApiAsync()
-        {
-            await VerifyNet80CSharpAdditionalFileFixAsync($$"""
+        public Task TestExperimentalApiAsync()
+            => VerifyNet80CSharpAdditionalFileFixAsync($$"""
                 using System.Diagnostics.CodeAnalysis;
 
                 [Experimental("ID1")]
@@ -2746,7 +2596,6 @@ C.C() -> void");
                 }
                 """, @"", @"", @"[ID1]C
 [ID1]C.C() -> void");
-        }
 
         [Theory]
         [InlineData("")]

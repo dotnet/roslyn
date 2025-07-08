@@ -13,9 +13,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
     public class EnumeratorAllocationAnalyzerTests
     {
         [Fact]
-        public async Task EnumeratorAllocation_BasicAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
+        public Task EnumeratorAllocation_BasicAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using System;
 using System.Linq;
 using Roslyn.Utilities;
@@ -57,13 +56,10 @@ public class MyClass
                 // Test0.cs(30,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic().WithLocation(30, 24));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact]
-        public async Task EnumeratorAllocation_AdvancedAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
+        public Task EnumeratorAllocation_AdvancedAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using System;
 using Roslyn.Utilities;
 
@@ -92,13 +88,10 @@ public class MyClass
                 // Test0.cs(17,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 24));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact]
-        public async Task EnumeratorAllocation_Via_InvocationExpressionSyntaxAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
+        public Task EnumeratorAllocation_Via_InvocationExpressionSyntaxAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using System.Collections;
 using System;
 using Roslyn.Utilities;
@@ -135,13 +128,10 @@ public class MyClass
                 // Test0.cs(17,43): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 43));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact]
-        public async Task EnumeratorAllocation_IterateOverString_NoWarningAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task EnumeratorAllocation_IterateOverString_NoWarningAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -152,6 +142,5 @@ public class MyClass
         foreach (char c in ""aaa"") { };
     }
 }");
-        }
     }
 }

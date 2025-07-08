@@ -18,53 +18,44 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
     internal override AbstractSyntaxStructureProvider CreateProvider() => new CompilationUnitStructureProvider();
 
     [Fact]
-    public async Task TestUsings()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestUsings()
+        => VerifyBlockSpansAsync("""
                 $${|hint:using {|textspan:System;
                 using System.Core;|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestUsingAliases()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestUsingAliases()
+        => VerifyBlockSpansAsync("""
                 $${|hint:using {|textspan:System;
                 using System.Core;
                 using text = System.Text;
                 using linq = System.Linq;|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestExternAliases()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestExternAliases()
+        => VerifyBlockSpansAsync("""
                 $${|hint:extern {|textspan:alias Goo;
                 extern alias Bar;|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestExternAliasesAndUsings()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestExternAliasesAndUsings()
+        => VerifyBlockSpansAsync("""
                 $${|hint:extern {|textspan:alias Goo;
                 extern alias Bar;
                 using System;
                 using System.Core;|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
+        => VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:extern {|textspan2:alias Goo;
@@ -79,12 +70,10 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("span3", "// Goo ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestUsingsWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestUsingsWithComments()
+        => VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:using {|textspan2:System;
@@ -92,12 +81,10 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestExternAliasesWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestExternAliasesWithComments()
+        => VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
                 {|hint2:extern {|textspan2:alias Goo;
@@ -105,38 +92,31 @@ public sealed class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestWithComments()
+        => VerifyBlockSpansAsync("""
                 $${|span1:// Goo
                 // Bar|}
                 """,
             Region("span1", "// Goo ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestWithCommentsAtEnd()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestWithCommentsAtEnd()
+        => VerifyBlockSpansAsync("""
                 $${|hint1:using {|textspan1:System;|}|}
                 {|span2:// Goo
                 // Bar|}
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("span2", "// Goo ...", autoCollapse: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
-    public async Task TestUsingKeywordWithSpace()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestUsingKeywordWithSpace()
+        => VerifyBlockSpansAsync("""
                 $${|hint:using|} {|textspan:|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Theory, CombinatorialData]
     public async Task TestUsingsShouldBeCollapsedByDefault(bool collapseUsingsByDefault)

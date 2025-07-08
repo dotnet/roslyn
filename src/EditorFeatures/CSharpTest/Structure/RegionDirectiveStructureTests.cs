@@ -18,27 +18,22 @@ public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStru
     internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
     [Fact]
-    public async Task BrokenRegion()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task BrokenRegion()
+        => VerifyNoBlockSpansAsync("""
                 $$#region Goo
                 """);
-    }
 
     [Fact]
-    public async Task SimpleRegion()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task SimpleRegion()
+        => VerifyBlockSpansAsync("""
                 {|span:$$#region Goo
                 #endregion|}
                 """,
             Region("span", "Goo", autoCollapse: false, isDefaultCollapsed: true));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539361")]
-    public async Task RegressionFor5284()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task RegressionFor5284()
+        => VerifyBlockSpansAsync("""
                 namespace BasicGenerateFromUsage
                 {
                     class BasicGenerateFromUsage
@@ -67,7 +62,6 @@ public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStru
                 }
                 """,
             Region("span", "TaoRegion", autoCollapse: false, isDefaultCollapsed: true));
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/953668"), CombinatorialData]
     public async Task RegionsShouldBeCollapsedByDefault(bool collapseRegionsWhenFirstOpened)
@@ -91,9 +85,8 @@ public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStru
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4105")]
-    public async Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task SpacesBetweenPoundAndRegionShouldNotAffectBanner()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                 {|span:#  region R$$egion
@@ -104,17 +97,14 @@ public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStru
                 }
                 """,
             Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
-    public async Task Trailing()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task Trailing()
+        => VerifyBlockSpansAsync("""
             {|span:#region R$$1
             /* comment */ #endregion
             /* comment */ #region R2
             #endregion|}
             """,
             Region("span", "R1", autoCollapse: false, isDefaultCollapsed: true));
-    }
 }

@@ -15,9 +15,8 @@ public partial class PreferFrameworkTypeTests : AbstractCSharpDiagnosticProvider
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument_DeclarationContext()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInDocument_DeclarationContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -114,14 +113,12 @@ class Program2
         </Document>
     </Project>
 </Workspace>", options: FrameworkTypeEverywhere);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject_DeclarationContext()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInProject_DeclarationContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -218,14 +215,12 @@ class Program2
         </Document>
     </Project>
 </Workspace>", options: FrameworkTypeEverywhere);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_DeclarationContext()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInSolution_DeclarationContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -322,14 +317,12 @@ class Program2
         </Document>
     </Project>
 </Workspace>", options: FrameworkTypeEverywhere);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_MemberAccessContext()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task TestFixAllInSolution_MemberAccessContext()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -462,5 +455,4 @@ class ProgramA3
         </Document>
     </Project>
 </Workspace>", options: FrameworkTypeEverywhere);
-    }
 }

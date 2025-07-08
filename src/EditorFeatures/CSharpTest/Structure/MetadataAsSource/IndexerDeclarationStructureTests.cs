@@ -17,21 +17,18 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
     internal override AbstractSyntaxStructureProvider CreateProvider() => new IndexerDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:public string $$this[int x] {|textspan:{ get; set; }|}|}
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:[Goo]
@@ -40,12 +37,10 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -56,12 +51,10 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAttributesAndmodifiers()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAttributesAndmodifiers()
+        => VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -72,12 +65,10 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestIndexer3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestIndexer3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public string this[int index]{|textspan:
@@ -89,5 +80,4 @@ public sealed class IndexerDeclarationStructureTests : AbstractCSharpSyntaxNodeS
                 }
                 """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

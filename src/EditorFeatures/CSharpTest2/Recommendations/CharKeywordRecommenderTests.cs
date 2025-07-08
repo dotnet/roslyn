@@ -601,9 +601,8 @@ public sealed class CharKeywordRecommenderTests : KeywordRecommenderTests
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
-    public async Task TestInGenericMethodTypeParameterList1()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInGenericMethodTypeParameterList1()
+        => VerifyKeywordAsync("""
             class Class1<T, D>
             {
                 public static Class1<T, D> Create() { return null; }
@@ -622,13 +621,11 @@ public sealed class CharKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
-    public async Task TestInGenericMethodTypeParameterList2()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInGenericMethodTypeParameterList2()
+        => VerifyKeywordAsync("""
             class Class1<T, D>
             {
                 public static Class1<T, D> Create() { return null; }
@@ -647,7 +644,6 @@ public sealed class CharKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/1468")]

@@ -15,9 +15,8 @@ public sealed partial class AddExplicitCastTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task CS0266TestFixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task CS0266TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -294,14 +293,12 @@ public sealed partial class AddExplicitCastTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task CS0266TestFixAllInProject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task CS0266TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -578,14 +575,12 @@ public sealed partial class AddExplicitCastTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task CS0266TestFixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task CS0266TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -862,14 +857,12 @@ public sealed partial class AddExplicitCastTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task CS1503TestFixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task CS1503TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1122,14 +1115,12 @@ public sealed partial class AddExplicitCastTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task CS1503TestFixAllInProject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task CS1503TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1460,14 +1451,12 @@ public sealed partial class AddExplicitCastTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task CS1503TestFixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task CS1503TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1724,6 +1713,5 @@ public sealed partial class AddExplicitCastTests
                 </Project>
             </Workspace>
             """);
-    }
     #endregion
 }

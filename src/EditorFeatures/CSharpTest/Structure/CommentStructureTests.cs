@@ -50,9 +50,8 @@ public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
     }
 
     [Fact]
-    public async Task TestSimpleComment1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestSimpleComment1()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
                 // $$C#|}
                 class C
@@ -60,12 +59,10 @@ public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
                 }
                 """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestSimpleComment2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestSimpleComment2()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
                 //
                 // $$C#!|}
@@ -74,12 +71,10 @@ public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
                 }
                 """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestSimpleComment3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestSimpleComment3()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
 
                 // $$C#!|}
@@ -88,12 +83,10 @@ public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
                 }
                 """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestSingleLineCommentGroupFollowedByDocumentationComment()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestSingleLineCommentGroupFollowedByDocumentationComment()
+        => VerifyBlockSpansAsync("""
                 {|span:// Hello
 
                 // $$C#!|}
@@ -103,5 +96,4 @@ public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
                 }
                 """,
             Region("span", "// Hello ...", autoCollapse: true));
-    }
 }

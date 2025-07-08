@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysisPerformanceSensitiveAnalyzers.UnitTests
     public class CallSiteImplicitAllocationAnalyzerTests
     {
         [Fact]
-        public async Task CallSiteImplicitAllocation_ParamAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task CallSiteImplicitAllocation_ParamAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -55,8 +54,6 @@ public class MyClass
                 // Test0.cs(16,20): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(16, 20));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
         public Task EmptyParamsWithNetFramework45Async()
@@ -95,9 +92,8 @@ public class MyClass
             }.RunAsync();
 
         [Fact]
-        public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStructAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CallSiteImplicitAllocation_NonOverridenMethodOnStructAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -125,13 +121,10 @@ public struct OverrideToHashCode
                 // Test0.cs(10,22): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(10, 22));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact]
-        public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCallsAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCallsAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -143,12 +136,10 @@ public class MyClass
         var t = System.Enum.GetUnderlyingType(typeof(System.StringComparison));
     }
 }");
-        }
 
         [Fact]
-        public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForNonVirtualCallsAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForNonVirtualCallsAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.IO;
 using Roslyn.Utilities;
 
@@ -161,12 +152,10 @@ public class MyClass
         attr.HasFlag (FileAttributes.Directory);
     }
 }");
-        }
 
         [Fact]
-        public async Task ParamsIsPrecededByOptionalParametersAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ParamsIsPrecededByOptionalParametersAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.IO;
 using Roslyn.Utilities;
 
@@ -184,13 +173,11 @@ public class MyClass
     }
 }",
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(0));
-        }
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Calling_non_overridden_virtual_methods_on_value_typesAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task Calling_non_overridden_virtual_methods_on_value_typesAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -207,7 +194,5 @@ public class MyClass
                 // Test0.cs(12,9): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(12, 9));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
     }
 }

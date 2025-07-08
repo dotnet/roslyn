@@ -286,9 +286,8 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
     #region "Current Parameter Name"
 
     [Fact]
-    public async Task TestCurrentParameterName()
-    {
-        await VerifyCurrentParameterNameAsync("""
+    public Task TestCurrentParameterName()
+        => VerifyCurrentParameterNameAsync("""
             class C
             {
                 public string this[int a, bool b]
@@ -307,7 +306,6 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
                 }
             }
             """, "a");
-    }
 
     #endregion
 
@@ -964,17 +962,14 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-        public async Task InvokedWithNoToken()
-        {
-            await TestAsync("""
+        public Task InvokedWithNoToken()
+            => TestAsync("""
                 // goo[$$
                 """);
-        }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2482")]
-        public async Task WhereExpressionLooksLikeArrayTypeSyntaxOfQualifiedName()
-        {
-            await TestAsync("""
+        public Task WhereExpressionLooksLikeArrayTypeSyntaxOfQualifiedName()
+            => TestAsync("""
                 class WithIndexer
                 {
                     public int this[int index] { get { return 0; } }
@@ -991,12 +986,10 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
                     }
                 }
                 """, [new SignatureHelpTestItem("int WithIndexer[int index]")], usePreviousCharAsTrigger: true);
-        }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
-        public async Task InConditionalIndexingFollowedByMemberAccess()
-        {
-            await TestAsync("""
+        public Task InConditionalIndexingFollowedByMemberAccess()
+            => TestAsync("""
                 class Indexable
                 {
                     public Indexable this[int x] { get => null; }
@@ -1010,12 +1003,10 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
                     }
                 }
                 """, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
-        }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
-        public async Task InConditionalIndexingFollowedByConditionalAccess()
-        {
-            await TestAsync("""
+        public Task InConditionalIndexingFollowedByConditionalAccess()
+            => TestAsync("""
                 class Indexable
                 {
                     public Indexable this[int x] { get => null; }
@@ -1029,6 +1020,5 @@ public sealed class ElementAccessExpressionSignatureHelpProviderTests : Abstract
                     }
                 }
                 """, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
-        }
     }
 }

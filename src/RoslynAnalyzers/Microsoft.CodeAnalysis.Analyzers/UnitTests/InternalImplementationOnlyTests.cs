@@ -501,11 +501,8 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyISymbolAsync()
-        {
-
-            // Verify that ISymbol is not implementable.
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task Basic_VerifyISymbolAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 ' Causes many compile errors, because not all members are implemented.
 Class C1
     Implements Microsoft.CodeAnalysis.ISymbol
@@ -673,14 +670,10 @@ End Class
                 // Test0.vb(7) : error BC30149: Class 'C2' must implement 'Sub Accept(visitor As SymbolVisitor)' for interface 'ISymbol'.
                 DiagnosticResult.CompilerError("BC30149").WithSpan(7, 16, 7, 54).WithArguments("Class", "C2", "Sub Accept(visitor As Microsoft.CodeAnalysis.SymbolVisitor)", "ISymbol")
             );
-        }
 
         [Fact]
-        public async Task Basic_VerifyIOperationAsync()
-        {
-
-            // Verify that IOperation is not implementable.
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task Basic_VerifyIOperationAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 ' Causes many compile errors, because not all members are implemented.
 Class C1
     Implements Microsoft.CodeAnalysis.IOperation
@@ -746,6 +739,5 @@ End Class
                 // Test0.vb(7) : error BC30149: Class 'C2' must implement 'Sub Accept(visitor As OperationVisitor)' for interface 'IOperation'.
                 DiagnosticResult.CompilerError("BC30149").WithSpan(7, 16, 7, 70).WithArguments("Class", "C2", "Sub Accept(visitor As Microsoft.CodeAnalysis.Operations.OperationVisitor)", "IOperation")
             );
-        }
     }
 }

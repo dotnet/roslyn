@@ -156,9 +156,8 @@ class C : B, I
     [Theory]
     [InlineData("object")]
     [InlineData("string")]
-    public async Task TestThisInstanceNotProvided1(string parameterType)
-    {
-        await VerifyDefaultValueAsync($@"
+    public Task TestThisInstanceNotProvided1(string parameterType)
+        => VerifyDefaultValueAsync($@"
 using System.Collections.Generic;
 interface I {{ }}
 
@@ -176,12 +175,10 @@ class C : B, I
     }}
 }}
 ", null);
-    }
 
     [Fact]
-    public async Task TestThisInstanceNotProvided2()
-    {
-        await VerifyDefaultValueAsync($@"
+    public Task TestThisInstanceNotProvided2()
+        => VerifyDefaultValueAsync($@"
 using System.Collections.Generic;
 
 class C
@@ -196,7 +193,6 @@ class C
     }}
 }}
 ", null);
-    }
 
     // Note: The current implementation checks for exact type match for primitive types. If this changes, some of
     // these tests may need to be updated to account for the new behavior.
@@ -206,9 +202,8 @@ class C
     [InlineData("bool", "bool?")]
     [InlineData("bool", "int")]
     [InlineData("int", "object")]
-    public async Task TestMismatchType(string parameterType, string valueType)
-    {
-        await VerifyDefaultValueAsync($@"
+    public Task TestMismatchType(string parameterType, string valueType)
+        => VerifyDefaultValueAsync($@"
 class C
 {{
     void Method({valueType} arg)
@@ -221,5 +216,4 @@ class C
     }}
 }}
 ", null);
-    }
 }

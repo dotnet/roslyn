@@ -17,9 +17,8 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:enum $$E{|textspan:
                 {
                     A,
@@ -27,12 +26,10 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 }|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:[Bar]
                 |}{|#0:enum $$E|}{|textspan2:
                 {
@@ -42,12 +39,10 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Bar]
@@ -59,12 +54,10 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAttributesAndModifiers()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Bar]
@@ -76,16 +69,14 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory, Trait(Traits.Feature, Traits.Features.Outlining)]
     [InlineData("enum")]
     [InlineData("struct")]
     [InlineData("class")]
     [InlineData("interface")]
-    public async Task TestEnum3(string typeKind)
-    {
-        await VerifyBlockSpansAsync($@"
+    public Task TestEnum3(string typeKind)
+        => VerifyBlockSpansAsync($@"
 {{|#0:$$enum E{{|textspan:
 {{
 }}|#0}}
@@ -94,5 +85,4 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
 {{
 }}",
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

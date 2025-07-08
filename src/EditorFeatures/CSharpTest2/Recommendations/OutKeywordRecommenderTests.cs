@@ -357,16 +357,14 @@ public sealed class OutKeywordRecommenderTests : KeywordRecommenderTests
 @"var q = delegate (int a, $$"));
 
     [Fact]
-    public async Task TestInCrefParameterList()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInCrefParameterList()
+        => VerifyKeywordAsync("""
             Class c
             {
                 /// <see cref="main($$"/>
                 void main(out goo) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22253")]
     public Task TestInLocalFunction()

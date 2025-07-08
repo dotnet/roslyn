@@ -20,29 +20,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup;
 public sealed class NormalizeModifiersOrOperatorsTests
 {
     [Fact]
-    public async Task PartialMethod()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task PartialMethod()
+        => VerifyAsync(@"[|Class A
     Private Partial Sub()
     End Sub
 End Class|]", @"Class A
     Partial Private Sub()
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task PartialClass()
-    {
-        await VerifyAsync(@"[|Public Partial Class A
+    public Task PartialClass()
+        => VerifyAsync(@"[|Public Partial Class A
 End Class|]", @"Partial Public Class A
 End Class");
-    }
 
     [Fact]
-    public async Task DefaultProperty()
-    {
-        await VerifyAsync(@"[|Class Class1
+    public Task DefaultProperty()
+        => VerifyAsync(@"[|Class Class1
     Public Default Property prop1(i As Integer) As Integer
         Get
             Return i
@@ -59,12 +54,10 @@ End Class|]", @"Class Class1
         End Set
     End Property
 End Class");
-    }
 
     [Fact]
-    public async Task Accessors()
-    {
-        await VerifyAsync(@"[|Public Module M
+    public Task Accessors()
+        => VerifyAsync(@"[|Public Module M
 End Module
 
 NotInheritable Friend Class C
@@ -111,20 +104,16 @@ Friend NotInheritable Class C
         End Sub
     End Class
 End Class");
-    }
 
     [Fact]
-    public async Task Structure()
-    {
-        await VerifyAsync(@"[|Public Partial Structure S
+    public Task Structure()
+        => VerifyAsync(@"[|Public Partial Structure S
 End Structure|]", @"Partial Public Structure S
 End Structure");
-    }
 
     [Fact]
-    public async Task Interface()
-    {
-        await VerifyAsync(@"[|Public Interface O
+    public Task Interface()
+        => VerifyAsync(@"[|Public Interface O
     Public Interface S
     End Interface
 End Interface
@@ -145,20 +134,16 @@ Public Interface O2
     Public Shadows Interface S
     End Interface
 End Interface");
-    }
 
     [Fact]
-    public async Task Class()
-    {
-        await VerifyAsync(@"[|MustInherit Public  Class C
+    public Task Class()
+        => VerifyAsync(@"[|MustInherit Public  Class C
 End Class|]", @"Public MustInherit Class C
 End Class");
-    }
 
     [Fact]
-    public async Task Enum()
-    {
-        await VerifyAsync(@"[|Public Class O
+    public Task Enum()
+        => VerifyAsync(@"[|Public Class O
     Public Enum S
         None
     End Enum
@@ -183,12 +168,10 @@ Public Class O2
         None
     End Enum
 End Class");
-    }
 
     [Fact]
-    public async Task Method()
-    {
-        await VerifyAsync(@"[|Public Class O
+    public Task Method()
+        => VerifyAsync(@"[|Public Class O
     Overridable Protected Function Test() As Integer
         Return 0
     End Function
@@ -197,22 +180,18 @@ End Class|]", @"Public Class O
         Return 0
     End Function
 End Class");
-    }
 
     [Fact]
-    public async Task Declare()
-    {
-        await VerifyAsync(@"[|Class C
+    public Task Declare()
+        => VerifyAsync(@"[|Class C
     Overloads Public  Declare Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA"" (ByVal lpBuffer As String, ByRef nSize As Integer) As Integer
 End Class|]", @"Class C
     Public Overloads Declare Function getUserName Lib ""advapi32.dll"" Alias ""GetUserNameA"" (ByVal lpBuffer As String, ByRef nSize As Integer) As Integer
 End Class");
-    }
 
     [Fact]
-    public async Task Delegate()
-    {
-        await VerifyAsync(@"[|Public Class O
+    public Task Delegate()
+        => VerifyAsync(@"[|Public Class O
     Public Delegate Function S() As Integer
 End Class
 
@@ -229,44 +208,36 @@ Public Class O2
 
     Public Shadows Delegate Function S() As Integer
 End Class");
-    }
 
     [Fact]
-    public async Task Event()
-    {
-        await VerifyAsync(@"[|Public Class O
+    public Task Event()
+        => VerifyAsync(@"[|Public Class O
     Shared Public  Event Test As System.EventHandler
 End Class|]", @"Public Class O
     Public Shared Event Test As System.EventHandler
 End Class");
-    }
 
     [Fact]
-    public async Task Operator()
-    {
-        await VerifyAsync(@"[|Public Structure abc
+    public Task Operator()
+        => VerifyAsync(@"[|Public Structure abc
     Shared Overloads Public  Operator And(ByVal x As abc, ByVal y As abc) As abc
     End Operator
 End Structure|]", @"Public Structure abc
     Public Overloads Shared Operator And(ByVal x As abc, ByVal y As abc) As abc
     End Operator
 End Structure");
-    }
 
     [Fact]
-    public async Task Property()
-    {
-        await VerifyAsync(@"[|Class Class1
+    public Task Property()
+        => VerifyAsync(@"[|Class Class1
    Overridable  Public  Property prop1 As Integer
 End Class|]", @"Class Class1
     Public Overridable Property prop1 As Integer
 End Class");
-    }
 
     [Fact]
-    public async Task Accessor()
-    {
-        await VerifyAsync(@"[|Class Class1
+    public Task Accessor()
+        => VerifyAsync(@"[|Class Class1
     Public Property prop1 As Integer
         Private Get
             Return 0
@@ -285,32 +256,26 @@ End Class|]", @"Class Class1
         End Set
     End Property
 End Class");
-    }
 
     [Fact]
-    public async Task IncompleteMember()
-    {
-        await VerifyAsync(@"[|Class Program
+    public Task IncompleteMember()
+        => VerifyAsync(@"[|Class Program
     Shared Private Dim
 End Class|]", @"Class Program
     Shared Private Dim
 End Class");
-    }
 
     [Fact]
-    public async Task Field()
-    {
-        await VerifyAsync(@"[|Class Program
+    public Task Field()
+        => VerifyAsync(@"[|Class Program
     Shared ReadOnly Private Dim f = 1
 End Class|]", @"Class Program
     Private Shared ReadOnly f = 1
 End Class");
-    }
 
     [Fact]
-    public async Task NotOverridable_Overridable_Overrides()
-    {
-        await VerifyAsync(@"[|Public Class Program
+    public Task NotOverridable_Overridable_Overrides()
+        => VerifyAsync(@"[|Public Class Program
     Class N
         Inherits Program
 
@@ -333,22 +298,18 @@ End Class|]", @"Public Class Program
     Public Overridable Sub test()
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task MustOverride_MustInherit()
-    {
-        await VerifyAsync(@"[|MustInherit Public Class Program
+    public Task MustOverride_MustInherit()
+        => VerifyAsync(@"[|MustInherit Public Class Program
     MustOverride Public Sub test()
 End Class|]", @"Public MustInherit Class Program
     Public MustOverride Sub test()
 End Class");
-    }
 
     [Fact]
-    public async Task Overloads()
-    {
-        await VerifyAsync(@"[|Public MustInherit Class Program
+    public Task Overloads()
+        => VerifyAsync(@"[|Public MustInherit Class Program
    Overloads Public  Sub test()
     End Sub
 
@@ -361,20 +322,16 @@ End Class|]", @"Public MustInherit Class Program
     Public Overloads Sub test(i As Integer)
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task NotInheritable()
-    {
-        await VerifyAsync(@"[|NotInheritable Public Class Program
+    public Task NotInheritable()
+        => VerifyAsync(@"[|NotInheritable Public Class Program
 End Class|]", @"Public NotInheritable Class Program
 End Class");
-    }
 
     [Fact]
-    public async Task Shared_Shadow_ReadOnly_Const()
-    {
-        await VerifyAsync(@"[|Class C
+    public Task Shared_Shadow_ReadOnly_Const()
+        => VerifyAsync(@"[|Class C
     Class N
         Public  Sub Test()
         End Sub
@@ -405,12 +362,10 @@ End Class|]", @"Class C
         End Sub
     End Class
 End Class");
-    }
 
     [Fact]
-    public async Task WriteOnly()
-    {
-        await VerifyAsync(@"[|Class C
+    public Task WriteOnly()
+        => VerifyAsync(@"[|Class C
     WriteOnly Public  Property Test
         Set(value)
         End Set
@@ -421,12 +376,10 @@ End Class|]", @"Class C
         End Set
     End Property
 End Class");
-    }
 
     [Fact]
-    public async Task WithEvent_Custom_Dim()
-    {
-        await VerifyAsync(@"[|Imports System
+    public Task WithEvent_Custom_Dim()
+        => VerifyAsync(@"[|Imports System
 
 Public Class A
      Public Custom Event MyEvent As EventHandler
@@ -465,12 +418,10 @@ Class B
     Public Sub EventHandler(s As Object, a As EventArgs) Handles EventSource.MyEvent
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task Widening_Narrowing()
-    {
-        await VerifyAsync(@"[|Public Structure digit
+    public Task Widening_Narrowing()
+        => VerifyAsync(@"[|Public Structure digit
 Widening  Shared  Public Operator CType(ByVal d As digit) As Byte
         Return 0
     End Operator
@@ -485,12 +436,10 @@ End Structure|]", @"Public Structure digit
         Return Nothing
     End Operator
 End Structure");
-    }
 
     [Fact]
-    public async Task Static_Const_Dim()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task Static_Const_Dim()
+        => VerifyAsync(@"[|Class A
     Sub Method()
         Dim Static a As Integer = 1
         Const a2 As Integer = 2
@@ -501,36 +450,30 @@ End Class|]", @"Class A
         Const a2 As Integer = 2
     End Sub
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-    public async Task RemoveByVal1()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task RemoveByVal1()
+        => VerifyAsync(@"[|Class A
     Sub Method(ByVal t As String)
     End Sub
 End Class|]", @"Class A
     Sub Method(ByVal t As String)
     End Sub
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-    public async Task RemoveByVal2()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task RemoveByVal2()
+        => VerifyAsync(@"[|Class A
     Sub Method(ByVal t As String, ByRef t1 As String)
     End Sub
 End Class|]", @"Class A
     Sub Method(ByVal t As String, ByRef t1 As String)
     End Sub
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-    public async Task RemoveByVal_LineContinuation()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task RemoveByVal_LineContinuation()
+        => VerifyAsync(@"[|Class A
     Sub Method( _
         ByVal _
               _
@@ -543,22 +486,18 @@ End Class|]", @"Class A
             t As String, ByRef t1 As String)
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task RemoveDim()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task RemoveDim()
+        => VerifyAsync(@"[|Class A
     Dim  Shared Private a As Integer = 1
 End Class|]", @"Class A
     Private Shared a As Integer = 1
 End Class");
-    }
 
     [Fact]
-    public async Task RemoveDim_LineContinuation()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task RemoveDim_LineContinuation()
+        => VerifyAsync(@"[|Class A
     Dim _
         Shared _
         Private _
@@ -569,12 +508,10 @@ End Class|]", @"Class A
                _
             a As Integer = 1
 End Class");
-    }
 
     [Fact]
-    public async Task LessThanGreaterThan()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task LessThanGreaterThan()
+        => VerifyAsync(@"[|Class A
     Sub Test()
         If 1 >< 2 Then
         End If
@@ -585,12 +522,10 @@ End Class|]", @"Class A
         End If
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task GreaterThanEquals()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task GreaterThanEquals()
+        => VerifyAsync(@"[|Class A
     Sub Test()
         If 1 => 2 Then
         End If
@@ -601,12 +536,10 @@ End Class|]", @"Class A
         End If
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task LessThanEquals()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task LessThanEquals()
+        => VerifyAsync(@"[|Class A
     Sub Test()
         If 1 =< 2 Then
         End If
@@ -617,12 +550,10 @@ End Class|]", @"Class A
         End If
     End Sub
 End Class");
-    }
 
     [Fact]
-    public async Task LessThanEquals_LineContinuation()
-    {
-        await VerifyAsync(@"[|Class A
+    public Task LessThanEquals_LineContinuation()
+        => VerifyAsync(@"[|Class A
     Sub Test()
         If 1 _ 
             = _ 
@@ -638,18 +569,14 @@ End Class|]", @"Class A
         End If
     End Sub
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544300")]
-    public async Task NormalizedOperator_StructuredTrivia()
-    {
-        await VerifyAsync(@"[|#If VBC_VER => 9.0|]", @"#If VBC_VER >= 9.0");
-    }
+    public Task NormalizedOperator_StructuredTrivia()
+        => VerifyAsync(@"[|#If VBC_VER => 9.0|]", @"#If VBC_VER >= 9.0");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
-    public async Task DoNotRemoveByVal()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task DoNotRemoveByVal()
+        => VerifyAsync(@"[|Module Program
     Sub Main(
         ByVal _
         args _
@@ -662,12 +589,10 @@ End Module|]", @"Module Program
         As String)
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544561")]
-    public async Task NormalizeOperator_Text()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task NormalizeOperator_Text()
+        => VerifyAsync(@"[|Module Program
     Sub Main()
         Dim z = 1
         Dim y = 2
@@ -680,32 +605,26 @@ End Module|]", @"Module Program
         Dim x = z <> y
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544557")]
-    public async Task NormalizeOperator_OperatorStatement()
-    {
-        await VerifyAsync(@"[|Class S
+    public Task NormalizeOperator_OperatorStatement()
+        => VerifyAsync(@"[|Class S
     Shared Operator >< (s1 As S, s2 As   S) As S
 End Class|]", @"Class S
     Shared Operator <>(s1 As S, s2 As S) As S
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544574")]
-    public async Task Reorder_OperatorTokenAndModifiers()
-    {
-        await VerifyAsync(@"[|Class S
+    public Task Reorder_OperatorTokenAndModifiers()
+        => VerifyAsync(@"[|Class S
     Shared Operator Widening CType(aa As S) As Byte
 End Class|]", @"Class S
     Shared Widening Operator CType(aa As S) As Byte
 End Class");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546521")]
-    public async Task SkippedTokenOperator()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task SkippedTokenOperator()
+        => VerifyAsync(@"[|Module M
     Public Shared Narrowing Operator CTypeByVal s As Integer) As Test2
         Return New Test2()
     End Operator
@@ -714,12 +633,10 @@ End Module|]", @"Module M
         Return New Test2()
     End Operator
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
-    public async Task ReorderAsyncModifier()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task ReorderAsyncModifier()
+        => VerifyAsync(@"[|Module M
     Public Async Function Goo() As Task(Of Integer)
         Return 0
     End Function
@@ -744,12 +661,10 @@ End Module|]", @"Module M
         Return 0
     End Function
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547255")]
-    public async Task ReorderIteratorModifier()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task ReorderIteratorModifier()
+        => VerifyAsync(@"[|Module M
     Public Iterator Function Goo() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
@@ -774,12 +689,10 @@ End Module|]", @"Module M
         Yield Return 0
     End Function
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611766")]
-    public async Task ReorderDuplicateModifiers()
-    {
-        await VerifyAsync(@"[|Module M
+    public Task ReorderDuplicateModifiers()
+        => VerifyAsync(@"[|Module M
     Public Public Function Goo() As Integer
         Return 0
     End Function
@@ -796,12 +709,10 @@ End Module|]", @"Module M
         Yield Return 0
     End Function
 End Module");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530058")]
-    public async Task TestBadOperatorToken()
-    {
-        await VerifyAsync(@"[|Module Test
+    public Task TestBadOperatorToken()
+        => VerifyAsync(@"[|Module Test
 Class c1 
 Shared Operator ||(ByVal x As c1, ByVal y As c1) As Integer
 End Operator
@@ -812,12 +723,10 @@ End Module|]", @"Module Test
         End Operator
     End Class
 End Module");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1534")]
-    public async Task TestColonEqualsToken()
-    {
-        await VerifyAsync(@"[|Module Program
+    public Task TestColonEqualsToken()
+        => VerifyAsync(@"[|Module Program
     Sub Main(args As String())
         Main(args   :     =    args)
     End Sub
@@ -826,7 +735,6 @@ End Module|]", @"Module Program
         Main(args:=args)
     End Sub
 End Module");
-    }
 
     private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
     {

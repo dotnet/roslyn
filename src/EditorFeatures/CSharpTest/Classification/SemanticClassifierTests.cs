@@ -1428,27 +1428,23 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Struct("DictionaryEntry"));
 
     [Theory, CombinatorialData]
-    public async Task NAQSameFileClass(TestHost testHost)
-    {
-        await TestAsync(@"class C { static void M() { global::C.M(); } }",
+    public Task NAQSameFileClass(TestHost testHost)
+        => TestAsync(@"class C { static void M() { global::C.M(); } }",
             testHost,
             ParseOptions(Options.Regular),
             Class("C"),
             Method("M"),
             Static("M"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task InteractiveNAQSameFileClass(TestHost testHost)
-    {
-        await TestAsync(@"class C { static void M() { global::Script.C.M(); } }",
+    public Task InteractiveNAQSameFileClass(TestHost testHost)
+        => TestAsync(@"class C { static void M() { global::Script.C.M(); } }",
             testHost,
             ParseOptions(Options.Script),
             Class("Script"),
             Class("C"),
             Method("M"),
             Static("M"));
-    }
 
     [Theory, CombinatorialData]
     public Task NAQSameFileClassWithNamespace(TestHost testHost)
@@ -1932,9 +1928,8 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("Program"));
 
     [Theory, CombinatorialData]
-    public async Task NestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task NestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
+        => TestAsync("""
             class Program
             {
                 class Program { }
@@ -1947,12 +1942,10 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("Program"),
             Class("Program"),
             Class("Program"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task InteractiveNestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task InteractiveNestedTypeCantHaveSameNameAsParentTypeWithGlobalNamespaceAlias(TestHost testHost)
+        => TestAsync("""
             class Program
             {
                 class Program { }
@@ -1966,7 +1959,6 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
             Class("Script"),
             Class("Program"),
             Class("Program"));
-    }
 
     [Theory, CombinatorialData]
     public Task EnumFieldWithSameNameShouldBePreferredToType(TestHost testHost)
@@ -2467,16 +2459,14 @@ public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTe
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/261049")]
-    public async Task DevDiv261049RegressionTest(TestHost testHost)
-    {
-        await TestInMethodAsync(
+    public Task DevDiv261049RegressionTest(TestHost testHost)
+        => TestInMethodAsync(
             """
             var (a,b) =  Get(out int x, out int y);
             Console.WriteLine($"({a.first}, {a.second})");
             """,
             testHost,
             Keyword("var"), Local("a"), Local("a"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/633")]

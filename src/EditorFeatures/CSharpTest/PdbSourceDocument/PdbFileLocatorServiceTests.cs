@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
-    public async Task ReturnsPdbPathFromDebugger()
-    {
-        await RunTestAsync(async path =>
+    public Task ReturnsPdbPathFromDebugger()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -40,12 +39,10 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
 
             Assert.NotNull(result);
         });
-    }
 
     [Fact]
-    public async Task DoesntReadNonPortablePdbs()
-    {
-        await RunTestAsync(async path =>
+    public Task DoesntReadNonPortablePdbs()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -69,12 +66,10 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
 
             Assert.Null(result);
         });
-    }
 
     [Fact]
-    public async Task NoPdbFoundReturnsNull()
-    {
-        await RunTestAsync(async path =>
+    public Task NoPdbFoundReturnsNull()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -96,5 +91,4 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
 
             Assert.Null(result);
         });
-    }
 }

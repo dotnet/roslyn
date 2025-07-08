@@ -33,33 +33,28 @@ public sealed class InvalidIdentifierStructureTests : AbstractSyntaxStructurePro
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-    public async Task PrependedDollarSign()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task PrependedDollarSign()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$class C{|textspan:
                 {
                     public void $Invoke();
                 }|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-    public async Task SymbolsAndPunctuation()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task SymbolsAndPunctuation()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$class C{|textspan:
                 {
                     public void !#$%^&*(()_-+=|\}]{["':;?/>.<,~`();
                 }|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
-    public async Task IdentifierThatLooksLikeCode()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task IdentifierThatLooksLikeCode()
+        => VerifyBlockSpansAsync("""
                 {|hint1:$$class C{|textspan1:
                 {
                     public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} {|textspan3:/* now everything is commented ();
@@ -68,5 +63,4 @@ public sealed class InvalidIdentifierStructureTests : AbstractSyntaxStructurePro
             Region("textspan3", "/* now everything is commented (); ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

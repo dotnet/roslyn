@@ -25,9 +25,8 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
         => (null, new CSharpChangeToIEnumerableCodeFixProvider());
 
     [Fact]
-    public async Task TestChangeToIEnumerableObjectMethod()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableObjectMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -50,12 +49,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableTupleMethod()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableTupleMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -78,12 +75,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableListMethod()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableListMethod()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -106,12 +101,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
+        => TestInRegularAndScriptAsync("""
             #nullable enable
 
             using System;
@@ -138,12 +131,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableGenericIEnumerableMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -155,12 +146,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableGenericIEnumeratorMethod()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableGenericIEnumeratorMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -172,12 +161,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableIEnumeratorMethod()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableIEnumeratorMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -189,12 +176,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableIEnumerableMethod()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableIEnumerableMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -206,12 +191,10 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestChangeToIEnumerableVoidMethod()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestChangeToIEnumerableVoidMethod()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections;
 
@@ -223,7 +206,6 @@ public sealed class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderB
                 }
             }
             """);
-    }
 
     [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
     public Task TestChangeToIEnumerableProperty()

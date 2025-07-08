@@ -60,9 +60,8 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     }
 
     [Fact]
-    public async Task InObjectCreation()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InObjectCreation()
+        => VerifyItemExistsAsync("""
             class Goo
             {
                 public Goo(int a = 42)
@@ -74,12 +73,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "a", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task InBaseConstructor()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InBaseConstructor()
+        => VerifyItemExistsAsync("""
             class Goo
             {
                 public Goo(int a = 42)
@@ -91,12 +88,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 public DogBed(int b) : base($$
             }
             """, "a", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task InvocationExpression()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InvocationExpression()
+        => VerifyItemExistsAsync("""
             class Goo
             {
                 void Bar(int a)
@@ -105,12 +100,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "a", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task InvocationExpressionAfterComma()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InvocationExpressionAfterComma()
+        => VerifyItemExistsAsync("""
             class Goo
             {
                 void Bar(int a, string b)
@@ -119,12 +112,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "a", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task ElementAccessExpression()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ElementAccessExpression()
+        => VerifyItemExistsAsync("""
             class SampleCollection<T>
             {
                 private T[] arr = new T[100];
@@ -150,7 +141,6 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "i", displayTextSuffix: ":");
-    }
 
     [Fact]
     public async Task PartialMethods()
@@ -195,9 +185,8 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     }
 
     [Fact]
-    public async Task NotAfterColon()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotAfterColon()
+        => VerifyNoItemsExistAsync("""
             class Goo
             {
                 void Bar(int a, string b)
@@ -206,12 +195,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544292")]
-    public async Task NotInCollectionInitializers()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotInCollectionInitializers()
+        => VerifyNoItemsExistAsync("""
             using System.Collections.Generic;
             class Goo
             {
@@ -221,7 +208,6 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544191")]
     public async Task FilteringOverloadsByCallSite()
@@ -363,9 +349,8 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529369")]
-    public async Task VerbatimIdentifierNotAKeyword()
-    {
-        await VerifyItemExistsAsync("""
+    public Task VerbatimIdentifierNotAKeyword()
+        => VerifyItemExistsAsync("""
             class Program
             {
                 void Goo(int @integer)
@@ -374,12 +359,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "integer", displayTextSuffix: ":");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544209")]
-    public async Task DescriptionStringInMethodOverloads()
-    {
-        await VerifyItemExistsAsync("""
+    public Task DescriptionStringInMethodOverloads()
+        => VerifyItemExistsAsync("""
             class Class1
             {
                 void Test()
@@ -395,12 +378,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
             }
             """, "obj", displayTextSuffix: ":",
             expectedDescriptionOrNull: $"({FeaturesResources.parameter}) Class1 obj = default(Class1)");
-    }
 
     [Fact]
-    public async Task InDelegates()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InDelegates()
+        => VerifyItemExistsAsync("""
             public delegate void Del(string message);
 
             class Program
@@ -417,12 +398,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "message", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task InDelegateInvokeSyntax()
-    {
-        await VerifyItemExistsAsync("""
+    public Task InDelegateInvokeSyntax()
+        => VerifyItemExistsAsync("""
             public delegate void Del(string message);
 
             class Program
@@ -439,12 +418,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "message", displayTextSuffix: ":");
-    }
 
     [Fact]
-    public async Task NotInComment()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotInComment()
+        => VerifyNoItemsExistAsync("""
             public class Test
             {
             static void Main()
@@ -455,12 +432,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
             static void M(int x, int y) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task CommitWithColonWordFullyTyped()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task CommitWithColonWordFullyTyped()
+        => VerifyProviderCommitAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -477,12 +452,10 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, ':');
-    }
 
     [Fact]
-    public async Task CommitWithColonWordPartiallyTyped()
-    {
-        await VerifyProviderCommitAsync("""
+    public Task CommitWithColonWordPartiallyTyped()
+        => VerifyProviderCommitAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -499,5 +472,4 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, ':');
-    }
 }

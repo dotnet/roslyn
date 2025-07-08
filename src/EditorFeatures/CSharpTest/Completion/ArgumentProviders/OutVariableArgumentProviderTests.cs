@@ -45,9 +45,8 @@ public sealed class OutVariableArgumentProviderTests : AbstractCSharpArgumentPro
     [InlineData("")]
     [InlineData("ref")]
     [InlineData("in")]
-    public async Task TestUnsupportedModifiers(string modifier)
-    {
-        await VerifyDefaultValueAsync($@"
+    public Task TestUnsupportedModifiers(string modifier)
+        => VerifyDefaultValueAsync($@"
 class C
 {{
     void Method()
@@ -58,7 +57,6 @@ class C
     bool TryParse({modifier} int value) => throw null;
 }}
 ", expectedDefaultValue: null);
-    }
 
     [Fact]
     public async Task TestDeclareVariable()

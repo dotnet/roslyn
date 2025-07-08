@@ -261,9 +261,8 @@ End Class", LanguageNames.VisualBasic);
         => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
     [Fact, WorkItem(12848, "DevDiv_Projects/Roslyn")]
-    public async Task DoNotCrash_VB()
-    {
-        await VerifyRange(@"#If DEBUG OrElse TRACE Then
+    public Task DoNotCrash_VB()
+        => VerifyRange(@"#If DEBUG OrElse TRACE Then
 Imports System.Diagnostics
 #ElseIf SILVERLIGHT Then
 Imports System.Diagnostics
@@ -276,7 +275,6 @@ Imports System.Diagnostics
 #Region ""more""
 #End Region 
 #End Region", LanguageNames.VisualBasic);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
     public async Task DoNotCrash_VB_2()
@@ -317,9 +315,8 @@ End Class
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
-    public async Task TestCodeCleanupWithinNonStructuredTrivia()
-    {
-        await VerifyRange(@"
+    public Task TestCodeCleanupWithinNonStructuredTrivia()
+        => VerifyRange(@"
 #Const ccConst = 0
 #If {|b:
 |}Then
@@ -332,7 +329,6 @@ Module Program
  
     End Sub
 End Module", LanguageNames.VisualBasic);
-    }
 
     [Fact]
     public async Task RangeWithTransformation_OutsideOfRange()

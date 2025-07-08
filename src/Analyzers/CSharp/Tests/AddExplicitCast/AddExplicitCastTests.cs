@@ -2537,9 +2537,8 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task MultipleOptions3()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task MultipleOptions3()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 class Base { }
@@ -2570,12 +2569,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task MultipleOptions4()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task MultipleOptions4()
+        => TestInRegularAndScriptAsync("""
             class Program
             {
                 class Base { }
@@ -2612,7 +2609,6 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task MultipleOptions5()
@@ -2789,9 +2785,8 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task MultipleOptions7()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task MultipleOptions7()
+        => TestInRegularAndScriptAsync("""
         class Program
         {
             class Base { }
@@ -2830,12 +2825,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MultipleOptions8()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task MultipleOptions8()
+        => TestInRegularAndScriptAsync("""
         class Program
         {
             class Base { }
@@ -2872,12 +2865,10 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task MultipleOptions9()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task MultipleOptions9()
+        => TestMissingInRegularAndScriptAsync("""
             class Program
             {
                 class Base { }
@@ -2893,7 +2884,6 @@ public sealed partial class AddExplicitCastTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact]
     public Task MultipleErrors1()

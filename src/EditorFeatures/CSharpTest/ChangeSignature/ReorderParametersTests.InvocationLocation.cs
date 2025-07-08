@@ -112,9 +112,8 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     }
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnMetadataReference_InIdentifier_ShouldFail()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+    public Task ReorderMethodParameters_InvokeOnMetadataReference_InIdentifier_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 static void Main(string[] args)
@@ -123,12 +122,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
-    }
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnMetadataReference_AtBeginningOfInvocation_ShouldFail()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+    public Task ReorderMethodParameters_InvokeOnMetadataReference_AtBeginningOfInvocation_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 static void Main(string[] args)
@@ -137,12 +134,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
-    }
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnMetadataReference_InArgumentsOfInvocation_ShouldFail()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+    public Task ReorderMethodParameters_InvokeOnMetadataReference_InArgumentsOfInvocation_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 static void Main(string[] args)
@@ -151,23 +146,19 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.DefinedInMetadata);
-    }
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeOnMetadataReference_AfterInvocation_ShouldFail()
-    {
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+    public Task ReorderMethodParameters_InvokeOnMetadataReference_AfterInvocation_ShouldFail()
+        => TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 string s = ((System.IFormattable)null).ToString("test", null)$$;
             }
             """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-    }
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeInMethodBody_ViaCommand()
-    {
-        await TestChangeSignatureViaCommandAsync(
+    public Task ReorderMethodParameters_InvokeInMethodBody_ViaCommand()
+        => TestChangeSignatureViaCommandAsync(
             LanguageNames.CSharp, """
             using System;
             class MyClass
@@ -178,12 +169,10 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedSuccess: false);
-    }
 
     [Fact]
-    public async Task ReorderMethodParameters_InvokeInMethodBody_ViaSmartTag()
-    {
-        await TestMissingAsync("""
+    public Task ReorderMethodParameters_InvokeInMethodBody_ViaSmartTag()
+        => TestMissingAsync("""
             using System;
             class MyClass
             {
@@ -193,7 +182,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task ReorderMethodParameters_InvokeOnReference_BeginningOfIdentifier()
@@ -770,9 +758,8 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     }
 
     [Fact]
-    public async Task ReorderMethodParameters_CodeRefactoring_NotInMethodBody()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task ReorderMethodParameters_CodeRefactoring_NotInMethodBody()
+        => TestChangeSignatureViaCodeActionAsync("""
             using System;
             class MyClass
             {
@@ -782,7 +769,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact]
     public async Task ReorderMethodParameters_CodeRefactoring_InLambda()
@@ -808,9 +794,8 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     }
 
     [Fact]
-    public async Task ReorderMethodParameters_CodeRefactoring_NotInLambdaBody()
-    {
-        await TestChangeSignatureViaCodeActionAsync("""
+    public Task ReorderMethodParameters_CodeRefactoring_NotInLambdaBody()
+        => TestChangeSignatureViaCodeActionAsync("""
             class Program
             {
                 void M(int x)
@@ -819,7 +804,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """, expectedCodeAction: false);
-    }
 
     [Fact]
     public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCommand()
@@ -847,9 +831,8 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     }
 
     [Fact]
-    public async Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCodeAction()
-    {
-        await TestMissingAsync("""
+    public Task ReorderMethodParameters_CodeRefactoring_AtCallSite_ViaCodeAction()
+        => TestMissingAsync("""
             class Program
             {
                 void M(int x, int y)
@@ -858,7 +841,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 }
             }
             """);
-    }
 
     #endregion
 }

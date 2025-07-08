@@ -12,9 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 public sealed partial class PopulateSwitchExpressionTests
 {
     [Fact]
-    public async Task TestFixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -159,12 +158,10 @@ public sealed partial class PopulateSwitchExpressionTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInProject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -297,12 +294,10 @@ public sealed partial class PopulateSwitchExpressionTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -452,5 +447,4 @@ public sealed partial class PopulateSwitchExpressionTests
                 </Project>
             </Workspace>
             """);
-    }
 }

@@ -18,9 +18,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class ConvertToAsyncTests
 {
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)]
-    public async Task CantAwaitAsyncVoid()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task CantAwaitAsyncVoid()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System.Threading.Tasks;
 
             class Program
@@ -51,5 +50,4 @@ public sealed class ConvertToAsyncTests
                 }
             }
             """);
-    }
 }

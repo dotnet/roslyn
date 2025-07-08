@@ -109,15 +109,13 @@ public sealed class ExtractMethodMiscellaneousTests
     }
 
     [WpfFact]
-    public async Task TestExtractMethodCommandHandlerErrorMessage()
-    {
-        await TestCommandHandler("""
+    public Task TestExtractMethodCommandHandlerErrorMessage()
+        => TestCommandHandler("""
             class A
             {
                 [|void Method() {}|]
             }
             """, result: null, expectNotification: true);
-    }
 
     private static async Task TestCommandHandler(string markupCode, string? result, bool expectNotification)
     {
@@ -146,9 +144,8 @@ public sealed class ExtractMethodMiscellaneousTests
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/65465")]
-    public async Task TestExtractLocalFunctionInTopLevelFromCommandHandler()
-    {
-        await TestCommandHandler("""
+    public Task TestExtractLocalFunctionInTopLevelFromCommandHandler()
+        => TestCommandHandler("""
             System.Console.WriteLine([|"string"|]);
             """, """
             System.Console.WriteLine(NewMethod());
@@ -158,5 +155,4 @@ public sealed class ExtractMethodMiscellaneousTests
                 return "string";
             }
             """, expectNotification: false);
-    }
 }

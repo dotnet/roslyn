@@ -18,9 +18,8 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
         => typeof(InitializerExpressionSignatureHelpProvider);
 
     [Fact]
-    public async Task WithSingleParamAddMethods()
-    {
-        await TestAsync("""
+    public Task WithSingleParamAddMethods()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -31,12 +30,10 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 }
             }
             """, [new("void List<int>.Add(int item)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task ForMultiParamAddMethods()
-    {
-        await TestAsync("""
+    public Task ForMultiParamAddMethods()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -47,12 +44,10 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 }
             }
             """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task ForSecondParam()
-    {
-        await TestAsync("""
+    public Task ForSecondParam()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class C
@@ -63,12 +58,10 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 }
             }
             """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 1)]);
-    }
 
     [Fact]
-    public async Task ForNestedCollectionInitializer()
-    {
-        await TestAsync("""
+    public Task ForNestedCollectionInitializer()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class Bar
@@ -84,12 +77,10 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 }
             }
             """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task WithoutClosingBraces()
-    {
-        await TestAsync("""
+    public Task WithoutClosingBraces()
+        => TestAsync("""
             using System.Collections.Generic;
 
             class Bar
@@ -103,12 +94,10 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 {
                     new Bar { D = { { $$
             """, [new("void Dictionary<int, string>.Add(int key, string value)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task WithMultipleAddMethods()
-    {
-        await TestAsync("""
+    public Task WithMultipleAddMethods()
+        => TestAsync("""
             using System.Collections;
 
             class Bar : IEnumerable
@@ -127,12 +116,10 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
             new("void Bar.Add(int i)", currentParameterIndex: 0),
             new("void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true),
             new("void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0)]);
-    }
 
     [Fact]
-    public async Task DoesNotImplementIEnumerable()
-    {
-        await TestAsync("""
+    public Task DoesNotImplementIEnumerable()
+        => TestAsync("""
             using System.Collections;
 
             class Bar
@@ -148,12 +135,10 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
                 {
                     new Bar { { $$
             """, expectedOrderedItemsOrNull: []);
-    }
 
     [Fact]
-    public async Task WithExtensionAddMethods()
-    {
-        await TestAsync("""
+    public Task WithExtensionAddMethods()
+        => TestAsync("""
             using System.Collections;
 
             class Bar : IEnumerable
@@ -176,5 +161,4 @@ public sealed class InitializerExpressionSignatureHelpProviderTests : AbstractCS
             new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i)", currentParameterIndex: 0),
             new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s)", currentParameterIndex: 0, isSelected: true),
             new($"({CSharpFeaturesResources.extension}) void Bar.Add(int i, string s, bool b)", currentParameterIndex: 0)], sourceCodeKind: SourceCodeKind.Regular);
-    }
 }

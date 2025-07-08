@@ -62,9 +62,8 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
         protected override int CodeActionIndex => 11;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_Empty()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\file.cs">
@@ -87,12 +86,10 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\file.cs">
@@ -115,12 +112,10 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleIdEntryExists()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleIdEntryExists()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\file.cs">
@@ -148,12 +143,10 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidHeader()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\file.cs">
@@ -181,7 +174,6 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
         public async Task ConfigureEditorconfig_MaintainExistingEntry()
@@ -203,9 +195,8 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
         }
 
         [Fact]
-        public async Task ConfigureEditorconfig_DiagnosticsSuppressed()
-        {
-            await TestMissingInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_DiagnosticsSuppressed()
+            => TestMissingInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\file.cs">
@@ -217,12 +208,10 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidRule()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\file.cs">
@@ -248,12 +237,10 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RegexHeaderMatch()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RegexHeaderMatch()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\Program/file.cs">
@@ -283,12 +270,10 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RegexHeaderNonMatch()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RegexHeaderNonMatch()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
                         <Document FilePath="z:\\Program/file.cs">
@@ -318,6 +303,5 @@ public abstract partial class AllAnalyzersSeverityConfigurationTests : AbstractS
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
     }
 }

@@ -30,9 +30,8 @@ public sealed class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeAc
     // it is hard to test cross language scenario.
     // After it is resolved then this test should be merged to the other test class
     [Fact]
-    public async Task TestCrossLanguageInline()
-    {
-        await TestNoActionIsProvided(@"
+    public Task TestCrossLanguageInline()
+        => TestNoActionIsProvided(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
     <ProjectReference>VBAssembly</ProjectReference>
@@ -57,6 +56,5 @@ public sealed class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeAc
     </Document>
     </Project>
 </Workspace>");
-    }
 }
 

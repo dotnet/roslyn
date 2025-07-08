@@ -47,9 +47,8 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     }
 
     [Fact]
-    public async Task TestIsObject()
-    {
-        await VerifyCSharp9Async("""
+    public Task TestIsObject()
+        => VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -66,7 +65,6 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestIsObject2()
@@ -84,9 +82,8 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     }
 
     [Fact]
-    public async Task TestIsNotObject()
-    {
-        await VerifyCSharp9Async("""
+    public Task TestIsNotObject()
+        => VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -103,7 +100,6 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestIsNotObject2()
@@ -136,9 +132,8 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     }
 
     [Fact]
-    public async Task TestIsStringAgainstString()
-    {
-        await VerifyCSharp9Async("""
+    public Task TestIsStringAgainstString()
+        => VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -155,7 +150,6 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task TestIsNotStringAgainstObject_NoDiagnostic()
@@ -173,9 +167,8 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     }
 
     [Fact]
-    public async Task TestIsNotStringAgainstString()
-    {
-        await VerifyCSharp9Async("""
+    public Task TestIsNotStringAgainstString()
+        => VerifyCSharp9Async("""
             public class C
             {
                 public bool M(string value)
@@ -192,7 +185,6 @@ public sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58377")]
     public async Task TestNotInExpressionTree()

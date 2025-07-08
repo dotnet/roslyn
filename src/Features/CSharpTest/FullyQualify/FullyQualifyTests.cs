@@ -1507,9 +1507,8 @@ class Program
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-    public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
-    {
-        await TestMissingAsync(@"
+    public Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
+        => TestMissingAsync(@"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -1536,5 +1535,4 @@ class Program
 </Workspace>", new TestParameters(
             options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
-    }
 }

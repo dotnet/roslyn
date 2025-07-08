@@ -355,16 +355,14 @@ public sealed class RefKeywordRecommenderTests : KeywordRecommenderTests
 @"var q = delegate (int a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
 
     [Fact]
-    public async Task TestInCrefParameterList()
-    {
-        await VerifyKeywordAsync("""
+    public Task TestInCrefParameterList()
+        => VerifyKeywordAsync("""
             Class c
             {
                 /// <see cref="main($$"/>
                 void main(out goo) { }
             }
             """);
-    }
 
     [Theory, CombinatorialData]
     public Task TestEmptyStatement(bool topLevelStatement)

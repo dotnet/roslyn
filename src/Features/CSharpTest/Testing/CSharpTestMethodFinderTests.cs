@@ -22,9 +22,8 @@ public sealed class CSharpTestMethodFinderTests
     #region Xunit
 
     [Fact]
-    public async Task TestFindsXUnitFactMethod()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsXUnitFactMethod()
+        => TestXunitAsync("""
             using Xunit;
             public class TestClass
             {
@@ -32,12 +31,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestMatchesXUnitFactInInnerClassMethod()
-    {
-        await TestXunitMatchAsync("""
+    public Task TestMatchesXUnitFactInInnerClassMethod()
+        => TestXunitMatchAsync("""
             using Xunit;
             public class OuterClass
             {
@@ -51,12 +48,10 @@ public sealed class CSharpTestMethodFinderTests
                 }
             }
             """, "OuterClass+InnerClass.TestMethod2");
-    }
 
     [Fact]
-    public async Task TestMatchesXUnitFactInOuterClassMethod()
-    {
-        await TestXunitMatchAsync("""
+    public Task TestMatchesXUnitFactInOuterClassMethod()
+        => TestXunitMatchAsync("""
             using Xunit;
             public class OuterClass
             {
@@ -70,12 +65,10 @@ public sealed class CSharpTestMethodFinderTests
                 }
             }
             """, "OuterClass.TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsXUnitFactAttributeMethod()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsXUnitFactAttributeMethod()
+        => TestXunitAsync("""
             using Xunit;
             public class TestClass
             {
@@ -83,12 +76,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsXUnitTheoryMethod()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsXUnitTheoryMethod()
+        => TestXunitAsync("""
             using Xunit;
             public class TestClass
             {
@@ -96,12 +87,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsXUnitTheoryAttributeMethod()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsXUnitTheoryAttributeMethod()
+        => TestXunitAsync("""
             using Xunit;
             public class TestClass
             {
@@ -109,14 +98,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsXUnitAliasedFactMethod()
-    {
-
-        // This asserts that we cannot find test methods with aliased attributes because we only do syntactic checks.
-        await TestXunitAsync("""
+    public Task TestFindsXUnitAliasedFactMethod()
+        => TestXunitAsync("""
             using Xunit;
             using test = Xunit.FactAttribute;
             public class TestClass
@@ -125,12 +110,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFindsXUnitFactOnlySelectedMethod()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsXUnitFactOnlySelectedMethod()
+        => TestXunitAsync("""
             using Xunit;
             public class TestClass
             {
@@ -143,12 +126,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void NotTestMethod() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsXunitMethodsInClassMethod()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsXunitMethodsInClassMethod()
+        => TestXunitAsync("""
             using Xunit;
             public class Test$$Class
             {
@@ -164,24 +145,20 @@ public sealed class CSharpTestMethodFinderTests
                 public void NotTestMethod() { }
             }
             """, "TestMethod1", "TestMethod2", "TestMethod3");
-    }
 
     [Fact]
-    public async Task TestXunitNoMethodsInClass()
-    {
-        await TestXunitAsync("""
+    public Task TestXunitNoMethodsInClass()
+        => TestXunitAsync("""
             using Xunit;
             public class Test$$Class
             {
                 public void NotTestMethod() { }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFindsSelectedXunitMethods()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsSelectedXunitMethods()
+        => TestXunitAsync("""
             using Xunit;
             public class TestClass
             {
@@ -197,16 +174,14 @@ public sealed class CSharpTestMethodFinderTests
                 public void NotTestMethod() { }
             }
             """, "TestMethod1", "TestMethod2");
-    }
 
     #endregion
 
     #region NUnit
 
     [Fact]
-    public async Task TestFindsNUnitTestMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTestMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -214,12 +189,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitTestAttributeMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTestAttributeMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -227,12 +200,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitTheoryMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTheoryMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -240,12 +211,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitTheoryAttributeMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTheoryAttributeMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -253,12 +222,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitTestCaseMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTestCaseMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -266,12 +233,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitTestCaseAttributeMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTestCaseAttributeMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -279,12 +244,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitTestCaseSourceMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTestCaseSourceMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -293,12 +256,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitTestCaseSourceAttributeMethod()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitTestCaseSourceAttributeMethod()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class TestClass
             {
@@ -307,12 +268,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsNUnitMethodsInClass()
-    {
-        await TestNUnitAsync("""
+    public Task TestFindsNUnitMethodsInClass()
+        => TestNUnitAsync("""
             using NUnit.Framework;
             public class Test$$Class
             {
@@ -332,16 +291,14 @@ public sealed class CSharpTestMethodFinderTests
                 public void NotTestMethod() { }
             }
             """, "TestMethod1", "TestMethod2", "TestMethod3", "TestMethod4");
-    }
 
     #endregion
 
     #region MSTest
 
     [Fact]
-    public async Task TestFindsMSTestTestMethod()
-    {
-        await TestMSTestAsync("""
+    public Task TestFindsMSTestTestMethod()
+        => TestMSTestAsync("""
             using Microsoft.VisualStudio.TestTools.UnitTesting;
             public class TestClass
             {
@@ -350,12 +307,10 @@ public sealed class CSharpTestMethodFinderTests
             }
 
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsMSTestTestMethodAttribute()
-    {
-        await TestMSTestAsync("""
+    public Task TestFindsMSTestTestMethodAttribute()
+        => TestMSTestAsync("""
             using Microsoft.VisualStudio.TestTools.UnitTesting;
             public class TestClass
             {
@@ -364,12 +319,10 @@ public sealed class CSharpTestMethodFinderTests
             }
 
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsMSTestMethodsInClass()
-    {
-        await TestMSTestAsync("""
+    public Task TestFindsMSTestMethodsInClass()
+        => TestMSTestAsync("""
             using Microsoft.VisualStudio.TestTools.UnitTesting;
             public class Test$$Class
             {
@@ -382,14 +335,12 @@ public sealed class CSharpTestMethodFinderTests
                 public void NotTestMethod() { }
             }
             """, "TestMethod1", "TestMethod2");
-    }
 
     #endregion
 
     [Fact]
-    public async Task TestFindsTestMethodInBlockScopedNamespace()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsTestMethodInBlockScopedNamespace()
+        => TestXunitAsync("""
             namespace BlockScoped
             {
                 using Xunit;
@@ -400,12 +351,10 @@ public sealed class CSharpTestMethodFinderTests
                 }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsTestMethodInFileScopedNamespace()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsTestMethodInFileScopedNamespace()
+        => TestXunitAsync("""
             namespace FileScoped;
             using Xunit;
             public class TestClass
@@ -414,12 +363,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsTestMethodInStruct()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsTestMethodInStruct()
+        => TestXunitAsync("""
             using Xunit;
             public struct TestClass
             {
@@ -427,12 +374,10 @@ public sealed class CSharpTestMethodFinderTests
                 public void Test$$Method1() { }
             }
             """, "TestMethod1");
-    }
 
     [Fact]
-    public async Task TestFindsTestMethodInPartialClass()
-    {
-        await TestXunitAsync("""
+    public Task TestFindsTestMethodInPartialClass()
+        => TestXunitAsync("""
             using Xunit;
             public partial class PartialClass
             {
@@ -446,7 +391,6 @@ public sealed class CSharpTestMethodFinderTests
                 public void TestMethod2() { }
             }
             """, "TestMethod1");
-    }
 
     private static Task TestXunitAsync(string code, params string[] expectedTestNames)
     {

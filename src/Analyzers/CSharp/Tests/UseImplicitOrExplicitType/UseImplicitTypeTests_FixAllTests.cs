@@ -17,9 +17,8 @@ public partial class UseImplicitTypeTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferImplicitTypeEverywhere()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocumentScope_PreferImplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -124,14 +123,12 @@ public partial class UseImplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject_PreferImplicitTypeEverywhere()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInProject_PreferImplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -236,14 +233,12 @@ public partial class UseImplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_PreferImplicitTypeEverywhere()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInSolution_PreferImplicitTypeEverywhere()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -348,14 +343,12 @@ public partial class UseImplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocumentScope_PreferBuiltInTypes()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocumentScope_PreferBuiltInTypes()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -396,7 +389,6 @@ public partial class UseImplicitTypeTests
                 </Project>
             </Workspace>
             """, options: ImplicitTypeButKeepIntrinsics());
-    }
 
     #endregion
 }

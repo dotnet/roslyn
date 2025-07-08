@@ -2010,21 +2010,17 @@ class Program
     }");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
-    public async Task TestAttribute_ActionCount()
-    {
-        await TestActionCountAsync(@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", 2);
-    }
+    public Task TestAttribute_ActionCount()
+        => TestActionCountAsync(@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", 2);
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
-    public async Task TestAttribute(TestHost testHost)
-    {
-        await TestAsync(
+    public Task TestAttribute(TestHost testHost)
+        => TestAsync(
 @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ",
 @"using System.Runtime.InteropServices;
 
 [assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
     public Task TestNotOnOverloadResolutionError()
@@ -2644,9 +2640,8 @@ public class MyClass
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
-    public async Task TestAddStaticType(TestHost testHost)
-    {
-        await TestAsync(@"using System;
+    public Task TestAddStaticType(TestHost testHost)
+        => TestAsync(@"using System;
 
 public static class Outer
 {
@@ -2674,13 +2669,11 @@ public static class Outer
 [My]
 class Test
 {}", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
-    public async Task TestAddStaticType2(TestHost testHost)
-    {
-        await TestAsync(@"using System;
+    public Task TestAddStaticType2(TestHost testHost)
+        => TestAsync(@"using System;
 
 public static class Outer
 {
@@ -2712,7 +2705,6 @@ public static class Outer
 [My]
 class Test
 {}", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
@@ -2756,9 +2748,8 @@ class Test
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
-    public async Task TestAddStaticType4(TestHost testHost)
-    {
-        await TestAsync(@"using System;
+    public Task TestAddStaticType4(TestHost testHost)
+        => TestAsync(@"using System;
 using Outer;
 
 public static class Outer
@@ -2792,7 +2783,6 @@ public static class Outer
 [My]
 class Test
 {}", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
@@ -2939,9 +2929,8 @@ namespace ns2
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-    public async Task TestAddConditionalAccessExpression(TestHost testHost)
-    {
-        await TestAsync(@"<Workspace>
+    public Task TestAddConditionalAccessExpression(TestHost testHost)
+        => TestAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -2973,13 +2962,11 @@ public class C
     }
 }
        ", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
-    public async Task TestAddConditionalAccessExpression2(TestHost testHost)
-    {
-        await TestAsync(@"<Workspace>
+    public Task TestAddConditionalAccessExpression2(TestHost testHost)
+        => TestAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -3023,7 +3010,6 @@ public class C
     }
 }
        ", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089138")]
@@ -3943,9 +3929,8 @@ class A
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
-    public async Task TestAddInsideLambda(TestHost testHost)
-    {
-        await TestAsync(@"using System;
+    public Task TestAddInsideLambda(TestHost testHost)
+        => TestAsync(@"using System;
 
 static void Main(string[] args)
 {
@@ -3957,13 +3942,11 @@ static void Main(string[] args)
 {
     Func<int> f = () => { List<int>. }
 }", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
-    public async Task TestAddInsideLambda2(TestHost testHost)
-    {
-        await TestAsync(@"using System;
+    public Task TestAddInsideLambda2(TestHost testHost)
+        => TestAsync(@"using System;
 
 static void Main(string[] args)
 {
@@ -3975,13 +3958,11 @@ static void Main(string[] args)
 {
     Func<int> f = () => { List<int> }
 }", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
-    public async Task TestAddInsideLambda3(TestHost testHost)
-    {
-        await TestAsync(@"using System;
+    public Task TestAddInsideLambda3(TestHost testHost)
+        => TestAsync(@"using System;
 
 static void Main(string[] args)
 {
@@ -4001,13 +3982,11 @@ static void Main(string[] args)
         return a;
         };
 }", testHost);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
-    public async Task TestAddInsideLambda4(TestHost testHost)
-    {
-        await TestAsync(@"using System;
+    public Task TestAddInsideLambda4(TestHost testHost)
+        => TestAsync(@"using System;
 
 static void Main(string[] args)
 {
@@ -4027,7 +4006,6 @@ static void Main(string[] args)
         return a;
         };
 }", testHost);
-    }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
     [CombinatorialData]
@@ -5947,9 +5925,8 @@ class Program
 
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
-    public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
-    {
-        await TestMissingAsync(@"
+    public Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
+        => TestMissingAsync(@"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -5976,7 +5953,6 @@ class Program
 </Workspace>", new TestParameters(
             options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
-    }
 
     /// <summary>
     /// Note that this test verifies the current end of line sequence in using directives is preserved regardless of

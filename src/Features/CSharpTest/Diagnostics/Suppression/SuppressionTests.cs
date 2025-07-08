@@ -1793,9 +1793,8 @@ class Class
             }
 
             [Fact]
-            public async Task TestSuppressionWithExistingGlobalSuppressionsDocument()
-            {
-                await TestAsync(@"<Workspace>
+            public Task TestSuppressionWithExistingGlobalSuppressionsDocument()
+                => TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1826,12 +1825,10 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
 ");
-            }
 
             [Fact]
-            public async Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
-            {
-                await TestAsync(@"<Workspace>
+            public Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
+                => TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1857,12 +1854,10 @@ using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
 ");
-            }
 
             [Fact]
-            public async Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
-            {
-                await TestAsync(@"<Workspace>
+            public Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
+                => TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1899,12 +1894,10 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
 ");
-            }
 
             [Fact]
-            public async Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
-            {
-                await TestAsync(@"<Workspace>
+            public Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
+                => TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1927,12 +1920,10 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
 ");
-            }
 
             [Fact]
-            public async Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
-            {
-                await TestAsync(@"<Workspace>
+            public Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
+                => TestAsync(@"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
         <Document FilePath=""CurrentDocument.cs""><![CDATA[
 using System;
@@ -1953,7 +1944,6 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""<Pending>"", Scope = ""type"", Target = ""Class"")]
 [assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class2"")]
 ");
-            }
         }
     }
 

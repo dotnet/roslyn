@@ -1043,9 +1043,8 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                  """
                  $"a{@$"{1:000}"}"
                  """)]
-    public async Task TestInliningOfInterpolatedString(string before, string after)
-    {
-        await VerifyCS.VerifyRefactoringAsync($@"
+    public Task TestInliningOfInterpolatedString(string before, string after)
+        => VerifyCS.VerifyRefactoringAsync($@"
 class C
 {{
     void M() {{
@@ -1058,7 +1057,6 @@ class C
         _ = {after};
     }}
 }}");
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
     [InlineData("""
@@ -1091,9 +1089,8 @@ class C
         """
         $"{{}}{1}"
         """)]
-    public async Task TestUnicodeAndEscapeHandling(string before, string after)
-    {
-        await VerifyCS.VerifyRefactoringAsync($$"""
+    public Task TestUnicodeAndEscapeHandling(string before, string after)
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M() {
@@ -1108,7 +1105,6 @@ class C
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
     [InlineData("""
@@ -1135,9 +1131,8 @@ class C
         """
         $"a{(1 + 1)}"
         """)]
-    public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
-    {
-        await VerifyCS.VerifyRefactoringAsync($$"""
+    public Task TestRemovalOfSuperflousParenthesis(string before, string after)
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M() {
@@ -1152,7 +1147,6 @@ class C
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
     public Task TestToString1()

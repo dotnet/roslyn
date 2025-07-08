@@ -15,9 +15,8 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
 {
     #region Locations
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestInTokenDirectlyUnderNode()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestInTokenDirectlyUnderNode()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -29,12 +28,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestBeforeTokenDirectlyUnderNode()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestBeforeTokenDirectlyUnderNode()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -46,12 +43,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestAfterTokenDirectlyUnderNode()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestAfterTokenDirectlyUnderNode()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -63,12 +58,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingInTokenUnderDifferentNode()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingInTokenUnderDifferentNode()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -81,12 +74,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestClimbRightEdge()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestClimbRightEdge()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -98,12 +89,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestClimbLeftEdge()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestClimbLeftEdge()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -115,12 +104,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestClimbLeftEdgeComments()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestClimbLeftEdgeComments()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -135,12 +122,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingInAnotherChildNode()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingInAnotherChildNode()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -152,12 +137,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingInTooFarBeforeInWhitespace()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingInTooFarBeforeInWhitespace()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -172,12 +155,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingInWhiteSpaceOnLineWithDifferentStatement()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingInWhiteSpaceOnLineWithDifferentStatement()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -192,12 +173,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestNotBeforePrecedingComment()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestNotBeforePrecedingComment()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -210,12 +189,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestBeforeInWhitespace1_OnSameLine()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestBeforeInWhitespace1_OnSameLine()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -227,12 +204,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestBeforeInWhitespace1_OnPreviousLine()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestBeforeInWhitespace1_OnPreviousLine()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -245,12 +220,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestBeforeInWhitespace1_NotOnMultipleLinesPrior()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestBeforeInWhitespace1_NotOnMultipleLinesPrior()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -264,12 +237,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestBeforeInWhitespace2()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestBeforeInWhitespace2()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -282,12 +253,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingInNextTokensLeadingTrivia()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingInNextTokensLeadingTrivia()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -301,12 +270,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestInEmptySyntaxNode_AllowEmptyNodesTrue1()
-    {
-        await TestAsync<ArgumentSyntax>("""
+    public Task TestInEmptySyntaxNode_AllowEmptyNodesTrue1()
+        => TestAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -319,12 +286,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """, allowEmptyNodes: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestInEmptySyntaxNode_AllowEmptyNodesTrue2()
-    {
-        await TestAsync<ArgumentSyntax>("""
+    public Task TestInEmptySyntaxNode_AllowEmptyNodesTrue2()
+        => TestAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -337,12 +302,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """, allowEmptyNodes: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestInEmptySyntaxNode_AllowEmptyNodesFalse1()
-    {
-        await TestMissingAsync<ArgumentSyntax>("""
+    public Task TestInEmptySyntaxNode_AllowEmptyNodesFalse1()
+        => TestMissingAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -355,12 +318,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """, allowEmptyNodes: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestInEmptySyntaxNode_AllowEmptyNodesFalse2()
-    {
-        await TestAsync<ArgumentSyntax>("""
+    public Task TestInEmptySyntaxNode_AllowEmptyNodesFalse2()
+        => TestAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -373,15 +334,13 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """, allowEmptyNodes: false);
-    }
 
     #endregion
 
     #region Selections
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestSelectedTokenDirectlyUnderNode()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestSelectedTokenDirectlyUnderNode()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -393,12 +352,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestPartiallySelectedTokenDirectlyUnderNode()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestPartiallySelectedTokenDirectlyUnderNode()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -410,12 +367,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestSelectedMultipleTokensUnderNode()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestSelectedMultipleTokensUnderNode()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -427,12 +382,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingSelectedMultipleTokensWithLowerCommonAncestor()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingSelectedMultipleTokensWithLowerCommonAncestor()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -444,12 +397,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingSelectedLowerNode()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingSelectedLowerNode()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -461,12 +412,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingSelectedWhitespace()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingSelectedWhitespace()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -478,12 +427,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingSelectedWhitespace2()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingSelectedWhitespace2()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -495,12 +442,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestCompleteSelection()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestCompleteSelection()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -512,12 +457,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestOverSelection()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestOverSelection()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -533,12 +476,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestOverSelectionComments()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestOverSelectionComments()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -552,12 +493,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingOverSelection()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingOverSelection()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -571,12 +510,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingSelectionBefore()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingSelectionBefore()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             class C
             {
                 void M()
@@ -590,15 +527,13 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     #endregion
 
     #region IsUnderselected
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38708")]
-    public async Task TestUnderselectionOnSemicolon()
-    {
-        await TestNotUnderselectedAsync<ExpressionSyntax>("""
+    public Task TestUnderselectionOnSemicolon()
+        => TestNotUnderselectedAsync<ExpressionSyntax>("""
             class Program
             {
                 static void Main()
@@ -607,12 +542,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38708")]
-    public async Task TestUnderselectionBug1()
-    {
-        await TestNotUnderselectedAsync<ExpressionSyntax>("""
+    public Task TestUnderselectionBug1()
+        => TestNotUnderselectedAsync<ExpressionSyntax>("""
             class Program
             {
                 public static void Method()
@@ -622,12 +555,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38708")]
-    public async Task TestUnderselectionBug2()
-    {
-        await TestNotUnderselectedAsync<ExpressionSyntax>("""
+    public Task TestUnderselectionBug2()
+        => TestNotUnderselectedAsync<ExpressionSyntax>("""
             class C {
                 public void M()
                 {
@@ -636,74 +567,62 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                     }
                 }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38708")]
-    public async Task TestUnderselection()
-    {
-        await TestNotUnderselectedAsync<BinaryExpressionSyntax>("""
+    public Task TestUnderselection()
+        => TestNotUnderselectedAsync<BinaryExpressionSyntax>("""
             class C {
                 public void M()
                 {
                     bool a = {|result:[|true || false || true|]|};
                 }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38708")]
-    public async Task TestUnderselection2()
-    {
-        await TestUnderselectedAsync<BinaryExpressionSyntax>("""
+    public Task TestUnderselection2()
+        => TestUnderselectedAsync<BinaryExpressionSyntax>("""
             class C {
                 public void M()
                 {
                     bool a = true || [|false || true|] || true;
                 }
             """);
-    }
     #endregion
 
     #region Attributes
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37584")]
-    public async Task TestMissingEmptyMember()
-    {
-        await TestMissingAsync<MethodDeclarationSyntax>("""
+    public Task TestMissingEmptyMember()
+        => TestMissingAsync<MethodDeclarationSyntax>("""
             using System;
             public class Class1
             {
                 [][||]
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38502")]
-    public async Task TestIncompleteAttribute()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestIncompleteAttribute()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             public class Class1
             {
                 {|result:void foo([[||]bar) {}|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38502")]
-    public async Task TestIncompleteAttribute2()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestIncompleteAttribute2()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             public class Class1
             {
                 {|result:void foo([[||]Class1 arg1) {}|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37837")]
-    public async Task TestEmptyParameter()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestEmptyParameter()
+        => TestAsync<ParameterSyntax>("""
             using System;
             public class TestAttribute : Attribute { }
             public class Class1
@@ -714,12 +633,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37584")]
-    public async Task TestMissingEmptyMember2()
-    {
-        await TestMissingAsync<MethodDeclarationSyntax>("""
+    public Task TestMissingEmptyMember2()
+        => TestMissingAsync<MethodDeclarationSyntax>("""
             using System;
             public class Class1
             {
@@ -727,12 +644,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 []
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37584")]
-    public async Task TestEmptyAttributeList()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestEmptyAttributeList()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             public class Class1
             {
@@ -740,12 +655,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 [||]void a() {}|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestClimbLeftEdgeBeforeAttribute()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestClimbLeftEdgeBeforeAttribute()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -758,12 +671,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestClimbLeftEdgeAfterAttribute()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestClimbLeftEdgeAfterAttribute()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -775,12 +686,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestClimbLeftEdgeAfterAttributeComments()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestClimbLeftEdgeAfterAttributeComments()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -794,12 +703,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestClimbLeftEdgeAfterAttributes()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestClimbLeftEdgeAfterAttributes()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -815,12 +722,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingBetweenAttributes()
-    {
-        await TestMissingAsync<MethodDeclarationSyntax>("""
+    public Task TestMissingBetweenAttributes()
+        => TestMissingAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -834,12 +739,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingBetweenInAttributes()
-    {
-        await TestMissingAsync<MethodDeclarationSyntax>("""
+    public Task TestMissingBetweenInAttributes()
+        => TestMissingAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -851,12 +754,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingSelectedAttributes()
-    {
-        await TestMissingAsync<MethodDeclarationSyntax>("""
+    public Task TestMissingSelectedAttributes()
+        => TestMissingAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -870,12 +771,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingSelectedAttribute()
-    {
-        await TestMissingAsync<MethodDeclarationSyntax>("""
+    public Task TestMissingSelectedAttribute()
+        => TestMissingAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -887,12 +786,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestSelectedWholeNodeAndAttributes()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestSelectedWholeNodeAndAttributes()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -908,12 +805,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }|}|]
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestSelectedWholeNodeWithoutAttributes()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestSelectedWholeNodeWithoutAttributes()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -929,14 +824,12 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }|]|}
             }
             """);
-    }
     #endregion
 
     #region Extractions general
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestExtractionsClimbing()
-    {
-        await TestAsync<ObjectCreationExpressionSyntax>("""
+    public Task TestExtractionsClimbing()
+        => TestAsync<ObjectCreationExpressionSyntax>("""
             using System;
             class C
             {
@@ -946,12 +839,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingExtractHeaderForSelection()
-    {
-        await TestMissingAsync<PropertyDeclarationSyntax>("""
+    public Task TestMissingExtractHeaderForSelection()
+        => TestMissingAsync<PropertyDeclarationSyntax>("""
             using System;
             class C
             {
@@ -959,7 +850,6 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 [Test] public [|int|] a { get; set; }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
     public async Task TestMultipleExtractions()
@@ -990,9 +880,8 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
 
     #region Extractions
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestExtractFromDeclaration()
-    {
-        await TestAsync<ObjectCreationExpressionSyntax>("""
+    public Task TestExtractFromDeclaration()
+        => TestAsync<ObjectCreationExpressionSyntax>("""
             using System;
             class C
             {
@@ -1002,12 +891,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestExtractFromDeclaration2()
-    {
-        await TestAsync<ObjectCreationExpressionSyntax>("""
+    public Task TestExtractFromDeclaration2()
+        => TestAsync<ObjectCreationExpressionSyntax>("""
             using System;
             class C
             {
@@ -1017,12 +904,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestExtractFromAssignment()
-    {
-        await TestAsync<ObjectCreationExpressionSyntax>("""
+    public Task TestExtractFromAssignment()
+        => TestAsync<ObjectCreationExpressionSyntax>("""
             using System;
             class C
             {
@@ -1033,12 +918,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestExtractFromDeclarator()
-    {
-        await TestAsync<ObjectCreationExpressionSyntax>("""
+    public Task TestExtractFromDeclarator()
+        => TestAsync<ObjectCreationExpressionSyntax>("""
             using System;
             class C
             {
@@ -1048,12 +931,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestExtractFromDeclarator2()
-    {
-        await TestAsync<LocalDeclarationStatementSyntax>("""
+    public Task TestExtractFromDeclarator2()
+        => TestAsync<LocalDeclarationStatementSyntax>("""
             using System;
             class C
             {
@@ -1063,12 +944,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestExtractInHeaderOfProperty()
-    {
-        await TestAsync<PropertyDeclarationSyntax>("""
+    public Task TestExtractInHeaderOfProperty()
+        => TestAsync<PropertyDeclarationSyntax>("""
             using System;
             class C
             {
@@ -1076,12 +955,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 {|result:[Test] public i[||]nt a { get; set; }|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingExtractNotInHeaderOfProperty()
-    {
-        await TestMissingAsync<PropertyDeclarationSyntax>("""
+    public Task TestMissingExtractNotInHeaderOfProperty()
+        => TestMissingAsync<PropertyDeclarationSyntax>("""
             using System;
             class C
             {
@@ -1089,7 +966,6 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 [Test] public int a { [||]get; set; }
             }
             """);
-    }
 
     #endregion
 
@@ -1149,9 +1025,8 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
 
     #region TestHidden
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestNextToHidden()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestNextToHidden()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             #line default
             class C
             {
@@ -1167,12 +1042,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestNextToHidden2()
-    {
-        await TestAsync<LocalFunctionStatementSyntax>("""
+    public Task TestNextToHidden2()
+        => TestAsync<LocalFunctionStatementSyntax>("""
             #line default
             class C
             {
@@ -1191,12 +1064,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingHidden()
-    {
-        await TestMissingAsync<LocalFunctionStatementSyntax>("""
+    public Task TestMissingHidden()
+        => TestMissingAsync<LocalFunctionStatementSyntax>("""
             #line default
             class C
             {
@@ -1211,14 +1082,12 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
     #endregion
 
     #region Test predicate
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingPredicate()
-    {
-        await TestMissingAsync<ArgumentSyntax>("""
+    public Task TestMissingPredicate()
+        => TestMissingAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -1231,12 +1100,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """, n => n.Parent is TupleExpressionSyntax);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgument()
-    {
-        await TestAsync<ArgumentSyntax>("""
+    public Task TestArgument()
+        => TestAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -1249,12 +1116,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestPredicate()
-    {
-        await TestAsync<ArgumentSyntax>("""
+    public Task TestPredicate()
+        => TestAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -1263,14 +1128,12 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """, n => n.Parent is TupleExpressionSyntax);
-    }
     #endregion
 
     #region Test arguments
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsInInitializer()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsInInitializer()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1278,12 +1141,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C({|result:[Test]int a = [||]42|}, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingArgumentsExtractionsSelectInitializer()
-    {
-        await TestMissingAsync<ParameterSyntax>("""
+    public Task TestMissingArgumentsExtractionsSelectInitializer()
+        => TestMissingAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1291,12 +1152,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C([Test]int a = [|42|], int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingArgumentsExtractionsSelectComma()
-    {
-        await TestMissingAsync<ParameterSyntax>("""
+    public Task TestMissingArgumentsExtractionsSelectComma()
+        => TestMissingAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1304,12 +1163,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C([Test]int a = 42[|,|] int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingArgumentsExtractionsInAttributes()
-    {
-        await TestMissingAsync<ParameterSyntax>("""
+    public Task TestMissingArgumentsExtractionsInAttributes()
+        => TestMissingAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1317,12 +1174,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C([[||]Test]int a = 42, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingArgumentsExtractionsSelectType1()
-    {
-        await TestMissingAsync<ParameterSyntax>("""
+    public Task TestMissingArgumentsExtractionsSelectType1()
+        => TestMissingAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1330,12 +1185,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C([Test][|int|] a = 42, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingArgumentsExtractionsSelectType2()
-    {
-        await TestMissingAsync<ParameterSyntax>("""
+    public Task TestMissingArgumentsExtractionsSelectType2()
+        => TestMissingAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1343,12 +1196,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C([Test][|C|] a = null, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsAtTheEnd()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsAtTheEnd()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1356,12 +1207,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C({|result:[Test]int a = 42[||]|}, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsBefore()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsBefore()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1369,12 +1218,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C([||]{|result:[Test]int a = 42|}, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsSelectParamName()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsSelectParamName()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1382,12 +1229,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C({|result:[Test]int [|a|] = 42|}, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsSelectParam1()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsSelectParam1()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1395,12 +1240,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C({|result:[Test][|int a|] = 42|}, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsSelectParam2()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsSelectParam2()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1408,12 +1251,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C([|{|result:[Test]int a = 42|}|], int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsSelectParam3()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsSelectParam3()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class C
             {
@@ -1421,12 +1262,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public C({|result:[Test][|int a = 42|]|}, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestArgumentsExtractionsInHeader()
-    {
-        await TestAsync<ParameterSyntax>("""
+    public Task TestArgumentsExtractionsInHeader()
+        => TestAsync<ParameterSyntax>("""
             using System;
             class CC
             {
@@ -1434,15 +1273,13 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public CC({|result:[Test]C[||]C a = 42|}, int b = 41) {}
             }
             """);
-    }
 
     #endregion
 
     #region Test methods
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingMethodExplicitInterfaceSelection()
-    {
-        await TestMissingAsync<MethodDeclarationSyntax>("""
+    public Task TestMissingMethodExplicitInterfaceSelection()
+        => TestMissingAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -1450,12 +1287,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 public void [|I|].A([Test]int a = 42, int b = 41) {}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMethodCaretBeforeInterfaceSelection()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestMethodCaretBeforeInterfaceSelection()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -1463,12 +1298,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 {|result:public void [||]I.A([Test]int a = 42, int b = 41) {}|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMethodNameAndExplicitInterfaceSelection()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestMethodNameAndExplicitInterfaceSelection()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class C
             {
@@ -1476,12 +1309,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 {|result:public void [|I.A|]([Test]int a = 42, int b = 41) {}|}
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMethodInHeader()
-    {
-        await TestAsync<MethodDeclarationSyntax>("""
+    public Task TestMethodInHeader()
+        => TestAsync<MethodDeclarationSyntax>("""
             using System;
             class CC
             {
@@ -1489,7 +1320,6 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 {|result:public C[||]C I.A([Test]int a = 42, int b = 41) { return null; }|}
             }
             """);
-    }
 
     #endregion
 
@@ -1654,9 +1484,8 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
 
     #region Test Deep in expression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestDeepIn()
-    {
-        await TestAsync<ArgumentSyntax>("""
+    public Task TestDeepIn()
+        => TestAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -1669,12 +1498,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestMissingDeepInSecondRow()
-    {
-        await TestMissingAsync<ArgumentSyntax>("""
+    public Task TestMissingDeepInSecondRow()
+        => TestMissingAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -1688,12 +1515,10 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestDeepInExpression()
-    {
-        await TestAsync<ArgumentSyntax>("""
+    public Task TestDeepInExpression()
+        => TestAsync<ArgumentSyntax>("""
             class C
             {
                 void M()
@@ -1707,6 +1532,5 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
                 }
             }
             """, predicate: n => n.Parent is TupleExpressionSyntax);
-    }
     #endregion
 }

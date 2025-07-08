@@ -61,15 +61,13 @@ using System.Collections;
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=459044")]
-    public async Task TestInMisplacedUsing()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task TestInMisplacedUsing()
+        => VerifyNoItemsExistAsync("""
             class C
             {
                 using ($$)
             }
             """); // no crash
-    }
 
     [Fact]
     public async Task TestAtStartOfStruct()
@@ -251,9 +249,8 @@ using System.Collections;
     }
 
     [Fact]
-    public async Task NotInMember()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotInMember()
+        => VerifyNoItemsExistAsync("""
             using System.Collections;
 
             class C : IList
@@ -264,12 +261,10 @@ using System.Collections;
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NotWithAccessibility()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotWithAccessibility()
+        => VerifyNoItemsExistAsync("""
             using System.Collections;
 
             class C : IList
@@ -277,7 +272,6 @@ using System.Collections;
                 public int $$
             }
             """);
-    }
 
     [Fact]
     public async Task TestInInterface()
@@ -317,9 +311,8 @@ using System.Collections;
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70382")]
-    public async Task TestAfterGenericType()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestAfterGenericType()
+        => VerifyItemExistsAsync("""
             interface I<T>
             {
                 I<T> M();
@@ -330,12 +323,10 @@ using System.Collections;
                  I<T> $$
             }
             """, "I", displayTextSuffix: "<>");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70382")]
-    public async Task TestAfterNestedGenericType()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestAfterNestedGenericType()
+        => VerifyItemExistsAsync("""
             interface I<T>
             {
                 I<T> M();
@@ -346,12 +337,10 @@ using System.Collections;
                  I<I<T>> $$
             }
             """, "I", displayTextSuffix: "<>");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54005")]
-    public async Task TestWithStaticKeyword()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TestWithStaticKeyword()
+        => VerifyItemExistsAsync("""
             interface I1
             {
                 static abstract void M1();
@@ -362,5 +351,4 @@ using System.Collections;
                 static void $$
             }
             """, "I1", displayTextSuffix: "");
-    }
 }

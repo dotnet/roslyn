@@ -128,9 +128,8 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -179,12 +178,10 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         context.RegisterOperationBlockEndAction(null);
     }
 }");
-        }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCases_2Async()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCases_2Async()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -226,12 +223,10 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
         context.RegisterCodeBlockEndAction(null);
     }
 }");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -275,12 +270,10 @@ Class MyAnalyzer(Of T As Structure)
     End Sub
 End Class
 ");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCases_2Async()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCases_2Async()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -320,7 +313,6 @@ Class MyAnalyzer(Of T As Structure)
     End Sub
 End Class
 ");
-        }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
 #pragma warning disable RS0030 // Do not use banned APIs

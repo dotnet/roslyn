@@ -439,9 +439,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     /// Uncompleted ones should span new lines
     /// </summary>
     [Theory, CombinatorialData]
-    public async Task VerbatimStringLiterals4(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task VerbatimStringLiterals4(TestHost testHost)
+        => TestAsync("""
 
 
             @" goo bar 
@@ -454,12 +453,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
 
                 """));
-    }
 
     [Theory, CombinatorialData]
-    public async Task VerbatimStringLiterals5(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task VerbatimStringLiterals5(TestHost testHost)
+        => TestInMethodAsync("""
 
 
             @" goo bar
@@ -475,12 +472,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
                 """),
             Identifier("more"),
             Local("stuff"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task VerbatimStringLiteralsUtf8_03(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task VerbatimStringLiteralsUtf8_03(TestHost testHost)
+        => TestInMethodAsync("""
 
 
             @" goo bar
@@ -497,12 +492,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Keyword("u8"),
             Identifier("more"),
             Local("stuff"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task VerbatimStringLiteralsUtf8_04(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task VerbatimStringLiteralsUtf8_04(TestHost testHost)
+        => TestInMethodAsync("""
 
 
             @" goo bar
@@ -519,7 +512,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Keyword("U8"),
             Identifier("more"),
             Local("stuff"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     [CombinatorialData]
@@ -652,28 +644,23 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Keyword("U8"));
 
     [Theory, CombinatorialData]
-    public async Task CharacterLiteral1(TestHost testHost)
-    {
-        await TestInMethodAsync(@"'f'",
+    public Task CharacterLiteral1(TestHost testHost)
+        => TestInMethodAsync(@"'f'",
             testHost,
             String("'f'"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task LinqFrom1(TestHost testHost)
-    {
-        await TestInExpressionAsync(@"from it in goo",
+    public Task LinqFrom1(TestHost testHost)
+        => TestInExpressionAsync(@"from it in goo",
             testHost,
             Keyword("from"),
             Identifier("it"),
             Keyword("in"),
             Identifier("goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task LinqFrom2(TestHost testHost)
-    {
-        await TestInExpressionAsync(@"from it in goo.Bar()",
+    public Task LinqFrom2(TestHost testHost)
+        => TestInExpressionAsync(@"from it in goo.Bar()",
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -683,33 +670,26 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Identifier("Bar"),
             Punctuation.OpenParen,
             Punctuation.CloseParen);
-    }
 
     [Theory, CombinatorialData]
-    public async Task LinqFrom3(TestHost testHost)
-    {
-        // query expression are not statement expressions, but the parser parses them anyways to give better errors
-        await TestInMethodAsync(@"from it in ",
+    public Task LinqFrom3(TestHost testHost)
+        => TestInMethodAsync(@"from it in ",
             testHost,
             Keyword("from"),
             Identifier("it"),
             Keyword("in"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task LinqFrom4(TestHost testHost)
-    {
-        await TestInExpressionAsync(@"from it in ",
+    public Task LinqFrom4(TestHost testHost)
+        => TestInExpressionAsync(@"from it in ",
             testHost,
             Keyword("from"),
             Identifier("it"),
             Keyword("in"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task LinqWhere1(TestHost testHost)
-    {
-        await TestInExpressionAsync("from it in goo where it > 42",
+    public Task LinqWhere1(TestHost testHost)
+        => TestInExpressionAsync("from it in goo where it > 42",
             testHost,
             Keyword("from"),
             Identifier("it"),
@@ -719,12 +699,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Identifier("it"),
             Operators.GreaterThan,
             Number("42"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task LinqWhere2(TestHost testHost)
-    {
-        await TestInExpressionAsync("""
+    public Task LinqWhere2(TestHost testHost)
+        => TestInExpressionAsync("""
             from it in goo where it > "bar"
             """,
             testHost,
@@ -738,7 +716,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             String("""
                 "bar"
                 """));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     [CombinatorialData]
@@ -1344,28 +1321,23 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
-    public async Task CommentSingle(TestHost testHost)
-    {
-        await TestAsync("// goo",
+    public Task CommentSingle(TestHost testHost)
+        => TestAsync("// goo",
             testHost,
             Comment("// goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task CommentAsTrailingTrivia1(TestHost testHost)
-    {
-        await TestAsync("class Bar { // goo",
+    public Task CommentAsTrailingTrivia1(TestHost testHost)
+        => TestAsync("class Bar { // goo",
             testHost,
             Keyword("class"),
             Class("Bar"),
             Punctuation.OpenCurly,
             Comment("// goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task CommentAsLeadingTrivia1(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task CommentAsLeadingTrivia1(TestHost testHost)
+        => TestAsync("""
 
             class Bar { 
               // goo
@@ -1384,7 +1356,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.OpenCurly,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     public async Task ShebangAsFirstCommentInScript(TestHost testHost)
@@ -1530,9 +1501,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
-    public async Task CommentAsMethodBodyContent(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task CommentAsMethodBodyContent(TestHost testHost)
+        => TestAsync("""
 
             class Bar { 
               void Method1() {
@@ -1552,7 +1522,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Comment("// goo"),
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     public Task CommentMix1(TestHost testHost)
@@ -1586,9 +1555,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
-    public async Task XmlDocCommentOnClass(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocCommentOnClass(TestHost testHost)
+        => TestAsync("""
 
             /// <summary>something</summary>
             class Bar { }
@@ -1607,12 +1575,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocCommentOnClassWithIndent(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocCommentOnClassWithIndent(TestHost testHost)
+        => TestAsync("""
 
                 /// <summary>
                 /// something
@@ -1636,12 +1602,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_EntityReference(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_EntityReference(TestHost testHost)
+        => TestAsync("""
 
             /// <summary>&#65;</summary>
             class Bar { }
@@ -1660,12 +1624,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_ExteriorTriviaInsideCloseTag(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_ExteriorTriviaInsideCloseTag(TestHost testHost)
+        => TestAsync("""
 
             /// <summary>something</
             /// summary>
@@ -1686,7 +1648,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory]
     [InlineData(TestHost.InProcess, "true", false)]
@@ -1769,9 +1730,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
     [CombinatorialData]
-    public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
+        => TestAsync("""
 
             /// <see cref="System.
             /// Int32"/>
@@ -1801,12 +1761,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("C"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocCommentOnClassWithExteriorTrivia(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocCommentOnClassWithExteriorTrivia(TestHost testHost)
+        => TestAsync("""
 
             /// <summary>
             /// something
@@ -1830,12 +1788,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_ExteriorTriviaNoText(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_ExteriorTriviaNoText(TestHost testHost)
+        => TestAsync("""
             ///<summary>
             ///something
             ///</summary>
@@ -1856,12 +1812,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_EmptyElement(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_EmptyElement(TestHost testHost)
+        => TestAsync("""
 
             /// <summary />
             class Bar { }
@@ -1876,12 +1830,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_Attribute(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_Attribute(TestHost testHost)
+        => TestAsync("""
 
             /// <summary attribute="value">something</summary>
             class Bar { }
@@ -1909,12 +1861,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_AttributeInEmptyElement(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_AttributeInEmptyElement(TestHost testHost)
+        => TestAsync("""
 
             /// <summary attribute="value" />
             class Bar { }
@@ -1938,12 +1888,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_ExtraSpaces(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_ExtraSpaces(TestHost testHost)
+        => TestAsync("""
 
             ///   <   summary   attribute    =   "value"     />
             class Bar { }
@@ -1967,12 +1915,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_XmlComment(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_XmlComment(TestHost testHost)
+        => TestAsync("""
 
             ///<!--comment-->
             class Bar { }
@@ -1986,12 +1932,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_XmlCommentWithExteriorTrivia(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_XmlCommentWithExteriorTrivia(TestHost testHost)
+        => TestAsync("""
 
             ///<!--first
             ///second-->
@@ -2008,12 +1952,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_XmlCommentInElement(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_XmlCommentInElement(TestHost testHost)
+        => TestAsync("""
 
             ///<summary><!--comment--></summary>
             class Bar { }
@@ -2033,13 +1975,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/pull/31410")]
-    public async Task XmlDocComment_MalformedXmlDocComment(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_MalformedXmlDocComment(TestHost testHost)
+        => TestAsync("""
 
             ///<summary>
             ///<a: b, c />.
@@ -2068,12 +2008,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("C"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task MultilineXmlDocComment_ExteriorTrivia(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task MultilineXmlDocComment_ExteriorTrivia(TestHost testHost)
+        => TestAsync("""
             /**<summary>
             *comment
             *</summary>*/
@@ -2095,12 +2033,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task XmlDocComment_CDataWithExteriorTrivia(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task XmlDocComment_CDataWithExteriorTrivia(TestHost testHost)
+        => TestAsync("""
 
             ///<![CDATA[first
             ///second]]>
@@ -2117,7 +2053,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Class("Bar"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     public Task XmlDocComment_ProcessingDirective(TestHost testHost)
@@ -2162,9 +2097,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536321")]
-    public async Task KeywordTypeParameters(TestHost testHost)
-    {
-        await TestAsync(@"class C<int> { }",
+    public Task KeywordTypeParameters(TestHost testHost)
+        => TestAsync(@"class C<int> { }",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2173,13 +2107,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseAngle,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536853")]
-    public async Task TypeParametersWithAttribute(TestHost testHost)
-    {
-        await TestAsync(@"class C<[Attr] T> { }",
+    public Task TypeParametersWithAttribute(TestHost testHost)
+        => TestAsync(@"class C<[Attr] T> { }",
             testHost,
             Keyword("class"),
             Class("C"),
@@ -2191,68 +2123,56 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseAngle,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task ClassTypeDeclaration1(TestHost testHost)
-    {
-        await TestAsync("class C1 { } ",
+    public Task ClassTypeDeclaration1(TestHost testHost)
+        => TestAsync("class C1 { } ",
             testHost,
             Keyword("class"),
             Class("C1"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task ClassTypeDeclaration2(TestHost testHost)
-    {
-        await TestAsync("class ClassName1 { } ",
+    public Task ClassTypeDeclaration2(TestHost testHost)
+        => TestAsync("class ClassName1 { } ",
             testHost,
             Keyword("class"),
             Class("ClassName1"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task StructTypeDeclaration1(TestHost testHost)
-    {
-        await TestAsync("struct Struct1 { }",
+    public Task StructTypeDeclaration1(TestHost testHost)
+        => TestAsync("struct Struct1 { }",
             testHost,
             Keyword("struct"),
             Struct("Struct1"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task InterfaceDeclaration1(TestHost testHost)
-    {
-        await TestAsync("interface I1 { }",
+    public Task InterfaceDeclaration1(TestHost testHost)
+        => TestAsync("interface I1 { }",
             testHost,
             Keyword("interface"),
             Interface("I1"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task EnumDeclaration1(TestHost testHost)
-    {
-        await TestAsync("enum Weekday { }",
+    public Task EnumDeclaration1(TestHost testHost)
+        => TestAsync("enum Weekday { }",
             testHost,
             Keyword("enum"),
             Enum("Weekday"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, WorkItem(4302, "DevDiv_Projects/Roslyn")]
     [CombinatorialData]
-    public async Task ClassInEnum(TestHost testHost)
-    {
-        await TestAsync("enum E { Min = System.Int32.MinValue }",
+    public Task ClassInEnum(TestHost testHost)
+        => TestAsync("enum E { Min = System.Int32.MinValue }",
             testHost,
             Keyword("enum"),
             Enum("E"),
@@ -2265,12 +2185,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Operators.Dot,
             Identifier("MinValue"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task DelegateDeclaration1(TestHost testHost)
-    {
-        await TestAsync("delegate void Action();",
+    public Task DelegateDeclaration1(TestHost testHost)
+        => TestAsync("delegate void Action();",
             testHost,
             Keyword("delegate"),
             Keyword("void"),
@@ -2278,7 +2196,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.OpenParen,
             Punctuation.CloseParen,
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
     public Task GenericTypeArgument(TestHost testHost)
@@ -2293,9 +2210,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseParen);
 
     [Theory, CombinatorialData]
-    public async Task GenericParameter(TestHost testHost)
-    {
-        await TestAsync("class C1<P1> {}",
+    public Task GenericParameter(TestHost testHost)
+        => TestAsync("class C1<P1> {}",
             testHost,
             Keyword("class"),
             Class("C1"),
@@ -2304,12 +2220,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseAngle,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericParameters(TestHost testHost)
-    {
-        await TestAsync("class C1<P1,P2> {}",
+    public Task GenericParameters(TestHost testHost)
+        => TestAsync("class C1<P1,P2> {}",
             testHost,
             Keyword("class"),
             Class("C1"),
@@ -2320,12 +2234,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseAngle,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericParameter_Interface(TestHost testHost)
-    {
-        await TestAsync("interface I1<P1> {}",
+    public Task GenericParameter_Interface(TestHost testHost)
+        => TestAsync("interface I1<P1> {}",
             testHost,
             Keyword("interface"),
             Interface("I1"),
@@ -2334,12 +2246,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseAngle,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericParameter_Struct(TestHost testHost)
-    {
-        await TestAsync("struct S1<P1> {}",
+    public Task GenericParameter_Struct(TestHost testHost)
+        => TestAsync("struct S1<P1> {}",
             testHost,
             Keyword("struct"),
             Struct("S1"),
@@ -2348,12 +2258,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseAngle,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task GenericParameter_Delegate(TestHost testHost)
-    {
-        await TestAsync("delegate void D1<P1> {}",
+    public Task GenericParameter_Delegate(TestHost testHost)
+        => TestAsync("delegate void D1<P1> {}",
             testHost,
             Keyword("delegate"),
             Keyword("void"),
@@ -2363,7 +2271,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseAngle,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     public Task GenericParameter_Method(TestHost testHost)
@@ -4318,9 +4225,8 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
-    public async Task InterpolatedStrings1(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task InterpolatedStrings1(TestHost testHost)
+        => TestInMethodAsync("""
 
             var x = "World";
             var y = $"Hello, {x}";
@@ -4348,12 +4254,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
                 "
                 """),
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
-    public async Task InterpolatedStrings2(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task InterpolatedStrings2(TestHost testHost)
+        => TestInMethodAsync("""
 
             var a = "Hello";
             var b = "World";
@@ -4392,12 +4296,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
                 "
                 """),
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
-    public async Task InterpolatedStrings3(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task InterpolatedStrings3(TestHost testHost)
+        => TestInMethodAsync("""
 
             var a = "Hello";
             var b = "World";
@@ -4436,12 +4338,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
                 "
                 """),
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
-    public async Task ExceptionFilter1(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task ExceptionFilter1(TestHost testHost)
+        => TestInMethodAsync("""
 
             try
             {
@@ -4462,12 +4362,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseParen,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task ExceptionFilter2(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task ExceptionFilter2(TestHost testHost)
+        => TestInMethodAsync("""
 
             try
             {
@@ -4493,12 +4391,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseParen,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task OutVar(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task OutVar(TestHost testHost)
+        => TestInMethodAsync("""
 
             F(out var);
             """,
@@ -4509,12 +4405,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Identifier("var"),
             Punctuation.CloseParen,
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
-    public async Task ReferenceDirective(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task ReferenceDirective(TestHost testHost)
+        => TestAsync("""
 
             #r "file.dll"
             """,
@@ -4524,12 +4418,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             String("""
                 "file.dll"
                 """));
-    }
 
     [Theory, CombinatorialData]
-    public async Task LoadDirective(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task LoadDirective(TestHost testHost)
+        => TestAsync("""
 
             #load "file.csx"
             """,
@@ -4539,12 +4431,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             String("""
                 "file.csx"
                 """));
-    }
 
     [Theory, CombinatorialData]
-    public async Task IncompleteAwaitInNonAsyncContext(TestHost testHost)
-    {
-        await TestInClassAsync("""
+    public Task IncompleteAwaitInNonAsyncContext(TestHost testHost)
+        => TestInClassAsync("""
 
             void M()
             {
@@ -4562,12 +4452,10 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Operators.Equals,
             Keyword("await"),
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task CompleteAwaitInNonAsyncContext(TestHost testHost)
-    {
-        await TestInClassAsync("""
+    public Task CompleteAwaitInNonAsyncContext(TestHost testHost)
+        => TestInClassAsync("""
 
             void M()
             {
@@ -4586,7 +4474,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Identifier("await"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     public Task TupleDeclaration(TestHost testHost)
@@ -5360,9 +5247,8 @@ testHost,
             Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
-    public async Task TestUsingDirective(TestHost testHost)
-    {
-        await TestAsync(@"using System.Collections.Generic;",
+    public Task TestUsingDirective(TestHost testHost)
+        => TestAsync(@"using System.Collections.Generic;",
             testHost,
             Keyword("using"),
             Identifier("System"),
@@ -5371,12 +5257,10 @@ testHost,
             Operators.Dot,
             Identifier("Generic"),
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUsingAliasDirectiveForIdentifier(TestHost testHost)
-    {
-        await TestAsync(@"using Col = System.Collections;",
+    public Task TestUsingAliasDirectiveForIdentifier(TestHost testHost)
+        => TestAsync(@"using Col = System.Collections;",
             testHost,
             Keyword("using"),
             Identifier("Col"),
@@ -5385,12 +5269,10 @@ testHost,
             Operators.Dot,
             Identifier("Collections"),
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUsingAliasDirectiveForClass(TestHost testHost)
-    {
-        await TestAsync(@"using Con = System.Console;",
+    public Task TestUsingAliasDirectiveForClass(TestHost testHost)
+        => TestAsync(@"using Con = System.Console;",
             testHost,
             Keyword("using"),
             Identifier("Con"),
@@ -5399,12 +5281,10 @@ testHost,
             Operators.Dot,
             Identifier("Console"),
             Punctuation.Semicolon);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestUsingStaticDirective(TestHost testHost)
-    {
-        await TestAsync(@"using static System.Console;",
+    public Task TestUsingStaticDirective(TestHost testHost)
+        => TestAsync(@"using static System.Console;",
             testHost,
             Keyword("using"),
             Keyword("static"),
@@ -5412,7 +5292,6 @@ testHost,
             Operators.Dot,
             Identifier("Console"),
             Punctuation.Semicolon);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33039")]
     [CombinatorialData]
@@ -5862,9 +5741,8 @@ testHost,
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/45807")]
-    public async Task FunctionPointer(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task FunctionPointer(TestHost testHost)
+        => TestAsync("""
 
             class C
             {
@@ -5891,7 +5769,6 @@ testHost,
             Field("x"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48094")]
     public async Task TestXmlAttributeNameSpan1()
@@ -5952,9 +5829,8 @@ testHost,
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52290")]
     [CombinatorialData]
-    public async Task TestStaticLocalFunction(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestStaticLocalFunction(TestHost testHost)
+        => TestAsync("""
 
             class C
             {
@@ -5986,13 +5862,11 @@ testHost,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52290")]
     [CombinatorialData]
-    public async Task TestConstantLocalVariable(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task TestConstantLocalVariable(TestHost testHost)
+        => TestAsync("""
 
             class C
             {
@@ -6023,12 +5897,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteral(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteral(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6061,12 +5933,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralUtf8_01(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralUtf8_01(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6100,12 +5970,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralUtf8_02(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralUtf8_02(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6139,12 +6007,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralMultiline(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralMultiline(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6181,12 +6047,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralMultilineUtf8_01(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralMultilineUtf8_01(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6224,12 +6088,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralMultilineUtf8_02(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralMultilineUtf8_02(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6267,12 +6129,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralInterpolation1(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralInterpolation1(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6311,12 +6171,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralInterpolation2(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralInterpolation2(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6355,12 +6213,10 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestRawStringLiteralInterpolation3(TestHost testHost)
-    {
-        await TestAsync(""""
+    public Task TestRawStringLiteralInterpolation3(TestHost testHost)
+        => TestAsync(""""
 
             class C
             {
@@ -6401,7 +6257,6 @@ testHost,
             Punctuation.Semicolon,
             Punctuation.CloseCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     public Task CheckedUserDefinedOperators_01(TestHost testHost)

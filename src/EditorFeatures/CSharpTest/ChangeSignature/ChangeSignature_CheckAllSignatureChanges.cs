@@ -21,9 +21,8 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     // https://github.com/xunit/xunit/issues/1968
     [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 1, 3, 2, 1 }, MemberType = typeof(AbstractChangeSignatureTests))]
 #pragma warning restore xUnit1019
-    public async Task TestAllSignatureChanges_1This_3Regular_2Default_1Params(int totalParameters, int[] signature)
-    {
-        await TestChangeSignatureViaCommandAsync(
+    public Task TestAllSignatureChanges_1This_3Regular_2Default_1Params(int totalParameters, int[] signature)
+        => TestChangeSignatureViaCommandAsync(
             LanguageNames.CSharp,
             """
             static class Ext
@@ -71,7 +70,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
             updatedSignature: signature,
             totalParameters: totalParameters,
             verifyNoDiagnostics: true);
-    }
 
     [Theory]
 #pragma warning disable xUnit1019
@@ -79,9 +77,8 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     // https://github.com/xunit/xunit/issues/1968
     [MemberData(nameof(AbstractChangeSignatureTests.GetAllSignatureSpecificationsForTheory), new[] { 0, 3, 0, 0 }, MemberType = typeof(AbstractChangeSignatureTests))]
 #pragma warning restore xUnit1019
-    public async Task TestAllSignatureChanges_OnDelegate_3Regular(int totalParameters, int[] signature)
-    {
-        await TestChangeSignatureViaCommandAsync(
+    public Task TestAllSignatureChanges_OnDelegate_3Regular(int totalParameters, int[] signature)
+        => TestChangeSignatureViaCommandAsync(
             LanguageNames.CSharp,
             """
             using System;
@@ -176,5 +173,4 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
             totalParameters: totalParameters,
             verifyNoDiagnostics: true,
             parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7));
-    }
 }

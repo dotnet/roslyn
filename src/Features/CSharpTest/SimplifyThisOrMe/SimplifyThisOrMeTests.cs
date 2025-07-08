@@ -104,9 +104,8 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_RemoveThis()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInSolution_RemoveThis()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -349,7 +348,6 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)]

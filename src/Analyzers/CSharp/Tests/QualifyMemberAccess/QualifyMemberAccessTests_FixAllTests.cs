@@ -16,9 +16,8 @@ public sealed partial class QualifyMemberAccessTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution_QualifyMemberAccess()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllInSolution_QualifyMemberAccess()
+        => TestInRegularAndScriptAsync(
             initialMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
@@ -92,5 +91,4 @@ public sealed partial class QualifyMemberAccessTests
             </Workspace>
             """,
             options: Option(CodeStyleOptions2.QualifyPropertyAccess, true, NotificationOption2.Suggestion));
-    }
 }

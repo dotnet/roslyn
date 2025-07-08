@@ -135,9 +135,8 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
     }
 
     [Fact]
-    public async Task AtIndexGreaterThanNumberOfTupleElements()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task AtIndexGreaterThanNumberOfTupleElements()
+        => VerifyNoItemsExistAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -146,12 +145,10 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task ConvertCastToTupleExpression()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ConvertCastToTupleExpression()
+        => VerifyItemExistsAsync("""
             class C
             {
                 void goo()
@@ -160,5 +157,4 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                 }
             }
             """, "goat", displayTextSuffix: ":");
-    }
 }

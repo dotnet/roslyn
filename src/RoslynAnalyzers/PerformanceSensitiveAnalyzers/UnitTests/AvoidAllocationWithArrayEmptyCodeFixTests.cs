@@ -17,9 +17,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
         [InlineData("IEnumerable<int>")]
         [InlineData("IReadOnlyList<int>")]
         [InlineData("IReadOnlyCollection<int>")]
-        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyWithReturnTypeAsync(string type)
-        {
-            await VerifyCS.VerifyCodeFixAsync($@"
+        public Task ShouldReplaceEmptyListCreationWithArrayEmptyWithReturnTypeAsync(string type)
+            => VerifyCS.VerifyCodeFixAsync($@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -50,12 +49,10 @@ namespace SampleNamespace
         }}
     }}
 }}");
-        }
 
         [Fact]
-        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyWhenReturnFromMethodArrayAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceEmptyListCreationWithArrayEmptyWhenReturnFromMethodArrayAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -86,12 +83,10 @@ namespace SampleNamespace
         }
     }
 }");
-        }
 
         [Fact]
-        public async Task ShouldReplaceEmptyLisCreationWithArrayEmptyForArrowExpressionAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceEmptyLisCreationWithArrayEmptyForArrowExpressionAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -116,11 +111,9 @@ namespace SampleNamespace
         public IEnumerable<int> DoSomething => Array.Empty<int>();
     }
 }");
-        }
         [Fact]
-        public async Task ShouldReplaceEmptyListCreationWithArrayEmptyForReadonlyPropertyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceEmptyListCreationWithArrayEmptyForReadonlyPropertyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -145,11 +138,9 @@ namespace SampleNamespace
         public IEnumerable<int> DoSomething { get {return Array.Empty<int>();}}
     }
 }");
-        }
         [Fact]
-        public async Task ShouldReplaceEmptyListWithCreationWithPredefinedSizeWithArrayEmptyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceEmptyListWithCreationWithPredefinedSizeWithArrayEmptyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -180,7 +171,6 @@ namespace SampleNamespace
         }
     }
 }");
-        }
         [Fact]
         public async Task ShouldNotProposeCodeFixWhenNonEmptyListCreatedAsync()
         {
@@ -255,9 +245,8 @@ namespace SampleNamespace
                 }, code);
         }
         [Fact]
-        public async Task ShouldReplacEmptyCollectionCreationWithArrayEmptyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplacEmptyCollectionCreationWithArrayEmptyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -290,11 +279,9 @@ namespace SampleNamespace
         }
     }
 }");
-        }
         [Fact]
-        public async Task ShouldReplaceEmptyArrayCreationWithArrayEmptyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceEmptyArrayCreationWithArrayEmptyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -325,7 +312,6 @@ namespace SampleNamespace
         }
     }
 }");
-        }
         [Fact]
         public async Task ShouldNotProposeCodeFixWhenNonEmptyArrayCreationAsync()
         {
@@ -349,9 +335,8 @@ namespace SampleNamespace
             await VerifyCS.VerifyCodeFixAsync(code, VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithSpan(13, 20, 13, 35), code);
         }
         [Fact]
-        public async Task ShouldReplaceEmptyArrayCreationWithInitBlockWithArrayEmptyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceEmptyArrayCreationWithInitBlockWithArrayEmptyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -382,11 +367,9 @@ namespace SampleNamespace
         }
     }
 }");
-        }
         [Fact]
-        public async Task ShouldReplaceListCreationAsMethodInvocationParameterWithArrayEmptyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceListCreationAsMethodInvocationParameterWithArrayEmptyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -427,11 +410,9 @@ namespace SampleNamespace
         }
     }
 }");
-        }
         [Fact]
-        public async Task ShouldReplaceArrayCreationAsMethodInvocationParameterWithArrayEmptyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceArrayCreationAsMethodInvocationParameterWithArrayEmptyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -472,11 +453,9 @@ namespace SampleNamespace
         }
     }
 }");
-        }
         [Fact]
-        public async Task ShouldReplaceArrayCreationAsDelegateInvocationParameterWithArrayEmptyAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"
+        public Task ShouldReplaceArrayCreationAsDelegateInvocationParameterWithArrayEmptyAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
@@ -507,6 +486,5 @@ namespace SampleNamespace
         }
     }
 }");
-        }
     }
 }

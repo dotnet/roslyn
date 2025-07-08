@@ -17,32 +17,26 @@ public sealed class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeS
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ArgumentListStructureProvider();
 
     [Fact]
-    public async Task TestInvocationExpressionSingleLine()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestInvocationExpressionSingleLine()
+        => VerifyBlockSpansAsync("""
             var x = M$$();
             """);
-    }
 
     [Fact]
-    public async Task TestInvocationExpressionTwoArgumentsInTwoLines()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestInvocationExpressionTwoArgumentsInTwoLines()
+        => VerifyBlockSpansAsync("""
             var x = M$$("Hello",
                 "World");
             """);
-    }
 
     [Fact]
-    public async Task TestInvocationExpressionThreeLines()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestInvocationExpressionThreeLines()
+        => VerifyBlockSpansAsync("""
             var x = M$${|span:(
                 "",
                 "")|};
             """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
     public async Task TestTwoInvocationExpressionsThreeLines()
@@ -67,40 +61,32 @@ public sealed class ArgumentListSyntaxStructureTests : AbstractCSharpSyntaxNodeS
     }
 
     [Fact]
-    public async Task TestObjectCreationSingleLine()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestObjectCreationSingleLine()
+        => VerifyBlockSpansAsync("""
             var x = new C$$();
             """);
-    }
 
     [Fact]
-    public async Task TestObjectCreationThreeLines()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestObjectCreationThreeLines()
+        => VerifyBlockSpansAsync("""
             var x = new C$${|span:(
                 "",
                 "")|};
             """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestImplicitObjectCreationSingleLine()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestImplicitObjectCreationSingleLine()
+        => VerifyBlockSpansAsync("""
             C x = new$$();
             """);
-    }
 
     [Fact]
-    public async Task TestImplicitObjectCreationThreeLines()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestImplicitObjectCreationThreeLines()
+        => VerifyBlockSpansAsync("""
             C x = new$${|span:(
                 "",
                 "")|};
             """,
             Region("span", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

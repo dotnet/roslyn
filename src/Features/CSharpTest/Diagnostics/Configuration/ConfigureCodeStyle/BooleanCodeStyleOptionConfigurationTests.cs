@@ -35,9 +35,8 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
         protected override int CodeActionIndex => 0;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_True()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_Empty_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -102,12 +101,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466")]
-        public async Task ConfigureEditorconfig_RuleExists_True()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -172,12 +169,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_True()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidHeader_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -247,12 +242,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466")]
-        public async Task ConfigureEditorconfig_MaintainSeverity_True()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_MaintainSeverity_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -317,12 +310,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_True()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidRule_True()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -392,7 +383,6 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
@@ -401,9 +391,8 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
         protected override int CodeActionIndex => 1;
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_Empty_False()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_Empty_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -468,12 +457,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_False()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -538,12 +525,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_False_NoSeveritySuffix()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_False_NoSeveritySuffix()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -608,12 +593,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -681,12 +664,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_RuleExists_ConflitingDotnetDiagnosticEntry()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_RuleExists_ConflitingDotnetDiagnosticEntry()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -753,12 +734,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidHeader_False()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidHeader_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -828,12 +807,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [Fact]
-        public async Task ConfigureEditorconfig_MaintainSeverity_False()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_MaintainSeverity_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -898,12 +875,10 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        public async Task ConfigureEditorconfig_InvalidRule_False()
-        {
-            await TestInRegularAndScriptAsync("""
+        public Task ConfigureEditorconfig_InvalidRule_False()
+            => TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -971,6 +946,5 @@ public abstract partial class BooleanCodeStyleOptionConfigurationTests : Abstrac
                     </Project>
                 </Workspace>
                 """, CodeActionIndex);
-        }
     }
 }

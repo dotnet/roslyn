@@ -24,9 +24,8 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         .AddParts(typeof(TestSnippetInfoService));
 
     [Theory, CombinatorialData]
-    public async Task TestSimpleSnippet(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSimpleSnippet(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     void M()
     {
@@ -36,12 +35,10 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         {
             $0
         }", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetIgnoresCase(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSnippetIgnoresCase(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     void M()
     {
@@ -51,12 +48,10 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         {
             $0
         }", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetUsesOptionsFromRequest(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSnippetUsesOptionsFromRequest(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     void M()
     {
@@ -66,12 +61,10 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
   {
    $0
   }", mutatingLspWorkspace, options: new LSP.FormattingOptions { TabSize = 1, InsertSpaces = true });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithMultipleDeclarations(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSnippetWithMultipleDeclarations(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     void M()
     {
@@ -81,24 +74,20 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         {
             $0
         }", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithSimpleTypeNameFunctionFullyQualifies(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSnippetWithSimpleTypeNameFunctionFullyQualifies(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     void M()
     {
         cw{|tab:|}
     }
 }", @"System.Console.WriteLine($0);", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithSimpleTypeNameFunctionWithUsing(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"using System;
+    public Task TestSnippetWithSimpleTypeNameFunctionWithUsing(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"using System;
 class A
 {
     void M()
@@ -106,33 +95,27 @@ class A
         cw{|tab:|}
     }
 }", @"Console.WriteLine($0);", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithClassNameFunction(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSnippetWithClassNameFunction(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     ctor{|tab:|}
 }", @"public A()
     {
         $0
     }", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithClassNameFunctionOutsideOfClass(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"ctor{|tab:|}", @"public ClassNamePlaceholder ()
+    public Task TestSnippetWithClassNameFunctionOutsideOfClass(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"ctor{|tab:|}", @"public ClassNamePlaceholder ()
 {
     $0
 }", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithSwitchFunctionOnlyGeneratesDefault(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSnippetWithSwitchFunctionOnlyGeneratesDefault(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     void M()
     {
@@ -142,12 +125,10 @@ class A
         {
             default:
         }$0", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestSnippetWithNoEditableFields(bool mutatingLspWorkspace)
-    {
-        await VerifyMarkupAndExpected(@"class A
+    public Task TestSnippetWithNoEditableFields(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected(@"class A
 {
     equals{|tab:|}
 }", @"// override object.Equals
@@ -177,7 +158,6 @@ class A
         throw new System.NotImplementedException();
         return base.GetHashCode();
     }", mutatingLspWorkspace);
-    }
 
     [Theory, CombinatorialData]
     public async Task TestSnippetCached(bool mutatingLspWorkspace)

@@ -24,19 +24,16 @@ public sealed class LineSeparatorTests
         => await AssertTagsOnBracesOrSemicolonsAsync(contents: string.Empty);
 
     [Fact]
-    public async Task TestEmptyClass()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestEmptyClass()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestClassWithOneMethod()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestClassWithOneMethod()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 void M()
@@ -44,12 +41,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 1);
-    }
 
     [Fact]
-    public async Task TestClassWithTwoMethods()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestClassWithTwoMethods()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 void M()
@@ -61,12 +56,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task TestClassWithTwoNonEmptyMethods()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestClassWithTwoNonEmptyMethods()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 void M()
@@ -80,12 +73,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 1, 4);
-    }
 
     [Fact]
-    public async Task TestClassWithMethodAndField()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestClassWithMethodAndField()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 void M()
@@ -95,22 +86,18 @@ public sealed class LineSeparatorTests
                 int field;
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task TestEmptyNamespace()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestEmptyNamespace()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             namespace N
             {
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestNamespaceAndClass()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestNamespaceAndClass()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             namespace N
             {
                 class C
@@ -118,12 +105,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 1);
-    }
 
     [Fact]
-    public async Task TestNamespaceAndTwoClasses()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestNamespaceAndTwoClasses()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             namespace N
             {
                 class C
@@ -135,12 +120,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task TestNamespaceAndTwoClassesAndDelegate()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestNamespaceAndTwoClassesAndDelegate()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             namespace N
             {
                 class C
@@ -154,12 +137,10 @@ public sealed class LineSeparatorTests
                 delegate void Del();
             }
             """, 0, 1, 3);
-    }
 
     [Fact]
-    public async Task TestNestedClass()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestNestedClass()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 class N
@@ -167,12 +148,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 1);
-    }
 
     [Fact]
-    public async Task TestTwoNestedClasses()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestTwoNestedClasses()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 class N
@@ -184,42 +163,34 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task TestStruct()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestStruct()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             struct S
             {
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestInterface()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestInterface()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             interface I
             {
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestEnum()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestEnum()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             enum E
             {
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestProperty()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestProperty()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 int Prop
@@ -234,12 +205,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 4);
-    }
 
     [Fact]
-    public async Task TestPropertyAndField()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestPropertyAndField()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 int Prop
@@ -256,12 +225,10 @@ public sealed class LineSeparatorTests
                 int field;
             }
             """, 3, 5);
-    }
 
     [Fact]
-    public async Task TestClassWithFieldAndMethod()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestClassWithFieldAndMethod()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 int field;
@@ -271,24 +238,20 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task UsingDirective()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task UsingDirective()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             using System;
 
             class C
             {
             }
             """, 0, 1);
-    }
 
     [Fact]
-    public async Task UsingDirectiveInNamespace()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task UsingDirectiveInNamespace()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             namespace N
             {
                 using System;
@@ -298,12 +261,10 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task UsingDirectiveInFileScopedNamespace()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task UsingDirectiveInFileScopedNamespace()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             namespace N;
 
             using System;
@@ -312,12 +273,10 @@ public sealed class LineSeparatorTests
             {
             }
             """, 1);
-    }
 
     [Fact]
-    public async Task PropertyStyleEventDeclaration()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task PropertyStyleEventDeclaration()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 event EventHandler E
@@ -329,12 +288,10 @@ public sealed class LineSeparatorTests
                 int i;
             }
             """, 2, 4);
-    }
 
     [Fact]
-    public async Task IndexerDeclaration()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task IndexerDeclaration()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 int this[int i]
@@ -346,12 +303,10 @@ public sealed class LineSeparatorTests
                 int i;
             }
             """, 3, 5);
-    }
 
     [Fact]
-    public async Task Constructor()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task Constructor()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 C()
@@ -361,12 +316,10 @@ public sealed class LineSeparatorTests
                 int i;
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task Destructor()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task Destructor()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 ~C()
@@ -376,12 +329,10 @@ public sealed class LineSeparatorTests
                 int i;
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task Operator()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task Operator()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 static C operator +(C lhs, C rhs)
@@ -391,12 +342,10 @@ public sealed class LineSeparatorTests
                 int i;
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task ConversionOperator()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task ConversionOperator()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class C
             {
                 static implicit operator C(int i)
@@ -406,12 +355,10 @@ public sealed class LineSeparatorTests
                 int i;
             }
             """, 0, 2);
-    }
 
     [Fact]
-    public async Task Bug930292()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task Bug930292()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             class Program
             {
             void A() { }
@@ -420,12 +367,10 @@ public sealed class LineSeparatorTests
             void D() { }
             }
             """, 4);
-    }
 
     [Fact]
-    public async Task Bug930289()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task Bug930289()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             namespace Roslyn.Compilers.CSharp
             {
             internal struct ArrayElement<T>
@@ -436,12 +381,10 @@ public sealed class LineSeparatorTests
             }
             }
             """, 6);
-    }
 
     [Fact]
-    public async Task TestConsoleApp()
-    {
-        await AssertTagsOnBracesOrSemicolonsAsync("""
+    public Task TestConsoleApp()
+        => AssertTagsOnBracesOrSemicolonsAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -453,7 +396,6 @@ public sealed class LineSeparatorTests
                 }
             }
             """, 2, 4);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1297")]
     public Task ExpressionBodiedProperty()

@@ -18,44 +18,36 @@ public sealed class DelegateDeclarationStructureTests : AbstractCSharpSyntaxNode
     internal override AbstractSyntaxStructureProvider CreateProvider() => new DelegateDeclarationStructureProvider();
 
     [Fact]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 public delegate TResult $$Blah<in T, out TResult>(T arg);
                 """);
-    }
 
     [Fact]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:[Goo]
                 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Goo]
                 |}delegate TResult $$Blah<in T, out TResult>(T arg);|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task WithCommentsAttributesAndModifiers()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAttributesAndModifiers()
+        => VerifyBlockSpansAsync("""
                 {|hint:{|textspan:// Summary:
                 //     This is a summary.
                 [Goo]
                 |}public delegate TResult $$Blah<in T, out TResult>(T arg);|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

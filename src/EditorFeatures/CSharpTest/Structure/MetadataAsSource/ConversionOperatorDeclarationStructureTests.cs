@@ -17,20 +17,17 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ConversionOperatorDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task NoCommentsOrAttributes()
-    {
-        await VerifyNoBlockSpansAsync("""
+    public Task NoCommentsOrAttributes()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     public static explicit operator $$Goo(byte b);
                 }
                 """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithAttributes()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:[Blah]
@@ -38,12 +35,10 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-    public async Task WithCommentsAndAttributes()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task WithCommentsAndAttributes()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:{|textspan:// Summary:
@@ -53,12 +48,10 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestOperator3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public static explicit operator C(byte i){|textspan:
@@ -71,5 +64,4 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
                 }
                 """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

@@ -17,9 +17,8 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ConversionOperatorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestOperator1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -28,12 +27,10 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator2()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -45,12 +42,10 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperator3()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperator3()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$public static explicit operator C(byte i){|textspan:
@@ -63,12 +58,10 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestOperatorWithLeadingComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestOperatorWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -80,5 +73,4 @@ public sealed class ConversionOperatorDeclarationStructureTests : AbstractCSharp
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 }

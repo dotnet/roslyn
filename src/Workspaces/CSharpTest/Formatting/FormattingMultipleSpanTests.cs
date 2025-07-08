@@ -22,19 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
 public sealed class FormattingEngineMultiSpanTests : CSharpFormattingTestBase
 {
     [Fact]
-    public async Task EndOfLine()
-    {
-        await AssertFormatAsync(@"namespace A{/*1*/}/*2*/", @"namespace A{}");
-    }
+    public Task EndOfLine()
+        => AssertFormatAsync(@"namespace A{/*1*/}/*2*/", @"namespace A{}");
 
     [Fact]
     public async Task Simple1()
         => await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
 
     [Fact]
-    public async Task DoNotFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
-    {
-        await AssertFormatAsync(@"namespace A
+    public Task DoNotFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
         }/*2*/      
 
@@ -43,12 +40,10 @@ class A /*1*/{}/*2*/", @"namespace A
 }      
 
 class A { }");
-    }
 
     [Fact]
-    public async Task FormatIncludingTrivia()
-    {
-        await AssertFormatAsync(@"namespace A
+    public Task FormatIncludingTrivia()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
         }   /*2*/   
 
@@ -57,12 +52,10 @@ class A /*1*/{}/*2*/", @"namespace A
 }
 
 class A { }");
-    }
 
     [Fact]
-    public async Task MergeSpanAndFormat()
-    {
-        await AssertFormatAsync(@"namespace A
+    public Task MergeSpanAndFormat()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
         }   /*2*/   /*1*/
 
@@ -71,12 +64,10 @@ class A{}/*2*/", @"namespace A
 }
 
 class A { }");
-    }
 
     [Fact]
-    public async Task OverlappedSpan()
-    {
-        await AssertFormatAsync(@"namespace A
+    public Task OverlappedSpan()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
      /*1*/   }   /*2*/   
 
@@ -85,7 +76,6 @@ class A{}/*2*/", @"namespace A
 }
 
 class A { }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
     public async Task FormatSpanNullReference01()

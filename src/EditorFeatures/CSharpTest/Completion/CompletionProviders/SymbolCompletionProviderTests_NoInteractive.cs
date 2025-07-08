@@ -158,28 +158,24 @@ public sealed class SymbolCompletionProviderTests_NoInteractive : AbstractCSharp
         => await VerifyItemIsAbsentAsync(@"[assembly: System.Console.$$]", @"Beep");
 
     [Fact]
-    public async Task InvalidLocation13()
-    {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
+    public Task InvalidLocation13()
+        => VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
             [Console.$$]
             class CL {}
             """), @"Beep");
-    }
 
     [Fact]
     public async Task InvalidLocation14()
         => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<[Console.$$]T> {}"), @"Beep");
 
     [Fact]
-    public async Task InvalidLocation15()
-    {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
+    public Task InvalidLocation15()
+        => VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
             class CL {
                 [Console.$$]
                 void Method() {}
             }
             """), @"Beep");
-    }
 
     [Fact]
     public async Task InvalidLocation16()

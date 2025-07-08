@@ -29,9 +29,8 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
         => Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
     [Fact]
-    public async Task TestExpressionWithNoMethodCallsCase()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithNoMethodCallsCase()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -49,12 +48,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithLocal()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithLocal()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -65,12 +62,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestBasicComplexExpressionCase()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestBasicComplexExpressionCase()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -98,12 +93,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithSingleMethodCall()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithSingleMethodCall()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -131,12 +124,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestLocalDeclarationMultipleDeclarators()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestLocalDeclarationMultipleDeclarators()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -165,12 +156,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestDeclarationInForLoop()
-    {
-        await TestMissingAsync("""
+    public Task TestDeclarationInForLoop()
+        => TestMissingAsync("""
             using System;
             class TestClass
             {
@@ -183,12 +172,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithSingleMethodCallInLocalFunction()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithSingleMethodCallInLocalFunction()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -218,12 +205,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithSingleMethodCallInStaticLocalFunction()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithSingleMethodCallInStaticLocalFunction()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -253,12 +238,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestHighlightIncompleteExpressionCaseWithSingleMethodCall()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestHighlightIncompleteExpressionCaseWithSingleMethodCall()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -273,12 +256,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithMultipleMethodCall()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithMultipleMethodCall()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -308,12 +289,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionAllOccurrences()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionAllOccurrences()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -343,12 +322,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 3);
-    }
 
     [Fact]
-    public async Task TestxpressionWithNoMethodCallTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestxpressionWithNoMethodCallTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -371,12 +348,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -409,12 +384,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallAndAccessorsTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallAndAccessorsTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -447,12 +420,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallAndAccessorsConditionalTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -485,12 +456,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallMultipleAccessorsTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -541,12 +510,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallMultipleAccessorsConditionalTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -597,12 +564,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallAccessorsMixedConditionalTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -653,12 +618,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -693,12 +656,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 4, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithNoMethodCallOverload()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithNoMethodCallOverload()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -721,12 +682,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionWithSingleMethodCallOverload()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionWithSingleMethodCallOverload()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -759,12 +718,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionBodiedMemberOverload()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionBodiedMemberOverload()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -788,12 +745,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 2, options: UseExpressionBody, parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionBodiedMemberTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionBodiedMemberTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -821,12 +776,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithRecursiveCall()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithRecursiveCall()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -846,12 +799,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithNestedRecursiveCall()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithNestedRecursiveCall()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -871,12 +822,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithParamsArg()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithParamsArg()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -892,12 +841,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithOptionalParameters()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithOptionalParameters()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -927,12 +874,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithOptionalParametersUsed()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithOptionalParametersUsed()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -962,12 +907,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithOptionalParametersUsedOverload()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithOptionalParametersUsedOverload()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1002,12 +945,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 2);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithOptionalParametersUsedTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithOptionalParametersUsedTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1042,12 +983,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithOptionalParametersUnusedTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithOptionalParametersUnusedTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1082,12 +1021,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithCancellationToken()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithCancellationToken()
+        => TestInRegularAndScriptAsync("""
             using System;
             using System.Threading;
             class TestClass
@@ -1119,12 +1056,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithRecursiveCallTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithRecursiveCallTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1149,12 +1084,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1179,12 +1112,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
-    }
 
     [Fact]
-    public async Task TestExpressionCaseInConstructor()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestExpressionCaseInConstructor()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1213,69 +1144,57 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestLambdaCaseNormal()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestLambdaCaseNormal()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
                 Func<int, int, int> mult = (x, y) => [|x * y|];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLambdaCaseTrampoline()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestLambdaCaseTrampoline()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
                 Func<int, int, int> mult = (x, y) => [|x * y|];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLambdaCaseOverload()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestLambdaCaseOverload()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
                 Func<int, int, int> mult = (x, y) => [|x * y|];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTopLevelStatements()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestTopLevelStatements()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             Math.Max(5 + 5, [|6 + 7|]);
             """);
-    }
 
     [Fact]
-    public async Task TestFieldInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestFieldInitializer()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
                 int a = [|5 + 3|];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIndexer()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestIndexer()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class SampleCollection<T>
             {
@@ -1284,12 +1203,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 public T this[int i] => arr[[|i + 5|]];
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertyGetter()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestPropertyGetter()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
 
             class TimePeriod
@@ -1302,12 +1219,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestPropertySetter()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestPropertySetter()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
 
             class TimePeriod
@@ -1322,12 +1237,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestDestructor()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestDestructor()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1337,12 +1250,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExpressionInParameter()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestExpressionInParameter()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1351,12 +1262,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestCrossLanguageInvocations()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestCrossLanguageInvocations()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1424,12 +1333,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 </Project>
             </Workspace>
             """, 0);
-    }
 
     [Fact]
-    public async Task TestConvertedTypeInExpression()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestConvertedTypeInExpression()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1447,12 +1354,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestConvertedTypeInExpressionTrampoline()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestConvertedTypeInExpressionTrampoline()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1475,12 +1380,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 1);
-    }
 
     [Fact]
-    public async Task TestThisKeywordInExpression()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestThisKeywordInExpression()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1515,12 +1418,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestThisImplicitInExpression()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestThisImplicitInExpression()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1555,12 +1456,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestStaticMethodCallInExpression()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestStaticMethodCallInExpression()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1590,12 +1489,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestBaseKeywordInExpression()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestBaseKeywordInExpression()
+        => TestInRegularAndScriptAsync("""
             using System;
             class Net
             {
@@ -1632,12 +1529,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestFieldReferenceInOptionalParameter()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFieldReferenceInOptionalParameter()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1667,12 +1562,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestNamedParameterNecessary()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestNamedParameterNecessary()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1702,12 +1595,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestHighlightReturnType()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestHighlightReturnType()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1722,12 +1613,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTypeOfOnString()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestTypeOfOnString()
+        => TestInRegularAndScriptAsync("""
             using System;
             class TestClass
             {
@@ -1745,12 +1634,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, index: 0);
-    }
 
     [Fact]
-    public async Task TestClassObject()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestClassObject()
+        => TestMissingInRegularAndScriptAsync("""
             class F
             {
                 public int x;
@@ -1776,12 +1663,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestReferenceInDifferentDocumentWithUsings()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestReferenceInDifferentDocumentWithUsings()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language= "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1851,12 +1736,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 </Project>
             </Workspace>
             """, 0);
-    }
 
     [Fact]
-    public async Task TestIntroduceParameterOnParameter()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestIntroduceParameterOnParameter()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
 
             class Program
@@ -1867,12 +1750,10 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIntroduceParameterOnExpressionContainingParameter()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestIntroduceParameterOnExpressionContainingParameter()
+        => TestInRegularAndScriptAsync("""
             public class C
             {
                 public void M(string s)
@@ -1899,24 +1780,20 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """, 0);
-    }
 
     [Fact]
-    public async Task TestIntroduceParameterOnOverload()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestIntroduceParameterOnOverload()
+        => TestInRegularAndScriptAsync("""
             M();
             int M(int _) => M([|1234|]);
             """, """
             M();
             int M(int _, int v) => M({|Rename:v|}, 1234);
             """, 0);
-    }
 
     [Fact]
-    public async Task TestIntroduceParameterOnAttributeArgument()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestIntroduceParameterOnAttributeArgument()
+        => TestMissingInRegularAndScriptAsync("""
             public class C
             {
                 [Theory]
@@ -1926,7 +1803,6 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestNotOnNamedType1()

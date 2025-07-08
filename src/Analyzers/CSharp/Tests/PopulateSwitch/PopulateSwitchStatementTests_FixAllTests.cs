@@ -15,9 +15,8 @@ public sealed partial class PopulateSwitchStatementTests
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInDocument()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -172,14 +171,12 @@ public sealed partial class PopulateSwitchStatementTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInProject()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInProject()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -320,14 +317,12 @@ public sealed partial class PopulateSwitchStatementTests
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task TestFixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFixAllInSolution()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -486,5 +481,4 @@ public sealed partial class PopulateSwitchStatementTests
                 </Project>
             </Workspace>
             """);
-    }
 }

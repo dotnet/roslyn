@@ -18,9 +18,8 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
     internal override Type GetCompletionProviderType() => typeof(FunctionPointerUnmanagedCallingConventionCompletionProvider);
 
     [Fact]
-    public async Task TypeFound()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TypeFound()
+        => VerifyItemExistsAsync("""
             namespace System.Runtime.CompilerServices
             {
                 public class CallConvUnitTest { }
@@ -31,12 +30,10 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
                 delegate* unmanaged[$$] <int, string> f;
             }
             """, "UnitTest");
-    }
 
     [Fact]
-    public async Task TypeFoundSecondCallingConvention()
-    {
-        await VerifyItemExistsAsync("""
+    public Task TypeFoundSecondCallingConvention()
+        => VerifyItemExistsAsync("""
             namespace System.Runtime.CompilerServices
             {
                 public class CallConvUnitTest { }
@@ -47,18 +44,14 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
                 delegate* unmanaged[Thiscall, $$] <int, string> f;
             }
             """, "UnitTest");
-    }
 
     [Theory]
     [InlineData("Cdecl")]
     [InlineData("Fastcall")]
     [InlineData("Thiscall")]
     [InlineData("Stdcall")]
-    public async Task PredefinedCallingConventionFound(string callingConvention)
-    {
-        // We explicitly create a project with no references (not even common references) to ensure we
-        // get the defaults
-        await VerifyItemExistsAsync("""
+    public Task PredefinedCallingConventionFound(string callingConvention)
+        => VerifyItemExistsAsync("""
             <Workspace>
                 <Project Language="C#">
                     <Document>
@@ -70,5 +63,4 @@ public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderT
                 </Project>
             </Workspace>
             """, callingConvention, glyph: Glyph.Keyword);
-    }
 }

@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumentTests
 {
     [Fact]
-    public async Task Net6SdkLayout_InvalidXml()
-    {
-        await RunTestAsync(async path =>
+    public Task Net6SdkLayout_InvalidXml()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -53,12 +52,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             Assert.False(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
         });
-    }
 
     [Fact]
-    public async Task Net6SdkLayout()
-    {
-        await RunTestAsync(async path =>
+    public Task Net6SdkLayout()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -91,12 +88,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
             Assert.Equal(GetDllPath(sharedDir), implementationDll);
         });
-    }
 
     [Fact]
-    public async Task Net6SdkLayout_PacksInPath()
-    {
-        await RunTestAsync(async path =>
+    public Task Net6SdkLayout_PacksInPath()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -131,12 +126,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             Assert.True(service.TryFindImplementationAssemblyPath(GetDllPath(packDir), out var implementationDll));
             Assert.Equal(GetDllPath(sharedDir), implementationDll);
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards()
-    {
-        await RunTestAsync(async path =>
+    public Task FollowTypeForwards()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -179,12 +172,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_Namespace()
-    {
-        await RunTestAsync(async path =>
+    public Task FollowTypeForwards_Namespace()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             namespace A
@@ -237,12 +228,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
             Assert.Equal(dllFilePath, foundImplementationFilePath);
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_Generics()
-    {
-        await RunTestAsync(async path =>
+    public Task FollowTypeForwards_Generics()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             namespace A
@@ -295,12 +284,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             var foundImplementationFilePath = service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger());
             Assert.Equal(dllFilePath, foundImplementationFilePath);
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_NestedType()
-    {
-        await RunTestAsync(async path =>
+    public Task FollowTypeForwards_NestedType()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -346,12 +333,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_Cache()
-    {
-        await RunTestAsync(async path =>
+    public Task FollowTypeForwards_Cache()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -401,12 +386,10 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
-    public async Task FollowTypeForwards_MultipleTypes_Cache()
-    {
-        await RunTestAsync(async path =>
+    public Task FollowTypeForwards_MultipleTypes_Cache()
+        => RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan("""
             public class C
@@ -463,7 +446,6 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             Assert.Equal(dllFilePath, service.FollowTypeForwards(symbol, typeForwardDllFilePath, new NoDuplicatesLogger()));
         });
-    }
 
     [Fact]
     public async Task FollowTypeForwards_MultipleHops_Cache()

@@ -272,9 +272,8 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     #region "Current Parameter Name"
 
     [Fact]
-    public async Task TestCurrentParameterName()
-    {
-        await VerifyCurrentParameterNameAsync("""
+    public Task TestCurrentParameterName()
+        => VerifyCurrentParameterNameAsync("""
             using System;
 
             class SomethingAttribute : Attribute
@@ -287,7 +286,6 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
             {
             }
             """, "someParameter");
-    }
 
     #endregion
 
@@ -991,12 +989,10 @@ public sealed class AttributeSignatureHelpProviderTests : AbstractCSharpSignatur
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
-    public async Task InvokedWithNoToken()
-    {
-        await TestAsync("""
+    public Task InvokedWithNoToken()
+        => TestAsync("""
             // [goo($$
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081535")]
     public async Task TestInvocationWithBadParameterList()

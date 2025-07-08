@@ -231,9 +231,8 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_NoComparer_CSharpAsync(string symbolType)
-        {
-            await VerifyCS.VerifyCodeFixAsync($@"
+        public Task CompareTwoSymbolsEquals_NoComparer_CSharpAsync(string symbolType)
+            => VerifyCS.VerifyCodeFixAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method({symbolType} x, {symbolType} y) {{
@@ -248,15 +247,13 @@ class TestClass {{
     }}
 }}
 ");
-        }
 
         [Theory]
         [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsByIdentity_CSharpAsync(string symbolType)
-        {
-            await VerifyCS.VerifyAnalyzerAsync($@"
+        public Task CompareTwoSymbolsByIdentity_CSharpAsync(string symbolType)
+            => VerifyCS.VerifyAnalyzerAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method1({symbolType} x, {symbolType} y) {{
@@ -270,7 +267,6 @@ class TestClass {{
     }}
 }}
 ");
-        }
 
         [Fact]
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
@@ -351,12 +347,11 @@ class TestClass {{
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolWithNull_CSharpAsync(
+        public Task CompareSymbolWithNull_CSharpAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("==", "!=")] string @operator,
             [CombinatorialValues("null", "default", "default(ISymbol)")] string value)
-        {
-            await VerifyCS.VerifyAnalyzerAsync($@"
+            => VerifyCS.VerifyAnalyzerAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method1({symbolType} x) {{
@@ -368,14 +363,12 @@ class TestClass {{
     }}
 }}
 ");
-        }
 
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolWithNullPattern_CSharpAsync(string symbolType)
-        {
-            await VerifyCS.VerifyAnalyzerAsync($@"
+        public Task CompareSymbolWithNullPattern_CSharpAsync(string symbolType)
+            => VerifyCS.VerifyAnalyzerAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method1({symbolType} x) {{
@@ -383,7 +376,6 @@ class TestClass {{
     }}
 }}
 ");
-        }
 
         [Theory]
         [InlineData(nameof(ISymbol))]
@@ -417,9 +409,8 @@ End Class
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_NoComparer_VisualBasicAsync(string symbolType)
-        {
-            await VerifyVB.VerifyCodeFixAsync($@"
+        public Task CompareTwoSymbolsEquals_NoComparer_VisualBasicAsync(string symbolType)
+            => VerifyVB.VerifyCodeFixAsync($@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
     Function Method(x As {symbolType}, y As {symbolType}) As Boolean
@@ -434,15 +425,13 @@ Class TestClass
     End Function
 End Class
 ");
-        }
 
         [Theory]
         [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsByIdentity_VisualBasicAsync(string symbolType)
-        {
-            await VerifyVB.VerifyAnalyzerAsync($@"
+        public Task CompareTwoSymbolsByIdentity_VisualBasicAsync(string symbolType)
+            => VerifyVB.VerifyAnalyzerAsync($@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
     Function Method(x As {symbolType}, y As {symbolType}) As Boolean
@@ -450,7 +439,6 @@ Class TestClass
     End Function
 End Class
 ");
-        }
 
         [Theory]
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
@@ -480,11 +468,10 @@ End Class
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolWithNull_VisualBasicAsync(
+        public Task CompareSymbolWithNull_VisualBasicAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("Is", "IsNot")] string @operator)
-        {
-            await VerifyVB.VerifyAnalyzerAsync($@"
+            => VerifyVB.VerifyAnalyzerAsync($@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
     Function Method1(x As {symbolType}) As Boolean
@@ -496,7 +483,6 @@ Class TestClass
     End Function
 End Class
 ");
-        }
 
         [Theory]
         [CombinatorialData]

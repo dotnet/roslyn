@@ -400,24 +400,20 @@ public sealed class NavigateToTests : AbstractNavigateToTests
             });
 
     [Theory, CombinatorialData]
-    public async Task FindIndexer(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, @"class Goo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }", async w =>
+    public Task FindIndexer(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, @"class Goo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }", async w =>
         {
             var item = (await _aggregator.GetItemsAsync("this")).Single();
             VerifyNavigateToResultItem(item, "this", "[|this|][int]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task FindEvent(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class Goo { public event EventHandler ChangedEventHandler; }", async w =>
+    public Task FindEvent(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class Goo { public event EventHandler ChangedEventHandler; }", async w =>
         {
             var item = (await _aggregator.GetItemsAsync("CEH")).Single();
             VerifyNavigateToResultItem(item, "ChangedEventHandler", "[|C|]hanged[|E|]vent[|H|]andler", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Event, Glyph.EventPublic, additionalInfo: string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
         });
-    }
 
     [Theory, CombinatorialData]
     public Task FindAutoProperty(TestHost testHost, Composition composition)
@@ -614,9 +610,8 @@ public sealed class NavigateToTests : AbstractNavigateToTests
             });
 
     [Theory, CombinatorialData]
-    public async Task FindOverriddenMembers(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class Goo { public virtual string Name { get; set; } } class DogBed : Goo { public override string Name { get { return base.Name; } set {} } }", async w =>
+    public Task FindOverriddenMembers(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class Goo { public virtual string Name { get; set; } } class DogBed : Goo { public override string Name { get { return base.Name; } set {} } }", async w =>
         {
             var expecteditem1 = new NavigateToItem("Name", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null);
 
@@ -638,7 +633,6 @@ public sealed class NavigateToTests : AbstractNavigateToTests
             Assert.Equal("Name", itemDisplay.Name);
             Assert.Equal(string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"), itemDisplay.AdditionalInformation);
         });
-    }
 
     [Theory, CombinatorialData]
     public Task FindInterface(TestHost testHost, Composition composition)
@@ -936,9 +930,8 @@ public sealed class NavigateToTests : AbstractNavigateToTests
         });
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest1(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+    public Task TermSplittingTest1(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var expecteditem1 = new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
@@ -948,12 +941,10 @@ public sealed class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem2, expecteditem3], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest2(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+    public Task TermSplittingTest2(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseNonContiguousPrefixPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseExactPatternMatch, null);
@@ -962,12 +953,10 @@ public sealed class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem2], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest3(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+    public Task TermSplittingTest3(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var expecteditem1 = new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null, s_emptyCamelCaseSubstringPatternMatch_NotCaseSensitive, null);
             var expecteditem2 = new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch, null);
@@ -976,32 +965,26 @@ public sealed class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([expecteditem1, expecteditem2], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest4(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+    public Task TermSplittingTest4(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var items = await _aggregator.GetItemsAsync("WKG");
             Assert.Empty(items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest5(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+    public Task TermSplittingTest5(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var item = (await _aggregator.GetItemsAsync("G_K_W")).Single();
             VerifyNavigateToResultItem(item, "get_key_word", "[|g|]et[|_k|]ey[|_w|]ord", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Field, Glyph.FieldPrivate);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest6(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+    public Task TermSplittingTest6(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var items = await _aggregator.GetItemsAsync("get word");
 
@@ -1011,22 +994,18 @@ public sealed class NavigateToTests : AbstractNavigateToTests
                 new("get_key_word", NavigateToItemKind.Field, "csharp", null, null,s_emptySubstringPatternMatch, null),
                 new("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch_NotCaseSensitive, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TermSplittingTest7(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+    public Task TermSplittingTest7(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
         {
             var items = await _aggregator.GetItemsAsync("GTW");
             Assert.Empty(items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task TestIndexer1(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, """
+    public Task TestIndexer1(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, """
             class C
             {
                 public int this[int y] { get { } }
@@ -1046,91 +1025,75 @@ public sealed class NavigateToTests : AbstractNavigateToTests
 
             VerifyNavigateToResultItems([new("this", NavigateToItemKind.Property, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern1(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
+    public Task DottedPattern1(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("B.Q");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern2(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
+    public Task DottedPattern2(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("C.Q");
 
             VerifyNavigateToResultItems([], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern3(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
+    public Task DottedPattern3(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("B.B.Q");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern4(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
+    public Task DottedPattern4(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("Baz.Quux");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern5(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
+    public Task DottedPattern5(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("G.B.B.Quux");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null)], items);
         });
-    }
 
     [Theory, CombinatorialData]
-    public async Task DottedPattern6(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
+    public Task DottedPattern6(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("F.F.B.B.Quux");
 
             VerifyNavigateToResultItems([], items);
         });
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/Roslyn/issues/7855")]
-    public async Task DottedPattern7(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }", async w =>
+    public Task DottedPattern7(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace Goo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("Baz.Q");
 
             VerifyNavigateToResultItems([new("Quux", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/46267")]
     [CombinatorialData]
-    public async Task DottedPatternMatchKind(TestHost testHost, Composition composition)
-    {
-        await TestAsync(testHost, composition, "namespace System { class Console { void Write(string s) { } void WriteLine(string s) { } } }", async w =>
+    public Task DottedPatternMatchKind(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "namespace System { class Console { void Write(string s) { } void WriteLine(string s) { } } }", async w =>
         {
             var items = await _aggregator.GetItemsAsync("Console.Write");
 
@@ -1138,7 +1101,6 @@ public sealed class NavigateToTests : AbstractNavigateToTests
                 new("Write", NavigateToItemKind.Method, "csharp", null, null, s_emptyExactPatternMatch, null),
                 new("WriteLine", NavigateToItemKind.Method, "csharp", null, null, s_emptyPrefixPatternMatch, null)], items);
         });
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/8009")]

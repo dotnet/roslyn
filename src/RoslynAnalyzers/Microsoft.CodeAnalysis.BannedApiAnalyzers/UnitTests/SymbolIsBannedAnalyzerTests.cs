@@ -74,28 +74,22 @@ End Class");
         }
 
         [Fact]
-        public async Task NoDiagnosticReportedForEmptyBannedTextAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"", @"");
-        }
+        public Task NoDiagnosticReportedForEmptyBannedTextAsync()
+            => VerifyCSharpAnalyzerAsync(@"", @"");
 
         [Fact]
-        public async Task NoDiagnosticReportedForMultilineBlankBannedTextAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task NoDiagnosticReportedForMultilineBlankBannedTextAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 
 
 ", @"");
-        }
 
         [Fact]
-        public async Task NoDiagnosticReportedForMultilineMessageOnlyBannedTextAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"", @"
+        public Task NoDiagnosticReportedForMultilineMessageOnlyBannedTextAsync()
+            => VerifyCSharpAnalyzerAsync(@"", @"
 ;first
   ;second
 ;third // comment");
-        }
 
         [Fact]
         public async Task DiagnosticReportedForDuplicateBannedApiLinesAsync()
@@ -393,9 +387,8 @@ End Namespace", bannedText, GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsB
         #endregion Comments in BannedSymbols.txt tests
 
         [Fact]
-        public async Task CSharp_BannedApiFile_MessageIncludedInDiagnosticAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedApiFile_MessageIncludedInDiagnosticAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class Banned { }
@@ -407,12 +400,10 @@ namespace N
         }
     }
 }", @"T:N.Banned;Use NonBanned instead", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
-        }
 
         [Fact]
-        public async Task CSharp_BannedApiFile_WhiteSpaceAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedApiFile_WhiteSpaceAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class Banned { }
@@ -425,12 +416,10 @@ namespace N
     }
 }", @"
   T:N.Banned  ", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedApiFile_WhiteSpaceWithMessageAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedApiFile_WhiteSpaceWithMessageAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class Banned { }
@@ -442,12 +431,10 @@ namespace N
         }
     }
 }", @"T:N.Banned ; Use NonBanned instead ", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ": Use NonBanned instead"));
-        }
 
         [Fact]
-        public async Task CSharp_BannedApiFile_EmptyMessageAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedApiFile_EmptyMessageAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class Banned { }
@@ -459,7 +446,6 @@ namespace N
         }
     }
 }", @"T:N.Banned;", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
-        }
 
         [Fact]
         public async Task CSharp_BannedApi_MultipleFiles()
@@ -504,9 +490,8 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedType_ConstructorAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedType_ConstructorAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class Banned { }
@@ -519,12 +504,10 @@ namespace N
     }
 }", @"
 T:N.Banned", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNamespace_ConstructorAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNamespace_ConstructorAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class C
@@ -537,12 +520,10 @@ namespace N
 }
 ", @"
 N:N", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNamespace_Parent_ConstructorAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNamespace_Parent_ConstructorAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N.NN
 {
     class C
@@ -555,12 +536,10 @@ namespace N.NN
 }
 ", @"
 N:N", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNamespace_MethodGroupAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNamespace_MethodGroupAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     delegate void D();
@@ -574,12 +553,10 @@ namespace N
 }
 ", @"
 N:N", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNamespace_PropertyAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNamespace_PropertyAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class C
@@ -595,12 +572,10 @@ namespace N
 N:N",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNamespace_MethodAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNamespace_MethodAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     interface I
@@ -617,12 +592,10 @@ class C
         {|#0:i.M()|};
     }
 }", @"N:N", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNamespace_TypeOfArgument()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNamespace_TypeOfArgument()
+            => VerifyCSharpAnalyzerAsync(@"
 namespace N
 {
     class Banned {  }
@@ -635,12 +608,10 @@ class C
     }
 }
 ", @"N:N", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "N", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNamespace_Constituent()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNamespace_Constituent()
+            => VerifyCSharpAnalyzerAsync(@"
 class C
 {
     void M()
@@ -649,12 +620,10 @@ class C
     }
 }
 ", @"N:System.Threading", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "System.Threading", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedGenericType_ConstructorAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedGenericType_ConstructorAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 class C
 {
     void M()
@@ -663,12 +632,10 @@ class C
     }
 }", @"
 T:System.Collections.Generic.List`1", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List<T>", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedType_AsTypeArgumentAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedType_AsTypeArgumentAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 struct C {}
 
 class G<T>
@@ -697,12 +664,10 @@ T:C",
                 GetCSharpResultAt(5, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(7, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedNestedType_ConstructorAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedNestedType_ConstructorAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 class C
 {
     class Nested { }
@@ -712,12 +677,10 @@ class C
     }
 }", @"
 T:C.Nested", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedType_MethodOnNestedTypeAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedType_MethodOnNestedTypeAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 class C
 {
     public static class Nested
@@ -734,12 +697,10 @@ class D
     }
 }", @"
 T:C", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedInterface_MethodAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedInterface_MethodAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 interface I
 {
     void M();
@@ -753,12 +714,10 @@ class C
         {|#0:i.M()|};
     }
 }", @"T:I", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedClass_OperatorsAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedClass_OperatorsAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 class C
 {
     public static implicit operator C(int i) => {|#0:new C()|};
@@ -783,12 +742,10 @@ class C
                 GetCSharpResultAt(4, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(5, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(6, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedClass_PropertyAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedClass_PropertyAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 class C
 {
     public int P { get; set; }
@@ -799,12 +756,10 @@ class C
 }", @"T:C",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedClass_FieldAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedClass_FieldAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 class C
 {
     public int F;
@@ -815,12 +770,10 @@ class C
 }", @"T:C",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedClass_EventAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedClass_EventAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 class C
@@ -836,12 +789,10 @@ class C
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetCSharpResultAt(2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedClass_MethodGroupAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedClass_MethodGroupAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 delegate void D();
 class C
 {
@@ -852,24 +803,20 @@ class C
 }
 ", @"T:C",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedClass_DocumentationReferenceAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedClass_DocumentationReferenceAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 class C { }
 
 /// <summary><see cref=""{|#0:C|}"" /></summary>
 class D { }
 ", @"T:C",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnTypeAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedAttribute_UsageOnTypeAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 [AttributeUsage(AttributeTargets.All, Inherited = true)]
@@ -881,12 +828,10 @@ class D : C { }
 ", @"T:BannedAttribute",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnMemberAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedAttribute_UsageOnMemberAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 [AttributeUsage(AttributeTargets.All, Inherited = true)]
@@ -900,12 +845,10 @@ class C
 ", @"T:BannedAttribute",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnAssemblyAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedAttribute_UsageOnAssemblyAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 [assembly: {|#0:BannedAttribute|}]
@@ -915,12 +858,10 @@ class BannedAttribute : Attribute { }
 ", @"T:BannedAttribute",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnModuleAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedAttribute_UsageOnModuleAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 [module: {|#0:BannedAttribute|}]
@@ -930,7 +871,6 @@ class BannedAttribute : Attribute { }
 ", @"T:BannedAttribute",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
         public async Task CSharp_BannedConstructorAsync()
@@ -1068,9 +1008,8 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedPropertyAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(
+        public Task CSharp_BannedPropertyAsync()
+            => VerifyCSharpAnalyzerAsync(
                 @"
 namespace N
 {
@@ -1087,12 +1026,10 @@ namespace N
                 @"P:N.C.Banned",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedFieldAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(
+        public Task CSharp_BannedFieldAsync()
+            => VerifyCSharpAnalyzerAsync(
                 @"
 namespace N
 {
@@ -1109,12 +1046,10 @@ namespace N
                 @"F:N.C.Banned",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedEventAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(
+        public Task CSharp_BannedEventAsync()
+            => VerifyCSharpAnalyzerAsync(
                 @"
 namespace N
 {
@@ -1134,12 +1069,10 @@ namespace N
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
                 GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""),
                 GetCSharpResultAt(2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned", ""));
-        }
 
         [Fact]
-        public async Task CSharp_BannedMethodGroupAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(
+        public Task CSharp_BannedMethodGroupAsync()
+            => VerifyCSharpAnalyzerAsync(
                 @"
 namespace N
 {
@@ -1155,12 +1088,10 @@ namespace N
 }",
                 @"M:N.C.Banned",
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
-        }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticClass_TypeOfArgument()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticClass_TypeOfArgument()
+            => VerifyCSharpAnalyzerAsync(@"
 class Banned {  }
 class C
 {
@@ -1170,12 +1101,10 @@ class C
     }
 }
 ", @"T:Banned");
-        }
 
         [Fact]
-        public async Task CSharp_BannedClass_TypeOfArgument()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedClass_TypeOfArgument()
+            => VerifyCSharpAnalyzerAsync(@"
 class Banned {  }
 class C
 {
@@ -1185,12 +1114,10 @@ class C
     }
 }
 ", @"T:Banned", GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
-        }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBannedAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBannedAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 namespace N
@@ -1263,12 +1190,10 @@ E:N.C1.Event1
 M:N.C1.Method2
 P:N.C1.Property2
 E:N.C1.Event2");
-        }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_MiddleLevelIsBannedAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_MiddleLevelIsBannedAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 namespace N
@@ -1341,12 +1266,10 @@ E:N.C2.Event1
 M:N.C2.Method2
 P:N.C2.Property2
 E:N.C2.Event2");
-        }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_LeafLevelIsBannedAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_LeafLevelIsBannedAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 namespace N
@@ -1419,12 +1342,10 @@ E:N.C3.Event1
 M:N.C3.Method2
 P:N.C3.Property2
 E:N.C3.Event2");
-        }
 
         [Fact]
-        public async Task CSharp_InvalidOverrideDefinitionAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task CSharp_InvalidOverrideDefinitionAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 
 namespace N
@@ -1444,7 +1365,6 @@ namespace N
         }
     }
 }", @"M:N.C1.Method1");
-        }
 
         [Fact]
         public async Task VisualBasic_BannedApi_MultipleFiles()
@@ -1486,9 +1406,8 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedType_ConstructorAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedType_ConstructorAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Namespace N
     Class Banned : End Class
     Class C
@@ -1497,24 +1416,20 @@ Namespace N
         End Sub
     End Class
 End Namespace", @"T:N.Banned", GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedGenericType_ConstructorAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedGenericType_ConstructorAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Class C
     Sub M()
         Dim c = {|#0:New System.Collections.Generic.List(Of String)()|}
     End Sub
 End Class", @"
 T:System.Collections.Generic.List`1", GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "List(Of T)", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedNestedType_ConstructorAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedNestedType_ConstructorAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Class C
     Class Nested : End Class
     Sub M()
@@ -1522,12 +1437,10 @@ Class C
     End Sub
 End Class", @"
 T:C.Nested", GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Nested", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedType_MethodOnNestedTypeAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedType_MethodOnNestedTypeAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Class C
     Public Class Nested
         Public Shared Sub M() : End Sub
@@ -1541,12 +1454,10 @@ Class D
 End Class
 ", @"
 T:C", GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedInterface_MethodAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedInterface_MethodAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Interface I
     Sub M()
 End Interface
@@ -1557,12 +1468,10 @@ Class C
         {|#0:i.M()|}
     End Sub
 End Class", @"T:I", GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "I", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_PropertyAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedClass_PropertyAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Class C
     Public Property P As Integer
     Sub M()
@@ -1571,12 +1480,10 @@ Class C
 End Class", @"T:C",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_FieldAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedClass_FieldAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Class C
     Public F As Integer
     Sub M()
@@ -1585,12 +1492,10 @@ Class C
 End Class", @"T:C",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_EventAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedClass_EventAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 Class C
@@ -1604,12 +1509,10 @@ End Class", @"T:C",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""),
                 GetBasicResultAt(2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_MethodGroupAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedClass_MethodGroupAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Delegate Sub D()
 Class C
     Sub M()
@@ -1617,12 +1520,10 @@ Class C
     End Sub
 End Class", @"T:C",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnTypeAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedAttribute_UsageOnTypeAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 <AttributeUsage(AttributeTargets.All, Inherited:=true)>
@@ -1639,12 +1540,10 @@ End Class
 ", @"T:BannedAttribute",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnMemberAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedAttribute_UsageOnMemberAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 <AttributeUsage(System.AttributeTargets.All, Inherited:=True)>
@@ -1659,12 +1558,10 @@ End Class
 ", @"T:BannedAttribute",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnAssemblyAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedAttribute_UsageOnAssemblyAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 <{|#0:Assembly:BannedAttribute|}>
@@ -1676,12 +1573,10 @@ End Class
 ", @"T:BannedAttribute",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnModuleAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedAttribute_UsageOnModuleAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 <{|#0:Module:BannedAttribute|}>
@@ -1693,7 +1588,6 @@ End Class
 ", @"T:BannedAttribute",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""),
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
-        }
 
         [Fact]
         public async Task VisualBasic_BannedConstructorAsync()
@@ -1787,9 +1681,8 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedPropertyAsync()
-        {
-            await VerifyBasicAnalyzerAsync(
+        public Task VisualBasic_BannedPropertyAsync()
+            => VerifyBasicAnalyzerAsync(
                 @"
 Namespace N
     Class C
@@ -1802,12 +1695,10 @@ End Namespace",
                 @"P:N.C.Banned",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Property Banned As Integer", ""),
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Property Banned As Integer", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedFieldAsync()
-        {
-            await VerifyBasicAnalyzerAsync(
+        public Task VisualBasic_BannedFieldAsync()
+            => VerifyBasicAnalyzerAsync(
                 @"
 Namespace N
     Class C
@@ -1820,12 +1711,10 @@ End Namespace",
                 @"F:N.C.Banned",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Banned As Integer", ""),
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Banned As Integer", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedEventAsync()
-        {
-            await VerifyBasicAnalyzerAsync(
+        public Task VisualBasic_BannedEventAsync()
+            => VerifyBasicAnalyzerAsync(
                 @"
 Namespace N
     Class C
@@ -1841,12 +1730,10 @@ End Namespace",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Event Banned As Action", ""),
                 GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Event Banned As Action", ""),
                 GetBasicResultAt(2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Event Banned As Action", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedMethodGroupAsync()
-        {
-            await VerifyBasicAnalyzerAsync(
+        public Task VisualBasic_BannedMethodGroupAsync()
+            => VerifyBasicAnalyzerAsync(
                 @"
 Namespace N
     Class C
@@ -1858,24 +1745,20 @@ Namespace N
 End Namespace",
                 @"M:N.C.Banned",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Public Sub Banned()", ""));
-        }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_DocumentationReferenceAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedClass_DocumentationReferenceAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Class C : End Class
 
 ''' <summary><see cref=""{|#0:C|}"" /></summary>
 Class D : End Class
 ", @"T:C",
                 GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C", ""));
-        }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBannedAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBannedAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 Namespace N
@@ -1950,12 +1833,10 @@ E:N.C1.Event1
 M:N.C1.Method2
 P:N.C1.Property2
 E:N.C1.Event2");
-        }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_MiddleLevelIsBannedAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_MiddleLevelIsBannedAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 Namespace N
@@ -2030,12 +1911,10 @@ E:N.C2.Event1
 M:N.C2.Method2
 P:N.C2.Property2
 E:N.C2.Event2");
-        }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_LeafLevelIsBannedAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_LeafLevelIsBannedAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 
 Namespace N
@@ -2110,7 +1989,6 @@ E:N.C3.Event1
 M:N.C3.Method2
 P:N.C3.Property2
 E:N.C3.Event2");
-        }
 
         #endregion
     }

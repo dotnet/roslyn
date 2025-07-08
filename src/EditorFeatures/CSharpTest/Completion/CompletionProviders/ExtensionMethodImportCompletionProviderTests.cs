@@ -1931,9 +1931,8 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
-    {
-        await VerifyProviderCommitAsync("""
+    public Task TestCommitWithCustomizedCharForMethod(char commitChar)
+        => VerifyProviderCommitAsync("""
             public class C
             {
             }
@@ -1984,7 +1983,6 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
             }
         }
         """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
-    }
 
     [Theory]
     [InlineData("int", true, "int a")]

@@ -15,9 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 public partial class SyntacticClassifierTests
 {
     [Theory, CombinatorialData]
-    public async Task PP_IfTrue(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfTrue(TestHost testHost)
+        => TestInMethodAsync("""
             #if true
             #endif
             """,
@@ -27,12 +26,10 @@ public partial class SyntacticClassifierTests
             Keyword("true"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfTrueWithComment(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfTrueWithComment(TestHost testHost)
+        => TestInMethodAsync("""
             #if true //Goo
             #endif
             """,
@@ -43,12 +40,10 @@ public partial class SyntacticClassifierTests
             Comment("//Goo"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfFalse(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfFalse(TestHost testHost)
+        => TestInMethodAsync("""
             #if false
             #endif
             """,
@@ -58,12 +53,10 @@ public partial class SyntacticClassifierTests
             Keyword("false"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfGOO(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfGOO(TestHost testHost)
+        => TestInMethodAsync("""
             #if GOO
             #endif
             """,
@@ -73,12 +66,10 @@ public partial class SyntacticClassifierTests
             Identifier("GOO"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfNotTrue(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfNotTrue(TestHost testHost)
+        => TestInMethodAsync("""
             #if !true
             #endif
             """,
@@ -89,12 +80,10 @@ public partial class SyntacticClassifierTests
             Keyword("true"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfNotFalse(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfNotFalse(TestHost testHost)
+        => TestInMethodAsync("""
             #if !false
             #endif
             """,
@@ -105,12 +94,10 @@ public partial class SyntacticClassifierTests
             Keyword("false"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfNotGOO(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfNotGOO(TestHost testHost)
+        => TestInMethodAsync("""
             #if !GOO
             #endif
             """,
@@ -121,12 +108,10 @@ public partial class SyntacticClassifierTests
             Identifier("GOO"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfTrueWithParens(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfTrueWithParens(TestHost testHost)
+        => TestInMethodAsync("""
             #if (true)
             #endif
             """,
@@ -138,12 +123,10 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfFalseWithParens(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfFalseWithParens(TestHost testHost)
+        => TestInMethodAsync("""
             #if (false)
             #endif
             """,
@@ -155,12 +138,10 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfGOOWithParens(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfGOOWithParens(TestHost testHost)
+        => TestInMethodAsync("""
             #if (GOO)
             #endif
             """,
@@ -172,12 +153,10 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfOrExpression(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfOrExpression(TestHost testHost)
+        => TestInMethodAsync("""
             #if GOO || BAR
             #endif
             """,
@@ -189,12 +168,10 @@ public partial class SyntacticClassifierTests
             Identifier("BAR"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfAndExpression(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfAndExpression(TestHost testHost)
+        => TestInMethodAsync("""
             #if GOO && BAR
             #endif
             """,
@@ -206,12 +183,10 @@ public partial class SyntacticClassifierTests
             Identifier("BAR"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfOrAndExpression(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfOrAndExpression(TestHost testHost)
+        => TestInMethodAsync("""
             #if GOO || BAR && BAZ
             #endif
             """,
@@ -225,12 +200,10 @@ public partial class SyntacticClassifierTests
             Identifier("BAZ"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfOrExpressionWithParens(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfOrExpressionWithParens(TestHost testHost)
+        => TestInMethodAsync("""
             #if (GOO || BAR)
             #endif
             """,
@@ -244,12 +217,10 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfAndExpressionWithParens(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfAndExpressionWithParens(TestHost testHost)
+        => TestInMethodAsync("""
             #if (GOO && BAR)
             #endif
             """,
@@ -263,12 +234,10 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_IfOrAndExpressionWithParens(TestHost testHost)
-    {
-        await TestInMethodAsync("""
+    public Task PP_IfOrAndExpressionWithParens(TestHost testHost)
+        => TestInMethodAsync("""
             #if GOO || (BAR && BAZ)
             #endif
             """,
@@ -284,7 +253,6 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
     public Task PP_If1(TestHost testHost)
@@ -303,9 +271,8 @@ public partial class SyntacticClassifierTests
             Identifier("goo"));
 
     [Theory, CombinatorialData]
-    public async Task PP_If3(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_If3(TestHost testHost)
+        => TestAsync("""
             #if goo
             #endif
             """,
@@ -315,12 +282,10 @@ public partial class SyntacticClassifierTests
             Identifier("goo"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_If4(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_If4(TestHost testHost)
+        => TestAsync("""
             #if
             #endif
             """,
@@ -329,12 +294,10 @@ public partial class SyntacticClassifierTests
             PPKeyword("if"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_If5(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_If5(TestHost testHost)
+        => TestAsync("""
             #if
             aoeu
             aoeu
@@ -350,12 +313,10 @@ public partial class SyntacticClassifierTests
                 """),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_If6(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_If6(TestHost testHost)
+        => TestAsync("""
             #if
             #else
             aeu
@@ -366,12 +327,10 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword("else"),
             Identifier("aeu"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_If7(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_If7(TestHost testHost)
+        => TestAsync("""
             #if
             #else
             #endif
@@ -385,7 +344,6 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword("endif"),
             Identifier("aeu"));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     [CombinatorialData]
@@ -589,9 +547,8 @@ public partial class SyntacticClassifierTests
             Identifier("B"));
 
     [Theory, CombinatorialData]
-    public async Task PP_IfElseEndIfDirectives(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_IfElseEndIfDirectives(TestHost testHost)
+        => TestAsync("""
             #if true
             #elif DEBUG
             #else
@@ -608,177 +565,143 @@ public partial class SyntacticClassifierTests
             PPKeyword("else"),
             PPKeyword("#"),
             PPKeyword("endif"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_DefineDirective(TestHost testHost)
-    {
-        await TestAsync(@"#define GOO",
+    public Task PP_DefineDirective(TestHost testHost)
+        => TestAsync(@"#define GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("define"),
             Identifier("GOO"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_DefineDirectiveWithCommentAndNoName(TestHost testHost)
-    {
-        await TestAsync(@"#define //Goo",
+    public Task PP_DefineDirectiveWithCommentAndNoName(TestHost testHost)
+        => TestAsync(@"#define //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("define"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_DefineDirectiveWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#define GOO //Goo",
+    public Task PP_DefineDirectiveWithComment(TestHost testHost)
+        => TestAsync(@"#define GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("define"),
             Identifier("GOO"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_UndefDirectives(TestHost testHost)
-    {
-        await TestAsync(@"#undef GOO",
+    public Task PP_UndefDirectives(TestHost testHost)
+        => TestAsync(@"#undef GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("undef"),
             Identifier("GOO"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_UndefDirectiveWithCommentAndNoName(TestHost testHost)
-    {
-        await TestAsync(@"#undef //Goo",
+    public Task PP_UndefDirectiveWithCommentAndNoName(TestHost testHost)
+        => TestAsync(@"#undef //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("undef"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_UndefDirectiveWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#undef GOO //Goo",
+    public Task PP_UndefDirectiveWithComment(TestHost testHost)
+        => TestAsync(@"#undef GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("undef"),
             Identifier("GOO"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_ErrorDirective(TestHost testHost)
-    {
-        await TestAsync(@"#error GOO",
+    public Task PP_ErrorDirective(TestHost testHost)
+        => TestAsync(@"#error GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("error"),
             PPText("GOO"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_ErrorDirectiveWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#error GOO //Goo",
+    public Task PP_ErrorDirectiveWithComment(TestHost testHost)
+        => TestAsync(@"#error GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("error"),
             PPText("GOO //Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_WarningDirective(TestHost testHost)
-    {
-        await TestAsync(@"#warning GOO",
+    public Task PP_WarningDirective(TestHost testHost)
+        => TestAsync(@"#warning GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("warning"),
             PPText("GOO"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_WarningDirectiveWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#warning GOO //Goo",
+    public Task PP_WarningDirectiveWithComment(TestHost testHost)
+        => TestAsync(@"#warning GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("warning"),
             PPText("GOO //Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineHidden(TestHost testHost)
-    {
-        await TestAsync(@"#line hidden",
+    public Task PP_LineHidden(TestHost testHost)
+        => TestAsync(@"#line hidden",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
             PPKeyword("hidden"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineHiddenWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#line hidden //Goo",
+    public Task PP_LineHiddenWithComment(TestHost testHost)
+        => TestAsync(@"#line hidden //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
             PPKeyword("hidden"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineDefault(TestHost testHost)
-    {
-        await TestAsync(@"#line default",
+    public Task PP_LineDefault(TestHost testHost)
+        => TestAsync(@"#line default",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
             PPKeyword("default"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineDefaultWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#line default //Goo",
+    public Task PP_LineDefaultWithComment(TestHost testHost)
+        => TestAsync(@"#line default //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
             PPKeyword("default"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineNumber(TestHost testHost)
-    {
-        await TestAsync(@"#line 100",
+    public Task PP_LineNumber(TestHost testHost)
+        => TestAsync(@"#line 100",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
             Number("100"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineNumberWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#line 100 //Goo",
+    public Task PP_LineNumberWithComment(TestHost testHost)
+        => TestAsync(@"#line 100 //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
             Number("100"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineNumberWithFilename(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_LineNumberWithFilename(TestHost testHost)
+        => TestAsync("""
             #line 100 "C:\Goo"
             """,
             testHost,
@@ -788,12 +711,10 @@ public partial class SyntacticClassifierTests
             String("""
                 "C:\Goo"
                 """));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineNumberWithFilenameAndComment(TestHost testHost)
-    {
-        await TestAsync(@"#line 100 ""C:\Goo"" //Goo",
+    public Task PP_LineNumberWithFilenameAndComment(TestHost testHost)
+        => TestAsync(@"#line 100 ""C:\Goo"" //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -802,12 +723,10 @@ public partial class SyntacticClassifierTests
                 "C:\Goo"
                 """),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineSpanWithCharacterOffset(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_LineSpanWithCharacterOffset(TestHost testHost)
+        => TestAsync("""
             #line (1, 2) - (3, 4) 5 "file.txt"
             """,
             testHost,
@@ -828,12 +747,10 @@ public partial class SyntacticClassifierTests
             String("""
                 "file.txt"
                 """));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_LineSpanWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#line (1, 2) - (3, 4) """" //comment",
+    public Task PP_LineSpanWithComment(TestHost testHost)
+        => TestAsync(@"#line (1, 2) - (3, 4) """" //comment",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -852,95 +769,78 @@ public partial class SyntacticClassifierTests
                 ""
                 """),
             Comment("//comment"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableEnable(TestHost testHost)
-    {
-        await TestAsync(@"#nullable enable",
+    public Task PP_NullableEnable(TestHost testHost)
+        => TestAsync(@"#nullable enable",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("enable"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableEnableWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#nullable enable //Goo",
+    public Task PP_NullableEnableWithComment(TestHost testHost)
+        => TestAsync(@"#nullable enable //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("enable"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableEnableWarnings(TestHost testHost)
-    {
-        await TestAsync(@"#nullable enable warnings",
+    public Task PP_NullableEnableWarnings(TestHost testHost)
+        => TestAsync(@"#nullable enable warnings",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("enable"),
             PPKeyword("warnings"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableEnableWarningsWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#nullable enable warnings //Goo",
+    public Task PP_NullableEnableWarningsWithComment(TestHost testHost)
+        => TestAsync(@"#nullable enable warnings //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("enable"),
             PPKeyword("warnings"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableEnableAnnotations(TestHost testHost)
-    {
-        await TestAsync(@"#nullable enable annotations",
+    public Task PP_NullableEnableAnnotations(TestHost testHost)
+        => TestAsync(@"#nullable enable annotations",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("enable"),
             PPKeyword("annotations"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableEnableAnnotationsWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#nullable enable annotations //Goo",
+    public Task PP_NullableEnableAnnotationsWithComment(TestHost testHost)
+        => TestAsync(@"#nullable enable annotations //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("enable"),
             PPKeyword("annotations"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableDisable(TestHost testHost)
-    {
-        await TestAsync(@"#nullable disable",
+    public Task PP_NullableDisable(TestHost testHost)
+        => TestAsync(@"#nullable disable",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("disable"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_NullableDisableWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#nullable disable //Goo",
+    public Task PP_NullableDisableWithComment(TestHost testHost)
+        => TestAsync(@"#nullable disable //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
             PPKeyword("disable"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
     public Task PP_PragmaChecksum1(TestHost testHost)
@@ -992,21 +892,18 @@ public partial class SyntacticClassifierTests
             Comment("// Goo"));
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningDisableOne(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning disable 100",
+    public Task PP_PragmaWarningDisableOne(TestHost testHost)
+        => TestAsync(@"#pragma warning disable 100",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
             PPKeyword("warning"),
             PPKeyword("disable"),
             Number("100"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningDisableOneWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning disable 100 //Goo",
+    public Task PP_PragmaWarningDisableOneWithComment(TestHost testHost)
+        => TestAsync(@"#pragma warning disable 100 //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1014,37 +911,31 @@ public partial class SyntacticClassifierTests
             PPKeyword("disable"),
             Number("100"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
-    public async Task PP_PragmaWarningDisableAllWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning disable //Goo",
+    public Task PP_PragmaWarningDisableAllWithComment(TestHost testHost)
+        => TestAsync(@"#pragma warning disable //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
             PPKeyword("warning"),
             PPKeyword("disable"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningRestoreOne(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning restore 100",
+    public Task PP_PragmaWarningRestoreOne(TestHost testHost)
+        => TestAsync(@"#pragma warning restore 100",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
             PPKeyword("warning"),
             PPKeyword("restore"),
             Number("100"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningRestoreOneWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning restore 100 //Goo",
+    public Task PP_PragmaWarningRestoreOneWithComment(TestHost testHost)
+        => TestAsync(@"#pragma warning restore 100 //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1052,25 +943,21 @@ public partial class SyntacticClassifierTests
             PPKeyword("restore"),
             Number("100"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
-    public async Task PP_PragmaWarningRestoreAllWithComment(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning restore //Goo",
+    public Task PP_PragmaWarningRestoreAllWithComment(TestHost testHost)
+        => TestAsync(@"#pragma warning restore //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
             PPKeyword("warning"),
             PPKeyword("restore"),
             Comment("//Goo"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningDisableTwo(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning disable 100, 101",
+    public Task PP_PragmaWarningDisableTwo(TestHost testHost)
+        => TestAsync(@"#pragma warning disable 100, 101",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1079,12 +966,10 @@ public partial class SyntacticClassifierTests
             Number("100"),
             Punctuation.Comma,
             Number("101"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningRestoreTwo(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning restore 100, 101",
+    public Task PP_PragmaWarningRestoreTwo(TestHost testHost)
+        => TestAsync(@"#pragma warning restore 100, 101",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1093,12 +978,10 @@ public partial class SyntacticClassifierTests
             Number("100"),
             Punctuation.Comma,
             Number("101"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningDisableThree(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning disable 100, 101, 102",
+    public Task PP_PragmaWarningDisableThree(TestHost testHost)
+        => TestAsync(@"#pragma warning disable 100, 101, 102",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1109,12 +992,10 @@ public partial class SyntacticClassifierTests
             Number("101"),
             Punctuation.Comma,
             Number("102"));
-    }
 
     [Theory, CombinatorialData]
-    public async Task PP_PragmaWarningRestoreThree(TestHost testHost)
-    {
-        await TestAsync(@"#pragma warning restore 100, 101, 102",
+    public Task PP_PragmaWarningRestoreThree(TestHost testHost)
+        => TestAsync(@"#pragma warning restore 100, 101, 102",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1125,12 +1006,10 @@ public partial class SyntacticClassifierTests
             Number("101"),
             Punctuation.Comma,
             Number("102"));
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
-    public async Task PP_AfterNonWhiteSpaceOnLine(TestHost testHost)
-    {
-        await TestAsync("""
+    public Task PP_AfterNonWhiteSpaceOnLine(TestHost testHost)
+        => TestAsync("""
             if (#if false
             true
             #else
@@ -1150,7 +1029,6 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
-    }
 
     [Theory, CombinatorialData]
     public Task DiscardInOutDeclaration(TestHost testHost)

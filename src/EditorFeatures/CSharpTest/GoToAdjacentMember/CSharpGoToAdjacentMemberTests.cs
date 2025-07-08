@@ -37,21 +37,18 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task BeforeClassWithMember()
-    {
-        await AssertNavigatedAsync("""
+    public Task BeforeClassWithMember()
+        => AssertNavigatedAsync("""
             $$
             class C
             {
                 [||]void M() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task AfterClassWithMember()
-    {
-        await AssertNavigatedAsync("""
+    public Task AfterClassWithMember()
+        => AssertNavigatedAsync("""
             class C
             {
                 [||]void M() { }
@@ -59,12 +56,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
 
             $$
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task BetweenClasses()
-    {
-        await AssertNavigatedAsync("""
+    public Task BetweenClasses()
+        => AssertNavigatedAsync("""
             class C1
             {
                 void M() { }
@@ -77,12 +72,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task BetweenClassesPrevious()
-    {
-        await AssertNavigatedAsync("""
+    public Task BetweenClassesPrevious()
+        => AssertNavigatedAsync("""
             class C1
             {
                 [||]void M() { }
@@ -95,60 +88,50 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 void M() { }
             }
             """, next: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task FromFirstMemberToSecond()
-    {
-        await AssertNavigatedAsync("""
+    public Task FromFirstMemberToSecond()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task FromSecondToFirst()
-    {
-        await AssertNavigatedAsync("""
+    public Task FromSecondToFirst()
+        => AssertNavigatedAsync("""
             class C
             {
                 [||]void M1() { }
                 $$void M2() { }
             }
             """, next: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task NextWraps()
-    {
-        await AssertNavigatedAsync("""
+    public Task NextWraps()
+        => AssertNavigatedAsync("""
             class C
             {
                 [||]void M1() { }
                 $$void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task PreviousWraps()
-    {
-        await AssertNavigatedAsync("""
+    public Task PreviousWraps()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]void M2() { }
             }
             """, next: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task DescendsIntoNestedType()
-    {
-        await AssertNavigatedAsync("""
+    public Task DescendsIntoNestedType()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
@@ -159,83 +142,69 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtConstructor()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtConstructor()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]public C() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtDestructor()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtDestructor()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]~C() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtOperator()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtOperator()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]static C operator+(C left, C right) { throw new System.NotImplementedException(); }
             }
             """, next: true);
-    }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtField()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtField()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]int F;
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtFieldlikeEvent()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtFieldlikeEvent()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]event System.EventHandler E;
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtAutoProperty()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtAutoProperty()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
                 [||]int P { get; set ; }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtPropertyWithAccessors()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtPropertyWithAccessors()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
@@ -247,12 +216,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task SkipsPropertyAccessors()
-    {
-        await AssertNavigatedAsync("""
+    public Task SkipsPropertyAccessors()
+        => AssertNavigatedAsync("""
             class C
             {
                 void M1() { }
@@ -266,12 +233,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task FromInsideAccessor()
-    {
-        await AssertNavigatedAsync("""
+    public Task FromInsideAccessor()
+        => AssertNavigatedAsync("""
             class C
             {
                 void M1() { }
@@ -285,12 +250,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtIndexerWithAccessors()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtIndexerWithAccessors()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
@@ -302,12 +265,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task SkipsIndexerAccessors()
-    {
-        await AssertNavigatedAsync("""
+    public Task SkipsIndexerAccessors()
+        => AssertNavigatedAsync("""
             class C
             {
                 void M1() { }
@@ -321,12 +282,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtEventWithAddRemove()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtEventWithAddRemove()
+        => AssertNavigatedAsync("""
             class C
             {
                 $$void M1() { }
@@ -338,12 +297,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task SkipsEventAddRemove()
-    {
-        await AssertNavigatedAsync("""
+    public Task SkipsEventAddRemove()
+        => AssertNavigatedAsync("""
             class C
             {
                 void M1() { }
@@ -357,12 +314,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task FromInsideMethod()
-    {
-        await AssertNavigatedAsync("""
+    public Task FromInsideMethod()
+        => AssertNavigatedAsync("""
             class C
             {
                 void M1()
@@ -373,12 +328,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task NextFromBetweenMethods()
-    {
-        await AssertNavigatedAsync("""
+    public Task NextFromBetweenMethods()
+        => AssertNavigatedAsync("""
             class C
             {
                 void M1() { }
@@ -388,12 +341,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task PreviousFromBetweenMethods()
-    {
-        await AssertNavigatedAsync("""
+    public Task PreviousFromBetweenMethods()
+        => AssertNavigatedAsync("""
             class C
             {
                 [||]void M1() { }
@@ -403,12 +354,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 void M2() { }
             }
             """, next: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task NextFromBetweenMethodsInTrailingTrivia()
-    {
-        await AssertNavigatedAsync("""
+    public Task NextFromBetweenMethodsInTrailingTrivia()
+        => AssertNavigatedAsync("""
             class C
             {
                 void M1()
@@ -418,12 +367,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]void M2() { }
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task PreviousFromBetweenMethodsInTrailingTrivia()
-    {
-        await AssertNavigatedAsync("""
+    public Task PreviousFromBetweenMethodsInTrailingTrivia()
+        => AssertNavigatedAsync("""
             class C
             {
                 [||]void M1()
@@ -433,12 +380,10 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 void M2() { }
             }
             """, next: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task StopsAtExpressionBodiedMember()
-    {
-        await AssertNavigatedAsync("""
+    public Task StopsAtExpressionBodiedMember()
+        => AssertNavigatedAsync("""
             class C
             {
                 int M1() => $$42;
@@ -446,13 +391,11 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]int M2() => 42;
             }
             """, next: true);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/10588")]
-    public async Task PreviousFromInsideCurrent()
-    {
-        await AssertNavigatedAsync("""
+    public Task PreviousFromInsideCurrent()
+        => AssertNavigatedAsync("""
             class C
             {
                 [||]void M1()
@@ -465,25 +408,20 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 }
             }
             """, next: false);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task NextInScript()
-    {
-        await AssertNavigatedAsync("""
+    public Task NextInScript()
+        => AssertNavigatedAsync("""
             $$void M1() { }
 
             [||]void M2() { }
             """, next: true, sourceCodeKind: SourceCodeKind.Script);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
-    public async Task PrevInScript()
-    {
-        await AssertNavigatedAsync("""
+    public Task PrevInScript()
+        => AssertNavigatedAsync("""
             [||]void M1() { }
 
             $$void M2() { }
             """, next: false, sourceCodeKind: SourceCodeKind.Script);
-    }
 }

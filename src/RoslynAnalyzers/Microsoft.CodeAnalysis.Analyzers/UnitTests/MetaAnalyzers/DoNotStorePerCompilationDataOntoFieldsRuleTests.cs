@@ -127,9 +127,8 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task CSharp_NoDiagnosticCasesAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -202,12 +201,10 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
         throw new NotImplementedException();
     }
 }");
-        }
 
         [Fact]
-        public async Task VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -272,7 +269,6 @@ Class MyAnalyzerWithoutAttribute
     End Sub
 End Class
 ");
-        }
 
         [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]
         public Task CSharp_NestedStruct_NoDiagnosticAsync()

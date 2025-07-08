@@ -16,9 +16,8 @@ public sealed class EventFieldDeclarationStructureTests : AbstractCSharpSyntaxNo
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EventFieldDeclarationStructureProvider();
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-    public async Task TestEventFieldWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEventFieldWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
@@ -27,5 +26,4 @@ public sealed class EventFieldDeclarationStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("span", "// Goo ...", autoCollapse: true));
-    }
 }

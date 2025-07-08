@@ -581,9 +581,8 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task JointDeclarationRemoveBoth()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task JointDeclarationRemoveBoth()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -613,14 +612,12 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public async Task JointAssignment()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task JointAssignment()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -654,7 +651,6 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40336")]

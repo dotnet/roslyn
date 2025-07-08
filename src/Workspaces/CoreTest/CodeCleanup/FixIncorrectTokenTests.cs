@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup;
 public sealed class FixIncorrectTokensTests
 {
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithMatchingIf()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_WithMatchingIf()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -37,22 +36,18 @@ Module Program
         End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithMatchingIf_Directive()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_WithMatchingIf_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
 #Endif|]", @"
 #If c = 0 Then
 #End If");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithoutMatchingIf()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_WithoutMatchingIf()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|EndIf|]
@@ -63,12 +58,10 @@ Module Program
         End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithoutMatchingIf_Directive()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_WithoutMatchingIf_Directive()
+        => VerifyAsync(@"[|
 Class X
 End Class
 
@@ -77,13 +70,11 @@ Class X
 End Class
 
 #End If");
-    }
 
     [Fact(Skip = "889521")]
     [WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_SameLineAsIf()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_SameLineAsIf()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then [|EndIf|]        
@@ -95,12 +86,10 @@ Module Program
         End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_SameLineAsIf_Invalid()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_SameLineAsIf_Invalid()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing [|EndIf|]
@@ -111,20 +100,16 @@ Module Program
         If args IsNot Nothing EndIf
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_SameLineAsIf_Directive()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_SameLineAsIf_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then #Endif|]", @"
 #If c = 0 Then #Endif");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingTrivia()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_WithLeadingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -141,12 +126,10 @@ Module Program
         End If
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingTrivia_Directive()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_WithLeadingTrivia_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
 '#Endif
 #Endif
@@ -155,12 +138,10 @@ End Module");
 '#Endif
 #End If
 ");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_InvocationExpressionArgument()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_InvocationExpressionArgument()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -175,12 +156,10 @@ Module Program
             InvocationExpression EndIf
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_InvalidDirectiveCases()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_InvalidDirectiveCases()
+        => VerifyAsync(@"[|
 ' BadDirective cases
 #If c = 0 Then
 #InvocationExpression #Endif
@@ -229,12 +208,10 @@ InvocationExpression#
 InvocationExpression
 #End If
 ");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithTrailingTrivia()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_WithTrailingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -249,24 +226,20 @@ Module Program
         End If ' Dummy EndIf
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithTrailingTrivia_Directive()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_WithTrailingTrivia_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
 #Endif '#Endif
 |]", @"
 #If c = 0 Then
 #End If '#Endif
 ");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithIdentifierTokenTrailingTrivia()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_WithIdentifierTokenTrailingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -281,12 +254,10 @@ Module Program
         End If IdentifierToken
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_InvalidDirectiveCases_02()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_InvalidDirectiveCases_02()
+        => VerifyAsync(@"[|
 ' BadDirective cases
 #If c = 0 Then
 #Endif #IdentifierToken
@@ -335,12 +306,10 @@ IdentifierToken#
 #End If
 IdentifierToken
 ");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingTrivia()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_WithLeadingAndTrailingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -359,12 +328,10 @@ Module Program
         ' Dummy EndIf
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingTrivia_Directive()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_WithLeadingAndTrailingTrivia_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
 '#Endif
 #Endif '#Endif
@@ -373,12 +340,10 @@ End Module");
 '#Endif
 #End If '#Endif
 ");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions()
-    {
-        await VerifyAsync(@"
+    public Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -397,12 +362,10 @@ Module Program
         IdentifierToken
     End Sub
 End Module");
-    }
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions_Directive()
-    {
-        await VerifyAsync(@"[|
+    public Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions_Directive()
+        => VerifyAsync(@"[|
 ' BadDirective cases
 #If c = 0 Then
 #InvalidTrivia #Endif #InvalidTrivia
@@ -451,12 +414,10 @@ InvalidTrivia
 InvalidTrivia#
 #End If InvalidTrivia#
 ");
-    }
 
     [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
-    public async Task FixPrimitiveTypeKeywords_ValidCases()
-    {
-        await VerifyAsync(@"[|
+    public Task FixPrimitiveTypeKeywords_ValidCases()
+        => VerifyAsync(@"[|
 Imports SystemAlias = System
 Imports SystemInt16Alias = System.Short
 Imports SystemUInt16Alias = System.ushort
@@ -539,7 +500,6 @@ Module Program
     End Sub
 End Module
 ");
-    }
 
     [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
     public async Task FixPrimitiveTypeKeywords_InvalidCases()
@@ -625,9 +585,8 @@ End Module
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606015")]
-    public async Task FixFullWidthSingleQuotes()
-    {
-        await VerifyAsync(@"[|
+    public Task FixFullWidthSingleQuotes()
+        => VerifyAsync(@"[|
 ‘ｆｕｌｌｗｉｄｔｈ 1　
 ’ｆｕｌｌｗｉｄｔｈ 2
 ‘‘ｆｕｌｌｗｉｄｔｈ 3
@@ -644,7 +603,6 @@ End Module
 '’ｆｕｌｌｗｉｄｔｈ 6
 '’‘’ｆｕｌｌｗｉｄｔｈ 7
 '‘’‘’ｆｕｌｌｗｉｄｔｈ 8");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707135")]
     public async Task FixFullWidthSingleQuotes2()

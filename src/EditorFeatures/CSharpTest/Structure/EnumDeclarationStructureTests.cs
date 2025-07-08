@@ -17,24 +17,21 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestEnum1()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEnum1()
+        => VerifyBlockSpansAsync("""
                 {|hint:$$enum E{|textspan:
                 {
                 }|}|}
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
     [InlineData("struct")]
     [InlineData("class")]
     [InlineData("interface")]
-    public async Task TestEnum2(string typeKind)
-    {
-        await VerifyBlockSpansAsync($@"
+    public Task TestEnum2(string typeKind)
+        => VerifyBlockSpansAsync($@"
 {{|hint:$$enum E{{|textspan:
 {{
 }}|}}|}}
@@ -42,16 +39,14 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
 {{
 }}",
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Theory]
     [InlineData("enum")]
     [InlineData("struct")]
     [InlineData("class")]
     [InlineData("interface")]
-    public async Task TestEnum3(string typeKind)
-    {
-        await VerifyBlockSpansAsync($@"
+    public Task TestEnum3(string typeKind)
+        => VerifyBlockSpansAsync($@"
 {{|hint:$$enum E{{|textspan:
 {{
 }}|}}|}}
@@ -60,12 +55,10 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
 {{
 }}",
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestEnumWithLeadingComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEnumWithLeadingComments()
+        => VerifyBlockSpansAsync("""
                 {|span1:// Goo
                 // Bar|}
                 {|hint2:$$enum E{|textspan2:
@@ -74,12 +67,10 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestEnumWithNestedComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestEnumWithNestedComments()
+        => VerifyBlockSpansAsync("""
                 {|hint1:$$enum E{|textspan1:
                 {
                     {|span2:// Goo
@@ -88,5 +79,4 @@ public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
-    }
 }

@@ -17,9 +17,8 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
     internal override AbstractSyntaxStructureProvider CreateProvider() => new DestructorDeclarationStructureProvider();
 
     [Fact]
-    public async Task TestDestructor()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestDestructor()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$~C(){|textspan:
@@ -28,12 +27,10 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestDestructorWithComments()
-    {
-        await VerifyBlockSpansAsync("""
+    public Task TestDestructorWithComments()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -45,19 +42,13 @@ public sealed class DestructorDeclarationStructureTests : AbstractCSharpSyntaxNo
                 """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
-    }
 
     [Fact]
-    public async Task TestDestructorMissingCloseParenAndBody()
-    {
-        // Expected behavior is that the class should be outlined, but the destructor should not.
-
-
-        await VerifyNoBlockSpansAsync("""
+    public Task TestDestructorMissingCloseParenAndBody()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     $$~C(
                 }
                 """);
-    }
 }

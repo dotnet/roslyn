@@ -83,9 +83,8 @@ End Class
         }
 
         [Fact]
-        public async Task TestCompoundExpression_CSAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"using Microsoft.CodeAnalysis;
+        public Task TestCompoundExpression_CSAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -106,12 +105,10 @@ class C
     }
 }
 ");
-        }
 
         [Fact]
-        public async Task TestCompoundExpression_VBAsync()
-        {
-            await VerifyVB.VerifyCodeFixAsync(@"Imports Microsoft.CodeAnalysis
+        public Task TestCompoundExpression_VBAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -128,7 +125,6 @@ Class C
     End Function
 End Class
 ");
-        }
 
         [Theory]
         [InlineData("==")]
@@ -374,9 +370,8 @@ End Class
 
         [Fact]
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
-        public async Task TestSingleNullConditionalAccess_CSAsync()
-        {
-            await VerifyCS.VerifyCodeFixAsync(@"using Microsoft.CodeAnalysis;
+        public Task TestSingleNullConditionalAccess_CSAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 class C
@@ -397,13 +392,11 @@ class C
     }
 }
 ");
-        }
 
         [Fact]
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
-        public async Task TestSingleNullConditionalAccess_VBAsync()
-        {
-            await VerifyVB.VerifyCodeFixAsync(@"Imports Microsoft.CodeAnalysis
+        public Task TestSingleNullConditionalAccess_VBAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Class C
@@ -420,7 +413,6 @@ Class C
     End Function
 End Class
 ");
-        }
 
         [Fact]
         [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]

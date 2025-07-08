@@ -29,43 +29,33 @@ public sealed class ExternAliasCompletionProviderTests : AbstractCSharpCompletio
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
-    public async Task ExternAlias()
-    {
-        await VerifyItemWithAliasedMetadataReferencesAsync("""
+    public Task ExternAlias()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias $$
             """, "goo", "goo", 1, "C#", "C#");
-    }
 
     [Fact]
-    public async Task NotAfterExternAlias()
-    {
-        await VerifyItemWithAliasedMetadataReferencesAsync("""
+    public Task NotAfterExternAlias()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias goo $$
             """, "goo", "goo", 0, "C#", "C#");
-    }
 
     [Fact]
-    public async Task NotGlobal()
-    {
-        await VerifyItemWithAliasedMetadataReferencesAsync("""
+    public Task NotGlobal()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias $$
             """, "goo", "global", 0, "C#", "C#");
-    }
 
     [Fact]
-    public async Task NotIfAlreadyUsed()
-    {
-        await VerifyItemWithAliasedMetadataReferencesAsync("""
+    public Task NotIfAlreadyUsed()
+        => VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias goo;
             extern alias $$
             """, "goo", "goo", 0, "C#", "C#");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075278")]
-    public async Task NotInComment()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task NotInComment()
+        => VerifyNoItemsExistAsync("""
             extern alias // $$
             """);
-    }
 }

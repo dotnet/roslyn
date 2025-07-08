@@ -734,9 +734,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationExtensionMethod()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocationExtensionMethod()
+        => TestInRegularAndScriptAsync("""
             namespace N {
             static class Extensions
             {
@@ -767,12 +766,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }}
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationExtensionMethod_StaticInvocationStyle()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocationExtensionMethod_StaticInvocationStyle()
+        => TestInRegularAndScriptAsync("""
             namespace N {
             static class Extensions
             {
@@ -803,7 +800,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }}
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     public async Task TestInvocationOverride()
@@ -1136,9 +1132,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationTuple1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocationTuple1()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 void M1((int, int) t1)
@@ -1161,12 +1156,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationTuple2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocationTuple2()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 void M1((int, int) t1)
@@ -1191,12 +1184,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationTuple3()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocationTuple3()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 void M1((int, int) t1)
@@ -1221,14 +1212,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Missing_TypeArguments_AddingTypeArgumentAndParameter()
-    {
-        // error CS0305: Using the generic method 'C1.M1<T>(T)' requires 1 type arguments
-        // Could be fixed as void M1<T, T1>(T i, T1 v) { }
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInvocation_Missing_TypeArguments_AddingTypeArgumentAndParameter()
+        => TestMissingInRegularAndScriptAsync("""
             class C1
             {
                 void M1<T>(T i) { }
@@ -1238,14 +1225,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Missing_TypeArguments_AddingTypeArgument()
-    {
-        // error CS0308: The non-generic method 'C1.M1(int)' cannot be used with type arguments
-        // Could be fixed as void M1<T>(int i, T v) { }
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInvocation_Missing_TypeArguments_AddingTypeArgument()
+        => TestMissingInRegularAndScriptAsync("""
             class C1
             {
                 void M1(int i) { }
@@ -1255,15 +1238,11 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     [Trait("TODO", "Fix missing")]
-    public async Task TestInvocation_Missing_ExplicitInterfaceImplementation()
-    {
-        // error CS0539: 'C1.M1(int)' in explicit interface declaration is not a member of interface
-        // Could apply argument to interface method: void M1(int i);
-        await TestMissingAsync("""
+    public Task TestInvocation_Missing_ExplicitInterfaceImplementation()
+        => TestMissingAsync("""
             interface I1
             {
                 void M1();
@@ -1274,12 +1253,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                     void I1.[|M1|](int i) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_OverloadResolutionFailure()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_OverloadResolutionFailure()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 void M1(int i1, int i2) { }
@@ -1300,12 +1277,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_LambdaExpressionParameter()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_LambdaExpressionParameter()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 void M1(int i1, int i2) { }
@@ -1326,12 +1301,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_NamedParameter()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_NamedParameter()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 void M1(int i1) { }
@@ -1350,13 +1323,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_OnlyTypeArgument()
-    {
-        // Could be fixed as void M1<T>() { }
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_OnlyTypeArgument()
+        => TestMissingInRegularAndScriptAsync("""
             class C1
             {
                 void M1() { }
@@ -1366,13 +1336,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_TypeArgumentAndParameterArgument()
-    {
-        // Could be fixed to void M1<T>(T v) { }
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInvocationAddTypeParameter_AddTypeParameterIfUserSpecifiesOne_TypeArgumentAndParameterArgument()
+        => TestMissingInRegularAndScriptAsync("""
             class C1
             {
                 void M1() { }
@@ -1382,12 +1349,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_ExisitingTypeArgumentIsNotGeneralized()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_ExisitingTypeArgumentIsNotGeneralized()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 void M1<T>(T v) { }
@@ -1406,12 +1371,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_AddParameterToMethodWithParams()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_AddParameterToMethodWithParams()
+        => TestInRegularAndScriptAsync("""
             class C1
             {
                 static void M1(params int[] nums) { }
@@ -1430,7 +1393,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     public async Task TestInvocation_Cascading_FixingVirtualFixesOverrideToo()
@@ -1491,9 +1453,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Cascading_PartialMethods()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_Cascading_PartialMethods()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1548,12 +1509,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact]
-    public async Task TestInvocation_Cascading_ExtendedPartialMethods()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_Cascading_ExtendedPartialMethods()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -1608,12 +1567,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Cascading_PartialMethodsInSameDocument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_Cascading_PartialMethodsInSameDocument()
+        => TestInRegularAndScriptAsync("""
             namespace N1
             {
                 partial class C1
@@ -1646,13 +1603,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Cascading_BaseNotInSource()
-    {
-        // error CS1501: No overload for method 'M' takes 1 arguments
-        await TestMissingAsync("""
+    public Task TestInvocation_Cascading_BaseNotInSource()
+        => TestMissingAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
                     <MetadataReferenceFromSource Language="C#" CommonReferences="true">
@@ -1681,7 +1635,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 </Project>
             </Workspace>
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     public async Task TestInvocation_Cascading_RootNotInSource()
@@ -1752,9 +1705,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Cascading_ManyReferencesInManyProjects()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_Cascading_ManyReferencesInManyProjects()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="A1">
                     <Document FilePath="ReferencedDocument">
@@ -1859,7 +1811,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 </Project>
             </Workspace>
             """, index: 1);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
     public async Task TestInvocation_Cascading_OfferFixCascadingForImplicitInterface()
@@ -1915,9 +1866,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     // CodeStyle layer does not support cross language application of fixes.
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Cascading_CrossLanguage()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_Cascading_CrossLanguage()
+        => TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VB1">
                     <Document FilePath="ReferencedDocument">
@@ -1980,7 +1930,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 </Project>
             </Workspace>
             """, index: 1);
-    }
 
 #endif
 
@@ -2012,9 +1961,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_Positional_WithOptionalParam()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_Positional_WithOptionalParam()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(int i = 1) { }
@@ -2033,12 +1981,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_Named_WithOptionalParam()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_Named_WithOptionalParam()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(int i1, int i2 = 1) { }
@@ -2057,12 +2003,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_Positional_WithParams()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_Positional_WithParams()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(params int[] ints) { }
@@ -2081,13 +2025,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_Named_WithTypemissmatch()
-    {
-        // error CS1503: Argument 1: cannot convert from 'string' to 'int'
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_Named_WithTypemissmatch()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 void M(int i) { }
@@ -2097,12 +2038,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_NamedAndPositional1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_NamedAndPositional1()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(int i1, string s) { }
@@ -2121,14 +2060,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_NamedAndPositional2()
-    {
-        // CS1744 is not yet a supported diagnostic (just declaring the diagnostic as supported does not work)
-        // error CS1744: Named argument 's' specifies a parameter for which a positional argument has already been given
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_NamedAndPositional2()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 void M(string s) { }
@@ -2138,12 +2073,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_Incomplete_1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_Incomplete_1()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M() { }
@@ -2162,12 +2095,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_Incomplete_2()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_Incomplete_2()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M(int v) { }
@@ -2182,12 +2113,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 {
                     M("text", 1
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_RefParameter()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_RefParameter()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M() { }
@@ -2208,12 +2137,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_OutParameter_WithTypeDeclarationOutsideArgument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_OutParameter_WithTypeDeclarationOutsideArgument()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M() { }
@@ -2234,12 +2161,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_OutParameter_WithTypeDeclarationInArgument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_OutParameter_WithTypeDeclarationInArgument()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M() { }
@@ -2258,12 +2183,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_InvocationStyles_OutParameter_WithVarTypeDeclarationInArgument()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestInvocation_InvocationStyles_OutParameter_WithVarTypeDeclarationInArgument()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 void M() { }
@@ -2282,15 +2205,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21446")]
-    public async Task TestInvocation_Indexer_NotSupported()
-    {
-        // Could be fixed by allowing ElementAccessExpression next to InvocationExpression
-        // in AbstractAddParameterCodeFixProvider.RegisterCodeFixesAsync.
-        // error CS1501: No overload for method 'this' takes 2 arguments
-        await TestMissingAsync("""
+    public Task TestInvocation_Indexer_NotSupported()
+        => TestMissingAsync("""
             public class C {
                 public int this[int i] 
                 { 
@@ -2303,20 +2221,16 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")]
-    public async Task TestThis_DoNotOfferToFixTheConstructorWithTheDiagnosticOnIt()
-    {
-        // error CS1729: 'C' does not contain a constructor that takes 1 arguments
-        await TestMissingAsync("""
+    public Task TestThis_DoNotOfferToFixTheConstructorWithTheDiagnosticOnIt()
+        => TestMissingAsync("""
             public class C {
 
                 public C(): [|this|](1)
                 { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29061")]
     public async Task TestThis_Fix_IfACandidateIsAvailable()
@@ -2373,9 +2287,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29753")]
-    public async Task LocalFunction_AddParameterToLocalFunctionWithOneParameter()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task LocalFunction_AddParameterToLocalFunctionWithOneParameter()
+        => TestInRegularAndScriptAsync("""
             class Rsrp
             {
               public void M()
@@ -2400,12 +2313,10 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
               }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29752")]
-    public async Task LocalFunction_AddNamedParameterToLocalFunctionWithOneParameter()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task LocalFunction_AddNamedParameterToLocalFunctionWithOneParameter()
+        => TestInRegularAndScriptAsync("""
             class Rsrp
             {
                 public void M()
@@ -2430,7 +2341,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }
             """, index: 0);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39270")]
     public Task TestWithArgThatHasImplicitConversionToParamType1()
@@ -2469,9 +2379,8 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
             """);
 
     [Fact]
-    public async Task TestOnExtensionGetEnumerator()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestOnExtensionGetEnumerator()
+        => TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             namespace N {
             static class Extensions
@@ -2506,7 +2415,6 @@ public sealed class AddParameterTests(ITestOutputHelper logger)
                 }
             }}
             """);
-    }
 
     [Fact]
     public async Task TestOnExtensionGetAsyncEnumerator()

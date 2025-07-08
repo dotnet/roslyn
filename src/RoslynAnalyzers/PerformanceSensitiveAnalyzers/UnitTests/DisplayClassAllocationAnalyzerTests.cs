@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
     public class DisplayClassAllocationAnalyzerTests
     {
         [Fact]
-        public async Task DisplayClassAllocation_AnonymousMethodExpressionSyntaxAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task DisplayClassAllocation_AnonymousMethodExpressionSyntaxAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 class Test
@@ -49,13 +48,10 @@ class Test
                 // Test0.cs(16,16): warning HAA0301: Heap allocation of closure Captures: counter
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(16, 16).WithArguments("counter"));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact]
-        public async Task DisplayClassAllocation_SimpleLambdaExpressionSyntaxAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
+        public Task DisplayClassAllocation_SimpleLambdaExpressionSyntaxAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using System;
 using System.Linq;
 using Roslyn.Utilities;
@@ -77,13 +73,10 @@ public class Testing<T>
                 // Test0.cs(13,39): warning HAA0301: Heap allocation of closure Captures: min
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(13, 39).WithArguments("min"));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact]
-        public async Task DisplayClassAllocation_ParenthesizedLambdaExpressionSyntaxAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
+        public Task DisplayClassAllocation_ParenthesizedLambdaExpressionSyntaxAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using System;
 using System.Linq;
 using Roslyn.Utilities;
@@ -108,13 +101,10 @@ public class MyClass
                 // Test0.cs(15,28): warning HAA0301: Heap allocation of closure Captures: word
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(15, 28).WithArguments("word"));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
 
         [Fact]
-        public async Task DisplayClassAllocation_DoNotReportForNonCapturingAnonymousMethodAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task DisplayClassAllocation_DoNotReportForNonCapturingAnonymousMethodAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -125,12 +115,10 @@ public class MyClass
         System.Array.Sort(arr, delegate(int x, int y) { return x - y; });
     }
 }");
-        }
 
         [Fact]
-        public async Task DisplayClassAllocation_DoNotReportForNonCapturingLambdaAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task DisplayClassAllocation_DoNotReportForNonCapturingLambdaAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -141,12 +129,10 @@ public class MyClass
         System.Array.Sort(arr, (x, y) => x - y);
     }
 }");
-        }
 
         [Fact]
-        public async Task DisplayClassAllocation_ReportForCapturingAnonymousMethodAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"using System;
+        public Task DisplayClassAllocation_ReportForCapturingAnonymousMethodAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -165,7 +151,5 @@ public class MyClass
                 // Test0.cs(10,32): warning HAA0301: Heap allocation of closure Captures: z
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(10, 32).WithArguments("z"));
-#pragma warning restore RS0030 // Do not use banned APIs
-        }
     }
 }

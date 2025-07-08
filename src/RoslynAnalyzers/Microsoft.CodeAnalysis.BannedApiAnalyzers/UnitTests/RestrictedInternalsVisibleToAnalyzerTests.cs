@@ -126,9 +126,8 @@ End Namespace";
         }
 
         [Fact]
-        public async Task CSharp_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 namespace N1
 {
     internal class C1 { }
@@ -139,12 +138,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_NoIVT_NoRestrictedIVT_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 Namespace N1
     Friend Class C1
     End Class
@@ -153,12 +150,10 @@ Class C2
     Private Sub M(c As {|BC30389:N1.C1|})
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_NoRestrictedIVT_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_NoRestrictedIVT_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 
 namespace N1
@@ -171,12 +166,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_NoRestrictedIVT_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_NoRestrictedIVT_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 
 Namespace N1
@@ -187,12 +180,10 @@ Class C2
     Private Sub M(c As N1.C1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_NoIVT_RestrictedIVT_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_NoIVT_RestrictedIVT_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""NonExistentNamespace"")]
 
 namespace N1
@@ -205,12 +196,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_NoIVT_RestrictedIVT_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_NoIVT_RestrictedIVT_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""NonExistentNamespace"")>
 
 Namespace N1
@@ -221,12 +210,10 @@ Class C2
     Private Sub M(c As {|BC30389:N1.C1|})
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -240,12 +227,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_BasicScenario_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -257,12 +242,10 @@ Class C2
     Private Sub M(c As N1.C1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -277,12 +260,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_BasicScenario_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -295,12 +276,10 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(0, "N1.C1", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
@@ -320,12 +299,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_MultipleAttributes_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
@@ -343,12 +320,10 @@ Class C2
     Private Sub M(c1 As N1.C1, c2 As N2.C2)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
@@ -374,12 +349,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N3.C3", "N1, N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_MultipleAttributes_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
@@ -403,12 +376,10 @@ Class C2
     End Sub
 End Class",
                 GetCSharpResultAt(0, "N3.C3", "N1, N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""XYZ"", ""NonExistentNamespace"")]
 
@@ -422,12 +393,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""XYZ"", ""NonExistentNamespace"")>
 
@@ -439,12 +408,10 @@ Class C2
     Private Sub M(c As N1.C1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""XYZ"", ""N1"")]
@@ -460,12 +427,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_ProjectNameMismatch_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""XYZ"", ""N1"")>
@@ -479,12 +444,10 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(0, "N1.C1", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"")]
 
@@ -498,12 +461,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_NoRestrictedNamespace_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"")>
 
@@ -515,12 +476,10 @@ Class C2
     Private Sub M(c As N1.C1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1.N2"")]
 
@@ -537,12 +496,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_QualifiedNamespace_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1.N2"")>
 
@@ -556,12 +513,10 @@ Class C2
     Private Sub M(c As N1.N2.C1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1.N2"")]
 
@@ -581,12 +536,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C3", "N1.N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_QualifiedNamespace_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1.N2"")>
 
@@ -604,12 +557,10 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(0, "N1.C3", "N1.N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -626,12 +577,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_AncestorNamespace_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -645,12 +594,10 @@ Class C2
     Private Sub M(c As N1.N2.C1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1.N2"")]
 
@@ -670,12 +617,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C2", "N1.N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_AncestorNamespace_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1.N2"")>
 
@@ -693,12 +638,10 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(0, "N1.C2", "N1.N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"", ""N1.N2"")]
 
@@ -715,12 +658,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_QualifiedAndAncestorNamespace_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"", ""N1.N2"")>
 
@@ -734,12 +675,10 @@ Class C2
     Private Sub M(c As N1.N2.C1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -753,12 +692,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_NestedType_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -772,12 +709,10 @@ Class C2
     Private Sub M(c As N1.C1, nested As N1.C1.Nested)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -792,12 +727,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1.Nested", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_NestedType_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -812,12 +745,10 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(0, "N1.C1.Nested", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -847,12 +778,10 @@ class C2
         return 0;
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsageInAttributes_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -879,12 +808,10 @@ Class C2
         Return 0
     End Function
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -939,12 +866,10 @@ class C2
                 GetCSharpResultAt(22, "N1.C1.C1", "N2"),
                 GetCSharpResultAt(23, "N1.C1.C1", "N2")
                 );
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsageInAttributes_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -993,12 +918,10 @@ End Class",
                 GetBasicResultAt(19, "N1.C1.New", "N2"),
                 GetBasicResultAt(20, "N1.C1.New", "N2")
                 );
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -1016,12 +939,10 @@ class C2 : N1.C1
         return null;
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsageInDeclaration_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -1045,12 +966,10 @@ Class C2
         Return Nothing
     End Function
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1081,12 +1000,10 @@ class B : {|#0:N1.C1|}
                 GetCSharpResultAt(4, "N1.C5", "N2"),
                 GetCSharpResultAt(5, "N1.C6", "N2"),
                 GetCSharpResultAt(6, "N1.C7", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsageInDeclaration_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1129,12 +1046,10 @@ End Class",
                 GetBasicResultAt(4, "N1.C5", "N2"),
                 GetBasicResultAt(5, "N1.C6", "N2"),
                 GetBasicResultAt(6, "N1.C7", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -1168,12 +1083,10 @@ class C2
         _ = z.Property;             // Property reference
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsageInExecutableCode_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -1213,12 +1126,10 @@ Class C2
         Dim unused3 = z.[Property]
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -1236,12 +1147,10 @@ class C2
         return c.Field;
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalMember_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -1255,12 +1164,10 @@ Class C2
         Return c.Field
     End Function
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1279,12 +1186,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1.Field", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalField_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1299,12 +1204,10 @@ Class C2
     End Function
 End Class",
                 GetBasicResultAt(0, "N1.C1.Field", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1323,12 +1226,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1.Method", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalMethod_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1345,12 +1246,10 @@ Class C2
     End Function
 End Class",
                 GetBasicResultAt(0, "N1.C1.Method", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -1372,12 +1271,10 @@ class C2
         return c.Method();
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -1397,12 +1294,10 @@ Class C2
         Return c.Method()
     End Function
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1425,12 +1320,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1.Method", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalExtensionMethod_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1451,12 +1344,10 @@ Class C2
     End Function
 End Class",
                 GetBasicResultAt(0, "N1.C1.Method", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1475,12 +1366,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1.Property", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalProperty_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1495,12 +1384,10 @@ Class C2
     End Function
 End Class",
                 GetBasicResultAt(0, "N1.C1.Property", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalEvent_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"using System;
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalEvent_DiagnosticAsync()
+            => VerifyCSharpAsync(@"using System;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
@@ -1520,12 +1407,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1.Event", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalEvent_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"Imports System
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalEvent_DiagnosticAsync()
+            => VerifyBasicAsync(@"Imports System
 
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
@@ -1541,12 +1426,10 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(4, 22, 4, 31, "N1.C1.Event", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1565,12 +1448,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1.C1", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_PublicTypeInternalConstructor_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1586,12 +1467,10 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(0, "N1.C1.New", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1610,12 +1489,10 @@ class C2
 }",
                 GetCSharpResultAt(0, "N1.I1", "N2"),
                 GetCSharpResultAt(1, "N1.I1", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_Conversions_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1635,12 +1512,10 @@ Class C2
 End Class",
                 GetCSharpResultAt(0, "N1.I1", "N2"),
                 GetCSharpResultAt(1, "N1.I1", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -1662,12 +1537,10 @@ class C2 : C1<C3>
         _ = c2.GetC1<C1<C3>>();
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -1691,12 +1564,10 @@ Class C2
         Dim unused2 = c2.GetC1(Of C1(Of C3))()
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1732,12 +1603,10 @@ class C2 : C1<{|#0:C3|}>
                 GetCSharpResultAt(1, "N1.C4", "N2"),
                 GetCSharpResultAt(2, "N1.C5", "N2"),
                 GetCSharpResultAt(3, "N1.C6", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsageInTypeArgument_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1774,12 +1643,10 @@ End Class",
                 GetCSharpResultAt(1, "N1.C4", "N2"),
                 GetCSharpResultAt(2, "N1.C5", "N2"),
                 GetCSharpResultAt(3, "N1.C6", "N2"));
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")]
 
@@ -1793,12 +1660,10 @@ class C2
     {
     }
 }");
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsingAlias_NoDiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N1"")>
 
@@ -1810,12 +1675,10 @@ Class C2
     Private Sub M(c As ImportedC1)
     End Sub
 End Class");
-        }
 
         [Fact]
-        public async Task CSharp_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1830,12 +1693,10 @@ class C2
     }
 }",
                 GetCSharpResultAt(0, "N1.C1", "N2"));
-        }
 
         [Fact]
-        public async Task Basic_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
-        {
-            await VerifyBasicAsync(@"
+        public Task Basic_IVT_RestrictedIVT_UsingAlias_DiagnosticAsync()
+            => VerifyBasicAsync(@"
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")>
 <Assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")>
 
@@ -1848,13 +1709,11 @@ Class C2
     End Sub
 End Class",
                 GetBasicResultAt(0, "N1.C1", "N2"));
-        }
 
         [Fact]
         [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
-        public async Task CSharp_IVT_RestrictedIVT_InternalOperators_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_InternalOperators_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1888,13 +1747,11 @@ class C2
                 GetCSharpResultAt(4, "N1.C.operator +", "N2"),
                 GetCSharpResultAt(5, "N1.C.operator ++", "N2"),
                 GetCSharpResultAt(6, "N1.C.operator -", "N2"));
-        }
 
         [Fact]
         [WorkItem(2655, "https://github.com/dotnet/roslyn-analyzers/issues/2655")]
-        public async Task CSharp_IVT_RestrictedIVT_TypeArgumentUsage_DiagnosticAsync()
-        {
-            await VerifyCSharpAsync(@"
+        public Task CSharp_IVT_RestrictedIVT_TypeArgumentUsage_DiagnosticAsync()
+            => VerifyCSharpAsync(@"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ApiConsumerProjectName"")]
 [assembly: System.Runtime.CompilerServices.RestrictedInternalsVisibleTo(""ApiConsumerProjectName"", ""N2"")]
 
@@ -1939,6 +1796,5 @@ namespace N2
                 GetCSharpResultAt(6, "N1.C", "N2"),
                 // Test0.cs(19,20): error RS0035: External access to internal symbol 'N1.C' is prohibited. Assembly 'ApiProviderProjectName' only allows access to internal symbols defined in the following namespace(s): 'N2'
                 GetCSharpResultAt(7, "N1.C", "N2"));
-        }
     }
 }

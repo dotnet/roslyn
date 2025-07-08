@@ -58,9 +58,8 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
     }
 
     [WpfFact]
-    public async Task AddMissingImports_AddImport_PasteContainsSingleMissingImport()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task AddMissingImports_AddImport_PasteContainsSingleMissingImport()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 public [|D|] Foo { get; }
@@ -83,12 +82,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class D { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task AddMissingImports_AddImportsBelowSystem_PlaceSystemFirstPasteContainsMultipleMissingImports()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task AddMissingImports_AddImportsBelowSystem_PlaceSystemFirstPasteContainsMultipleMissingImports()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class C
@@ -127,12 +124,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class E { }
             }
             """, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: false);
-    }
 
     [WpfFact]
-    public async Task AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task AddMissingImports_AddImportsAboveSystem_DoNotPlaceSystemFirstPasteContainsMultipleMissingImports()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class C
@@ -171,12 +166,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class E { }
             }
             """, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/42221")]
-    public async Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task AddMissingImports_AddImportsUngrouped_SeparateImportGroupsPasteContainsMultipleMissingImports()
+        => TestInRegularAndScriptAsync("""
             using System;
 
             class C
@@ -217,12 +210,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class E { }
             }
             """, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: true);
-    }
 
     [WpfFact]
-    public async Task AddMissingImports_PartialFix_PasteContainsFixableAndAmbiguousMissingImports()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task AddMissingImports_PartialFix_PasteContainsFixableAndAmbiguousMissingImports()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 [|public D Foo { get; }
@@ -259,12 +250,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class E { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task AddMissingImports_NoAction_NoPastedSpan()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task AddMissingImports_NoAction_NoPastedSpan()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 public D[||] Foo { get; }
@@ -275,12 +264,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class D { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task AddMissingImports_NoAction_PasteIsNotMissingImports()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task AddMissingImports_NoAction_PasteIsNotMissingImports()
+        => TestMissingInRegularAndScriptAsync("""
             class [|C|]
             {
                 public D Foo { get; }
@@ -291,12 +278,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class D { }
             }
             """);
-    }
 
     [WpfFact]
-    public async Task AddMissingImports_NoAction_PasteContainsAmibiguousMissingImport()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task AddMissingImports_NoAction_PasteContainsAmibiguousMissingImport()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 public [|D|] Foo { get; }
@@ -312,12 +297,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class D { }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/31768")]
-    public async Task AddMissingImports_AddMultipleImports_NoPreviousImports()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task AddMissingImports_AddMultipleImports_NoPreviousImports()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 [|public D Foo { get; }
@@ -353,12 +336,10 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 public class E { }
             }
             """, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/51844")]
-    public async Task TestOrdering1()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestOrdering1()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 [|List<Type> list;|]
@@ -372,5 +353,4 @@ public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCS
                 List<Type> list;
             }
             """, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
-    }
 }

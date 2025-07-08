@@ -19,9 +19,8 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
         => new UseExplicitTypeCodeRefactoringProvider();
 
     [Fact]
-    public async Task TestIntLocalDeclaration()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestIntLocalDeclaration()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -38,12 +37,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestForeachInsideLocalDeclaration()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestForeachInsideLocalDeclaration()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -60,12 +57,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInVarPattern()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInVarPattern()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -74,12 +69,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIntLocalDeclaration_Multiple()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestIntLocalDeclaration_Multiple()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -88,12 +81,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIntLocalDeclaration_NoInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestIntLocalDeclaration_NoInitializer()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -102,12 +93,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIntForLoop()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestIntForLoop()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -124,12 +113,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestInDispose()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestInDispose()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C : System.IDisposable
             {
                 static void Main()
@@ -146,12 +133,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTypelessVarLocalDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestTypelessVarLocalDeclaration()
+        => TestMissingInRegularAndScriptAsync("""
             class var
             {
                 static void Main()
@@ -160,12 +145,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIntForeachLoop()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestIntForeachLoop()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -182,12 +165,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIntDeconstruction()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestIntDeconstruction()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -204,12 +185,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestIntDeconstruction2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestIntDeconstruction2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -226,12 +205,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithAnonymousType()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestWithAnonymousType()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void Main()
@@ -240,14 +217,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26923")]
-    public async Task NoSuggestionOnForeachCollectionExpression()
-    {
-
-        // We never want to get offered here under any circumstances.
-        await TestMissingInRegularAndScriptAsync("""
+    public Task NoSuggestionOnForeachCollectionExpression()
+        => TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -262,7 +235,6 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
     public Task NotOnConstVar()
@@ -278,9 +250,8 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
             """);
 
     [Fact]
-    public async Task TestWithTopLevelNullability()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestWithTopLevelNullability()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             class C
@@ -305,12 +276,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithTopLevelAndNestedArrayNullability1()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestWithTopLevelAndNestedArrayNullability1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             class C
@@ -335,12 +304,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithTopLevelAndNestedArrayNullability2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestWithTopLevelAndNestedArrayNullability2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             class C
@@ -365,12 +332,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWithTopLevelAndNestedArrayNullability3()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestWithTopLevelAndNestedArrayNullability3()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             class C
@@ -395,12 +360,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment1()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             class C
@@ -425,12 +388,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             class C
@@ -457,12 +418,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment3()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment3()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             class C
@@ -493,12 +452,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 static string? GetNullableString() => null;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Foreach1()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Foreach1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System.Collections;
@@ -527,12 +484,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Foreach2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Foreach2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System.Collections;
@@ -561,12 +516,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Lambda1()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Lambda1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System;
@@ -605,12 +558,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 static string? GetNullableString() => null;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Lambda2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Lambda2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System;
@@ -645,12 +596,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 static string GetString() => "";
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Lambda3()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Lambda3()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System;
@@ -685,12 +634,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 static string GetString() => "";
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Lambda4()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Lambda4()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System;
@@ -725,12 +672,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 static string? GetString() => null;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Property1()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Property1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System;
@@ -777,12 +722,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 static string GetString() => "";
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNullabilityAssignment_Property2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestNullabilityAssignment_Property2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             #nullable enable
 
             using System;
@@ -829,12 +772,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 static string? GetString() => null;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefLocal1()
-    {
-        await TestMissingAsync("""
+    public Task TestRefLocal1()
+        => TestMissingAsync("""
             class C
             {
                 static void Main()
@@ -845,12 +786,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefLocal2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestRefLocal2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -871,12 +810,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefLocal3()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestRefLocal3()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -897,12 +834,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefReadonlyLocal1()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestRefReadonlyLocal1()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -923,12 +858,10 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42880")]
-    public async Task TestRefReadonlyLocal2()
-    {
-        await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
+    public Task TestRefReadonlyLocal2()
+        => TestInRegularAndScriptWhenDiagnosticNotAppliedAsync("""
             class C
             {
                 static void Main()
@@ -949,7 +882,6 @@ public sealed class UseExplicitTypeRefactoringTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
-    }
 
     private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)
     {

@@ -266,9 +266,8 @@ class Class
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInDocument_RemovePragmaSuppressions()
-        {
-            await TestInRegularAndScriptAsync(@"
+        public Task TestFixAllInDocument_RemovePragmaSuppressions()
+            => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -351,14 +350,12 @@ class Class2
         </Document>
     </Project>
 </Workspace>");
-        }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInProject_RemovePragmaSuppressions()
-        {
-            await TestInRegularAndScriptAsync(@"
+        public Task TestFixAllInProject_RemovePragmaSuppressions()
+            => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -443,14 +440,12 @@ class Class2
         </Document>
     </Project>
 </Workspace>");
-        }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution()
-        {
-            await TestInRegularAndScriptAsync(@"
+        public Task TestFixAllInSolution()
+            => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -539,7 +534,6 @@ class Class2
         </Document>
     </Project>
 </Workspace>");
-        }
 
         #endregion
 
