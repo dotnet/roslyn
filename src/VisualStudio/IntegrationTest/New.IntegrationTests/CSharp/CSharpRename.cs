@@ -35,7 +35,6 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, true);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, false);
-        globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, false);
     }
 
     [IdeFact]
@@ -653,7 +652,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
 
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
-            class program$$
+            class p$$rogram
             {
                 static void Main(string[] args)
                 {
@@ -799,9 +798,6 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact]
     public async Task VerifyAsyncRename()
     {
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, true);
-
         var markup = """
             class Program
             {
