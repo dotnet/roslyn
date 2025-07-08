@@ -22,7 +22,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     [Theory, CombinatorialData]
     public async Task TestRenameAsync(bool mutatingLspWorkspace)
     {
-        var markup = """
+        await using var testLspServer = await CreateTestLspServerAsync("""
             class A
             {
                 void {|caret:|}{|renamed:M|}()
@@ -33,8 +33,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                     {|renamed:M|}()
                 }
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "RENAME";
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
@@ -46,7 +45,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     [Theory, CombinatorialData]
     public async Task TestRename_InvalidIdentifierAsync(bool mutatingLspWorkspace)
     {
-        var markup = """
+        await using var testLspServer = await CreateTestLspServerAsync("""
             class A
             {
                 void {|caret:|}{|renamed:M|}()
@@ -57,8 +56,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                     {|renamed:M|}()
                 }
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "$RENAMED$";
 
@@ -81,8 +79,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                 }
             }
             """;
-
-        var workspaceXml = $"""
+        await using var testLspServer = await CreateXmlTestLspServerAsync($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                     <Document FilePath = "C:\C.cs"><![CDATA[{markup}]]></Document>
@@ -91,9 +88,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                     <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="C:\C.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "RENAME";
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
@@ -129,8 +124,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                 }
             }
             """;
-
-        var workspaceXml = $"""
+        await using var testLspServer = await CreateXmlTestLspServerAsync($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
                     <Document FilePath = "C:\C.cs"><![CDATA[{markup}]]></Document>
@@ -139,9 +133,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                     <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="C:\C.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+            """, mutatingLspWorkspace);
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "RENAME";
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
@@ -153,7 +145,9 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     [Theory, CombinatorialData]
     public async Task TestRename_WithMappedFileAsync(bool mutatingLspWorkspace)
     {
-        var markup = """
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        AddMappedDocument(testLspServer.TestWorkspace, """
             class A
             {
                 void M()
@@ -164,10 +158,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                     M()
                 }
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
-
-        AddMappedDocument(testLspServer.TestWorkspace, markup);
+            """);
 
         var startPosition = new LSP.Position { Line = 2, Character = 9 };
         var endPosition = new LSP.Position { Line = 2, Character = 10 };
@@ -193,20 +184,6 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     [Theory, CombinatorialData]
     public async Task TestRename_WithSourceGeneratedFile(bool mutatingLspWorkspace)
     {
-        var markup = """
-            public class A
-            {
-                public void {|caret:|}{|renamed:M|}()
-                {
-                }
-
-                void M2()
-                {
-                    {|renamed:M|}()
-                }
-            }
-            """;
-
         var generatedMarkup = """
             class B
             {
@@ -219,7 +196,19 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                 }
             }
             """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            public class A
+            {
+                public void {|caret:|}{|renamed:M|}()
+                {
+                }
+
+                void M2()
+                {
+                    {|renamed:M|}()
+                }
+            }
+            """, mutatingLspWorkspace,
             new InitializationOptions()
             {
                 SourceGeneratedMarkups = [generatedMarkup]
@@ -238,20 +227,6 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
     [Theory, CombinatorialData]
     public async Task TestRename_OriginateInSourceGeneratedFile(bool mutatingLspWorkspace)
     {
-        var markup = """
-            public class A
-            {
-                public void {|renamed:M|}()
-                {
-                }
-
-                void M2()
-                {
-                    {|renamed:M|}()
-                }
-            }
-            """;
-
         var generatedMarkup = """
             class B
             {
@@ -264,7 +239,19 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
                 }
             }
             """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
+        await using var testLspServer = await CreateTestLspServerAsync("""
+            public class A
+            {
+                public void {|renamed:M|}()
+                {
+                }
+
+                void M2()
+                {
+                    {|renamed:M|}()
+                }
+            }
+            """, mutatingLspWorkspace,
             new InitializationOptions()
             {
                 SourceGeneratedMarkups = [generatedMarkup]

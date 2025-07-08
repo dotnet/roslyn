@@ -702,14 +702,13 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
     public async Task VerifySelectionAsync()
     {
-        var startCode = """
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
+            """
             public class Class2
             {
                 public int LongLongField;
             }
-            """;
-        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
-            startCode, cancellationToken: HangMitigatingCancellationToken);
+            """, cancellationToken: HangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Program.cs", HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: 0, HangMitigatingCancellationToken);
@@ -717,14 +716,12 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
 
         await TestServices.Editor.SendExplicitFocusAsync(HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("LongLongField", charsOffset: "Long".Length, HangMitigatingCancellationToken);
-
-        var markedCode = """
+        MarkupTestFile.GetPositionAndSpans("""
             public class Class2
             {
                 public int Long{|selection:Long|}Field;
             }
-            """;
-        MarkupTestFile.GetPositionAndSpans(markedCode, out var _, out int? _, out var spans);
+            """, out var _, out int? _, out var spans);
         var selectedSpan = spans["selection"].Single();
         await TestServices.Editor.SetSelectionAsync(selectedSpan, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(
@@ -754,15 +751,12 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
               </PropertyGroup>
             </Project>
             """, HangMitigatingCancellationToken);
-
-        var startCode = """
+        await TestServices.SolutionExplorer.AddFileAsync(projectName, "TestClass.cs", """
             public class TestClass
             {
             }
-            """;
-        await TestServices.SolutionExplorer.AddFileAsync(projectName, "TestClass.cs", startCode, cancellationToken: HangMitigatingCancellationToken);
-
-        var referencedCode = """
+            """, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(projectName, "MyClass.cs", """
             public class MyClass
             {
                 void Method()
@@ -770,8 +764,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
                     TestClass x = new TestClass();
                 }
             }
-            """;
-        await TestServices.SolutionExplorer.AddFileAsync(projectName, "MyClass.cs", referencedCode, cancellationToken: HangMitigatingCancellationToken);
+            """, cancellationToken: HangMitigatingCancellationToken);
         // We made csproj changes, so need to wait for PS to finish all the tasks before moving on.
         await TestServices.Workspace.WaitForProjectSystemAsync(HangMitigatingCancellationToken);
 
@@ -798,7 +791,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact]
     public async Task VerifyAsyncRename()
     {
-        var markup = """
+        await SetUpEditorAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -812,8 +805,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
 
                 }
             }
-            """;
-        await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+            """, HangMitigatingCancellationToken);
         await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["AsyncRenameMethod", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
