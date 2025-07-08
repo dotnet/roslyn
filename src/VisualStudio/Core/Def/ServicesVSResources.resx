@@ -1888,4 +1888,8 @@ Additional information: {1}</value>
   <data name="Ignore_including_future_errors" xml:space="preserve">
     <value>Ignore (including future errors)</value>
   </data>
+  <data name="Experimental_feature" xml:space="preserve">
+    <value>Experimental feature</value>
+    <comment>This is used by the settings UI to mark experimental features.</comment>
+  </data>
 </root>
