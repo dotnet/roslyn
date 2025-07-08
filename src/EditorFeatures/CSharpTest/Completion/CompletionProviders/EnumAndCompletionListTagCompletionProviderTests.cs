@@ -305,8 +305,7 @@ class Program
     [InlineData(nameof(DateTime))]
     public async Task NotInAnonymousMethodAfterParameterList(string typeName)
     {
-        var markup =
-$@"using System;
+        await VerifyItemIsAbsentAsync($@"using System;
 
 class Program
 {{
@@ -314,8 +313,7 @@ class Program
     {{
         return delegate () $$
     }}
-}}";
-        await VerifyItemIsAbsentAsync(markup, typeName);
+}}", typeName);
     }
 
     [Theory]
@@ -323,8 +321,7 @@ class Program
     [InlineData(nameof(DateTime))]
     public async Task NotInSimpleLambdaAfterAsync(string typeName)
     {
-        var markup =
-$@"using System;
+        await VerifyItemIsAbsentAsync($@"using System;
 
 class Program
 {{
@@ -332,8 +329,7 @@ class Program
     {{
         return async $$ _ =>
     }}
-}}";
-        await VerifyItemIsAbsentAsync(markup, typeName);
+}}", typeName);
     }
 
     [Theory]
@@ -341,8 +337,7 @@ class Program
     [InlineData(nameof(DateTime))]
     public async Task NotInParenthesizedLambdaAfterAsync(string typeName)
     {
-        var markup =
-$@"using System;
+        await VerifyItemIsAbsentAsync($@"using System;
 
 class Program
 {{
@@ -350,8 +345,7 @@ class Program
     {{
         return async $$ () =>
     }}
-}}";
-        await VerifyItemIsAbsentAsync(markup, typeName);
+}}", typeName);
     }
 
     [Theory]
@@ -359,8 +353,7 @@ class Program
     [InlineData(nameof(DateTime))]
     public async Task NotInAnonymousMethodAfterAsync(string typeName)
     {
-        var markup =
-$@"using System;
+        await VerifyItemIsAbsentAsync($@"using System;
 
 class Program
 {{
@@ -368,8 +361,7 @@ class Program
     {{
         return async $$ delegate ()
     }}
-}}";
-        await VerifyItemIsAbsentAsync(markup, typeName);
+}}", typeName);
     }
 
     [Theory]
@@ -377,8 +369,7 @@ class Program
     [InlineData(nameof(DateTime))]
     public async Task NotInSimpleLambdaBlock(string typeName)
     {
-        var markup =
-$@"using System;
+        await VerifyItemIsAbsentAsync($@"using System;
 
 class Program
 {{
@@ -386,8 +377,7 @@ class Program
     {{
         return _ => {{ $$ }}
     }}
-}}";
-        await VerifyItemIsAbsentAsync(markup, typeName);
+}}", typeName);
     }
 
     [Theory]
@@ -395,8 +385,7 @@ class Program
     [InlineData(nameof(DateTime))]
     public async Task NotInParenthesizedLambdaBlock(string typeName)
     {
-        var markup =
-$@"using System;
+        await VerifyItemIsAbsentAsync($@"using System;
 
 class Program
 {{
@@ -404,8 +393,7 @@ class Program
     {{
         return () => {{ $$ }}
     }}
-}}";
-        await VerifyItemIsAbsentAsync(markup, typeName);
+}}", typeName);
     }
 
     [Theory]
@@ -413,8 +401,7 @@ class Program
     [InlineData(nameof(DateTime))]
     public async Task NotInAnonymousMethodBlock(string typeName)
     {
-        var markup =
-$@"using System;
+        await VerifyItemIsAbsentAsync($@"using System;
 
 class Program
 {{
@@ -422,8 +409,7 @@ class Program
     {{
         return delegate () {{ $$ }}
     }}
-}}";
-        await VerifyItemIsAbsentAsync(markup, typeName);
+}}", typeName);
     }
 
     [Theory]
@@ -475,8 +461,7 @@ class Program
     [Fact]
     public async Task NoCompletionListTag()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -492,15 +477,13 @@ class Program
                     C c = $$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task CompletionList()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -517,15 +500,13 @@ class Program
                     C c = $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "C");
+            """, "C");
     }
 
     [Fact]
     public async Task CompletionListCrefToString()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -542,15 +523,13 @@ class Program
                     C c = $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "string", glyph: Glyph.ClassPublic);
+            """, "string", glyph: Glyph.ClassPublic);
     }
 
     [Fact]
     public async Task CompletionListEmptyCref()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -567,15 +546,13 @@ class Program
                     C c = $$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task CompletionListInaccessibleType()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -594,15 +571,13 @@ class Program
                     C c = $$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task CompletionListNotAType()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             using System;
             using System.Threading.Tasks;
 
@@ -621,8 +596,7 @@ class Program
                     C c = $$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -825,28 +799,24 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     public async Task NotAfterAsync1()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class Test
             {
                 public async $$
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     public async Task NotAfterAsync2()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class Test
             {
                 public async $$
                 public void M() {}
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -926,8 +896,7 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
     public async Task TestInEnumInitializer1()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System;
 
             [Flags]
@@ -940,15 +909,13 @@ class Program
                 Visibility,
                 AllProperties = FilePath | Visibility | $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+            """, "ProjectTreeWriterOptions");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
     public async Task TestInEnumInitializer2()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System;
 
             [Flags]
@@ -961,15 +928,13 @@ class Program
                 Visibility,
                 AllProperties = FilePath | $$ Visibility
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+            """, "ProjectTreeWriterOptions");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
     public async Task TestInEnumInitializer3()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System;
 
             [Flags]
@@ -982,15 +947,13 @@ class Program
                 Visibility,
                 AllProperties = FilePath | $$ | Visibility
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+            """, "ProjectTreeWriterOptions");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
     public async Task TestInEnumInitializer4()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System;
 
             [Flags]
@@ -1003,15 +966,13 @@ class Program
                 Visibility,
                 AllProperties = FilePath ^ $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+            """, "ProjectTreeWriterOptions");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5419")]
     public async Task TestInEnumInitializer5()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System;
 
             [Flags]
@@ -1024,15 +985,13 @@ class Program
                 Visibility,
                 AllProperties = FilePath & $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
+            """, "ProjectTreeWriterOptions");
     }
 
     [Fact]
     public async Task TestInEnumHasFlag()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1043,14 +1002,13 @@ class Program
                     f.Attributes.HasFlag($$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "FileAttributes");
+            """, "FileAttributes");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
     public async Task TestInSwitchExpression1()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
 
             class C
@@ -1060,14 +1018,13 @@ class Program
                     var number = color switch $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+            """, "ConsoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
     public async Task TestInSwitchExpression2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class C
@@ -1077,14 +1034,13 @@ class Program
                     var number = color switch { $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ConsoleColor");
+            """, "ConsoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
     public async Task TestInSwitchExpression3()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
 
             class C
@@ -1094,14 +1050,13 @@ class Program
                     var number = color switch { ConsoleColor.Black $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+            """, "ConsoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
     public async Task TestInSwitchExpression4()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
 
             class C
@@ -1111,14 +1066,13 @@ class Program
                     var number = color switch { ConsoleColor.Black => $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+            """, "ConsoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
     public async Task TestInSwitchExpression5()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
 
             class C
@@ -1128,14 +1082,13 @@ class Program
                     var number = color switch { ConsoleColor.Black => 0 $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+            """, "ConsoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
     public async Task TestInSwitchExpression6()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class C
@@ -1145,14 +1098,13 @@ class Program
                     var number = color switch { ConsoleColor.Black => 0, $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ConsoleColor");
+            """, "ConsoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39240")]
     public async Task TestInSwitchExpression7()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
 
             class C
@@ -1162,14 +1114,13 @@ class Program
                     var number = color switch { ConsoleColor.Black => 0 } $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
+            """, "ConsoleColor");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68240")]
     public async Task TestNotCompilerGeneratedField()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class Sample
             {
                 public static Sample Instance { get; } = new Sample();
@@ -1182,8 +1133,7 @@ class Program
                     }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "Sample.<Instance>k__BackingField");
+            """, "Sample.<Instance>k__BackingField");
     }
 
     #region enum members
@@ -1207,14 +1157,6 @@ class Program
                 Member
             }
             """;
-        var referencedCode_EnumLike = """
-            public readonly struct MyEnum
-            {
-                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-                public static readonly MyEnum Member;
-            }
-            """;
-
         await VerifyItemInEditorBrowsableContextsAsync(
             markup: markup,
             referencedCode: referencedCode,
@@ -1226,7 +1168,13 @@ class Program
 
         await VerifyItemInEditorBrowsableContextsAsync(
             markup: markup,
-            referencedCode: referencedCode_EnumLike,
+            referencedCode: """
+            public readonly struct MyEnum
+            {
+                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
+                public static readonly MyEnum Member;
+            }
+            """,
             item: "MyEnum.Member",
             expectedSymbolsSameSolution: 1,
             expectedSymbolsMetadataReference: 1,
@@ -1253,14 +1201,6 @@ class Program
                 Member
             }
             """;
-        var referencedCode_EnumLike = """
-            public readonly struct MyEnum
-            {
-                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-                public static readonly MyEnum Member;
-            }
-            """;
-
         await VerifyItemInEditorBrowsableContextsAsync(
             markup: markup,
             referencedCode: referencedCode,
@@ -1272,7 +1212,13 @@ class Program
 
         await VerifyItemInEditorBrowsableContextsAsync(
             markup: markup,
-            referencedCode: referencedCode_EnumLike,
+            referencedCode: """
+            public readonly struct MyEnum
+            {
+                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+                public static readonly MyEnum Member;
+            }
+            """,
             item: "MyEnum.Member",
             expectedSymbolsSameSolution: 1,
             expectedSymbolsMetadataReference: 0,
@@ -1473,7 +1419,7 @@ class Program
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public async Task TestInYieldReturn(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 using System;
 using System.Collections.Generic;
 
@@ -1484,9 +1430,7 @@ class C
         yield return $$;
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, $"{typeName}.{memberName}");
+", $"{typeName}.{memberName}");
     }
 
     [Theory]
@@ -1494,7 +1438,7 @@ class C
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public async Task TestInAsyncMethodReturnStatement(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 using System;
 using System.Threading.Tasks;
 
@@ -1506,9 +1450,7 @@ class C
         return $$;
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, $"{typeName}.{memberName}");
+", $"{typeName}.{memberName}");
     }
 
     [Theory]
@@ -1516,7 +1458,7 @@ class C
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public async Task TestInIndexedProperty(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 using System;
 static class Module1
 {{
@@ -1536,9 +1478,7 @@ static class Module1
         c[$${typeName}.{memberName}] = true;
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, $"{typeName}.{memberName}");
+", $"{typeName}.{memberName}");
     }
 
     [Theory]
@@ -1546,7 +1486,7 @@ static class Module1
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public async Task TestFullyQualified(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 class C
 {{
     public void M(System.{typeName} day)
@@ -1566,9 +1506,7 @@ class C
         public static readonly DateTime B;
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, $"System.{typeName}.{memberName}");
+", $"System.{typeName}.{memberName}");
     }
 
     [Theory]
@@ -1611,7 +1549,7 @@ class C
     [InlineData(nameof(DateTime))]
     public async Task TestNotTriggeredAfterAssignmentEquals(string typeName)
     {
-        var markup = $@"
+        await VerifyItemIsAbsentAsync($@"
 class C
 {{
     public void M({typeName} day)
@@ -1631,9 +1569,7 @@ class C
         public static readonly DateTime B;
     }}
 }}
-";
-
-        await VerifyItemIsAbsentAsync(markup, $"{typeName}.A", usePreviousCharAsTrigger: true);
+", $"{typeName}.A", usePreviousCharAsTrigger: true);
     }
 
     [Fact]
@@ -1690,7 +1626,7 @@ class C
     [Fact]
     public async Task TestIncludeEnumAfterTyping()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             enum E
             {
                 A
@@ -1703,15 +1639,13 @@ class C
                     const E e = e$$;
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "E.A");
+            """, "E.A");
     }
 
     [Fact]
     public async Task TestNotInTrivia()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 public void M(DayOfWeek day)
@@ -1731,14 +1665,13 @@ class C
                     B
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task TestCommitOnComma()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             enum E
             {
                 A
@@ -1751,9 +1684,7 @@ class C
                     const E e = $$
                 }
             }
-            """;
-
-        var expected = """
+            """, "E.A", """
             enum E
             {
                 A
@@ -1766,9 +1697,7 @@ class C
                     const E e = E.A;
                 }
             }
-            """;
-
-        await VerifyProviderCommitAsync(markup, "E.A", expected, ';');
+            """, ';');
     }
 
     [Theory]
@@ -1776,7 +1705,7 @@ class C
     [InlineData(nameof(DateTime))]
     public async Task EnumMember_NotAfterDot(string typeName)
     {
-        var markup = $@"
+        await VerifyNoItemsExistAsync($@"
 static class Module1
 {{
     public static void Main({typeName} x)
@@ -1786,9 +1715,7 @@ static class Module1
         }}
     }}
 }}
-";
-
-        await VerifyNoItemsExistAsync(markup);
+");
     }
 
     [Theory]
@@ -1796,7 +1723,7 @@ static class Module1
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public async Task TestInCollectionInitializer1(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 using System;
 using System.Collections.Generic;
 
@@ -1810,9 +1737,7 @@ class C
         }};
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, $"{typeName}.{memberName}");
+", $"{typeName}.{memberName}");
     }
 
     [Theory]
@@ -1820,7 +1745,7 @@ class C
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public async Task TestInCollectionInitializer2(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 using System;
 using System.Collections.Generic;
 
@@ -1835,15 +1760,13 @@ class C
         }};
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, $"{typeName}.{memberName}");
+", $"{typeName}.{memberName}");
     }
 
     [Fact]
     public async Task EnumMember_TestInEnumHasFlag()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
 
             class C
@@ -1854,9 +1777,7 @@ class C
                     f.Attributes.HasFlag($$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "FileAttributes.Hidden");
+            """, "FileAttributes.Hidden");
     }
 
     [Fact]
@@ -1914,7 +1835,7 @@ class C
     [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
     public async Task TestNullableEnum(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 #nullable enable
 using System;
 class C
@@ -1926,8 +1847,7 @@ class C
         SetValue($$
     }}
 }}
-";
-        await VerifyItemExistsAsync(markup, $"{typeName}.{memberName}");
+", $"{typeName}.{memberName}");
     }
 
     [Theory]
@@ -1936,7 +1856,7 @@ class C
     [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
     public async Task TestTypeAlias(string typeName, string memberName)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 #nullable enable
 using AT = System.{typeName};
 
@@ -1948,8 +1868,7 @@ public class Program
     {{
         M($$
     }}
-}}";
-        await VerifyItemExistsAsync(markup, $"AT.{memberName}");
+}}", $"AT.{memberName}");
     }
 
     [Theory]
@@ -2001,7 +1920,7 @@ class C
     [InlineData("not Re")]
     public async Task TestPatterns_Is_PropertyPattern(string partialWritten)
     {
-        var markup = @$"
+        await VerifyItemExistsAsync(@$"
 public enum Color
 {{
     Red,
@@ -2017,14 +1936,13 @@ class C
         var isRed = this is {{ Color: {partialWritten}$$
     }}
 }}
-";
-        await VerifyItemExistsAsync(markup, "Color.Red");
+", "Color.Red");
     }
 
     [Fact]
     public async Task TestPatterns_Is_PropertyPattern_NotAfterEnumDot()
     {
-        var markup = @$"
+        await VerifyItemIsAbsentAsync(@$"
 public enum Color
 {{
     Red,
@@ -2040,14 +1958,13 @@ class C
         var isRed = this is {{ Color: Color.R$$
     }}
 }}
-";
-        await VerifyItemIsAbsentAsync(markup, "Color.Red");
+", "Color.Red");
     }
 
     [Fact]
     public async Task TestPatterns_SwitchStatement_PropertyPattern()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public enum Color
             {
                 Red,
@@ -2065,14 +1982,13 @@ class C
                         case { Color: $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Color.Red");
+            """, "Color.Red");
     }
 
     [Fact]
     public async Task TestPatterns_SwitchExpression_PropertyPattern()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public enum Color
             {
                 Red,
@@ -2090,8 +2006,7 @@ class C
                         { Color: $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Color.Red");
+            """, "Color.Red");
     }
 
     [Fact]
@@ -2187,7 +2102,7 @@ class C
     [InlineData("private")]
     public async Task TestAccessibilitySameType(string modifier)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 public class Color
 {{
     {modifier} static readonly Color Red;
@@ -2197,9 +2112,7 @@ public class Color
         M($$
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, "Color.Red");
+", "Color.Red");
     }
 
     [Theory]
@@ -2208,7 +2121,7 @@ public class Color
     [InlineData("record")]
     public async Task TestEnumLikeTypeKinds(string typeKeyword)
     {
-        var markup = $@"
+        await VerifyItemExistsAsync($@"
 public {typeKeyword} Color
 {{
     public static readonly Color Red;
@@ -2221,9 +2134,7 @@ class C
         M($$
     }}
 }}
-";
-
-        await VerifyItemExistsAsync(markup, "Color.Red");
+", "Color.Red");
     }
 
     #endregion

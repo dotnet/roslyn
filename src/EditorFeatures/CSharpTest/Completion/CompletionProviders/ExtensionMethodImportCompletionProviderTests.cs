@@ -1933,7 +1933,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
     [InlineData(';')]
     public async Task TestCommitWithCustomizedCharForMethod(char commitChar)
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             public class C
             {
             }
@@ -1957,9 +1957,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
                     }
                 }
             }
-            """;
-
-        var expected = $$"""
+            """, "ToInt", $$"""
         using AA;
 
         public class C
@@ -1985,8 +1983,7 @@ public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCShar
                 }
             }
         }
-        """;
-        await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Theory]

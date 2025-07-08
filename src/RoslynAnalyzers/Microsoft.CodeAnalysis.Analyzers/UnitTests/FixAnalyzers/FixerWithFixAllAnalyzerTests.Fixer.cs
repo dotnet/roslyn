@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
         [Fact]
         public async Task CSharp_VerifyFix_NonSealedTypeAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -45,8 +45,7 @@ class {|RS1016:C1|} : CodeFixProvider
         return null;
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -76,15 +75,13 @@ class C1 : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         public async Task CSharp_VerifyFix_SealedTypeAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -109,8 +106,7 @@ sealed class {|RS1016:C1|} : CodeFixProvider
         return null;
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -140,9 +136,7 @@ sealed class C1 : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
@@ -208,7 +202,7 @@ class C2 : CodeFixProvider
         [Fact]
         public async Task CSharp_VerifyFixAllAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -251,8 +245,7 @@ sealed class {|RS1016:C2|} : CodeFixProvider
         return null;
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -305,9 +298,7 @@ sealed class C2 : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         #endregion
@@ -317,7 +308,7 @@ sealed class C2 : CodeFixProvider
         [Fact()]
         public async Task VisualBasic_VerifyFix_NonSealedTypeAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -340,8 +331,7 @@ Class {|RS1016:C1|}
 		Return Nothing
 	End Function
 End Class
-";
-            var fixedSource = @"
+", @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -368,14 +358,13 @@ Class C1
         Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
-";
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         public async Task VisualBasic_VerifyFix_SealedTypeAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -398,8 +387,7 @@ NotInheritable Class {|RS1016:C1|}
 		Return Nothing
 	End Function
 End Class
-";
-            var fixedSource = @"
+", @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -426,8 +414,7 @@ NotInheritable Class C1
         Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
-";
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
@@ -487,7 +474,7 @@ End Class
         [Fact]
         public async Task VisualBasic_VerifyFixAllAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -526,8 +513,7 @@ NotInheritable Class {|RS1016:C2|}
 		Return Nothing
 	End Function
 End Class
-";
-            var fixedSource = @"
+", @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -574,9 +560,7 @@ NotInheritable Class C2
         Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         #endregion

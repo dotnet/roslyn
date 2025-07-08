@@ -3125,11 +3125,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37297")]
     public async Task TestPublicSystemHashCodeOtherProject()
     {
-        var publicHashCode =
-            """
-            using System.Collections.Generic;
-            namespace System { public struct HashCode { } }
-            """;
         var code =
             """
             struct S
@@ -3180,7 +3175,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 {
                     ["P1"] =
                     {
-                        Sources = { ("HashCode.cs", publicHashCode) },
+                        Sources = { ("HashCode.cs", """
+            using System.Collections.Generic;
+            namespace System { public struct HashCode { } }
+            """) },
                     },
                 },
                 Sources = { code },
@@ -3204,11 +3202,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37297")]
     public async Task TestInternalSystemHashCode()
     {
-        var internalHashCode =
-            """
-            using System.Collections.Generic;
-            namespace System { internal struct HashCode { } }
-            """;
         var code =
             """
             struct S
@@ -3224,7 +3217,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 {
                     ["P1"] =
                     {
-                        Sources = { ("HashCode.cs", internalHashCode) },
+                        Sources = { ("HashCode.cs", """
+            using System.Collections.Generic;
+            namespace System { internal struct HashCode { } }
+            """) },
                     },
                 },
                 Sources = { code },

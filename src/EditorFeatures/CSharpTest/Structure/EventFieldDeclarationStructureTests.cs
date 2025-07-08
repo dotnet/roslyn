@@ -18,16 +18,14 @@ public sealed class EventFieldDeclarationStructureTests : AbstractCSharpSyntaxNo
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task TestEventFieldWithComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
                     // Bar|}
                     $$event EventHandler E;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Goo ...", autoCollapse: true));
     }
 }

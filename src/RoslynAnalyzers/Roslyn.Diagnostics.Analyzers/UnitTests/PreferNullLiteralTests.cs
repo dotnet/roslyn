@@ -18,7 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("default(object)")]
         public async Task PreferNullLiteral_ClassAsync(string defaultValueExpression)
         {
-            var source = $@"
+            await VerifyCS.VerifyCodeFixAsync($@"
 class Type
 {{
     object Method()
@@ -26,8 +26,7 @@ class Type
         return [|{defaultValueExpression}|];
     }}
 }}
-";
-            var fixedSource = @"
+", @"
 class Type
 {
     object Method()
@@ -35,9 +34,7 @@ class Type
         return null;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
@@ -140,7 +137,7 @@ class Type
         [Fact]
         public async Task NullPointerAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 unsafe class Type
 {
     void Method()
@@ -151,8 +148,7 @@ unsafe class Type
     void Method2(int* value) { }
     void Method2(byte* value) { }
 }
-";
-            var fixedSource = @"
+", @"
 unsafe class Type
 {
     void Method()
@@ -163,9 +159,7 @@ unsafe class Type
     void Method2(int* value) { }
     void Method2(byte* value) { }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
@@ -210,30 +204,27 @@ unsafe class Type
         [InlineData("default(object)")]
         public async Task PreferNullLiteral_DefaultParameterValueAsync(string defaultValueExpression)
         {
-            var source = $@"
+            await VerifyCS.VerifyCodeFixAsync($@"
 class Type
 {{
     void Method(object value = [|{defaultValueExpression}|])
     {{
     }}
 }}
-";
-            var fixedSource = @"
+", @"
 class Type
 {
     void Method(object value = null)
     {
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         public async Task PreferNullLiteral_ArgumentFormattingAsync()
         {
-            var source = $@"
+            await VerifyCS.VerifyCodeFixAsync($@"
 class Type
 {{
     void Method()
@@ -251,8 +242,7 @@ class Type
     {{
     }}
 }}
-";
-            var fixedSource = @"
+", @"
 class Type
 {
     void Method()
@@ -270,15 +260,13 @@ class Type
     {
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         public async Task PreferNullLiteral_OverloadResolutionAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 
 class Type
@@ -296,8 +284,7 @@ class Type
     {
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 
 class Type
@@ -315,15 +302,13 @@ class Type
     {
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
         public async Task PreferNullLiteral_ParenthesizeWhereNecessaryAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 using System;
 
 class Type
@@ -341,8 +326,7 @@ class Type
     {
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 
 class Type
@@ -360,9 +344,7 @@ class Type
     {
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]
@@ -416,7 +398,7 @@ class Type
         [Fact]
         public async Task PreferNullLiteral_GenericConstrainedToReferenceTypeAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyCodeFixAsync(@"
 class Type
 {
     T Method<T>()
@@ -425,8 +407,7 @@ class Type
         return [|default|];
     }
 }
-";
-            var fixedSource = @"
+", @"
 class Type
 {
     T Method<T>()
@@ -435,9 +416,7 @@ class Type
         return null;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Fact]

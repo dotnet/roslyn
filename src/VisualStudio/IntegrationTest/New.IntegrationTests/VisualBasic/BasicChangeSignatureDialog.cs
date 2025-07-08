@@ -109,8 +109,7 @@ public class CSharpClass
 }", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
         var project = ProjectName;
-        var csharpProjectReference = "CSharpProject";
-        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, csharpProjectReference, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, "CSharpProject", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
@@ -132,7 +131,7 @@ public class CSharpClass
         Assert.Contains(@"x.Method(""str"")", actualText);
         await TestServices.SolutionExplorer.OpenFileAsync(csharpProject, "Class1.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        var expectedText = @"
+        Assert.Contains(@"
 public class CSharpClass
 {
     /// <summary>
@@ -146,8 +145,7 @@ public class CSharpClass
     {
         return 1;
     }
-}";
-        Assert.Contains(expectedText, actualText);
+}", actualText);
     }
 
     [IdeFact]
@@ -270,8 +268,7 @@ public class CSharpClass
 }", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
         var project = ProjectName;
-        var csharpProjectReference = "CSharpProject";
-        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, csharpProjectReference, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectReferenceAsync(project, "CSharpProject", HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
@@ -293,14 +290,13 @@ public class CSharpClass
         Assert.Contains(@"x.Method(0, ""str"", 3.0, ""str2"")", actualText);
         await TestServices.SolutionExplorer.OpenFileAsync(csharpProject, "Class1.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        var expectedText = @"
+        Assert.Contains(@"
 public class CSharpClass
 {
     public int Method(int a, string b, double c, string d)
     {
         return 1;
     }
-}";
-        Assert.Contains(expectedText, actualText);
+}", actualText);
     }
 }

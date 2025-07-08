@@ -45,7 +45,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -60,11 +60,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select x1 + x2;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -76,9 +73,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return c1.SelectMany(x1 => c2.Where(x2 => object.Equals(x1, x2 / 10)).Select(x2 => x1 + x2));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -103,7 +98,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -117,11 +112,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select @object + x2;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class Query
@@ -133,9 +125,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return c1.SelectMany(@object => c2.Select(x2 => @object + x2));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -172,7 +162,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Linq;
 
             class C
@@ -190,9 +180,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n2 + n1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
+            """, index: 0);
 
         // No linq refactoring offered due to variable declaration within the outermost foreach.
         await TestActionCountAsync(source, count: 1);
@@ -233,7 +221,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -252,11 +240,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n2 + n1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -272,9 +257,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -312,7 +295,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -331,11 +314,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n2 + n1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -360,9 +340,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -388,7 +366,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -404,9 +382,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                                     select x + z - a).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
+            """, index: 0);
 
         // No linq invocation refactoring offered due to variable declaration(s) in topmost foreach.
         await TestActionCountAsync(source, count: 1);
@@ -415,7 +391,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
     [Fact]
     public async Task QueryEmptyDeclarations()
     {
-        var source = """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -434,9 +410,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }|]
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(source);
+            """);
     }
 
     [Fact]
@@ -460,7 +434,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -473,10 +447,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select x;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -487,9 +459,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.Where(x => x > 2);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -513,7 +483,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -528,10 +498,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select y;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -542,9 +510,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return (from x in nums select x).SelectMany(y => (from x in nums select x).Select(z => y));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -567,7 +533,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -582,10 +548,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -598,9 +562,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -619,7 +581,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -634,10 +596,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -650,9 +610,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -671,7 +629,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -686,10 +644,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -702,9 +658,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -726,7 +680,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -742,10 +696,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             class C
@@ -759,9 +711,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -783,7 +733,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -797,10 +747,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -812,9 +760,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -834,7 +780,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -848,10 +794,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -863,9 +807,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -884,7 +826,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -899,10 +841,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -915,9 +855,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -935,7 +873,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Linq;
 
             class C
@@ -949,10 +887,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Linq;
 
             class C
@@ -964,9 +900,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -989,7 +923,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1004,10 +938,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1020,9 +952,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1045,7 +975,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1061,10 +991,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1077,9 +1005,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     #endregion
@@ -1109,7 +1035,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 int N(int n) => n;
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1124,10 +1050,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
 
                 int N(int n) => n;
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1140,9 +1064,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
 
                 int N(int n) => n;
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1157,7 +1079,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 public IEnumerable<int> Query1 { get { [|foreach (var x in _nums) { yield return x + 1; }|] } }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1165,11 +1087,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query1 { get { return from x in _nums select x + 1; } }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -1177,9 +1096,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
                 public IEnumerable<int> Query1 { get { return _nums.Select(x => x + 1); } }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1202,7 +1119,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1214,11 +1131,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n1;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1228,9 +1142,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1260,7 +1172,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1276,11 +1188,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1294,9 +1203,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1325,7 +1232,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1341,10 +1248,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n1;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1358,9 +1263,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1389,7 +1292,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1405,10 +1308,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n1;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             partial class C
@@ -1422,15 +1323,13 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31784")]
     public async Task QueryWhichRequiresSelectManyWithIdentityLambda()
     {
-        var source = """
+        await TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
 
             class C
@@ -1446,9 +1345,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }|]
                 }
             }
-            """;
-
-        var linqInvocationOutput = """
+            """, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -1459,9 +1356,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return (new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } }).SelectMany(x => x);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     #endregion
@@ -1502,7 +1397,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1531,10 +1426,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1561,9 +1454,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1599,7 +1490,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1627,10 +1518,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1656,9 +1545,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1694,7 +1581,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1722,10 +1609,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select x;
                 }
             }
-            """;
-        await TestAsync(source, queryOutput, parseOptions: null);
-
-        var linqInvocationOutput = """
+            """, parseOptions: null);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -1752,9 +1637,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return new[] { 1, 2, 3 };
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1777,7 +1660,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -1789,10 +1672,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n1;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -1803,9 +1684,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.AsQueryable();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1826,7 +1705,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -1838,10 +1717,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n1;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -1852,9 +1729,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.AsQueryable();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     #endregion
@@ -1884,7 +1759,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1897,11 +1772,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1912,9 +1784,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1940,7 +1810,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1954,11 +1824,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -1970,9 +1837,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -1998,7 +1863,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2012,11 +1877,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2028,9 +1890,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2056,7 +1916,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2068,11 +1928,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2082,9 +1939,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2110,7 +1965,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2124,11 +1979,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2140,9 +1992,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2168,7 +2018,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2181,11 +2031,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2196,9 +2043,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2221,7 +2066,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2233,10 +2078,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                                       select n1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2246,9 +2089,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     lists[0].AddRange(nums.SelectMany(n1 => nums.Select(n2 => n1)));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2272,7 +2113,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2284,10 +2125,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                                 select n1).ToList();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2297,15 +2136,13 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     lists[0] = nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
     public async Task ToListHashSetNoConversion()
     {
-        var source = """
+        await TestMissingAsync("""
             using System.Collections.Generic;
             class C
             {
@@ -2318,8 +2155,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }|]
                 }
             }
-            """;
-        await TestMissingAsync(source);
+            """);
     }
 
     [Fact]
@@ -2345,7 +2181,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2357,11 +2193,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2371,9 +2204,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2400,7 +2231,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2413,11 +2244,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2428,9 +2256,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).ToList();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2457,7 +2283,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2471,10 +2297,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list.Count;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2486,9 +2310,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return list.Count;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2525,7 +2347,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             using C = System.Collections.Generic.List<int>;
@@ -2545,10 +2367,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Linq;
             using C = System.Collections.Generic.List<int>;
@@ -2572,9 +2392,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     Console.WriteLine(r1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2607,7 +2425,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Linq;
             using System;
             using C = System.Collections.Generic.List<int>;
@@ -2625,10 +2443,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     Console.WriteLine(r1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Linq;
             using System;
             using C = System.Collections.Generic.List<int>;
@@ -2648,9 +2464,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     Console.WriteLine(r1);
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2678,7 +2492,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2696,10 +2510,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     public List<int> A { get; set; }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2716,9 +2528,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     public List<int> A { get; set; }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2745,7 +2555,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2763,10 +2573,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     public List<int> A { get; set; }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2783,9 +2591,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     public List<int> A { get; set; }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2807,7 +2613,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2820,10 +2626,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                                select x + 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             public class Test
@@ -2835,15 +2639,13 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     A.AddRange((new int[] { 1, 2, 3, 4 }).Select(x => x + 1));
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
     public async Task ToListOverride()
     {
-        var source = """
+        await TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2862,8 +2664,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }|]
                 }
             }
-            """;
-        await TestMissingAsync(source);
+            """);
     }
 
     #endregion
@@ -2891,7 +2692,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2903,11 +2704,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                                       select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2917,9 +2715,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     int i = 0, cnt = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2943,7 +2739,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2956,11 +2752,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -2971,9 +2764,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     cnt += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -2996,7 +2787,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3008,10 +2799,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                           select n1).Count();
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3021,9 +2810,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     c += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3047,7 +2834,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3059,11 +2846,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                          select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3073,9 +2857,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     c = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3099,7 +2881,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3112,11 +2894,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                           select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3127,9 +2906,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     c += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3155,7 +2932,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3167,11 +2944,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3181,9 +2955,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3209,7 +2981,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3221,11 +2993,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3235,9 +3004,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3263,7 +3030,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3276,11 +3043,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3291,9 +3055,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3319,7 +3081,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3333,11 +3095,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3349,9 +3108,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3377,7 +3134,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3391,11 +3148,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3407,9 +3161,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3435,7 +3187,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3449,11 +3201,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3465,9 +3214,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3494,7 +3241,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3507,11 +3254,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3522,9 +3266,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3551,7 +3293,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3566,11 +3308,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3583,9 +3322,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return cnt;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3610,7 +3347,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3623,11 +3360,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return c;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3638,9 +3372,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     return c;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3664,7 +3396,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3677,11 +3409,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                               select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3692,9 +3421,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     count += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3719,7 +3446,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3732,11 +3459,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                              select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3747,9 +3471,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     count = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3774,7 +3496,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3788,11 +3510,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                               select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -3804,9 +3523,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     count += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3831,7 +3548,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class A { public int B { get; set; }}
@@ -3844,11 +3561,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                            select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class A { public int B { get; set; }}
@@ -3859,9 +3573,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     a.B = nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3886,7 +3598,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class A { public int B { get; set; }}
@@ -3900,11 +3612,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class A { public int B { get; set; }}
@@ -3916,9 +3625,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     a.B += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3942,7 +3649,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class A { public int B { get; set; }}
@@ -3955,11 +3662,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                             select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class A { public int B { get; set; }}
@@ -3970,9 +3674,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     a.B += nums.SelectMany(n1 => nums.Select(n2 => n1)).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -3994,7 +3696,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -4006,11 +3708,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                              select n1).Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
 
@@ -4021,9 +3720,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     int c = nums.AsQueryable().Count();
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     #endregion
@@ -4063,8 +3760,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4089,11 +3785,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     ;
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4119,9 +3812,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     );
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -4144,8 +3835,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4164,9 +3854,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
             ; //32
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
+            """, index: 0);
 
         // No linq refactoring offered due to variable declaration in outermost foreach.
         await TestActionCountAsync(source, count: 1);
@@ -4192,8 +3880,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4210,11 +3897,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
             ; //26
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4232,9 +3916,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
             ; //26
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -4256,8 +3938,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4274,11 +3955,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
             ; //24
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4295,9 +3973,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
             ; //24
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     [Fact]
@@ -4319,8 +3995,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4341,9 +4016,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
+            """, index: 0);
 
         // No linq refactoring offered due to variable declaration(s) in outermost foreach.
         await TestActionCountAsync(source, count: 1);
@@ -4370,8 +4043,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                 }
             }
             """;
-
-        var queryOutput = """
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4394,11 +4066,8 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, queryOutput, index: 0);
-
-        var linqInvocationOutput = """
+            """, index: 0);
+        await TestInRegularAndScriptAsync(source, """
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -4421,9 +4090,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }
                 }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+            """, index: 1);
     }
 
     #endregion
@@ -4433,7 +4100,9 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
     [Fact]
     public async Task NoConversionPreprocessorDirectives()
     {
-        var source = """
+
+        // Cannot convert expressions with preprocessor directives
+        await TestMissingAsync("""
             using System.Collections.Generic;
             using System.Linq;
             class C
@@ -4448,10 +4117,7 @@ public sealed class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTes
                     }|]
                 }
             }
-            """;
-
-        // Cannot convert expressions with preprocessor directives
-        await TestMissingAsync(source);
+            """);
     }
 
     #endregion

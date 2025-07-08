@@ -625,7 +625,7 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task JointDeclarationRemoveBoth()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -640,9 +640,7 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -656,9 +654,7 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -666,7 +662,7 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task JointAssignment()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -683,9 +679,7 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -701,9 +695,7 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]

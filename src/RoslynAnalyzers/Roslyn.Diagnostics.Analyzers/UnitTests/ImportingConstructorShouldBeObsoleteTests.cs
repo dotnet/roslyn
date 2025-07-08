@@ -109,7 +109,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 }
             }
             """;
-        var fixedSource = $$"""
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $$"""
             using System;
             using {{mefNamespace}};
             using Microsoft.CodeAnalysis.Host.Mef;
@@ -126,16 +133,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -163,7 +161,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 End Module
             End Namespace
             """;
-        var fixedSource = $"""
+        await new VerifyVB.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $"""
             Imports System
             Imports {mefNamespace}
             Imports Microsoft.CodeAnalysis.Host.Mef
@@ -181,16 +186,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
                 End Module
             End Namespace
-            """;
-
-        await new VerifyVB.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -215,7 +211,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 }
             }
             """;
-        var fixedSource = $$"""
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $$"""
             using System;
             using {{mefNamespace}};
             using Microsoft.CodeAnalysis.Host.Mef;
@@ -232,16 +235,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -265,7 +259,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 }
             }
             """;
-        var fixedSource = $$"""
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $$"""
             using System;
             using {{mefNamespace}};
             using Microsoft.CodeAnalysis.Host.Mef;
@@ -281,16 +282,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -317,7 +309,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 End Module
             End Namespace
             """;
-        var fixedSource = $"""
+        await new VerifyVB.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $"""
             Imports System
             Imports {mefNamespace}
             Imports Microsoft.CodeAnalysis.Host.Mef
@@ -335,16 +334,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
                 End Module
             End Namespace
-            """;
-
-        await new VerifyVB.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -417,7 +407,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 End Module
             End Namespace
             """;
-        var fixedSource = $"""
+        await new VerifyVB.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $"""
             Imports System
             Imports {mefNamespace}
             Imports Microsoft.CodeAnalysis.Host.Mef
@@ -435,16 +432,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
                 End Module
             End Namespace
-            """;
-
-        await new VerifyVB.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -470,7 +458,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 }
             }
             """;
-        var fixedSource = $$"""
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $$"""
             using System;
             using {{mefNamespace}};
             using Microsoft.CodeAnalysis.Host.Mef;
@@ -487,16 +482,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -523,7 +509,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 End Module
             End Namespace
             """;
-        var fixedSource = $"""
+        await new VerifyVB.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $"""
             Imports System
             Imports {mefNamespace}
             Imports Microsoft.CodeAnalysis.Host.Mef
@@ -541,16 +534,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
                 End Module
             End Namespace
-            """;
-
-        await new VerifyVB.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -577,7 +561,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 }
             }
             """;
-        var fixedSource = $$"""
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $$"""
             using System;
             using {{mefNamespace}};
             using Microsoft.CodeAnalysis.Host.Mef;
@@ -594,16 +585,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -631,7 +613,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 End Module
             End Namespace
             """;
-        var fixedSource = $"""
+        await new VerifyVB.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $"""
             Imports System
             Imports {mefNamespace}
             Imports Microsoft.CodeAnalysis.Host.Mef
@@ -649,16 +638,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
                 End Module
             End Namespace
-            """;
-
-        await new VerifyVB.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
         }.RunAsync();
     }
 
@@ -684,7 +664,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 }
             }
             """;
-        var fixedSource = $$"""
+        await new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $$"""
             using System;
             using {{mefNamespace}};
             using Microsoft.CodeAnalysis.Host.Mef;
@@ -701,16 +688,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
                 }
             }
-            """;
-
-        await new VerifyCS.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
             NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
@@ -739,7 +717,14 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                 End Module
             End Namespace
             """;
-        var fixedSource = $"""
+        await new VerifyVB.Test
+        {
+            TestState =
+            {
+                Sources = { source },
+                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+            },
+            FixedCode = $"""
             Imports System
             Imports {mefNamespace}
             Imports Microsoft.CodeAnalysis.Host.Mef
@@ -757,16 +742,7 @@ public sealed class ImportingConstructorShouldBeObsoleteTests
                     Friend Const ImportingConstructorMessage As String = "This exported object must be obtained through the MEF export provider."
                 End Module
             End Namespace
-            """;
-
-        await new VerifyVB.Test
-        {
-            TestState =
-            {
-                Sources = { source },
-                AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
-            },
-            FixedCode = fixedSource,
+            """,
             NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();

@@ -18,16 +18,14 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
     [Fact]
     public async Task ReturnsPdbPathFromDebugger()
     {
-        var source = """
+        await RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 
@@ -47,16 +45,14 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
     [Fact]
     public async Task DoesntReadNonPortablePdbs()
     {
-        var source = """
+        await RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             // Ideally we don't want to pass in true for windowsPdb here, and this is supposed to test that the service ignores non-portable PDBs when the debugger
             // tells us they're not portable, but the debugger has a bug at the moment.
@@ -78,16 +74,14 @@ public sealed class PdbFileLocatorServiceTests : AbstractPdbSourceDocumentTests
     [Fact]
     public async Task NoPdbFoundReturnsNull()
     {
-        var source = """
+        await RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
 

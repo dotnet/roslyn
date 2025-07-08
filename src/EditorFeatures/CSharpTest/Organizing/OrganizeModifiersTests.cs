@@ -18,14 +18,9 @@ public sealed class OrganizeModifiersTests : AbstractOrganizerTests
     [InlineData("record")]
     public async Task TestTypes1(string typeKind)
     {
-        var initial =
-$@"static public {typeKind} C {{
-}}";
-        var final =
-$@"public static {typeKind} C {{
-}}";
-
-        await CheckAsync(initial, final);
+        await CheckAsync($@"static public {typeKind} C {{
+}}", $@"public static {typeKind} C {{
+}}");
     }
 
     [Theory]
@@ -33,14 +28,9 @@ $@"public static {typeKind} C {{
     [InlineData("record")]
     public async Task TestTypes2(string typeKind)
     {
-        var initial =
-$@"public static {typeKind} D {{
-}}";
-        var final =
-$@"public static {typeKind} D {{
-}}";
-
-        await CheckAsync(initial, final);
+        await CheckAsync($@"public static {typeKind} D {{
+}}", $@"public static {typeKind} D {{
+}}");
     }
 
     [Theory]
@@ -48,14 +38,9 @@ $@"public static {typeKind} D {{
     [InlineData("record")]
     public async Task TestTypes3(string typeKind)
     {
-        var initial =
-$@"public static partial {typeKind} E {{
-}}";
-        var final =
-$@"public static partial {typeKind} E {{
-}}";
-
-        await CheckAsync(initial, final);
+        await CheckAsync($@"public static partial {typeKind} E {{
+}}", $@"public static partial {typeKind} E {{
+}}");
     }
 
     [Theory]
@@ -63,14 +48,9 @@ $@"public static partial {typeKind} E {{
     [InlineData("record")]
     public async Task TestTypes4(string typeKind)
     {
-        var initial =
-$@"static public partial {typeKind} F {{
-}}";
-        var final =
-$@"public static partial {typeKind} F {{
-}}";
-
-        await CheckAsync(initial, final);
+        await CheckAsync($@"static public partial {typeKind} F {{
+}}", $@"public static partial {typeKind} F {{
+}}");
     }
 
     [Theory]
@@ -78,13 +58,8 @@ $@"public static partial {typeKind} F {{
     [InlineData("record")]
     public async Task TestTypes5(string typeKind)
     {
-        var initial =
-$@"unsafe public static {typeKind} F {{
-}}";
-        var final =
-$@"public static unsafe {typeKind} F {{
-}}";
-
-        await CheckAsync(initial, final);
+        await CheckAsync($@"unsafe public static {typeKind} F {{
+}}", $@"public static unsafe {typeKind} F {{
+}}");
     }
 }

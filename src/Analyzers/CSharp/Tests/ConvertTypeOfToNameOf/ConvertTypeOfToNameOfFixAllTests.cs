@@ -20,7 +20,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task FixAllDocumentBasic()
     {
-        var input = """
+        await VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 static void Main()
@@ -30,9 +30,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName3 = [|typeof(Test).Name|];
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Test
             {
                 static void Main()
@@ -42,9 +40,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName3 = nameof(Test);
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -52,7 +48,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task FixAllDocumentVariedSingleLine()
     {
-        var input = """
+        await VerifyCS.VerifyCodeFixAsync("""
             class Test
             {
                 static void Main()
@@ -60,9 +56,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName1 = [|typeof(Test).Name|]; var typeName2 = [|typeof(int).Name|]; var typeName3 = [|typeof(System.String).Name|];
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class Test
             {
                 static void Main()
@@ -70,9 +64,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName1 = nameof(Test); var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -80,7 +72,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task FixAllDocumentVariedWithUsing()
     {
-        var input = """
+        await VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Test
@@ -93,9 +85,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName4 = [|typeof(System.Double).Name|];
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
 
             class Test
@@ -108,9 +98,7 @@ public sealed partial class ConvertTypeOfToNameOfTests
                     var typeName4 = nameof(Double);
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(input, expected);
+            """);
     }
 
     [Fact]

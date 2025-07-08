@@ -19,35 +19,31 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task NoCommentsOrAttributes()
     {
-        var code = """
+        await VerifyNoBlockSpansAsync("""
                 class Goo
                 {
                     public static bool operator $$==(Goo a, Goo b);
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
+                """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:[Blah]
                     |}public static bool operator $$==(Goo a, Goo b);|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAndAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -55,16 +51,14 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                     [Blah]
                     |}bool operator $$==(Goo a, Goo b);|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAttributesAndModifiers()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:{|textspan:// Summary:
@@ -72,16 +66,14 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                     [Blah]
                     |}public static bool operator $$==(Goo a, Goo b);|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task TestOperator3()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:public static int operator +(int i){|textspan:
@@ -92,9 +84,7 @@ public sealed class OperatorDeclarationStructureTests : AbstractCSharpSyntaxNode
                     {
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

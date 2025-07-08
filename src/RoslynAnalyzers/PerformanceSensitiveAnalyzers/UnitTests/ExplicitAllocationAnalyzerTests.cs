@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
         [Fact]
         public async Task ExplicitAllocation_ObjectInitializerAsync()
         {
-            var sampleProgram =
-    @"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -36,8 +35,7 @@ public class MyClass
 public class TestClass
 {
     public string Name { get; set; }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 22));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -46,8 +44,8 @@ public class TestClass
         [Fact]
         public async Task ExplicitAllocation_ObjectInitializer_VisualBasicAsync()
         {
-            var code =
-    @"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(
+                @"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -59,10 +57,7 @@ End Class
 
 Public Class TestClass
     Public Property Name As String
-End Class";
-
-            await VerifyVB.VerifyAnalyzerAsync(
-                code,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 24));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -71,8 +66,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarningAsync()
         {
-            var sampleProgram =
-    @"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -87,15 +81,13 @@ public class MyClass
 public struct TestStruct
 {
     public string Name { get; set; }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning_VisualBasicAsync()
         {
-            var code =
-    @"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -107,16 +99,13 @@ End Class
 
 Public Structure TestClass
     Public Property Name As String
-End Structure";
-
-            await VerifyVB.VerifyAnalyzerAsync(code);
+End Structure");
         }
 
         [Fact]
         public async Task ExplicitAllocation_ImplicitArrayCreationAsync()
         {
-            var sampleProgram =
-    @"using System.Collections.Generic;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -126,8 +115,7 @@ public class MyClass
     {
         int[] intData = new[] { 123, 32, 4 };
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(9, 25));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -136,8 +124,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_ImplicitArrayCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-    @"Imports System.Collections.Generic
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System.Collections.Generic
 Imports Roslyn.Utilities
 
 Public Class A
@@ -145,8 +132,7 @@ Public Class A
     Public Sub Testing()
         Dim intData() As Integer = {123, 32, 4}
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(7, 36));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -155,8 +141,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_AnonymousObjectCreationAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -166,8 +151,7 @@ public class MyClass
     {
         var temp = new { A = 123, Name = ""Test"", };
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.AnonymousObjectCreationRule).WithLocation(9, 20));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -176,8 +160,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_AnonymousObjectCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -185,8 +168,7 @@ Public Class A
     Public Sub Testing()
         Dim temp = New With {Key .B = 123, .Name = ""Test""}
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.AnonymousObjectCreationRule).WithLocation(7, 20));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -195,8 +177,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_ArrayCreationAsync()
         {
-            var sampleProgram =
-@"using System.Collections.Generic;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -206,8 +187,7 @@ public class MyClass
     {
         int[] intData = new int[] { 123, 32, 4 };
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(9, 25));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -216,8 +196,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_ArrayCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System.Collections.Generic
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System.Collections.Generic
 Imports Roslyn.Utilities
 
 Public Class A
@@ -225,8 +204,7 @@ Public Class A
     Public Sub Testing()
         Dim intData = New Integer() {123, 32, 4}
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(7, 23));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -235,8 +213,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_ObjectCreationAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -246,8 +223,7 @@ public class MyClass
     {
         var allocation = new String('a', 10);
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 26));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -256,8 +232,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_ObjectCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -265,8 +240,7 @@ Public Class A
     Public Sub Testing()
         Dim allocation = New String(""a""c, 10)
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 26));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -275,8 +249,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_LetClauseAsync()
         {
-            var sampleProgram =
-@"using System.Collections.Generic;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -290,8 +263,7 @@ public class MyClass
                       let b = a * 3
                       select b).ToList();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(10, 25),
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -303,8 +275,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_LetClause_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System.Collections.Generic
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System.Collections.Generic
 Imports System.Linq
 Imports Roslyn.Utilities
 
@@ -316,8 +287,7 @@ Public Class A
                       Let b = x * 3
                       Select b).ToList()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ArrayCreationRule).WithLocation(8, 36),
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -330,7 +300,7 @@ End Class";
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_to_System_Object_typeAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using Roslyn.Utilities;
 
 public struct S { }
@@ -342,8 +312,7 @@ public class MyClass
     {
         object box = new S();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(source,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(11, 22));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -353,7 +322,7 @@ public class MyClass
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_to_System_Object_type_VisualBasicAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Roslyn.Utilities
 
 Public Structure S
@@ -364,8 +333,7 @@ Public Class A
     Public Sub SomeMethod()
         Dim box As Object = new S()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(source,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 29));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -375,7 +343,7 @@ End Class";
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_to_System_ValueType_typeAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using Roslyn.Utilities;
 
 public struct S { }
@@ -387,8 +355,7 @@ public class MyClass
     {
         System.ValueType box = new S();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(source,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(11, 32));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -398,7 +365,7 @@ public class MyClass
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_to_System_ValueType_type_VisualBasicAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Roslyn.Utilities
 
 Public Structure S
@@ -409,8 +376,7 @@ Public Class A
     Public Sub SomeMethod()
         Dim box As System.ValueType = new S()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(source,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 39));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -420,7 +386,7 @@ End Class";
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_into_interface_referenceAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using Roslyn.Utilities;
 
 interface I { }
@@ -434,8 +400,7 @@ public class MyClass
     {
         I box = new S();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(source,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(13, 17));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -445,7 +410,7 @@ public class MyClass
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Converting_any_value_type_into_interface_reference_VisualBasicAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Roslyn.Utilities
 
 Interface I
@@ -460,8 +425,7 @@ Public Class A
     Public Sub SomeMethod()
         Dim box As I = new S()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(source,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(14, 24));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -470,8 +434,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_StructCreation_NoWarningAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public struct S { }
@@ -485,15 +448,13 @@ public class MyClass
         var noBox1 = new DateTime();
         S noBox2 = new S();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ExplicitAllocation_StructCreation_NoWarning_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Structure S
@@ -505,15 +466,13 @@ Public Class A
         Dim noBox1 = new DateTime()
         Dim noBox2 As S = new S()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+End Class");
         }
 
         [Fact]
         public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarningAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -523,15 +482,13 @@ public class MyClass
     {
         double x = new int();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -539,15 +496,13 @@ Public Class A
     Public Sub Testing()
         Dim x As Double = New Integer()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+End Class");
         }
 
         [Fact]
         public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarningAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 struct A
@@ -569,15 +524,13 @@ public class MyClass
     {
         A a = new B();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarning_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Structure A
@@ -594,15 +547,13 @@ Public Class C
     Public Sub Testing()
         Dim a As A = New B()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+End Class");
         }
 
         [Fact]
         public async Task ExplicitAllocation_NoParamsArrayCreationAsync()
         {
-            var sampleProgram =
-@"using System.Collections.Generic;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -612,15 +563,13 @@ public class MyClass
     {
         Testing();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ExplicitAllocation_NoParamsArrayCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System.Collections.Generic
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System.Collections.Generic
 Imports Roslyn.Utilities
 
 Public Class A
@@ -628,15 +577,13 @@ Public Class A
     Public Sub Testing(ParamArray values() As Integer)
         Testing()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+End Class");
         }
 
         [Fact]
         public async Task ExplicitAllocation_ExplicitDelegateCreationAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -646,8 +593,7 @@ public class MyClass
     {
         var handler = new EventHandler(Testing);
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -656,8 +602,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_ExplicitDelegateCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -665,8 +610,7 @@ Public Class A
     Public Sub Testing(sender As Object, e As EventArgs)
         Dim handler = new EventHandler(AddressOf Testing)
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 23));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -675,8 +619,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_ImplicitDelegateCreationAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -686,15 +629,13 @@ public class MyClass
     {
         EventHandler handler = Testing;
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ExplicitAllocation_ImplicitDelegateCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -702,15 +643,13 @@ Public Class A
     Public Sub Testing(sender As Object, e As EventArgs)
         Dim handler As EventHandler = AddressOf Testing
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+End Class");
         }
 
         [Fact]
         public async Task ExplicitAllocation_ListInitializerCreationAsync()
         {
-            var sampleProgram =
-@"using System.Collections.Generic;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System.Collections.Generic;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -720,8 +659,7 @@ public class MyClass
     {
         var intData = new List<int> { 3, 4 };
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -730,8 +668,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_ListInitializerCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System.Collections.Generic
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System.Collections.Generic
 Imports Roslyn.Utilities
 
 Public Class A
@@ -739,8 +676,7 @@ Public Class A
     Public Sub Testing()
         Dim intData = New List(Of Integer) From {3, 4}
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 23));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -749,8 +685,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_GenericObjectCreationAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -761,8 +696,7 @@ public class MyClass
     {
         var allocation = new T();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 26));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -771,8 +705,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_GenericObjectCreation_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -780,8 +713,7 @@ Public Class A
     Public Sub Testing(Of T As {Class, New})()
         Dim allocation = New T()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 26));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -790,8 +722,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_GenericObjectCreation2Async()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -802,8 +733,7 @@ public class MyClass
     {
         object allocation = new T();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 29));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -812,8 +742,7 @@ public class MyClass
         [Fact]
         public async Task ExplicitAllocation_GenericObjectCreation2_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -821,8 +750,7 @@ Public Class A
     Public Sub Testing(Of T As Structure)()
         Dim allocation As Object = New T()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram,
+End Class",
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyVB.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(7, 36));
 #pragma warning restore RS0030 // Do not use banned APIs
@@ -831,8 +759,7 @@ End Class";
         [Fact]
         public async Task ExplicitAllocation_GenericObjectCreation3Async()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -843,15 +770,13 @@ public class MyClass
     {
         T value = new T();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ExplicitAllocation_GenericObjectCreation3_VisualBasicAsync()
         {
-            var sampleProgram =
-@"Imports System
+            await VerifyVB.VerifyAnalyzerAsync(@"Imports System
 Imports Roslyn.Utilities
 
 Public Class A
@@ -859,8 +784,7 @@ Public Class A
     Public Sub Testing(Of T As Structure)()
         Dim value As T = new T()
     End Sub
-End Class";
-            await VerifyVB.VerifyAnalyzerAsync(sampleProgram);
+End Class");
         }
     }
 }

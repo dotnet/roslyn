@@ -21,167 +21,139 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
     [Fact]
     public async Task TestRecommendTypesWithoutPartial()
     {
-        var text = """
+        await VerifyItemIsAbsentAsync("""
             class C { }
 
             partial class $$
-            """;
-
-        await VerifyItemIsAbsentAsync(text, "C");
+            """, "C");
     }
 
     [Fact]
     public async Task TestPartialClass1()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             partial class C { }
 
             partial class $$
-            """;
-
-        await VerifyItemExistsAsync(text, "C");
+            """, "C");
     }
 
     [Fact]
     public async Task TestPartialGenericClass1()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             class Bar { }
 
             partial class C<Bar> { }
 
             partial class $$
-            """;
-
-        await VerifyItemExistsAsync(text, "C<Bar>");
+            """, "C<Bar>");
     }
 
     [Fact]
     public async Task TestPartialGenericClassCommitOnParen()
     {
-        var text = """
+        await VerifyProviderCommitAsync("""
             class Bar { }
 
             partial class C<Bar> { }
 
             partial class $$
-            """;
-
-        var expected = """
+            """, "C<Bar>", """
             class Bar { }
 
             partial class C<Bar> { }
 
             partial class C<
-            """;
-
-        await VerifyProviderCommitAsync(text, "C<Bar>", expected, '<');
+            """, '<');
     }
 
     [Fact]
     public async Task TestPartialGenericClassCommitOnTab()
     {
-        var text = """
+        await VerifyProviderCommitAsync("""
             class Bar { }
 
             partial class C<Bar> { }
 
             partial class $$
-            """;
-
-        var expected = """
+            """, "C<Bar>", """
             class Bar { }
 
             partial class C<Bar> { }
 
             partial class C<Bar>
-            """;
-
-        await VerifyProviderCommitAsync(text, "C<Bar>", expected, null);
+            """, null);
     }
 
     [Fact]
     public async Task TestPartialGenericClassCommitOnSpace()
     {
-        var text = """
+        await VerifyProviderCommitAsync("""
             partial class C<T> { }
 
             partial class $$
-            """;
-
-        var expected = """
+            """, "C<T>", """
             partial class C<T> { }
 
             partial class C<T> 
-            """;
-
-        await VerifyProviderCommitAsync(text, "C<T>", expected, ' ');
+            """, ' ');
     }
 
     [Fact]
     public async Task TestPartialClassWithModifiers()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             partial class C { }
 
             internal partial class $$
-            """;
-
-        await VerifyItemExistsAsync(text, "C");
+            """, "C");
     }
 
     [Fact]
     public async Task TestPartialStruct()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             partial struct S { }
 
             partial struct $$
-            """;
-
-        await VerifyItemExistsAsync(text, "S");
+            """, "S");
     }
 
     [Fact]
     public async Task TestPartialInterface()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             partial interface I { }
 
             partial interface $$
-            """;
-
-        await VerifyItemExistsAsync(text, "I");
+            """, "I");
     }
 
     [Fact]
     public async Task TestTypeKindMatches1()
     {
-        var text = """
+        await VerifyNoItemsExistAsync("""
             partial struct S { }
 
             partial class $$
-            """;
-
-        await VerifyNoItemsExistAsync(text);
+            """);
     }
 
     [Fact]
     public async Task TestTypeKindMatches2()
     {
-        var text = """
+        await VerifyNoItemsExistAsync("""
             partial class C { }
 
             partial struct $$
-            """;
-
-        await VerifyNoItemsExistAsync(text);
+            """);
     }
 
     [Fact]
     public async Task TestPartialClassesInSameNamespace()
     {
-        var text = """
+        await VerifyItemExistsAsync("""
             namespace N
             {
                 partial class Goo { }
@@ -191,143 +163,115 @@ public sealed class PartialTypeCompletionProviderTests : AbstractCSharpCompletio
             {
                 partial class $$
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "Goo");
+            """, "Goo");
     }
 
     [Fact]
     public async Task TestNotPartialClassesAcrossDifferentNamespaces()
     {
-        var text = """
+        await VerifyNoItemsExistAsync("""
             namespace N
             {
                 partial class Goo { }
             }
 
             partial class $$
-            """;
-
-        await VerifyNoItemsExistAsync(text);
+            """);
     }
 
     [Fact]
     public async Task TestNotPartialClassesInOuterNamespaces()
     {
-        var text = """
+        await VerifyNoItemsExistAsync("""
             partial class C { }
 
             namespace N
             {
                 partial class $$
             }
-            """;
-
-        await VerifyNoItemsExistAsync(text);
+            """);
     }
 
     [Fact]
     public async Task TestNotPartialClassesInOuterClass()
     {
-        var text = """
+        await VerifyNoItemsExistAsync("""
             partial class C
             {
                 partial class $$
             }
-            """;
-
-        await VerifyNoItemsExistAsync(text);
+            """);
     }
 
     [Fact]
     public async Task TestClassWithConstraint()
     {
-        var text = """
+        await VerifyProviderCommitAsync("""
             partial class C1<T> where T : System.Exception { }
 
             partial class $$
-            """;
-
-        var expected = """
+            """, "C1<T>", """
             partial class C1<T> where T : System.Exception { }
 
             partial class C1<T>
-            """;
-
-        await VerifyProviderCommitAsync(text, "C1<T>", expected, null);
+            """, null);
     }
 
     [Fact]
     public async Task TestDoNotSuggestCurrentMember()
     {
-        var text = @"partial class F$$";
-
-        await VerifyNoItemsExistAsync(text);
+        await VerifyNoItemsExistAsync(@"partial class F$$");
     }
 
     [Fact]
     public async Task TestNotInTrivia()
     {
-        var text = """
+        await VerifyNoItemsExistAsync("""
             partial class C1 { }
 
             partial class //$$
-            """;
-
-        await VerifyNoItemsExistAsync(text);
+            """);
     }
 
     [Fact]
     public async Task TestPartialClassWithReservedName()
     {
-        var text = """
+        await VerifyProviderCommitAsync("""
             partial class @class { }
 
             partial class $$
-            """;
-
-        var expected = """
+            """, "@class", """
             partial class @class { }
 
             partial class @class
-            """;
-
-        await VerifyProviderCommitAsync(text, "@class", expected, null);
+            """, null);
     }
 
     [Fact]
     public async Task TestPartialGenericClassWithReservedName()
     {
-        var text = """
+        await VerifyProviderCommitAsync("""
             partial class @class<T> { }
 
             partial class $$
-            """;
-
-        var expected = """
+            """, "@class<T>", """
             partial class @class<T> { }
 
             partial class @class<T>
-            """;
-
-        await VerifyProviderCommitAsync(text, "@class<T>", expected, null);
+            """, null);
     }
 
     [Fact]
     public async Task TestPartialGenericInterfaceWithVariance()
     {
-        var text = """
+        await VerifyProviderCommitAsync("""
             partial interface I<out T> { }
 
             partial interface $$
-            """;
-
-        var expected = """
+            """, "I<out T>", """
             partial interface I<out T> { }
 
             partial interface I<out T>
-            """;
-
-        await VerifyProviderCommitAsync(text, "I<out T>", expected, null);
+            """, null);
     }
 }

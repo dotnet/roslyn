@@ -20,33 +20,29 @@ public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharp
     [Fact]
     public async Task InvocationAfterOpenParen()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int, int) y = [|($$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 0, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
+            """, [new("(int, int)", currentParameterIndex: 0, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task InvocationWithNullableReferenceTypes()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (string?, string) y = [|($$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(string?, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("(string?, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/655607")]
     public async Task TestMissingTupleElement()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 void M()
@@ -54,61 +50,51 @@ public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharp
                     (a, ) = [|($$
             |]  }
             }
-            """;
-
-        await TestAsync(markup, [new("(object a, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("(object a, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task InvocationAfterOpenParen2()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int, int) y = [|($$)|]
             }
-            """;
-
-        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("(int, int)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task InvocationAfterComma1()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int, int) y = [|(1,$$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 1, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
+            """, [new("(int, int)", currentParameterIndex: 1, parameterDocumentation: "")], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task InvocationAfterComma2()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int, int) y = [|(1,$$)|]
             }
-            """;
-
-        await TestAsync(markup, [new("(int, int)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
+            """, [new("(int, int)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task ParameterIndexWithNameTyped()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int a, int b) y = [|(b: $$
             |]}
-            """;
-
-        await TestAsync(markup, [
+            """, [
             // currentParameterIndex only considers the position in the argument list 
             // and not names, hence passing 0 even though the controller will highlight
             // "int b" in the actual display
@@ -118,72 +104,62 @@ public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharp
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14277")]
     public async Task NestedTuple()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int a, (int b, int c)) y = [|(1, ($$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(int b, int c)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("(int b, int c)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task NestedTupleWhenNotInferred()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int, object) y = [|(1, ($$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
+            """, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task NestedTupleWhenNotInferred2()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int, object) y = [|(1, (2,$$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
+            """, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task NestedTupleWhenNotInferred3()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (int, object) y = [|(1, ($$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
+            """, [new("(int, object)", currentParameterIndex: 1)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task NestedTupleWhenNotInferred4()
     {
-        var markup = """
+        await TestAsync("""
             class C
             {
                 (object, object) y = [|(($$
             |]}
-            """;
-
-        await TestAsync(markup, [new("(object, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
+            """, [new("(object, object)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
 
     [Fact]
     public async Task MultipleOverloads()
     {
-        var markup = """
+        await TestAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -194,9 +170,7 @@ public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharp
                 static void Do1((int, int) i) { }
                 static void Do1((string, string) s) { }
             }
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("(int, int)", currentParameterIndex: 0),
             new("(string, string)", currentParameterIndex: 0)], usePreviousCharAsTrigger: true);
     }
@@ -204,7 +178,8 @@ public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharp
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14793")]
     public async Task DoNotCrashInLinkedFile()
     {
-        var markup = """
+        await VerifyItemWithReferenceWorkerAsync(
+            """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="SourceDocument"><![CDATA[
@@ -227,8 +202,6 @@ public sealed class TupleConstructionSignatureHelpProviderTests : AbstractCSharp
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                 </Project>
             </Workspace>
-            """;
-        await VerifyItemWithReferenceWorkerAsync(
-            markup, [new($"(int, string)", currentParameterIndex: 0)], hideAdvancedMembers: false);
+            """, [new($"(int, string)", currentParameterIndex: 0)], hideAdvancedMembers: false);
     }
 }

@@ -37,7 +37,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_Empty_None()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -67,9 +67,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -103,15 +101,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [Fact]
         public async Task ConfigureEditorconfig_RuleExists_None()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -144,9 +140,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -179,15 +173,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_InvalidHeader_None()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -219,9 +211,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -258,15 +248,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [Fact]
         public async Task ConfigureEditorconfig_MaintainOption_None()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -299,9 +287,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -334,15 +320,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_InvalidRule_None()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -375,9 +359,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -413,9 +395,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
     }
 
@@ -427,7 +407,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_Empty_Silent()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -457,9 +437,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -493,15 +471,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [Fact]
         public async Task ConfigureEditorconfig_RuleExists_Silent()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -533,9 +509,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -567,9 +541,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
     }
 
@@ -581,7 +553,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_Empty_Suggestion()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -611,9 +583,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -647,15 +617,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [Fact]
         public async Task ConfigureEditorconfig_RuleExists_Suggestion()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -688,9 +656,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -723,9 +689,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
     }
 
@@ -737,7 +701,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_Empty_Warning()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -767,9 +731,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -803,15 +765,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [Fact]
         public async Task ConfigureEditorconfig_RuleExists_Warning()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -843,9 +803,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -877,9 +835,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
     }
 
@@ -891,7 +847,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_Empty_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -921,9 +877,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                         <AnalyzerConfigDocument FilePath="z:\\.editorconfig"></AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -957,15 +911,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_RuleExists_CodeStyleBased_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -997,9 +949,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -1034,15 +984,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [Fact]
         public async Task ConfigureEditorconfig_RuleExists_SeverityBased_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -1074,9 +1022,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -1108,15 +1054,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [Fact]
         public async Task ConfigureEditorconfig_RuleExists_CodeStyleAndSeverityBased_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -1149,9 +1093,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                          <Document FilePath="z:\\file.cs">
@@ -1184,15 +1126,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_InvalidHeader_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -1224,9 +1164,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -1263,15 +1201,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_InvalidRule_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -1304,9 +1240,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\file.cs">
@@ -1342,15 +1276,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_ConcreteHeader_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\File.cs">
@@ -1383,9 +1315,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\File.cs">
@@ -1418,15 +1348,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_NestedDirectory_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1459,9 +1387,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1494,15 +1420,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_NestedDirectoryNestedHeader_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1535,9 +1459,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1570,15 +1492,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_NestedDirectoryIncorrectHeader_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1611,9 +1531,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1651,15 +1569,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_IncorrectExtension_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1692,9 +1608,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1732,15 +1646,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_HeaderRegex_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1773,9 +1685,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1808,15 +1718,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_HeaderAllFiles_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1849,9 +1757,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1884,15 +1790,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_MultipleHeaders_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1940,9 +1844,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/File.cs">
@@ -1990,15 +1892,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_RegexPartialMatch_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/Program.cs">
@@ -2030,9 +1930,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\ParentFolder/Program.cs">
@@ -2069,15 +1967,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_VerifyCaseInsensitive_Warning()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\PARENTfoldeR/ProGRAM.cs">
@@ -2109,9 +2005,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\PARENTfoldeR/ProGRAM.cs">
@@ -2143,15 +2037,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_DuplicateRule_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -2188,9 +2080,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -2227,15 +2117,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_ChooseBestHeader_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -2270,9 +2158,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -2310,15 +2196,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_ChooseBestHeaderReversed_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -2353,9 +2237,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program.cs">
@@ -2393,15 +2275,13 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ConfigureEditorconfig_DotFileName_Error()
         {
-            var input = """
+            await TestInRegularAndScriptAsync("""
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program/Test.file.cs">
@@ -2436,9 +2316,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            var expected = """
+                """, """
                 <Workspace>
                     <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                         <Document FilePath="z:\\Program/Test.file.cs">
@@ -2473,9 +2351,7 @@ public abstract partial class CodeStyleOptionBasedSeverityConfigurationTests : A
                 </AnalyzerConfigDocument>
                     </Project>
                 </Workspace>
-                """;
-
-            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+                """, CodeActionIndex);
         }
     }
 }

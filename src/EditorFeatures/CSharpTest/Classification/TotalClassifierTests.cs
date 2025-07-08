@@ -254,7 +254,7 @@ public sealed partial class TotalClassifierTests : AbstractCSharpClassifierTests
     [Theory, CombinatorialData]
     public async Task PartialDynamicWhere(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
             partial class partial<where> where where : partial<where>
             {
                 static dynamic dynamic<partial>()
@@ -262,8 +262,7 @@ public sealed partial class TotalClassifierTests : AbstractCSharpClassifierTests
                     return dynamic<dynamic>();
                 }
             }
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             Keyword("partial"),
             Keyword("class"),

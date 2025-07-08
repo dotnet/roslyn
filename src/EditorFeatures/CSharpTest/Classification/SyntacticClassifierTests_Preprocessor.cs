@@ -17,12 +17,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfTrue(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if true
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -34,12 +32,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfTrueWithComment(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if true //Goo
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -52,12 +48,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfFalse(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if false
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -69,12 +63,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfGOO(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if GOO
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -86,12 +78,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfNotTrue(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if !true
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -104,12 +94,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfNotFalse(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if !false
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -122,12 +110,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfNotGOO(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if !GOO
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -140,12 +126,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfTrueWithParens(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if (true)
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -159,12 +143,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfFalseWithParens(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if (false)
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -178,12 +160,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfGOOWithParens(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if (GOO)
             #endif
-            """;
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -197,13 +177,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfOrExpression(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if GOO || BAR
             #endif
-            """;
-
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -217,13 +194,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfAndExpression(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if GOO && BAR
             #endif
-            """;
-
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -237,13 +211,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfOrAndExpression(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if GOO || BAR && BAZ
             #endif
-            """;
-
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -259,13 +230,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfOrExpressionWithParens(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if (GOO || BAR)
             #endif
-            """;
-
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -281,13 +249,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfAndExpressionWithParens(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if (GOO && BAR)
             #endif
-            """;
-
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -303,13 +268,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfOrAndExpressionWithParens(TestHost testHost)
     {
-        var code =
-            """
+        await TestInMethodAsync("""
             #if GOO || (BAR && BAZ)
             #endif
-            """;
-
-        await TestInMethodAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -347,12 +309,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_If3(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             #if goo
             #endif
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -364,12 +324,10 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_If4(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             #if
             #endif
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -380,14 +338,12 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_If5(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             #if
             aoeu
             aoeu
             #endif
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -403,13 +359,11 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_If6(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             #if
             #else
             aeu
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -421,14 +375,12 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_If7(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             #if
             #else
             #endif
             aeu
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -667,14 +619,12 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_IfElseEndIfDirectives(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             #if true
             #elif DEBUG
             #else
             #endif
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("if"),
@@ -691,8 +641,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_DefineDirective(TestHost testHost)
     {
-        var code = @"#define GOO";
-        await TestAsync(code,
+        await TestAsync(@"#define GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("define"),
@@ -702,8 +651,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_DefineDirectiveWithCommentAndNoName(TestHost testHost)
     {
-        var code = @"#define //Goo";
-        await TestAsync(code,
+        await TestAsync(@"#define //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("define"),
@@ -713,8 +661,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_DefineDirectiveWithComment(TestHost testHost)
     {
-        var code = @"#define GOO //Goo";
-        await TestAsync(code,
+        await TestAsync(@"#define GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("define"),
@@ -725,9 +672,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_UndefDirectives(TestHost testHost)
     {
-        var code = @"#undef GOO";
-
-        await TestAsync(code,
+        await TestAsync(@"#undef GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("undef"),
@@ -737,8 +682,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_UndefDirectiveWithCommentAndNoName(TestHost testHost)
     {
-        var code = @"#undef //Goo";
-        await TestAsync(code,
+        await TestAsync(@"#undef //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("undef"),
@@ -748,8 +692,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_UndefDirectiveWithComment(TestHost testHost)
     {
-        var code = @"#undef GOO //Goo";
-        await TestAsync(code,
+        await TestAsync(@"#undef GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("undef"),
@@ -760,9 +703,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_ErrorDirective(TestHost testHost)
     {
-        var code = @"#error GOO";
-
-        await TestAsync(code,
+        await TestAsync(@"#error GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("error"),
@@ -772,9 +713,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_ErrorDirectiveWithComment(TestHost testHost)
     {
-        var code = @"#error GOO //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#error GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("error"),
@@ -784,9 +723,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_WarningDirective(TestHost testHost)
     {
-        var code = @"#warning GOO";
-
-        await TestAsync(code,
+        await TestAsync(@"#warning GOO",
             testHost,
             PPKeyword("#"),
             PPKeyword("warning"),
@@ -796,9 +733,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_WarningDirectiveWithComment(TestHost testHost)
     {
-        var code = @"#warning GOO //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#warning GOO //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("warning"),
@@ -808,9 +743,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineHidden(TestHost testHost)
     {
-        var code = @"#line hidden";
-
-        await TestAsync(code,
+        await TestAsync(@"#line hidden",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -820,9 +753,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineHiddenWithComment(TestHost testHost)
     {
-        var code = @"#line hidden //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#line hidden //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -833,9 +764,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineDefault(TestHost testHost)
     {
-        var code = @"#line default";
-
-        await TestAsync(code,
+        await TestAsync(@"#line default",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -845,9 +774,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineDefaultWithComment(TestHost testHost)
     {
-        var code = @"#line default //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#line default //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -858,9 +785,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineNumber(TestHost testHost)
     {
-        var code = @"#line 100";
-
-        await TestAsync(code,
+        await TestAsync(@"#line 100",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -870,9 +795,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineNumberWithComment(TestHost testHost)
     {
-        var code = @"#line 100 //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#line 100 //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -883,11 +806,9 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineNumberWithFilename(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
             #line 100 "C:\Goo"
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -900,9 +821,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineNumberWithFilenameAndComment(TestHost testHost)
     {
-        var code = @"#line 100 ""C:\Goo"" //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#line 100 ""C:\Goo"" //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -916,11 +835,9 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineSpanWithCharacterOffset(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
             #line (1, 2) - (3, 4) 5 "file.txt"
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -944,9 +861,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_LineSpanWithComment(TestHost testHost)
     {
-        var code = @"#line (1, 2) - (3, 4) """" //comment";
-
-        await TestAsync(code,
+        await TestAsync(@"#line (1, 2) - (3, 4) """" //comment",
             testHost,
             PPKeyword("#"),
             PPKeyword("line"),
@@ -970,9 +885,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableEnable(TestHost testHost)
     {
-        var code = @"#nullable enable";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable enable",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -982,9 +895,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableEnableWithComment(TestHost testHost)
     {
-        var code = @"#nullable enable //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable enable //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -995,9 +906,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableEnableWarnings(TestHost testHost)
     {
-        var code = @"#nullable enable warnings";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable enable warnings",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -1008,9 +917,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableEnableWarningsWithComment(TestHost testHost)
     {
-        var code = @"#nullable enable warnings //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable enable warnings //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -1022,9 +929,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableEnableAnnotations(TestHost testHost)
     {
-        var code = @"#nullable enable annotations";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable enable annotations",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -1035,9 +940,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableEnableAnnotationsWithComment(TestHost testHost)
     {
-        var code = @"#nullable enable annotations //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable enable annotations //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -1049,9 +952,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableDisable(TestHost testHost)
     {
-        var code = @"#nullable disable";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable disable",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -1061,9 +962,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_NullableDisableWithComment(TestHost testHost)
     {
-        var code = @"#nullable disable //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#nullable disable //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("nullable"),
@@ -1129,9 +1028,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningDisableOne(TestHost testHost)
     {
-        var code = @"#pragma warning disable 100";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning disable 100",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1143,9 +1040,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningDisableOneWithComment(TestHost testHost)
     {
-        var code = @"#pragma warning disable 100 //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning disable 100 //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1159,9 +1054,7 @@ public partial class SyntacticClassifierTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
     public async Task PP_PragmaWarningDisableAllWithComment(TestHost testHost)
     {
-        var code = @"#pragma warning disable //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning disable //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1173,9 +1066,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningRestoreOne(TestHost testHost)
     {
-        var code = @"#pragma warning restore 100";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning restore 100",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1187,9 +1078,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningRestoreOneWithComment(TestHost testHost)
     {
-        var code = @"#pragma warning restore 100 //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning restore 100 //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1203,9 +1092,7 @@ public partial class SyntacticClassifierTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/30783")]
     public async Task PP_PragmaWarningRestoreAllWithComment(TestHost testHost)
     {
-        var code = @"#pragma warning restore //Goo";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning restore //Goo",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1217,9 +1104,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningDisableTwo(TestHost testHost)
     {
-        var code = @"#pragma warning disable 100, 101";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning disable 100, 101",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1233,9 +1118,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningRestoreTwo(TestHost testHost)
     {
-        var code = @"#pragma warning restore 100, 101";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning restore 100, 101",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1249,9 +1132,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningDisableThree(TestHost testHost)
     {
-        var code = @"#pragma warning disable 100, 101, 102";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning disable 100, 101, 102",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1267,9 +1148,7 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData]
     public async Task PP_PragmaWarningRestoreThree(TestHost testHost)
     {
-        var code = @"#pragma warning restore 100, 101, 102";
-
-        await TestAsync(code,
+        await TestAsync(@"#pragma warning restore 100, 101, 102",
             testHost,
             PPKeyword("#"),
             PPKeyword("pragma"),
@@ -1285,16 +1164,14 @@ public partial class SyntacticClassifierTests
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
     public async Task PP_AfterNonWhiteSpaceOnLine(TestHost testHost)
     {
-        var code = """
+        await TestAsync("""
             if (#if false
             true
             #else
             false
             #endif
             ) { }
-            """;
-
-        await TestAsync(code,
+            """,
             testHost,
             ControlKeyword("if"),
             Punctuation.OpenParen,

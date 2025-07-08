@@ -1991,7 +1991,7 @@ parseOptions: TestOptions.Regular);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
     public async Task ExtractLocalFunctionCall()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main()
@@ -2000,8 +2000,7 @@ parseOptions: TestOptions.Regular);
                     [|Local();|]
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+            """, [FeaturesResources.Extract_local_function]);
     }
 
     [Fact]
@@ -2036,7 +2035,7 @@ parseOptions: TestOptions.Regular);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
     public async Task ExtractLocalFunctionCallWithCapture()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main(string[] args)
@@ -2045,8 +2044,7 @@ parseOptions: TestOptions.Regular);
                     [|Local();|]
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+            """, [FeaturesResources.Extract_local_function]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
@@ -3874,7 +3872,7 @@ class Program
     [Fact]
     public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3885,8 +3883,7 @@ class Program
                     }
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+            """, [FeaturesResources.Extract_local_function]);
     }
 
     [Fact]
@@ -4340,7 +4337,7 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4358,9 +4355,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4380,15 +4375,13 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4406,9 +4399,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4431,9 +4422,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
@@ -4539,7 +4528,7 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
     public async Task TestOnInvalidUsingStatement_MultipleStatements()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             class C
             {
                 void M()
@@ -4548,8 +4537,7 @@ class Program
                     using System;|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4563,8 +4551,7 @@ class Program
                     using System;
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]

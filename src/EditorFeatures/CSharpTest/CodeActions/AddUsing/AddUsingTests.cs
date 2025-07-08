@@ -2144,18 +2144,15 @@ class Program
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
     public async Task TestAttribute_ActionCount()
     {
-        var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
-        await TestActionCountAsync(input, 2);
+        await TestActionCountAsync(@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", 2);
     }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
     public async Task TestAttribute(TestHost testHost)
     {
-        var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
-
         await TestAsync(
-input,
+@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ",
 @"using System.Runtime.InteropServices;
 
 [assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
@@ -2697,52 +2694,41 @@ class Program
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
     public async Task TestAddUsingForCref()
     {
-        var initialText =
-@"/// <summary>
+        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
+
+        await TestAsync(@"/// <summary>
 /// This is just like <see cref='[|INotifyPropertyChanged|]'/>, but this one is mine.
 /// </summary>
-interface MyNotifyPropertyChanged { }";
-
-        var expectedText =
-@"using System.ComponentModel;
+interface MyNotifyPropertyChanged { }", @"using System.ComponentModel;
 
 /// <summary>
 /// This is just like <see cref='INotifyPropertyChanged'/>, but this one is mine.
 /// </summary>
-interface MyNotifyPropertyChanged { }";
-
-        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
-
-        await TestAsync(initialText, expectedText, parseOptions: options);
+interface MyNotifyPropertyChanged { }", parseOptions: options);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
     public async Task TestAddUsingForCref2()
     {
-        var initialText =
-@"/// <summary>
+        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
+
+        await TestAsync(@"/// <summary>
 /// This is just like <see cref='[|INotifyPropertyChanged.PropertyChanged|]'/>, but this one is mine.
 /// </summary>
-interface MyNotifyPropertyChanged { }";
-
-        var expectedText =
-@"using System.ComponentModel;
+interface MyNotifyPropertyChanged { }", @"using System.ComponentModel;
 
 /// <summary>
 /// This is just like <see cref='INotifyPropertyChanged.PropertyChanged'/>, but this one is mine.
 /// </summary>
-interface MyNotifyPropertyChanged { }";
-
-        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
-
-        await TestAsync(initialText, expectedText, parseOptions: options);
+interface MyNotifyPropertyChanged { }", parseOptions: options);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
     public async Task TestAddUsingForCref3()
     {
-        var initialText =
-@"namespace N1
+        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
+
+        await TestAsync(@"namespace N1
 {
     public class D { }
 }
@@ -2758,10 +2744,7 @@ public class MyClass
 /// <seealso cref='MyClass.explicit operator [|D(MyClass)|]'/>
 public class MyClass2
 {
-}";
-
-        var expectedText =
-@"using N1;
+}", @"using N1;
 
 namespace N1
 {
@@ -2779,18 +2762,15 @@ public class MyClass
 /// <seealso cref='MyClass.explicit operator D(MyClass)'/>
 public class MyClass2
 {
-}";
-
-        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
-
-        await TestAsync(initialText, expectedText, parseOptions: options);
+}", parseOptions: options);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
     public async Task TestAddUsingForCref4()
     {
-        var initialText =
-@"namespace N1
+        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
+
+        await TestAsync(@"namespace N1
 {
     public class D { }
 }
@@ -2801,10 +2781,7 @@ public class MyClass
     public void Test(N1.D i)
     {
     }
-}";
-
-        var expectedText =
-@"using N1;
+}", @"using N1;
 
 namespace N1
 {
@@ -2817,19 +2794,14 @@ public class MyClass
     public void Test(N1.D i)
     {
     }
-}";
-
-        var options = new CSharpParseOptions(documentationMode: DocumentationMode.Diagnose);
-
-        await TestAsync(initialText, expectedText, parseOptions: options);
+}", parseOptions: options);
     }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
     public async Task TestAddStaticType(TestHost testHost)
     {
-        var initialText =
-@"using System;
+        await TestAsync(@"using System;
 
 public static class Outer
 {
@@ -2842,10 +2814,7 @@ public static class Outer
 
 [[|My|]]
 class Test
-{}";
-
-        var expectedText =
-@"using System;
+{}", @"using System;
 using static Outer;
 
 public static class Outer
@@ -2859,17 +2828,14 @@ public static class Outer
 
 [My]
 class Test
-{}";
-
-        await TestAsync(initialText, expectedText, testHost);
+{}", testHost);
     }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
     public async Task TestAddStaticType2(TestHost testHost)
     {
-        var initialText =
-@"using System;
+        await TestAsync(@"using System;
 
 public static class Outer
 {
@@ -2884,10 +2850,7 @@ public static class Outer
 
 [[|My|]]
 class Test
-{}";
-
-        var expectedText =
-@"using System;
+{}", @"using System;
 using static Outer.Inner;
 
 public static class Outer
@@ -2903,9 +2866,7 @@ public static class Outer
 
 [My]
 class Test
-{}";
-
-        await TestAsync(initialText, expectedText, testHost);
+{}", testHost);
     }
 
     [Theory, CombinatorialData]
@@ -2954,8 +2915,7 @@ class Test
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
     public async Task TestAddStaticType4(TestHost testHost)
     {
-        var initialText =
-@"using System;
+        await TestAsync(@"using System;
 using Outer;
 
 public static class Outer
@@ -2971,10 +2931,7 @@ public static class Outer
 
 [[|My|]]
 class Test
-{}";
-
-        var expectedText =
-@"using System;
+{}", @"using System;
 using Outer;
 using static Outer.Inner;
 
@@ -2991,9 +2948,7 @@ public static class Outer
 
 [My]
 class Test
-{}";
-
-        await TestAsync(initialText, expectedText, testHost);
+{}", testHost);
     }
 
     [Theory, CombinatorialData]
@@ -3155,8 +3110,7 @@ namespace ns2
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public async Task TestAddConditionalAccessExpression(TestHost testHost)
     {
-        var initialText =
-@"<Workspace>
+        await TestAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -3177,10 +3131,7 @@ namespace Extensions
 }
         </Document>
     </Project>
-</Workspace> ";
-
-        var expectedText =
-@"
+</Workspace> ", @"
 using Extensions;
 
 public class C
@@ -3190,16 +3141,14 @@ public class C
         C x = a?.B();
     }
 }
-       ";
-        await TestAsync(initialText, expectedText, testHost);
+       ", testHost);
     }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public async Task TestAddConditionalAccessExpression2(TestHost testHost)
     {
-        var initialText =
-@"<Workspace>
+        await TestAsync(@"<Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
         <Document FilePath = ""Program"">
 public class C
@@ -3226,10 +3175,7 @@ namespace Extensions
 }
         </Document>
     </Project>
-</Workspace> ";
-
-        var expectedText =
-@"
+</Workspace> ", @"
 using Extensions;
 
 public class C
@@ -3245,8 +3191,7 @@ public class C
     {
     }
 }
-       ";
-        await TestAsync(initialText, expectedText, testHost);
+       ", testHost);
     }
 
     [Theory, CombinatorialData]
@@ -4214,54 +4159,43 @@ class A
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
     public async Task TestAddInsideLambda(TestHost testHost)
     {
-        var initialText =
-@"using System;
+        await TestAsync(@"using System;
 
 static void Main(string[] args)
 {
     Func<int> f = () => { [|List<int>|]. }
-}";
-
-        var expectedText =
-@"using System;
+}", @"using System;
 using System.Collections.Generic;
 
 static void Main(string[] args)
 {
     Func<int> f = () => { List<int>. }
-}";
-        await TestAsync(initialText, expectedText, testHost);
+}", testHost);
     }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
     public async Task TestAddInsideLambda2(TestHost testHost)
     {
-        var initialText =
-@"using System;
+        await TestAsync(@"using System;
 
 static void Main(string[] args)
 {
     Func<int> f = () => { [|List<int>|] }
-}";
-
-        var expectedText =
-@"using System;
+}", @"using System;
 using System.Collections.Generic;
 
 static void Main(string[] args)
 {
     Func<int> f = () => { List<int> }
-}";
-        await TestAsync(initialText, expectedText, testHost);
+}", testHost);
     }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
     public async Task TestAddInsideLambda3(TestHost testHost)
     {
-        var initialText =
-@"using System;
+        await TestAsync(@"using System;
 
 static void Main(string[] args)
 {
@@ -4270,10 +4204,7 @@ static void Main(string[] args)
         [|List<int>|].
         return a;
         };
-}";
-
-        var expectedText =
-@"using System;
+}", @"using System;
 using System.Collections.Generic;
 
 static void Main(string[] args)
@@ -4283,16 +4214,14 @@ static void Main(string[] args)
         List<int>.
         return a;
         };
-}";
-        await TestAsync(initialText, expectedText, testHost);
+}", testHost);
     }
 
     [Theory, CombinatorialData]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
     public async Task TestAddInsideLambda4(TestHost testHost)
     {
-        var initialText =
-@"using System;
+        await TestAsync(@"using System;
 
 static void Main(string[] args)
 {
@@ -4301,10 +4230,7 @@ static void Main(string[] args)
         [|List<int>|]
         return a;
         };
-}";
-
-        var expectedText =
-@"using System;
+}", @"using System;
 using System.Collections.Generic;
 
 static void Main(string[] args)
@@ -4314,8 +4240,7 @@ static void Main(string[] args)
         List<int>
         return a;
         };
-}";
-        await TestAsync(initialText, expectedText, testHost);
+}", testHost);
     }
 
     [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
@@ -6336,7 +6261,7 @@ class Program
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
     public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
     {
-        var initialWorkspace = @"
+        await TestMissingAsync(@"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -6360,9 +6285,7 @@ class Program
 }
 </Document>
     </Project>
-</Workspace>";
-
-        await TestMissingAsync(initialWorkspace, new TestParameters(
+</Workspace>", new TestParameters(
             options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
     }

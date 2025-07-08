@@ -64,7 +64,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
             [WorkItem("https://github.com/dotnet/roslyn/issues/6455")]
             public async Task TestFixMultipleInDocument()
             {
-                var input = """
+                await TestInRegularAndScriptAsync("""
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -105,9 +105,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                var expected = """
+                    """, """
                     <Workspace>
                         <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                             <Document>
@@ -156,9 +154,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
                             </Document>
                         </Project>
                     </Workspace>
-                    """;
-
-                await TestInRegularAndScriptAsync(input, expected);
+                    """);
             }
         }
 

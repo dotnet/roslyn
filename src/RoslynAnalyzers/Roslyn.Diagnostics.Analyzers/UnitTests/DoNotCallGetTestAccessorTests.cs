@@ -18,7 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Fact]
         public async Task DoNotCallGetTestAccessor_CSharpAsync()
         {
-            var source = @"class TestClass {
+            await VerifyCS.VerifyAnalyzerAsync(@"class TestClass {
     internal void Method()
     {
         _ = [|GetTestAccessor()|];
@@ -40,15 +40,13 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             _testClass = testClass;
         }
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+}");
         }
 
         [Fact]
         public async Task DoNotCallGetTestAccessor_VisualBasicAsync()
         {
-            var source = @"Class TestClass
+            await VerifyVB.VerifyAnalyzerAsync(@"Class TestClass
     Friend Sub Method()
         Dim a = [|GetTestAccessor()|]
         Dim b = [|Me.GetTestAccessor()|]
@@ -66,15 +64,13 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             _testClass = testClass
         End Sub
     End Structure
-End Class";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
+End Class");
         }
 
         [Fact]
         public async Task DoNotConstructTestAccessor_CSharpAsync()
         {
-            var source = @"class TestClass {
+            await VerifyCS.VerifyAnalyzerAsync(@"class TestClass {
     internal void Method()
     {
         _ = [|new TestAccessor(this)|];
@@ -95,15 +91,13 @@ End Class";
             _testClass = testClass;
         }
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+}");
         }
 
         [Fact]
         public async Task DoNotConstructTestAccessor_VisualBasicAsync()
         {
-            var source = @"Class TestClass
+            await VerifyVB.VerifyAnalyzerAsync(@"Class TestClass
     Friend Sub Method()
         Dim a = [|New TestAccessor(Me)|]
         Dim b = [|New TestAccessor(New TestClass())|]
@@ -120,15 +114,13 @@ End Class";
             _testClass = testClass
         End Sub
     End Structure
-End Class";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
+End Class");
         }
 
         [Fact]
         public async Task DoNotAccessTestAccessorStaticMember_CSharpAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 
 class TestClass {
@@ -169,15 +161,13 @@ class OtherClass {
         [|TestClass.TestAccessor.ExposedEvent|] += delegate { };
         [|TestClass.TestAccessor.ExposedMethod()|];
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+}");
         }
 
         [Fact]
         public async Task DoNotAccessTestAccessorStaticMember_VisualBasicAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 
 Class TestClass
@@ -215,9 +205,7 @@ Class OtherClass
         AddHandler [|TestClass.TestAccessor.ExposedEvent|], Sub(_1, _2) Return
         [|TestClass.TestAccessor.ExposedMethod()|]
     End Sub
-End Class";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
+End Class");
         }
     }
 }

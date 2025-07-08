@@ -18,7 +18,7 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     [Fact]
     public async Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
     {
-        var markup = """
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass$$
             {
@@ -26,15 +26,13 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
+            """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
     }
 
     [Fact]
     public async Task ReorderMethodParameters_InvokeOnField_ShouldFail()
     {
-        var markup = """
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             using System;
             class MyClass
             {
@@ -44,22 +42,19 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                 {
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
+            """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
     }
 
     [Fact]
     public async Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
     {
-        var markup = @"class C { void $$M() { } }";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: true);
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"class C { void $$M() { } }", expectedSuccess: true);
     }
 
     [Fact]
     public async Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
     {
-        var markup = """
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
             class C
             {
                 public static C $$operator +(C a, C b)
@@ -67,8 +62,6 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
                     return null;
                 }
             }
-            """;
-
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
+            """, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
     }
 }

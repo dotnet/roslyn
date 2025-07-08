@@ -1891,7 +1891,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55782")]
     public async Task TestLocalReferencedAcrossScopes1()
     {
-        var code = """
+        await TestMissingInRegularAndScriptAsync("""
             using System.Transactions;
 
             class BaseObject { }
@@ -1932,9 +1932,7 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
                     return 0;
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55782")]

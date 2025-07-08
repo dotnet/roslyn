@@ -717,7 +717,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27221")]
     public async Task WithRefIntrinsicTypeInForeach()
     {
-        var before = """
+        await TestInRegularAndScriptAsync("""
             class E
             {
                 public ref int Current => throw null;
@@ -729,8 +729,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     foreach (ref [|int|] x in this) { }
                 }
             }
-            """;
-        var after = """
+            """, """
             class E
             {
                 public ref int Current => throw null;
@@ -742,8 +741,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     foreach (ref var x in this) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+            """, options: ImplicitTypeEverywhere());
     }
 
     [Fact]
@@ -1875,8 +1873,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     [Fact]
     public async Task SuggestVarNotificationLevelSilent()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1885,8 +1882,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     [|C|] n1 = new C();
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeSilentEnforcement(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Hidden);
@@ -1895,8 +1891,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     [Fact]
     public async Task SuggestVarNotificationLevelInfo()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1905,8 +1900,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     [|int|] s = 5;
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Info);
@@ -1915,8 +1909,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     [Fact]
     public async Task SuggestVarNotificationLevelWarning()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1925,8 +1918,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     [|C[]|] n1 = new[] { new C() }; // type not apparent and not intrinsic
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning);
@@ -1935,8 +1927,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     [Fact]
     public async Task SuggestVarNotificationLevelError()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -1945,8 +1936,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                     [|C|] n1 = new C();
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ImplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Error);
@@ -1956,10 +1946,9 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     public async Task SuggestVarOnLocalWithIntrinsicArrayType()
     {
         var before = @"class C { static void M() { [|int[]|] s = new int[0]; } }";
-        var after = @"class C { static void M() { var s = new int[0]; } }";
 
         //The type is intrinsic and apparent
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+        await TestInRegularAndScriptAsync(before, @"class C { static void M() { var s = new int[0]; } }", options: ImplicitTypeEverywhere());
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent())); // Preference of intrinsic types dominates
     }
@@ -2021,9 +2010,7 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
     public async Task SuggestVarOnLocalWithNonApparentTupleType()
     {
         var before = @"class C { static void M(C c) { [|(int a, C b)|] s = (a: 1, b: c); } }";
-        var after = @"class C { static void M(C c) { var s = (a: 1, b: c); } }";
-
-        await TestInRegularAndScriptAsync(before, after, options: ImplicitTypeEverywhere());
+        await TestInRegularAndScriptAsync(before, @"class C { static void M(C c) { var s = (a: 1, b: c); } }", options: ImplicitTypeEverywhere());
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparentAndForIntrinsics()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeWhereApparent()));
     }
@@ -2237,8 +2224,7 @@ options: ImplicitTypeEverywhere());
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23893")]
     public async Task DoNotSuggestVarOnDeclarationExpressionSyntaxWithIntrinsicType()
     {
-        var before =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             class C
             {
                 static void M(out int x)
@@ -2246,8 +2232,7 @@ options: ImplicitTypeEverywhere());
                     M([|out int|] x);
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
+            """, new TestParameters(options: ImplicitTypeButKeepIntrinsics()));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22768")]

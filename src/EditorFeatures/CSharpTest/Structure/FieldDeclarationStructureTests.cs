@@ -18,16 +18,14 @@ public sealed class FieldDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task TestFieldWithComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span:// Goo
                     // Bar|}
                     $$int F;
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span", "// Goo ...", autoCollapse: true));
     }
 }

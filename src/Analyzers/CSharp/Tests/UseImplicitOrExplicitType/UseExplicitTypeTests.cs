@@ -353,7 +353,8 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                 }
             }
             """;
-        var after = """
+        // The type is apparent and not intrinsic
+        await TestInRegularAndScriptAsync(before, """
             class Program
             {
                 void Method()
@@ -361,9 +362,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                     Program[] x = new Program[0];
                 }
             }
-            """;
-        // The type is apparent and not intrinsic
-        await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            """, options: ExplicitTypeEverywhere());
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeExceptWhereApparent()));
     }
@@ -2345,8 +2344,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     [Fact]
     public async Task SuggestExplicitTypeNotificationLevelSilent()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2355,8 +2353,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                     [|var|] n1 = new C();
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ExplicitTypeSilentEnforcement(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Hidden);
@@ -2365,8 +2362,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     [Fact]
     public async Task SuggestExplicitTypeNotificationLevelInfo()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2375,8 +2371,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                     [|var|] s = 5;
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ExplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Info);
@@ -2385,8 +2380,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23907")]
     public async Task SuggestExplicitTypeNotificationLevelWarning()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2395,8 +2389,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                     [|var|] n1 = new[] { new C() }; // type not apparent and not intrinsic
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ExplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Warning);
@@ -2405,8 +2398,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
     [Fact]
     public async Task SuggestExplicitTypeNotificationLevelError()
     {
-        var source =
-            """
+        await TestDiagnosticInfoAsync("""
             using System;
             class C
             {
@@ -2415,8 +2407,7 @@ public sealed partial class UseExplicitTypeTests(ITestOutputHelper logger)
                     [|var|] n1 = new C();
                 }
             }
-            """;
-        await TestDiagnosticInfoAsync(source,
+            """,
             options: ExplicitTypeEnforcements(),
             diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
             diagnosticSeverity: DiagnosticSeverity.Error);

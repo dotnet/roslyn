@@ -455,15 +455,13 @@ public sealed class RefKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public async Task TestInCrefParameterList()
     {
-        var text = """
+        await VerifyKeywordAsync("""
             Class c
             {
                 /// <see cref="main($$"/>
                 void main(out goo) { }
             }
-            """;
-
-        await VerifyKeywordAsync(text);
+            """);
     }
 
     [Theory, CombinatorialData]

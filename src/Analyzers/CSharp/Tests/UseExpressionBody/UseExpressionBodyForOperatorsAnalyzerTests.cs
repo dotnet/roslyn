@@ -42,7 +42,7 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
     [Fact]
     public async Task TestUseExpressionBody1()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 private static C Bar() { return new C(); }
@@ -52,22 +52,20 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
                     Bar();
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 private static C Bar() { return new C(); }
 
                 public static C operator +(C c1, C c2) => Bar();
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseExpressionBody2()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 private static C Bar() { return new C(); }
@@ -77,22 +75,20 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
                     return Bar();
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 private static C Bar() { return new C(); }
 
                 public static C operator +(C c1, C c2) => Bar();
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseExpressionBody3()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -102,22 +98,20 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
                     throw new NotImplementedException();
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
             {
                 public static C operator +(C c1, C c2) => throw new NotImplementedException();
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseExpressionBody4()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -127,30 +121,27 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
                     throw new NotImplementedException(); // comment
                 }|}
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
             {
                 public static C operator +(C c1, C c2) => throw new NotImplementedException(); // comment
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBody1()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             class C
             {
                 private static C Bar() { return new C(); }
 
                 {|IDE0024:public static C operator +(C c1, C c2) => Bar();|}
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 private static C Bar() { return new C(); }
@@ -160,22 +151,20 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
                     return Bar();
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBody3()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System;
 
             class C
             {
                 {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|}
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -185,22 +174,20 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
                     throw new NotImplementedException();
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBody4()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System;
 
             class C
             {
                 {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|} // comment
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -210,7 +197,6 @@ public sealed class UseExpressionBodyForOperatorsAnalyzerTests
                     throw new NotImplementedException(); // comment
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 }

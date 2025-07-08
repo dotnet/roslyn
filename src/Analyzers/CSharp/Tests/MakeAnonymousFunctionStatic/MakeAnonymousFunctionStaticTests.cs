@@ -116,7 +116,7 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("delegate (int i) { }")]
     public async Task TestNoCaptures(string anonymousFunctionSyntax)
     {
-        var code = $$"""
+        await TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -130,9 +130,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        var fixedCode = $$"""
+            """, $$"""
             using System;
             
             class C
@@ -146,9 +144,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        await TestWithCSharp9Async(code, fixedCode);
+            """);
     }
 
     [Theory]
@@ -184,7 +180,7 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("delegate (int i) { return GetValueFromStaticMethod(); }")]
     public async Task TestNoCaptures_ReferencesStaticMethod(string anonymousFunctionSyntax)
     {
-        var code = $$"""
+        await TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -200,9 +196,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        var fixedCode = $$"""
+            """, $$"""
             using System;
             
             class C
@@ -218,9 +212,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        await TestWithCSharp9Async(code, fixedCode);
+            """);
     }
 
     [Theory]
@@ -254,7 +246,7 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("delegate (int i) { return i; }")]
     public async Task TestNoCaptures_SameFunctionParameterNameAsOuterParameterName(string anonymousFunctionSyntax)
     {
-        var code = $$"""
+        await TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -268,9 +260,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        var fixedCode = $$"""
+            """, $$"""
             using System;
             
             class C
@@ -284,9 +274,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        await TestWithCSharp9Async(code, fixedCode);
+            """);
     }
 
     [Theory]
@@ -321,7 +309,7 @@ public sealed class MakeAnonymousFunctionStaticTests
     [InlineData("delegate (int i) { return i; }")]
     public async Task TestNoCaptures_SameFunctionParameterNameAsOuterLocalName(string anonymousFunctionSyntax)
     {
-        var code = $$"""
+        await TestWithCSharp9Async($$"""
             using System;
             
             class C
@@ -336,9 +324,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        var fixedCode = $$"""
+            """, $$"""
             using System;
             
             class C
@@ -353,15 +339,13 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        await TestWithCSharp9Async(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestNestedLambdasWithNoCaptures()
     {
-        var code = """
+        await TestWithCSharp9Async("""
             using System;
             
             class C
@@ -378,9 +362,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        var fixedCode = """
+            """, """
             using System;
             
             class C
@@ -397,15 +379,13 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        await TestWithCSharp9Async(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestNestedAnonymousMethodsWithNoCaptures()
     {
-        var code = """
+        await TestWithCSharp9Async("""
             using System;
             
             class C
@@ -422,9 +402,7 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        var fixedCode = """
+            """, """
             using System;
             
             class C
@@ -441,8 +419,6 @@ public sealed class MakeAnonymousFunctionStaticTests
                 {
                 }
             }
-            """;
-
-        await TestWithCSharp9Async(code, fixedCode);
+            """);
     }
 }

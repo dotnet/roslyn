@@ -35,44 +35,37 @@ public sealed class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserD
     [Fact]
     public async Task TestNoSpellcheckForIfOnly2Characters()
     {
-        var text =
-@"class Goo
+        await TestMissingInRegularAndScriptAsync(@"class Goo
 {
     void Bar()
     {
         var a = new [|Fo|]
     }
-}";
-        await TestMissingInRegularAndScriptAsync(text);
+}");
     }
 
     [Fact]
     public async Task TestAfterNewExpression()
     {
-        var text =
-@"class Goo
+        await TestExactActionSetOfferedAsync(@"class Goo
 {
     void Bar()
     {
         void a = new [|Gooa|].ToString();
     }
-}";
-
-        await TestExactActionSetOfferedAsync(text, [String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo")]);
+}", [String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo")]);
     }
 
     [Fact]
     public async Task TestInLocalType()
     {
-        var text = @"class Foo
+        await TestExactActionSetOfferedAsync(@"class Foo
 {
     void Bar()
     {
         [|Foa|] a;
     }
-}";
-
-        await TestExactActionSetOfferedAsync(text,
+}",
         [
             String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo"),
             String.Format(FeaturesResources.Change_0_to_1, "Foa", "for")
@@ -82,7 +75,7 @@ public sealed class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserD
     [Fact]
     public async Task TestInFunc()
     {
-        var text = @"
+        await TestExactActionSetOfferedAsync(@"
 using System;
 
 class Goo
@@ -90,37 +83,34 @@ class Goo
     void Bar(Func<[|Goa|]> f)
     {
     }
-}";
-        await TestExactActionSetOfferedAsync(text,
+}",
             [String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")]);
     }
 
     [Fact]
     public async Task TestInExpression()
     {
-        var text = @"class Program
+        await TestExactActionSetOfferedAsync(@"class Program
 {
     void Main(string[] args)
     {
         var zzz = 2;
         var  y = 2 + [|zza|];
     }
-}";
-        await TestExactActionSetOfferedAsync(text, [String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")]);
+}", [String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")]);
     }
 
     [Fact]
     public async Task TestInTypeOfIsExpression()
     {
-        var text = @"using System;
+        await TestExactActionSetOfferedAsync(@"using System;
 public class Class1
 {
     void F()
     {
         if (x is [|Boolea|]) {}
     }
-}";
-        await TestExactActionSetOfferedAsync(text,
+}",
         [
             String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean"),
             String.Format(FeaturesResources.Change_0_to_1, "Boolea", "bool")
@@ -130,53 +120,45 @@ public class Class1
     [Fact]
     public async Task TestInvokeCorrectIdentifier()
     {
-        var text = @"class Program
+        await TestInRegularAndScriptAsync(@"class Program
 {
     void Main(string[] args)
     {
         var zzz = 2;
         var y = 2 + [|zza|];
     }
-}";
-
-        var expected = @"class Program
+}", @"class Program
 {
     void Main(string[] args)
     {
         var zzz = 2;
         var y = 2 + zzz;
     }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestAfterDot()
     {
-        var text = @"class Program
+        await TestInRegularAndScriptAsync(@"class Program
 {
     static void Main(string[] args)
     {
         Program.[|Mair|]
     }
-}";
-
-        var expected = @"class Program
+}", @"class Program
 {
     static void Main(string[] args)
     {
         Program.Main
     }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestNotInaccessibleProperty()
     {
-        var text = @"class Program
+        await TestMissingInRegularAndScriptAsync(@"class Program
 {
     void Main(string[] args)
     {
@@ -187,47 +169,37 @@ public class Class1
 class c
 {
     protected int member { get; }
-}";
-
-        await TestMissingInRegularAndScriptAsync(text);
+}");
     }
 
     [Fact]
     public async Task TestGenericName1()
     {
-        var text = @"class Goo<T>
+        await TestInRegularAndScriptAsync(@"class Goo<T>
 {
     private [|Goo2|]<T> x;
-}";
-
-        var expected = @"class Goo<T>
+}", @"class Goo<T>
 {
     private Goo<T> x;
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestGenericName2()
     {
-        var text = @"class Goo<T>
+        await TestInRegularAndScriptAsync(@"class Goo<T>
 {
     private [|Goo2|] x;
-}";
-
-        var expected = @"class Goo<T>
+}", @"class Goo<T>
 {
     private Goo x;
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestQualifiedName1()
     {
-        var text = @"class Program
+        await TestInRegularAndScriptAsync(@"class Program
 {
    private object x = new [|Goo2|].Bar
 }
@@ -237,9 +209,7 @@ class Goo
     class Bar
     {
     }
-}";
-
-        var expected = @"class Program
+}", @"class Program
 {
    private object x = new Goo.Bar
 }
@@ -249,15 +219,13 @@ class Goo
     class Bar
     {
     }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestQualifiedName2()
     {
-        var text = @"class Program
+        await TestInRegularAndScriptAsync(@"class Program
 {
     private object x = new Goo.[|Ba2|]
 }
@@ -267,9 +235,7 @@ class Goo
     public class Bar
     {
     }
-}";
-
-        var expected = @"class Program
+}", @"class Program
 {
     private object x = new Goo.Bar
 }
@@ -279,15 +245,13 @@ class Goo
     public class Bar
     {
     }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestMiddleOfDottedExpression()
     {
-        var text = @"class Program
+        await TestInRegularAndScriptAsync(@"class Program
 {
     void Main(string[] args)
     {
@@ -298,9 +262,7 @@ class Goo
 class c
 {
     public int member { get; }
-}";
-
-        var expected = @"class Program
+}", @"class Program
 {
     void Main(string[] args)
     {
@@ -311,15 +273,13 @@ class c
 class c
 {
     public int member { get; }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestNotForOverloadResolutionFailure()
     {
-        var text = @"class Program
+        await TestMissingInRegularAndScriptAsync(@"class Program
 {
     void Main(string[] args)
     {
@@ -333,15 +293,13 @@ class c
     int Method(int argument)
     {
     }
-}";
-
-        await TestMissingInRegularAndScriptAsync(text);
+}");
     }
 
     [Fact]
     public async Task TestHandlePredefinedTypeKeywordCorrectly()
     {
-        var text = @"
+        await TestInRegularAndScriptAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -352,9 +310,7 @@ class Program
     {
         [|Int3|] i;
     }
-}";
-
-        var expected = @"
+}", @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -365,15 +321,13 @@ class Program
     {
         int i;
     }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
     public async Task TestHandlePredefinedTypeKeywordCorrectly1()
     {
-        var text = @"
+        await TestInRegularAndScriptAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -384,9 +338,7 @@ class Program
     {
         [|Int3|] i;
     }
-}";
-
-        var expected = @"
+}", @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -397,15 +349,13 @@ class Program
     {
         Int32 i;
     }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected, index: 1);
+}", index: 1);
     }
 
     [Fact]
     public async Task TestOnGeneric()
     {
-        var text = @"
+        await TestInRegularAndScriptAsync(@"
 interface Enumerable<T>
 {
 }
@@ -416,9 +366,7 @@ class C
     {
         [|IEnumerable|]<int> x;
     }
-}";
-
-        var expected = @"
+}", @"
 interface Enumerable<T>
 {
 }
@@ -429,9 +377,7 @@ class C
     {
         Enumerable<int> x;
     }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact]
@@ -464,7 +410,7 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12990")]
     public async Task TestTrivia1()
     {
-        var text = @"
+        await TestInRegularAndScriptAsync(@"
 using System.Text;
 class C
 {
@@ -472,9 +418,7 @@ class C
   {
     /*leading*/ [|stringbuilder|] /*trailing*/ sb = null;
   }
-}";
-
-        var expected = @"
+}", @"
 using System.Text;
 class C
 {
@@ -482,9 +426,7 @@ class C
   {
     /*leading*/ StringBuilder /*trailing*/ sb = null;
   }
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/13345")]
@@ -599,21 +541,19 @@ class C
     [Fact]
     public async Task TestInExplicitInterfaceImplementation1()
     {
-        var text = @"
+        await TestMissingInRegularAndScriptAsync(@"
 using System;
 
 class Program : IDisposable
 {
     void IDisposable.[|Dspose|]
-}";
-
-        await TestMissingInRegularAndScriptAsync(text);
+}");
     }
 
     [Fact]
     public async Task TestInExplicitInterfaceImplementation2()
     {
-        var text = @"
+        await TestMissingInRegularAndScriptAsync(@"
 using System;
 
 interface IInterface
@@ -624,15 +564,13 @@ interface IInterface
 class Program : IInterface
 {
     void IInterface.[|Generi|]
-}";
-
-        await TestMissingInRegularAndScriptAsync(text);
+}");
     }
 
     [Fact]
     public async Task TestInExplicitInterfaceImplementation3()
     {
-        var text = @"
+        await TestMissingInRegularAndScriptAsync(@"
 using System;
 
 interface IInterface
@@ -643,9 +581,7 @@ interface IInterface
 class Program : IInterface
 {
     void IInterface.[|thi|]
-}";
-
-        await TestMissingInRegularAndScriptAsync(text);
+}");
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]

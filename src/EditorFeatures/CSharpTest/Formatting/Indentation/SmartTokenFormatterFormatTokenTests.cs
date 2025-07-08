@@ -24,10 +24,8 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
     public async Task EmptyFile1()
     {
-        var code = @"{";
-
         await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+            @"{",
             indentationLine: 0,
             expectedSpace: 0);
     }
@@ -35,21 +33,17 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task EmptyFile2()
     {
-        var code = @"}";
-
         await ExpectException_SmartTokenFormatterCloseBraceAsync(
-            code,
+            @"}",
             indentationLine: 0);
     }
 
     [Fact]
     public async Task Namespace1()
     {
-        var code = @"namespace NS
-{";
-
         await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+            @"namespace NS
+{",
             indentationLine: 1,
             expectedSpace: 0);
     }
@@ -57,11 +51,9 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Namespace2()
     {
-        var code = @"namespace NS
-}";
-
         await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+            @"namespace NS
+}",
             indentationLine: 1,
             expectedSpace: 0);
     }
@@ -69,12 +61,10 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Namespace3()
     {
-        var code = @"namespace NS
-{
-    }";
-
         await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+            @"namespace NS
+{
+    }",
             indentationLine: 2,
             expectedSpace: 0);
     }
@@ -82,13 +72,11 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Class1()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterOpenBraceAsync(
+            @"namespace NS
 {
     class Class
-    {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+    {",
             indentationLine: 3,
             expectedSpace: 4);
     }
@@ -96,13 +84,11 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Class2()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
-    }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+    }",
             indentationLine: 3,
             expectedSpace: 4);
     }
@@ -110,14 +96,12 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Class3()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+        }",
             indentationLine: 4,
             expectedSpace: 4);
     }
@@ -125,15 +109,13 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Method1()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterOpenBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
-        {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+        {",
             indentationLine: 5,
             expectedSpace: 8);
     }
@@ -141,15 +123,13 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Method2()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+        }",
             indentationLine: 5,
             expectedSpace: 8);
     }
@@ -157,16 +137,14 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Method3()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
         {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+            }",
             indentationLine: 6,
             expectedSpace: 8);
     }
@@ -174,15 +152,13 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Property1()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterOpenBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         int Goo
-            {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+            {",
             indentationLine: 5,
             expectedSpace: 8);
     }
@@ -190,16 +166,14 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Property2()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         int Goo
         {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+            }",
             indentationLine: 6,
             expectedSpace: 8);
     }
@@ -207,15 +181,13 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Event1()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterOpenBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         event EventHandler Goo
-            {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+            {",
             indentationLine: 5,
             expectedSpace: 8);
     }
@@ -223,16 +195,14 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Event2()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         event EventHandler Goo
         {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+            }",
             indentationLine: 6,
             expectedSpace: 8);
     }
@@ -240,15 +210,13 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Indexer1()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterOpenBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         int this[int index]
-            {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+            {",
             indentationLine: 5,
             expectedSpace: 8);
     }
@@ -256,16 +224,14 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Indexer2()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         int this[int index]
         {
-            }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+            }",
             indentationLine: 6,
             expectedSpace: 8);
     }
@@ -273,16 +239,14 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Block1()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterOpenBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
         {
-        {";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            code,
+        {",
             indentationLine: 6,
             expectedSpace: 12);
     }
@@ -290,16 +254,14 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Block2()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
         }
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+        }",
             indentationLine: 6,
             expectedSpace: 0);
     }
@@ -307,17 +269,15 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Block3()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
         {
             {
-                }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+                }",
             indentationLine: 7,
             expectedSpace: 12);
     }
@@ -325,17 +285,15 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task Block4()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
         {
                 {
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+        }",
             indentationLine: 7,
             expectedSpace: 12);
     }
@@ -343,34 +301,31 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact]
     public async Task ArrayInitializer1()
     {
-        var code = @"namespace NS
-{
-    class Class
-    {
-        void Method(int i)
-        {
-            var a = new []          {
-        }";
-
-        var expected = @"namespace NS
+        await AssertSmartTokenFormatterOpenBraceAsync(
+            @"namespace NS
 {
     class Class
     {
         void Method(int i)
         {
             var a = new [] {
-        }";
-
-        await AssertSmartTokenFormatterOpenBraceAsync(
-            expected,
-            code,
+        }",
+            @"namespace NS
+{
+    class Class
+    {
+        void Method(int i)
+        {
+            var a = new []          {
+        }",
             indentationLine: 6);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
     public async Task ArrayInitializer3()
     {
-        var code = @"namespace NS
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"namespace NS
 {
     class Class
     {
@@ -380,10 +335,7 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
             {
                 {1,1}, {2,2}
 }
-        }";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+        }",
             indentationLine: 9,
             expectedSpace: 12);
     }
@@ -391,16 +343,14 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543142")]
     public async Task EnterWithTrailingWhitespace()
     {
-        var code = @"class Class
+        await AssertSmartTokenFormatterCloseBraceAsync(
+            @"class Class
 {
     void Method(int i)
     {
         var a = new {
  };
-";
-
-        await AssertSmartTokenFormatterCloseBraceAsync(
-            code,
+",
             indentationLine: 5,
             expectedSpace: 8);
     }
@@ -408,7 +358,7 @@ public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBa
     [Fact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
     public async Task OpenBraceWithBaseIndentation()
     {
-        var markup = @"
+        await AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(@"
 class C
 {
     void M()
@@ -420,14 +370,13 @@ $${
 #line default
 #line hidden|]
     }
-}";
-        await AssertSmartTokenFormatterOpenBraceWithBaseIndentationAsync(markup, baseIndentation: 7, expectedIndentation: 11);
+}", baseIndentation: 7, expectedIndentation: 11);
     }
 
     [Fact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
     public async Task CloseBraceWithBaseIndentation()
     {
-        var markup = @"
+        await AssertSmartTokenFormatterCloseBraceWithBaseIndentation(@"
 class C
 {
     void M()
@@ -439,8 +388,7 @@ $$}
 #line default
 #line hidden|]
     }
-}";
-        await AssertSmartTokenFormatterCloseBraceWithBaseIndentation(markup, baseIndentation: 7, expectedIndentation: 11);
+}", baseIndentation: 7, expectedIndentation: 11);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766159")]

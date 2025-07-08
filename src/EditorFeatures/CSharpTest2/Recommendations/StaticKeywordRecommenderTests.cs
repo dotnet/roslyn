@@ -378,13 +378,11 @@ public sealed class StaticKeywordRecommenderTests : KeywordRecommenderTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
     public async Task TestNotBetweenUsings()
     {
-        var source = """
+        await VerifyWorkerAsync("""
             using Goo;
             $$
             using Bar;
-            """;
-
-        await VerifyWorkerAsync(source, absent: true);
+            """, absent: true);
 
         // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
         //await VerifyWorkerAsync(source, absent: true, Options.Script);
@@ -393,13 +391,11 @@ public sealed class StaticKeywordRecommenderTests : KeywordRecommenderTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
     public async Task TestNotBetweenGlobalUsings_01()
     {
-        var source = """
+        await VerifyWorkerAsync("""
             global using Goo;
             $$
             using Bar;
-            """;
-
-        await VerifyWorkerAsync(source, absent: true);
+            """, absent: true);
 
         // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
         //await VerifyWorkerAsync(source, absent: true, Options.Script);
@@ -408,13 +404,11 @@ public sealed class StaticKeywordRecommenderTests : KeywordRecommenderTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32214")]
     public async Task TestNotBetweenGlobalUsings_02()
     {
-        var source = """
+        await VerifyWorkerAsync("""
             global using Goo;
             $$
             global using Bar;
-            """;
-
-        await VerifyWorkerAsync(source, absent: true);
+            """, absent: true);
 
         // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
         //await VerifyWorkerAsync(source, absent: true, Options.Script);

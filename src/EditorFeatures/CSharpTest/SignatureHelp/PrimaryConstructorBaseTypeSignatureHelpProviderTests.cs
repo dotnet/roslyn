@@ -22,15 +22,13 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact]
     public async Task PrimaryConstructorBaseType_FirstParameter()
     {
-        var markup = """
+        await TestAsync("""
             record Base(int Identifier)
             {
                 private Base(string ignored) : this(1, 2) { }
             }
             record Derived(int Other) : [|Base($$1|]);
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 0),
             new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
     }
@@ -38,29 +36,25 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact]
     public async Task PrimaryConstructorClassBaseType_FirstParameter()
     {
-        var markup = """
+        await TestAsync("""
             class Base(int Identifier)
             {
                 private Base(string ignored) : this(1, 2) { }
             }
             class Derived(int Other) : [|Base($$1|]);
-            """;
-
-        await TestAsync(markup, [new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
+            """, [new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
     }
 
     [Fact]
     public async Task PrimaryConstructorBaseType_SecondParameter()
     {
-        var markup = """
+        await TestAsync("""
             record Base(int Identifier1, int Identifier2)
             {
                 protected Base(string name) : this(1, 2) { }
             }
             record Derived(int Other) : [|Base(1, $$2|]);
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 1),
             new("Base(string name)", string.Empty, null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
@@ -69,15 +63,13 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact]
     public async Task PrimaryConstructorClassBaseType_SecondParameter()
     {
-        var markup = """
+        await TestAsync("""
             class Base(int Identifier1, int Identifier2)
             {
                 protected Base(string name) : this(1, 2) { }
             }
             class Derived(int Other) : [|Base(1, $$2|]);
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("Base(string name)", string.Empty, null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
     }
@@ -85,16 +77,14 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact]
     public async Task CommentOnBaseConstructor()
     {
-        var markup = """
+        await TestAsync("""
             record Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
                 protected Base(string name) : this(1, 2) { }
             }
             record Derived(int Other) : [|Base(1, $$2|]);
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 1),
             new("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
@@ -103,16 +93,14 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact]
     public async Task CommentOnClassBaseConstructor()
     {
-        var markup = """
+        await TestAsync("""
             class Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
                 protected Base(string name) : this(1, 2) { }
             }
             class Derived(int Other) : [|Base(1, $$2|]);
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("Base(string name)", "Summary for constructor", null, currentParameterIndex: 1),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 1, isSelected: true)]);
     }
@@ -120,7 +108,7 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact]
     public async Task CommentOnBaseConstructorAndParameters()
     {
-        var markup = """
+        await TestAsync("""
             record Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
@@ -128,9 +116,7 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
                 protected Base(string name) : this(1, 2) { }
             }
             record Derived(int Other) : [|Base($$1, 2|]);
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("Base(Base original)", string.Empty, null, currentParameterIndex: 0),
             new("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
@@ -139,7 +125,7 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact]
     public async Task CommentOnClassBaseConstructorAndParameters()
     {
-        var markup = """
+        await TestAsync("""
             class Base(int Identifier1, int Identifier2)
             {
                 /// <summary>Summary for constructor</summary>
@@ -147,9 +133,7 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
                 protected Base(string name) : this(1, 2) { }
             }
             class Derived(int Other) : [|Base($$1, 2|]);
-            """;
-
-        await TestAsync(markup, [
+            """, [
             new("Base(string name)", "Summary for constructor", "Param name", currentParameterIndex: 0),
             new("Base(int Identifier1, int Identifier2)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
     }
@@ -157,13 +141,11 @@ public sealed class PrimaryConstructorBaseTypeSignatureHelpProviderTests : Abstr
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70106")]
     public async Task PrimaryConstructorBaseType_AbstractBaseType()
     {
-        var markup = """
+        await TestAsync("""
             abstract class Base(int Identifier)
             {
             }
             class Derived(int Other) : [|Base($$1|]);
-            """;
-
-        await TestAsync(markup, [new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
+            """, [new("Base(int Identifier)", string.Empty, null, currentParameterIndex: 0, isSelected: true)]);
     }
 }

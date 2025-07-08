@@ -112,7 +112,7 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllInSolution_RemoveThis()
     {
-        var input = """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -233,9 +233,7 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -356,9 +354,7 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScriptAsync(input, expected);
+            """);
     }
 
     [Fact]
@@ -366,7 +362,15 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
     public async Task TestFixAllInSolution_RemoveMemberAccessQualification()
     {
-        var input = """
+        var options =
+            new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion },
+                { CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion },
+            };
+
+        await TestInRegularAndScriptAsync(
+            initialMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -401,9 +405,8 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """,
+            expectedMarkup: """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document>
@@ -438,18 +441,7 @@ public sealed partial class SimplifyThisOrMeTests : AbstractCSharpDiagnosticProv
                     </Document>
                 </Project>
             </Workspace>
-            """;
-
-        var options =
-            new OptionsCollection(GetLanguage())
-            {
-                { CodeStyleOptions2.QualifyPropertyAccess, false, NotificationOption2.Suggestion },
-                { CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Suggestion },
-            };
-
-        await TestInRegularAndScriptAsync(
-            initialMarkup: input,
-            expectedMarkup: expected,
+            """,
             options: options);
     }
 }

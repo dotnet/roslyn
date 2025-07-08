@@ -176,12 +176,10 @@ public sealed class SymbolCompletionProviderTests_NoInteractive : AbstractCSharp
     [Fact]
     public async Task InvalidLocation13()
     {
-        var content = """
+        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
             [Console.$$]
             class CL {}
-            """;
-
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
+            """), @"Beep");
     }
 
     [Fact]
@@ -191,13 +189,12 @@ public sealed class SymbolCompletionProviderTests_NoInteractive : AbstractCSharp
     [Fact]
     public async Task InvalidLocation15()
     {
-        var content = """
+        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
             class CL {
                 [Console.$$]
                 void Method() {}
             }
-            """;
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Beep");
+            """), @"Beep");
     }
 
     [Fact]

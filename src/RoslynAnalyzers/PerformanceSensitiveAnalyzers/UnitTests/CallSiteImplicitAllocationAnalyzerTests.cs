@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysisPerformanceSensitiveAnalyzers.UnitTests
         [Fact]
         public async Task CallSiteImplicitAllocation_ParamAsync()
         {
-            var sampleProgram =
-@"using System;
+            await VerifyCS.VerifyAnalyzerAsync(@"using System;
 using Roslyn.Utilities;
 
 public class MyClass
@@ -44,9 +43,7 @@ public class MyClass
     public void ParamsWithObjects(params object[] args)
     {
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
                 // Test0.cs(11,9): warning HAA0101: This call site is calling into a function with a 'params' parameter. This results in an array allocation
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(11, 9),
@@ -102,7 +99,7 @@ public class MyClass
         [Fact]
         public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStructAsync()
         {
-            var sampleProgram = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -126,9 +123,7 @@ public struct OverrideToHashCode
     {
         return -1;
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
                 // Test0.cs(10,22): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(10, 22));
@@ -138,7 +133,7 @@ public struct OverrideToHashCode
         [Fact]
         public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCallsAsync()
         {
-            var sampleProgram = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -149,14 +144,13 @@ public class MyClass
     {
         var t = System.Enum.GetUnderlyingType(typeof(System.StringComparison));
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForNonVirtualCallsAsync()
         {
-            var sampleProgram = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.IO;
 using Roslyn.Utilities;
 
@@ -168,15 +162,13 @@ public class MyClass
         FileAttributes attr = FileAttributes.System;
         attr.HasFlag (FileAttributes.Directory);
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+}");
         }
 
         [Fact]
         public async Task ParamsIsPrecededByOptionalParametersAsync()
         {
-            var sampleProgram = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System.IO;
 using Roslyn.Utilities;
 
@@ -192,9 +184,7 @@ public class MyClass
     void Fun2(int i = 0, params object[] args)
     {
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+}",
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ParamsParameterRule).WithLocation(0));
         }
 
@@ -202,7 +192,7 @@ public class MyClass
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
         public async Task Calling_non_overridden_virtual_methods_on_value_typesAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using Roslyn.Utilities;
 
@@ -215,8 +205,7 @@ public class MyClass
     {
         E.A.GetHashCode();
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(source,
+}",
                 // Test0.cs(12,9): warning HAA0102: Non-overridden virtual method call on a value type adds a boxing or constrained instruction
 #pragma warning disable RS0030 // Do not use banned APIs
                 VerifyCS.Diagnostic(CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule).WithLocation(12, 9));

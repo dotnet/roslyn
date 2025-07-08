@@ -19,23 +19,21 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
     [Fact]
     public async Task TestNamespace()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint:$$namespace N{|textspan:
                     {
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]
     public async Task TestNamespaceWithLeadingComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|span1:// Goo
@@ -44,9 +42,7 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                     {
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("span1", "// Goo ...", autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
@@ -54,7 +50,7 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
     [Fact]
     public async Task TestNamespaceWithNestedUsings()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -63,9 +59,7 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                         using System.Linq;|}|}
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -73,7 +67,7 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
     [Fact]
     public async Task TestNamespaceWithNestedUsingsWithLeadingComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -84,9 +78,7 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                         using System.Linq;|}|}
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true),
             Region("textspan3", "hint3", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
@@ -95,7 +87,7 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
     [Fact]
     public async Task TestNamespaceWithNestedComments()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     {|hint1:$$namespace N{|textspan1:
@@ -104,9 +96,7 @@ public sealed class NamespaceDeclarationStructureTests : AbstractCSharpSyntaxNod
                         // Bar|}
                     }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("span2", "// Goo ...", autoCollapse: true));
     }

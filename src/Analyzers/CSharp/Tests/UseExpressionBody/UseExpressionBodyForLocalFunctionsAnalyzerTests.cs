@@ -56,7 +56,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
     [Fact]
     public async Task TestUseExpressionBody1()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -69,8 +69,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -80,14 +79,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     void Bar() => Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseExpressionBody2()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -100,8 +98,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -111,14 +108,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseExpressionBody3()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -131,8 +127,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -142,14 +137,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => throw new NotImplementedException();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseExpressionBody4()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -162,8 +156,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -173,8 +166,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => throw new NotImplementedException(); // comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
@@ -200,7 +192,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
     [Fact]
     public async Task TestUseExpressionBodyWhenOnSingleLine()
     {
-        var code = """
+        await TestWithUseExpressionBodyWhenOnSingleLine("""
             class C
             {
                 void Goo()
@@ -211,8 +203,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Goo()
@@ -220,14 +211,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => 1 + 2 + 3;
                 }
             }
-            """;
-        await TestWithUseExpressionBodyWhenOnSingleLine(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBody1()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             class C
             {
                 void Test() { }
@@ -237,8 +227,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:void Bar() => Test();|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -251,14 +240,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBody2()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             class C
             {
                 int Test() { return 0; }
@@ -268,8 +256,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:int Bar() => Test();|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -282,14 +269,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBody3()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System;
 
             class C
@@ -299,8 +285,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:int Bar() => throw new NotImplementedException();|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -313,14 +298,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBody4()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System;
 
             class C
@@ -330,8 +314,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     {|IDE0061:int Bar() => throw new NotImplementedException();|} // comment
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -344,14 +327,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestComments1()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -365,8 +347,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -378,14 +359,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                         Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestComments2()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -399,8 +379,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -412,14 +391,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                         Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestComments3()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -435,8 +413,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -450,14 +427,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                         throw Test();
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestComments4()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 void Test() { }
@@ -470,8 +446,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void Test() { }
@@ -481,14 +456,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     void Bar() => Test(); // Comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestComments5()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 int Test() { return 0; }
@@ -501,8 +475,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 int Test() { return 0; }
@@ -512,14 +485,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     int Bar() => Test(); // Comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestComments6()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             using System;
 
             class C
@@ -534,8 +506,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System;
 
             class C
@@ -547,14 +518,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     void Bar() => throw Test(); // Comment
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestDirectives1()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             #define DEBUG
             using System;
 
@@ -570,8 +540,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             #define DEBUG
             using System;
 
@@ -586,14 +555,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestDirectives2()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             #define DEBUG
             using System;
 
@@ -611,8 +579,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }|}
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             #define DEBUG
             using System;
 
@@ -629,14 +596,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBodyAsync1()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -648,8 +614,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -664,14 +629,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBodyAsync2()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -683,8 +647,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -699,14 +662,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Test() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBodyAsync3()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -718,8 +680,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -734,14 +695,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
+            """, ReferenceAssemblies.NetStandard.NetStandard21);
     }
 
     [Fact]
     public async Task TestUseBlockBodyAsync4()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -753,8 +713,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task<int> Bar() { return Task.FromResult(0); }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -769,14 +728,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task<int> Bar() { return Task.FromResult(0); }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBodyAsync5()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             using System.Threading.Tasks;
 
             class C
@@ -788,8 +746,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        var fixedCode = """
+            """, """
             using System.Threading.Tasks;
 
             class C
@@ -804,14 +761,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
 
                 Task Bar() { return Task.CompletedTask; }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseBlockBodyNestedLocalFunction()
     {
-        var code = """
+        await TestWithUseBlockBody("""
             class C
             {
                 void NestedTest() { }
@@ -824,8 +780,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void NestedTest() { }
@@ -841,14 +796,13 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseBlockBody(code, fixedCode);
+            """);
     }
 
     [Fact]
     public async Task TestUseExpressionBodyNestedLocalFunction()
     {
-        var code = """
+        await TestWithUseExpressionBody("""
             class C
             {
                 void NestedTest() { }
@@ -864,8 +818,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             class C
             {
                 void NestedTest() { }
@@ -878,8 +831,7 @@ public sealed class UseExpressionBodyForLocalFunctionsAnalyzerTests
                     }
                 }
             }
-            """;
-        await TestWithUseExpressionBody(code, fixedCode);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57570")]

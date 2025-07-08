@@ -1701,7 +1701,8 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                 }
             }
             """;
-        var expectedCode = """
+        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+        await TestInRegularAndScript1Async(code, """
             class C
             {
                 public static void Main()
@@ -1715,9 +1716,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-        await TestInRegularAndScript1Async(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
+            """, CodeActionIndexWhenExtractMethodMissing);
     }
 
     [Fact]
@@ -1852,7 +1851,8 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                 }
             }
             """;
-        var expectedCode = """
+        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
+        await TestInRegularAndScript1Async(code, """
             class C
             {
                 public static void Main(string[] args)
@@ -1866,9 +1866,7 @@ parseOptions: TestOptions.Regular, index: CodeActionIndex);
                     }
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-        await TestInRegularAndScript1Async(code, expectedCode, CodeActionIndexWhenExtractMethodMissing);
+            """, CodeActionIndexWhenExtractMethodMissing);
     }
 
     [Fact]
@@ -4109,7 +4107,7 @@ class Program
     [Fact]
     public async Task TestPartialSelection_CSharp5NotApplicable()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -4118,14 +4116,13 @@ class Program
                     System.Console.WriteLine([|b != true|] ? b = true : b = false);
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
+            """, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)));
     }
 
     [Fact]
     public async Task TestPartialSelection_CSharp6NotApplicable()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -4134,8 +4131,7 @@ class Program
                     System.Console.WriteLine([|b != true|] ? b = true : b = false);
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)));
+            """, [FeaturesResources.Extract_method], new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)));
     }
 
     [Fact]
@@ -4170,7 +4166,7 @@ class Program
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public async Task TestEditorconfigSetting_StaticLocalFunction_True()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4188,9 +4184,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4213,15 +4207,13 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public async Task TestEditorconfigSetting_StaticLocalFunction_False()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4239,9 +4231,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4264,15 +4254,13 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4290,9 +4278,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4312,15 +4298,13 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
     public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4338,9 +4322,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4363,9 +4345,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
@@ -4626,7 +4606,7 @@ class Program
     [WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
     public async Task TestOnInvalidUsingStatement_MultipleStatements()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             class C
             {
                 void M()
@@ -4635,8 +4615,7 @@ class Program
                     using System;|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4650,15 +4629,14 @@ class Program
                     }
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public async Task TestOnLocalFunctionHeader_Parameter()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             using System;
             class C
             {
@@ -4672,8 +4650,7 @@ class Program
                     });
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
             class C
             {
@@ -4692,15 +4669,14 @@ class Program
                     }
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public async Task TestOnLocalFunctionHeader_Parameter_ExpressionBody()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             using System;
             class C
             {
@@ -4712,8 +4688,7 @@ class Program
                     });
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
             class C
             {
@@ -4730,15 +4705,14 @@ class Program
                     }
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public async Task TestOnLocalFunctionHeader_Identifier()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             using System;
             class C
             {
@@ -4752,8 +4726,7 @@ class Program
                     });
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
             class C
             {
@@ -4772,15 +4745,14 @@ class Program
                     }
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/40555")]
     public async Task TestOnLocalFunctionHeader_Identifier_ExpressionBody()
     {
-        var input = """
+        await TestInRegularAndScript1Async("""
             using System;
             class C
             {
@@ -4792,8 +4764,7 @@ class Program
                     });
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
             class C
             {
@@ -4810,8 +4781,7 @@ class Program
                     }
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected, CodeActionIndex);
+            """, CodeActionIndex);
     }
 
     [Fact]
@@ -4947,35 +4917,33 @@ class Program
     [Fact]
     public async Task TestMissingInExpressionBodyProperty()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 int field;
 
                 public int Blah => [|this.field|];
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
+            """, [FeaturesResources.Extract_method]);
     }
 
     [Fact]
     public async Task TestMissingInExpressionBodyIndexer()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 int field;
 
                 public int this[int i] => [|this.field|];
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
+            """, [FeaturesResources.Extract_method]);
     }
 
     [Fact]
     public async Task TestMissingInExpressionBodyPropertyGetAccessor()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 int field;
@@ -4986,14 +4954,13 @@ class Program
                     set => field = value;
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
+            """, [FeaturesResources.Extract_method]);
     }
 
     [Fact]
     public async Task TestMissingInExpressionBodyPropertySetAccessor()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 int field;
@@ -5004,14 +4971,13 @@ class Program
                     set => field = [|value|];
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
+            """, [FeaturesResources.Extract_method]);
     }
 
     [Fact]
     public async Task TestMissingInExpressionBodyIndexerGetAccessor()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 int field;
@@ -5022,14 +4988,13 @@ class Program
                     set => field = value;
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
+            """, [FeaturesResources.Extract_method]);
     }
 
     [Fact]
     public async Task TestMissingInExpressionBodyIndexerSetAccessor()
     {
-        var code = """
+        await TestExactActionSetOfferedAsync("""
             class Program
             {
                 int field;
@@ -5040,8 +5005,7 @@ class Program
                     set => field = [|value|];
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_method]);
+            """, [FeaturesResources.Extract_method]);
     }
 
     [Fact]
@@ -5135,7 +5099,7 @@ class Program
     [WorkItem("https://github.com/dotnet/roslyn/issues/22150")]
     public async Task ExtractLocalFunctionToLocalFunction()
     {
-        var code = """
+        await TestInRegularAndScript1Async("""
             class C
             {
                 static void Main(string[] args)
@@ -5146,8 +5110,7 @@ class Program
 
                 static void Local() => System.Console.WriteLine();
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 static void Main(string[] args)
@@ -5163,9 +5126,7 @@ class Program
 
                 static void Local() => System.Console.WriteLine();
             }
-            """;
-
-        await TestInRegularAndScript1Async(code, expected);
+            """);
     }
 
     [Fact]
@@ -5390,20 +5351,16 @@ class Program
     [WorkItem("https://github.com/dotnet/roslyn/issues/44260")]
     public async Task TopLevelStatement_ArgumentInInvocation_InInteractive()
     {
-        var code = """
+        await TestAsync("""
             System.Console.WriteLine([|"string"|]);
-            """;
-        var expected =
-            """
+            """, """
             System.Console.WriteLine({|Rename:NewMethod|}());
 
             static string NewMethod()
             {
                 return "string";
             }
-            """;
-
-        await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9));
+            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp9));
     }
 
     [Fact]
@@ -5511,7 +5468,7 @@ class Program
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
     public async Task TestExtractLocalConst_CSharp7()
     {
-        var code = """
+        await TestAsync("""
             using NUnit.Framework;
 
             public class Tests
@@ -5529,9 +5486,7 @@ class Program
                     [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using NUnit.Framework;
 
             public class Tests
@@ -5554,15 +5509,14 @@ class Program
                     }
                 }
             }
-            """;
-        await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
     public async Task TestExtractParameter_CSharp7()
     {
-        var code = """
+        await TestAsync("""
             using NUnit.Framework;
 
             public class Tests
@@ -5579,9 +5533,7 @@ class Program
                     [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using NUnit.Framework;
 
             public class Tests
@@ -5603,15 +5555,14 @@ class Program
                     }
                 }
             }
-            """;
-        await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
     public async Task TestExtractLocal_CSharp7()
     {
-        var code = """
+        await TestAsync("""
             using NUnit.Framework;
 
             public class Tests
@@ -5629,9 +5580,7 @@ class Program
                     [|Assert.AreEqual(string.Format(NAME, 0, 0), SomeOtherMethod(j));|]
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using NUnit.Framework;
 
             public class Tests
@@ -5654,15 +5603,14 @@ class Program
                     }
                 }
             }
-            """;
-        await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55031")]
     public async Task TestExtractRangeVariable_CSharp7()
     {
-        var code = """
+        await TestAsync("""
             using System.Linq;
 
             public class Class
@@ -5673,9 +5621,7 @@ class Program
                         select [|a.ToString()|];
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System.Linq;
 
             public class Class
@@ -5691,14 +5637,13 @@ class Program
                     }
                 }
             }
-            """;
-        await TestAsync(code, expected, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
+            """, TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp7), index: CodeActionIndex);
     }
 
     [Fact]
     public async Task TestExtractLocalFunction_MissingInBaseInitializer()
     {
-        var code = """
+        await TestMissingAsync("""
             class Base
             {
                 private readonly int _x;
@@ -5715,15 +5660,13 @@ class Program
                 {
                 }
             }
-            """;
-
-        await TestMissingAsync(code, codeActionIndex: CodeActionIndex);
+            """, codeActionIndex: CodeActionIndex);
     }
 
     [Fact]
     public async Task TestExtractLocalFunction_MissingInThisInitializer()
     {
-        var code = """
+        await TestMissingAsync("""
             class C
             {
                 public C(int y)
@@ -5735,15 +5678,13 @@ class Program
                 {
                 }
             }
-            """;
-
-        await TestMissingAsync(code, codeActionIndex: CodeActionIndex);
+            """, codeActionIndex: CodeActionIndex);
     }
 
     [Fact]
     public async Task TestExtractLocalFunction_LambdaBlockInitializer()
     {
-        var code = """
+        await TestAsync("""
             class C
             {
                 public C(int y)
@@ -5758,9 +5699,7 @@ class Program
                 {
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 public C(int y)
@@ -5780,9 +5719,7 @@ class Program
                 {
                 }
             }
-            """;
-
-        await TestAsync(code, expected, TestOptions.Regular, index: CodeActionIndex);
+            """, TestOptions.Regular, index: CodeActionIndex);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/63917")]
@@ -5790,7 +5727,7 @@ class Program
     [InlineData("false")]
     public async Task TestAfterEndif(string ppDirective)
     {
-        var code = $$"""
+        await TestAsync($$"""
             class C
             {
                 void M()
@@ -5803,9 +5740,7 @@ class Program
             #endif
                 }
             }
-            """;
-
-        var expected = $$"""
+            """, $$"""
             class C
             {
                 void M()
@@ -5822,8 +5757,6 @@ class Program
                     }
                 }
             }
-            """;
-
-        await TestAsync(code, expected, TestOptions.Regular, index: CodeActionIndex);
+            """, TestOptions.Regular, index: CodeActionIndex);
     }
 }

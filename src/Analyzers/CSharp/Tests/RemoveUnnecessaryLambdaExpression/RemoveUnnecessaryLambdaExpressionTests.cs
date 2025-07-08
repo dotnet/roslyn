@@ -767,7 +767,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
     public async Task TestWithConstraint1()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -788,9 +788,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                     Bar([|x => |]Goo<string>(x));
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             class A
             {
@@ -811,14 +809,13 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                     Bar(Goo<string>);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542562")]
     public async Task TestWithConstraint2()
     {
-        var code = """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             class A
             {
@@ -839,8 +836,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                     Bar(x => Goo(x));
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(code);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627092")]
@@ -958,7 +954,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544625")]
     public async Task ParenthesizeIfParseChanges()
     {
-        var code = """
+        await TestInRegularAndScriptAsync("""
             using System;
             class C
             {
@@ -973,9 +969,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public static bool operator <(Func<string> y, C x) { return true; }
                 public static bool operator >(Func<string> y, C x) { return true; }
             }
-            """;
-
-        var expected = """
+            """, """
             using System;
             class C
             {
@@ -990,9 +984,7 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 public static bool operator <(Func<string> y, C x) { return true; }
                 public static bool operator >(Func<string> y, C x) { return true; }
             }
-            """;
-
-        await TestInRegularAndScriptAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545856")]

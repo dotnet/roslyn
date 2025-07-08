@@ -173,7 +173,7 @@ Actual: {editorConfigString}
     [Fact]
     public void CSharp_VerifyIDEDiagnosticSeveritiesAreConfigurable()
     {
-        var expected = """
+        VerifyConfigureSeverityCore("""
             # IDE0001
             dotnet_diagnostic.IDE0001.severity = %value%
 
@@ -536,15 +536,13 @@ Actual: {editorConfigString}
 
             # JSON002
             dotnet_diagnostic.JSON002.severity = %value%
-            """;
-
-        VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
+            """, LanguageNames.CSharp);
     }
 
     [Fact]
     public void VisualBasic_VerifyIDEDiagnosticSeveritiesAreConfigurable()
     {
-        var expected = @"
+        VerifyConfigureSeverityCore(@"
 # IDE0001
 dotnet_diagnostic.IDE0001.severity = %value%
 
@@ -703,8 +701,7 @@ dotnet_diagnostic.JSON001.severity = %value%
 
 # JSON002
 dotnet_diagnostic.JSON002.severity = %value%
-";
-        VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
+", LanguageNames.VisualBasic);
     }
 
     private static void VerifyConfigureCodeStyleOptionsCore((string diagnosticId, string optionName, string optionValue)[] expected, string languageName)

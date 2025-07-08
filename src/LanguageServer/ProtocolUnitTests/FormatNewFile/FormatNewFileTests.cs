@@ -44,8 +44,12 @@ public sealed class FormatNewFileTests(ITestOutputHelper? testOutputHelper) : Ab
             {
             }
             """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
-        var expected = """
+        var newFilePath = "C:\\MyComponent.razor.cs";
+
+        var result = await RunHandlerAsync(testLspServer, newFilePath, input);
+        AssertEx.EqualOrDiff("""
             // This is a file header
             
             namespace test
@@ -54,14 +58,7 @@ public sealed class FormatNewFileTests(ITestOutputHelper? testOutputHelper) : Ab
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-
-        var newFilePath = "C:\\MyComponent.razor.cs";
-
-        var result = await RunHandlerAsync(testLspServer, newFilePath, input);
-        AssertEx.EqualOrDiff(expected, result);
+            """, result);
     }
 
     private static async Task<string?> RunHandlerAsync(TestLspServer testLspServer, string newFilePath, string input)

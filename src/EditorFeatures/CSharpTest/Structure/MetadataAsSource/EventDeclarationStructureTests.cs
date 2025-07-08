@@ -19,29 +19,25 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task NoCommentsOrAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint:public event EventArgs $$goo {|textspan:{ add; remove; }|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:[Goo]
                     |}{|hint2:public event EventArgs $$goo {|textspan2:{ add; remove; }|}|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -49,7 +45,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAndAttributes()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -57,9 +53,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                     [Goo]
                     |}{|hint2:event EventArgs $$goo {|textspan2:{ add; remove; }|}|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -67,7 +61,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public async Task WithCommentsAttributesAndModifiers()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class Goo
                 {
                     {|hint1:{|textspan1:// Summary:
@@ -75,9 +69,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                     [Goo]
                     |}{|hint2:public event EventArgs $$goo {|textspan2:{ add; remove; }|}|}|}
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
             Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
@@ -85,7 +77,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
     [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
     public async Task TestEvent3()
     {
-        var code = """
+        await VerifyBlockSpansAsync("""
                 class C
                 {
                     $${|#0:event EventHandler E{|textspan:
@@ -100,9 +92,7 @@ public sealed class EventDeclarationStructureTests : AbstractCSharpSyntaxNodeStr
                         remove { }
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
     }
 }

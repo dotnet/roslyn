@@ -1083,12 +1083,10 @@ public sealed partial class TotalClassifierTests
     [Theory, CombinatorialData]
     public async Task DynamicAsRegionLabel(TestHost testHost)
     {
-        var code =
-            """
+        await TestAsync("""
             #region dynamic
             #endregion
-            """;
-        await TestAsync(code,
+            """,
             testHost,
             PPKeyword("#"),
             PPKeyword("region"),

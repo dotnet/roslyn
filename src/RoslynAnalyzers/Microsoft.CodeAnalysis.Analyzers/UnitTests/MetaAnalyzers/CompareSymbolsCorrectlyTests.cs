@@ -233,23 +233,21 @@ class TestClass {{
         [InlineData(nameof(INamedTypeSymbol))]
         public async Task CompareTwoSymbolsEquals_NoComparer_CSharpAsync(string symbolType)
         {
-            var source = $@"
+            await VerifyCS.VerifyCodeFixAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method({symbolType} x, {symbolType} y) {{
         return [|x == y|];
     }}
 }}
-";
-            var fixedSource = $@"
+", $@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method({symbolType} x, {symbolType} y) {{
         return Equals(x, y);
     }}
 }}
-";
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Theory]
@@ -258,7 +256,7 @@ class TestClass {{
         [InlineData(nameof(INamedTypeSymbol))]
         public async Task CompareTwoSymbolsByIdentity_CSharpAsync(string symbolType)
         {
-            var source = $@"
+            await VerifyCS.VerifyAnalyzerAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method1({symbolType} x, {symbolType} y) {{
@@ -271,9 +269,7 @@ class TestClass {{
         return (object)x == (object)y;
     }}
 }}
-";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+");
         }
 
         [Fact]
@@ -360,7 +356,7 @@ class TestClass {{
             [CombinatorialValues("==", "!=")] string @operator,
             [CombinatorialValues("null", "default", "default(ISymbol)")] string value)
         {
-            var source = $@"
+            await VerifyCS.VerifyAnalyzerAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method1({symbolType} x) {{
@@ -371,9 +367,7 @@ class TestClass {{
         return {value} {@operator} x;
     }}
 }}
-";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+");
         }
 
         [Theory]
@@ -381,16 +375,14 @@ class TestClass {{
         [InlineData(nameof(INamedTypeSymbol))]
         public async Task CompareSymbolWithNullPattern_CSharpAsync(string symbolType)
         {
-            var source = $@"
+            await VerifyCS.VerifyAnalyzerAsync($@"
 using Microsoft.CodeAnalysis;
 class TestClass {{
     bool Method1({symbolType} x) {{
         return x is null;
     }}
 }}
-";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+");
         }
 
         [Theory]
@@ -427,24 +419,21 @@ End Class
         [InlineData(nameof(INamedTypeSymbol))]
         public async Task CompareTwoSymbolsEquals_NoComparer_VisualBasicAsync(string symbolType)
         {
-            var source = $@"
+            await VerifyVB.VerifyCodeFixAsync($@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
     Function Method(x As {symbolType}, y As {symbolType}) As Boolean
         Return [|x Is y|]
     End Function
 End Class
-";
-            var fixedSource = $@"
+", $@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
     Function Method(x As {symbolType}, y As {symbolType}) As Boolean
         Return Equals(x, y)
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+");
         }
 
         [Theory]
@@ -453,16 +442,14 @@ End Class
         [InlineData(nameof(INamedTypeSymbol))]
         public async Task CompareTwoSymbolsByIdentity_VisualBasicAsync(string symbolType)
         {
-            var source = $@"
+            await VerifyVB.VerifyAnalyzerAsync($@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
     Function Method(x As {symbolType}, y As {symbolType}) As Boolean
         Return DirectCast(x, Object) Is y
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
+");
         }
 
         [Theory]
@@ -497,7 +484,7 @@ End Class
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("Is", "IsNot")] string @operator)
         {
-            var source = $@"
+            await VerifyVB.VerifyAnalyzerAsync($@"
 Imports Microsoft.CodeAnalysis
 Class TestClass
     Function Method1(x As {symbolType}) As Boolean
@@ -508,9 +495,7 @@ Class TestClass
         Return Nothing {@operator} x
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
+");
         }
 
         [Theory]

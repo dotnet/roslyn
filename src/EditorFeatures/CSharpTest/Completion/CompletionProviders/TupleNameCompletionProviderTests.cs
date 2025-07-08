@@ -151,7 +151,7 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
     [Fact]
     public async Task AtIndexGreaterThanNumberOfTupleElements()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -159,14 +159,13 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                     (int word, int zword) t = (1, 2, 3, 4, $$ 
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task ConvertCastToTupleExpression()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void goo()
@@ -174,7 +173,6 @@ public sealed class TupleNameCompletionProviderTests : AbstractCSharpCompletionP
                     (int goat, int moat) x = (g$$)1;
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "goat", displayTextSuffix: ":");
+            """, "goat", displayTextSuffix: ":");
     }
 }

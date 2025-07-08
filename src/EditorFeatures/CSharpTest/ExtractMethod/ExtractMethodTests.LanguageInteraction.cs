@@ -23,7 +23,7 @@ public partial class ExtractMethodTests
         [Fact]
         public async Task SelectTypeParameterWithConstraints()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class Program
@@ -34,8 +34,7 @@ public partial class ExtractMethodTests
                         return abcd;
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -51,15 +50,13 @@ public partial class ExtractMethodTests
                         return new TT();
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectTypeParameterWithAllowsRefStructAntiConstraint()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class Program
@@ -69,8 +66,7 @@ public partial class ExtractMethodTests
                         [|tt.Dispose();|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -85,14 +81,12 @@ public partial class ExtractMethodTests
                         tt.Dispose();
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
         [Fact]
         public async Task SelectTypeParameter()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class Program
@@ -107,8 +101,7 @@ public partial class ExtractMethodTests
                         return s;
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -129,15 +122,13 @@ public partial class ExtractMethodTests
                         s = "hello";
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectTypeOfTypeParameter()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class Program
@@ -147,8 +138,7 @@ public partial class ExtractMethodTests
                         return [|typeof(U)|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class Program
@@ -163,15 +153,13 @@ public partial class ExtractMethodTests
                         return typeof(U);
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectTypeParameterDataFlowOut()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
@@ -192,8 +180,7 @@ public partial class ExtractMethodTests
                         return t.i.ToString();
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
@@ -220,15 +207,13 @@ public partial class ExtractMethodTests
                         return t;
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528198")]
         public async Task BugFix6794()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class Program
                 {
@@ -247,8 +232,7 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class Program
                 {
@@ -272,15 +256,13 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528198")]
         public async Task BugFix6794_1()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class Program
                 {
@@ -298,8 +280,7 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class Program
                 {
@@ -322,15 +303,13 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectDefaultOfT()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
@@ -343,8 +322,7 @@ public partial class ExtractMethodTests
                         return t;
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
@@ -362,9 +340,7 @@ public partial class ExtractMethodTests
                         return default(T);
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         #endregion
@@ -374,7 +350,7 @@ public partial class ExtractMethodTests
         [Fact]
         public async Task SelectPostIncrementOperatorExtractWithRef()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class A
                 {
                     int method(int i)
@@ -382,8 +358,7 @@ public partial class ExtractMethodTests
                         return [|i++|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class A
                 {
                     int method(int i)
@@ -396,14 +371,13 @@ public partial class ExtractMethodTests
                         return i++;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectPostIncrementOperator()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class A
                 {
                     int method(int i)
@@ -411,8 +385,7 @@ public partial class ExtractMethodTests
                         return [|i++|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class A
                 {
                     int method(int i)
@@ -425,14 +398,13 @@ public partial class ExtractMethodTests
                         return i++;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectPreIncrementOperator()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class A
                 {
                     int method(int i)
@@ -440,8 +412,7 @@ public partial class ExtractMethodTests
                         return [|++i|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class A
                 {
                     int method(int i)
@@ -454,14 +425,13 @@ public partial class ExtractMethodTests
                         return ++i;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectPostDecrementOperator()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class A
                 {
                     int method(int i)
@@ -469,8 +439,7 @@ public partial class ExtractMethodTests
                         return [|i--|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class A
                 {
                     int method(int i)
@@ -483,14 +452,13 @@ public partial class ExtractMethodTests
                         return i--;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task SelectPreDecrementOperator()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class A
                 {
                     int method(int i)
@@ -498,8 +466,7 @@ public partial class ExtractMethodTests
                         return [|--i|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class A
                 {
                     int method(int i)
@@ -512,8 +479,7 @@ public partial class ExtractMethodTests
                         return --i;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         #endregion
@@ -523,15 +489,14 @@ public partial class ExtractMethodTests
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethod()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class T
                 {
                     int m;
                     int M1() => [|1|] + 2 + 3 + m;
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class T
                 {
@@ -543,14 +508,13 @@ public partial class ExtractMethodTests
                         return 1;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedOperator()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class Complex
                 {
@@ -562,8 +526,7 @@ public partial class ExtractMethodTests
                         throw new NotImplementedException();
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class Complex
                 {
@@ -580,14 +543,13 @@ public partial class ExtractMethodTests
                         throw new NotImplementedException();
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedConversionOperator()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 public struct DBBool
                 {
@@ -601,8 +563,7 @@ public partial class ExtractMethodTests
 
                     public static implicit operator DBBool(bool x) => x ? new DBBool([|1|]) : dbFalse;
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 public struct DBBool
                 {
@@ -621,21 +582,19 @@ public partial class ExtractMethodTests
                         return 1;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedProperty()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class T
                 {
                     int M1 => [|1|] + 2;
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class T
                 {
@@ -646,22 +605,20 @@ public partial class ExtractMethodTests
                         return 1;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedIndexer()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class SampleCollection<T>
                 {
                     private T[] arr = new T[100];
                     public T this[int i] => i > 0 ? arr[[|i + 1|]] : arr[i + 2];
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class SampleCollection<T>
                 {
@@ -673,22 +630,20 @@ public partial class ExtractMethodTests
                         return i + 1;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedIndexer2()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class SampleCollection<T>
                 {
                     private T[] arr = new T[100];
                     public T this[int i] => [|i > 0 ? arr[i + 1]|] : arr[i + 2];
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class SampleCollection<T>
                 {
@@ -700,14 +655,13 @@ public partial class ExtractMethodTests
                         return i > 0 ? arr[i + 1] : arr[i + 2];
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
@@ -716,8 +670,7 @@ public partial class ExtractMethodTests
                         return [|9|];
                     };
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -731,21 +684,19 @@ public partial class ExtractMethodTests
                         return 9;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
                     Func<int, int> Y() => delegate (int x) { return [|9|]; };
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -756,14 +707,13 @@ public partial class ExtractMethodTests
                         return 9;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
@@ -772,8 +722,7 @@ public partial class ExtractMethodTests
                         return f * [|9|];
                     };
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -787,21 +736,19 @@ public partial class ExtractMethodTests
                         return 9;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
                     Func<int, int> Y() => f => f * [|9|];
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -812,14 +759,13 @@ public partial class ExtractMethodTests
                         return 9;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethodWithBlockBodiedParenthesizedLambdaExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
@@ -828,8 +774,7 @@ public partial class ExtractMethodTests
                         return f * [|9|];
                     };
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -843,21 +788,19 @@ public partial class ExtractMethodTests
                         return 9;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethodWithExpressionBodiedParenthesizedLambdaExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
                     Func<int, int> Y() => (f) => f * [|9|];
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -868,14 +811,13 @@ public partial class ExtractMethodTests
                         return 9;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
@@ -889,8 +831,7 @@ public partial class ExtractMethodTests
                         throw new NotImplementedException();
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -909,14 +850,13 @@ public partial class ExtractMethodTests
                         throw new NotImplementedException();
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/528")]
         public async Task LeadingAndTrailingTriviaOnExpressionBodiedMethod()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class TestClass
                 {
@@ -924,8 +864,7 @@ public partial class ExtractMethodTests
 
                     void Cat() { }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class TestClass
                 {
@@ -938,8 +877,7 @@ public partial class ExtractMethodTests
 
                     void Cat() { }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         #endregion
@@ -949,7 +887,7 @@ public partial class ExtractMethodTests
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9244")]
         public async Task PatternIsDisabled()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 using System;
                 class Program
                 {
@@ -962,9 +900,7 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-
-            await ExpectExtractMethodToFailAsync(code);
+                """);
         }
 
         #endregion
@@ -972,7 +908,7 @@ public partial class ExtractMethodTests
         [Fact, WorkItem(11155, "DevDiv_Projects/Roslyn")]
         public async Task AnonymousTypeMember1()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 using System;
 
                 class Program
@@ -983,14 +919,13 @@ public partial class ExtractMethodTests
                         Console.Write(an.[|id|]); // here
                     }
                 }
-                """;
-            await ExpectExtractMethodToFailAsync(code);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544259")]
         public async Task ExtractMethod_ConstructorInitializer()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class Program
                 {
                     public Program(string a, int b)
@@ -998,8 +933,7 @@ public partial class ExtractMethodTests
                     {
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class Program
                 {
                     public Program(string a, int b)
@@ -1012,15 +946,13 @@ public partial class ExtractMethodTests
                         return new Program();
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543984")]
         public async Task ExtractMethod_UnsafeAddressTaken()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 class C
                 {
                     unsafe void M()
@@ -1029,8 +961,7 @@ public partial class ExtractMethodTests
                         int* j = [|&i|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class C
                 {
                     unsafe void M()
@@ -1044,15 +975,13 @@ public partial class ExtractMethodTests
                         return &i;
                     }
                 }
-                """;
-
-            await ExpectExtractMethodToFailAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544387")]
         public async Task ExtractMethod_PointerType()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class Test
                 {
                     static int x = 0;
@@ -1064,8 +993,7 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class Test
                 {
                     static int x = 0;
@@ -1082,15 +1010,13 @@ public partial class ExtractMethodTests
                         return *p1;
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544514")]
         public async Task ExtractMethod_AnonymousType()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 public class Test
                 {
                     public static void Main()
@@ -1101,8 +1027,7 @@ public partial class ExtractMethodTests
                         [|p1 = p2;|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 public class Test
                 {
                     public static void Main()
@@ -1118,15 +1043,13 @@ public partial class ExtractMethodTests
                         return p2;
                     }
                 }
-                """;
-
-            await ExpectExtractMethodToFailAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544920")]
         public async Task ExtractMethod_StackAllocExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 unsafe class C
                 {
                     static void Main()
@@ -1134,8 +1057,7 @@ public partial class ExtractMethodTests
                         void* p = [|stackalloc int[10]|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 unsafe class C
                 {
                     static void Main()
@@ -1148,15 +1070,13 @@ public partial class ExtractMethodTests
                         void* p = stackalloc int[10];
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539310")]
         public async Task Readonly_Field_WrittenTo()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 class C
                 {
                     private readonly int i;
@@ -1166,14 +1086,13 @@ public partial class ExtractMethodTests
                         [|i = 1;|]
                     }
                 }
-                """;
-            await ExpectExtractMethodToFailAsync(code);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539310")]
         public async Task Readonly_Field()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 class C
                 {
                     private readonly int i;
@@ -1184,8 +1103,7 @@ public partial class ExtractMethodTests
                         [|var x = i;|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 class C
                 {
                     private readonly int i;
@@ -1201,14 +1119,13 @@ public partial class ExtractMethodTests
                         var x = i;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545180")]
         public async Task NodeHasSyntacticErrors()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 using System;
                 using System.Collections.Generic;
                 using System.Linq;
@@ -1223,14 +1140,13 @@ public partial class ExtractMethodTests
                         };
                     }
                 }
-                """;
-            await ExpectExtractMethodToFailAsync(code);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545292")]
         public async Task LocalConst()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 class Test
                 {
                     public static void Main()
@@ -1238,14 +1154,13 @@ public partial class ExtractMethodTests
                         const int v = [|3|];
                     }
                 }
-                """;
-            await ExpectExtractMethodToFailAsync(code);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545315")]
         public async Task Nullable()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class Program
                 {
@@ -1255,8 +1170,7 @@ public partial class ExtractMethodTests
                         [|Console.WriteLine(q);|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class Program
                 {
@@ -1271,15 +1185,13 @@ public partial class ExtractMethodTests
                         Console.WriteLine(q);
                     }
                 }
-                """;
-
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545263")]
         public async Task SyntacticErrorInSelection()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 class Program
                 {
                     static void Main(string[] args)
@@ -1294,14 +1206,13 @@ public partial class ExtractMethodTests
                         return "true";
                     }
                 }
-                """;
-            await ExpectExtractMethodToFailAsync(code);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544497")]
         public async Task StackAllocExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 class Test
                 {
@@ -1310,8 +1221,7 @@ public partial class ExtractMethodTests
                         void* buffer = [|stackalloc char[16]|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 class Test
                 {
@@ -1325,14 +1235,13 @@ public partial class ExtractMethodTests
                         void* buffer = stackalloc char[16];
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545503")]
         public async Task MethodBodyInScript()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 #r "System.Management"
                 using System;
                 using System.Collections.Generic;
@@ -1355,8 +1264,7 @@ public partial class ExtractMethodTests
                     }
                     output.AppendLine();|]
                 }
-                """;
-            var expected = """
+                """, """
                 #r "System.Management"
                 using System;
                 using System.Collections.Generic;
@@ -1384,14 +1292,13 @@ public partial class ExtractMethodTests
                     }
                     output.AppendLine();
                 }
-                """;
-            await TestExtractMethodAsync(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
+                """, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544920")]
         public async Task NoSimplificationForStackAlloc()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 unsafe class C
@@ -1402,8 +1309,7 @@ public partial class ExtractMethodTests
                         Console.WriteLine((int)p);
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 unsafe class C
@@ -1420,14 +1326,13 @@ public partial class ExtractMethodTests
                         return p;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
         public async Task CheckStatementContext1()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class X
@@ -1445,8 +1350,7 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class X
@@ -1472,14 +1376,13 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
         public async Task CheckStatementContext2()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class X
@@ -1497,8 +1400,7 @@ public partial class ExtractMethodTests
                         }|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class X
@@ -1521,14 +1423,13 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
         public async Task CheckStatementContext3()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class X
@@ -1548,8 +1449,7 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class X
@@ -1575,14 +1475,13 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545553")]
         public async Task CheckExpressionContext1()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class X
@@ -1597,8 +1496,7 @@ public partial class ExtractMethodTests
                         var s = unchecked(1 + [|Goo(X => (byte)X.Value, null)|]);
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class X
@@ -1618,14 +1516,13 @@ public partial class ExtractMethodTests
                         return unchecked(Goo(X => (byte)X.Value, null));
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_SingleStatement()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1636,8 +1533,7 @@ public partial class ExtractMethodTests
                         [|await Task.Run(() => { });|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1653,14 +1549,13 @@ public partial class ExtractMethodTests
                         await Task.Run(() => { });
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_Expression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1671,8 +1566,7 @@ public partial class ExtractMethodTests
                         [|await Task.Run(() => { })|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1688,14 +1582,13 @@ public partial class ExtractMethodTests
                         await Task.Run(() => { });
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_MultipleStatements()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1710,8 +1603,7 @@ public partial class ExtractMethodTests
                         return;|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1731,14 +1623,13 @@ public partial class ExtractMethodTests
                         return;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_ExpressionWithReturn()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1751,8 +1642,7 @@ public partial class ExtractMethodTests
                         [|await Task.Run(() => 1)|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1770,14 +1660,13 @@ public partial class ExtractMethodTests
                         return await Task.Run(() => 1);
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_ExpressionInAwaitExpression()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1788,8 +1677,7 @@ public partial class ExtractMethodTests
                         await [|Task.Run(() => 1)|];
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1805,14 +1693,13 @@ public partial class ExtractMethodTests
                         return Task.Run(() => 1);
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_StatementWithAwaitExpressionWithReturn()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1823,8 +1710,7 @@ public partial class ExtractMethodTests
                         [|await Task.Run(() => 1);|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1840,14 +1726,13 @@ public partial class ExtractMethodTests
                         await Task.Run(() => 1);
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_AwaitWithReturnParameter()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1860,8 +1745,7 @@ public partial class ExtractMethodTests
                         Console.WriteLine(i);
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1880,14 +1764,13 @@ public partial class ExtractMethodTests
                         return i;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_Normal_AwaitWithReturnParameter_Error()
         {
-            var code = """
+            await ExpectExtractMethodToFailAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1900,15 +1783,13 @@ public partial class ExtractMethodTests
                         Console.WriteLine(i);
                     }
                 }
-                """;
-            await ExpectExtractMethodToFailAsync(code);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_AsyncLambda()
         {
-            // this is an error case. but currently, I didn't blocked this. but we could if we want to.
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1919,8 +1800,7 @@ public partial class ExtractMethodTests
                         Test([|async () => await Task.Run(() => 1)|]);
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1936,15 +1816,13 @@ public partial class ExtractMethodTests
                         return async () => await Task.Run(() => 1);
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_AsyncLambda_Body()
         {
-            // this is an error case. but currently, I didn't blocked this. but we could if we want to.
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1955,8 +1833,7 @@ public partial class ExtractMethodTests
                         Test(async () => [|await Task.Run(() => 1)|]);
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -1972,15 +1849,13 @@ public partial class ExtractMethodTests
                         return await Task.Run(() => 1);
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact]
         public async Task AwaitExpression_AsyncLambda_WholeExpression()
         {
-            // this is an error case. but currently, I didn't blocked this. but we could if we want to.
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Threading.Tasks;
 
@@ -1991,8 +1866,7 @@ public partial class ExtractMethodTests
                         [|Test(async () => await Task.Run(() => 1));|]
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Threading.Tasks;
 
@@ -2008,14 +1882,13 @@ public partial class ExtractMethodTests
                         Test(async () => await Task.Run(() => 1));
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064798")]
         public async Task ExpressionInStringInterpolation()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
 
                 class X
@@ -2025,8 +1898,7 @@ public partial class ExtractMethodTests
                         var s = $"Alpha Beta {[|int.Parse("12345")|]} Gamma";
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
 
                 class X
@@ -2041,14 +1913,13 @@ public partial class ExtractMethodTests
                         return int.Parse("12345");
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/859493")]
         public async Task ExpressionInYieldReturnStatement()
         {
-            var code = """
+            await TestExtractMethodAsync("""
                 using System;
                 using System.Collections.Generic;
 
@@ -2071,8 +1942,7 @@ public partial class ExtractMethodTests
                         }
                     }
                 }
-                """;
-            var expected = """
+                """, """
                 using System;
                 using System.Collections.Generic;
 
@@ -2100,8 +1970,7 @@ public partial class ExtractMethodTests
                         return _localCurrent._item;
                     }
                 }
-                """;
-            await TestExtractMethodAsync(code, expected);
+                """);
         }
     }
 
@@ -2149,7 +2018,7 @@ public partial class ExtractMethodTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17971")]
     public async Task BrokenForeachLoop()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
             namespace ConsoleApp1
             {
@@ -2163,8 +2032,7 @@ public partial class ExtractMethodTests
                     }
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
             namespace ConsoleApp1
             {
@@ -2183,15 +2051,13 @@ public partial class ExtractMethodTests
                     }
                 }
             }
-            """;
-
-        await TestExtractMethodAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22150")]
     public async Task ExtractMethod_LocalVariableCrossingLocalFunction()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             using System;
 
             class C
@@ -2203,8 +2069,7 @@ public partial class ExtractMethodTests
                     Console.WriteLine(x);|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             using System;
 
             class C
@@ -2221,15 +2086,13 @@ public partial class ExtractMethodTests
                     Console.WriteLine(x);
                 }
             }
-            """;
-
-        await TestExtractMethodAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61555")]
     public async Task Nullable_FlowAnalysisNotNull()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             class C
             {
                 public void M(C? c)
@@ -2242,9 +2105,7 @@ public partial class ExtractMethodTests
                     [|c.ToString();|]
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 public void M(C? c)
@@ -2262,15 +2123,13 @@ public partial class ExtractMethodTests
                     c.ToString();
                 }
             }
-            """;
-
-        await TestExtractMethodAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39329")]
     public Task SimpleUsingStatement()
     {
-        var code = """
+        return TestExtractMethodAsync("""
             public class Goo : IDisposable
             {
                 void M2() { }
@@ -2290,9 +2149,7 @@ public partial class ExtractMethodTests
                     throw new NotImplementedException();
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             public class Goo : IDisposable
             {
                 void M2() { }
@@ -2317,15 +2174,13 @@ public partial class ExtractMethodTests
                     throw new NotImplementedException();
                 }
             }
-            """;
-
-        return TestExtractMethodAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24136")]
     public async Task WhenClause_SwitchStatement()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             class C
             {
                 void DisplayMeasurements(int a, int b)
@@ -2346,9 +2201,7 @@ public partial class ExtractMethodTests
                     }
                 }
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 void DisplayMeasurements(int a, int b)
@@ -2374,15 +2227,13 @@ public partial class ExtractMethodTests
                     return a == b;
                 }
             }
-            """;
-
-        await TestExtractMethodAsync(code, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24136")]
     public async Task WhenClause_SwitchExpression()
     {
-        var code = """
+        await TestExtractMethodAsync("""
             class C
             {
                 string GetMeasurements(int a, int b)
@@ -2393,9 +2244,7 @@ public partial class ExtractMethodTests
                         _ => "One or both measurements are not valid."
                     };
             }
-            """;
-
-        var expected = """
+            """, """
             class C
             {
                 string GetMeasurements(int a, int b)
@@ -2411,8 +2260,6 @@ public partial class ExtractMethodTests
                     return a == b;
                 }
             }
-            """;
-
-        await TestExtractMethodAsync(code, expected);
+            """);
     }
 }

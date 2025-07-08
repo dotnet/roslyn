@@ -771,7 +771,7 @@ public sealed class CharKeywordRecommenderTests : KeywordRecommenderTests
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
     public async Task TestInGenericMethodTypeParameterList1()
     {
-        var markup = """
+        await VerifyKeywordAsync("""
             class Class1<T, D>
             {
                 public static Class1<T, D> Create() { return null; }
@@ -789,15 +789,14 @@ public sealed class CharKeywordRecommenderTests : KeywordRecommenderTests
                     Class1<string, int>.Create().Test<$$
                 }
             }
-            """;
-        await VerifyKeywordAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
     public async Task TestInGenericMethodTypeParameterList2()
     {
-        var markup = """
+        await VerifyKeywordAsync("""
             class Class1<T, D>
             {
                 public static Class1<T, D> Create() { return null; }
@@ -815,8 +814,7 @@ public sealed class CharKeywordRecommenderTests : KeywordRecommenderTests
                     Class1<string, int>.Create().Test<string,$$
                 }
             }
-            """;
-        await VerifyKeywordAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

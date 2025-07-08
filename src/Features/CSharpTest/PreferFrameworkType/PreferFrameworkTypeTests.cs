@@ -191,52 +191,41 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
     [Fact]
     public async Task QualifiedReplacementWhenNoUsingFound()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             class Program
             {
                 [|string|] _myfield = 5;
             }
-            """;
-
-        var expected =
-            """
+            """, """
             class Program
             {
                 System.String _myfield = 5;
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task FieldDeclaration()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
                 [|int|] _myfield;
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 Int32 _myfield;
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task TestNint_WithNumericIntPtr_CSharp11()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="11">
                     <Document>using System;
@@ -246,24 +235,19 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             }</Document>
                 </Project>
             </Workspace>
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 IntPtr _myfield;
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task TestNint_WithNumericIntPtr_CSharp8()
     {
-        var code =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferencesNet7="true" LanguageVersion="8">
                     <Document>using System;
@@ -273,8 +257,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             }</Document>
                 </Project>
             </Workspace>
-            """;
-        await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
+            """, new TestParameters(options: FrameworkTypeInDeclaration));
     }
 
     [Theory]
@@ -282,7 +265,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
     [InlineData("CommonReferencesNet7")]
     public async Task TestNint_WithoutNumericIntPtr_CSharp10(string references)
     {
-        var code = $$"""
+        await TestMissingInRegularAndScriptAsync($$"""
             <Workspace>
                 <Project Language="C#" {{references}}="true" LanguageVersion="10">
                     <Document>using System;
@@ -292,8 +275,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
             }</Document>
                 </Project>
             </Workspace>
-            """;
-        await TestMissingInRegularAndScriptAsync(code, new TestParameters(options: FrameworkTypeInDeclaration));
+            """, new TestParameters(options: FrameworkTypeInDeclaration));
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74973")]
@@ -317,196 +299,155 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
     [Fact]
     public async Task FieldDeclarationWithInitializer()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
                 [|string|] _myfield = 5;
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 String _myfield = 5;
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task DelegateDeclaration()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
                 public delegate [|int|] PerformCalculation(int x, int y);
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 public delegate Int32 PerformCalculation(int x, int y);
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task PropertyDeclaration()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
                 public [|long|] MyProperty { get; set; }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 public Int64 MyProperty { get; set; }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task GenericPropertyDeclaration()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class Program
             {
                 public List<[|long|]> MyProperty { get; set; }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections.Generic;
             class Program
             {
                 public List<Int64> MyProperty { get; set; }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task QualifiedReplacementInGenericTypeParameter()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             class Program
             {
                 public List<[|long|]> MyProperty { get; set; }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System.Collections.Generic;
             class Program
             {
                 public List<System.Int64> MyProperty { get; set; }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task MethodDeclarationReturnType()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
                 public [|long|] Method() { }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 public Int64 Method() { }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task MethodDeclarationParameters()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
                 public void Method([|double|] d) { }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 public void Method(Double d) { }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task GenericMethodInvocation()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
                 public void Method<T>() { }
                 public void Test() { Method<[|int|]>(); }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
                 public void Method<T>() { }
                 public void Test() { Method<Int32>(); }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task LocalDeclaration()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -515,10 +456,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     [|int|] f = 5;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -527,15 +465,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32 f = 5;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task MemberAccess()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -544,10 +480,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Console.Write([|int|].MaxValue);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -556,15 +489,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Console.Write(Int32.MaxValue);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
+            """, options: FrameworkTypeInMemberAccess);
     }
 
     [Fact]
     public async Task MemberAccess2()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -573,10 +504,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var x = [|int|].Parse("1");
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -585,15 +513,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var x = Int32.Parse("1");
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
+            """, options: FrameworkTypeInMemberAccess);
     }
 
     [Fact]
     public async Task DocCommentTriviaCrefExpression()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -602,10 +528,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -614,15 +537,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                 {
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInMemberAccess);
+            """, options: FrameworkTypeInMemberAccess);
     }
 
     [Fact]
     public async Task DefaultExpression()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -631,10 +552,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = default([|int|]);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -643,15 +561,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = default(Int32);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task TypeOfExpression()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -660,10 +576,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = typeof([|int|]);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -672,15 +585,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = typeof(Int32);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task NameOfExpression()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -689,10 +600,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = nameof([|int|]);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -701,15 +609,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     var v = nameof(Int32);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task FormalParametersWithinLambdaExression()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -718,10 +624,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Func<int, int> func3 = ([|int|] z) => z + 1;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -730,15 +633,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Func<int, int> func3 = (Int32 z) => z + 1;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task DelegateMethodExpression()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -747,10 +648,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Func<int, int> func7 = delegate ([|int|] dx) { return dx + 1; };
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -759,15 +657,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Func<int, int> func7 = delegate (Int32 dx) { return dx + 1; };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task ObjectCreationExpression()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -776,10 +672,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     string s2 = new [|string|]('c', 1);
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -788,15 +681,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     string s2 = new String('c', 1);
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task ArrayDeclaration()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -805,10 +696,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     [|int|][] k = new int[4];
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -817,15 +705,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32[] k = new int[4];
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task ArrayInitializer()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -834,10 +720,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     int[] k = new [|int|][] { 1, 2, 3 };
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -846,15 +729,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     int[] k = new Int32[] { 1, 2, 3 };
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task MultiDimentionalArrayAsGenericTypeParameter()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             class Program
@@ -864,10 +745,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     List<[|string|][][,][,,,]> a;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             using System.Collections.Generic;
             class Program
@@ -877,15 +755,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     List<String[][,][,,,]> a;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task ForStatement()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -894,10 +770,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     for ([|int|] j = 0; j < 4; j++) { }
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -906,15 +779,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     for (Int32 j = 0; j < 4; j++) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task ForeachStatement()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -923,10 +794,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     foreach ([|int|] item in new int[] { 1, 2, 3 }) { }
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -935,15 +803,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     foreach (Int32 item in new int[] { 1, 2, 3 }) { }
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task LeadingTrivia()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -953,10 +819,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     [|int|] x = 5;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -966,15 +829,13 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32 x = 5;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 
     [Fact]
     public async Task TrailingTrivia()
     {
-        var code =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
             class Program
             {
@@ -983,10 +844,7 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     [|int|] /* 2 */ x = 5;
                 }
             }
-            """;
-
-        var expected =
-            """
+            """, """
             using System;
             class Program
             {
@@ -995,7 +853,6 @@ public sealed partial class PreferFrameworkTypeTests(ITestOutputHelper logger)
                     Int32 /* 2 */ x = 5;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
+            """, options: FrameworkTypeInDeclaration);
     }
 }

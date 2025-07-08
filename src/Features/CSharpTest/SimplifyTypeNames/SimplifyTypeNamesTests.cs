@@ -1101,8 +1101,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact]
     public async Task AliasInSiblingNamespace()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             [|namespace Root 
             {
                 namespace Sibling
@@ -1115,8 +1114,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     System.Exception c;
                 }
             }|]
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact]
@@ -1188,8 +1186,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact]
     public async Task SimplifyTypeName()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             namespace Root 
             {
                 class A 
@@ -1197,8 +1194,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     [|System.Exception|] c;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact]
@@ -1426,8 +1422,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact]
     public async Task SimplifyTypeName6()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             namespace N1
             {
                 public class A1 { }
@@ -1442,8 +1437,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     }
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact]
@@ -1487,8 +1481,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact]
     public async Task SimplifyGenericTypeName1()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             namespace N1
             {
                 public class A1
@@ -1496,8 +1489,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     [|System.EventHandler<System.EventArgs>|] a;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact]
@@ -1564,8 +1556,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact]
     public async Task SimplifyGenericTypeName4()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using MyHandler = System.EventHandler;
 
             namespace N1
@@ -1575,8 +1566,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     [|System.EventHandler<System.EventHandler<System.EventArgs>>|] a;
                 }
             }
-            """;
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact]
@@ -1941,8 +1931,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
     public async Task SimplifyAlias1()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using I64 = [|System.Int64|];
 
             namespace N1
@@ -1951,9 +1940,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                 {
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
@@ -2057,26 +2044,21 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544631")]
     public async Task SimplifyAlias5()
     {
-        var content =
-            """
+        await TestInRegularAndScriptAsync("""
             using System;
 
             namespace N
             {
                 using X = [|System.Nullable<int>|];
             }
-            """;
-
-        var result =
-            """
+            """, """
             using System;
 
             namespace N
             {
                 using X = Nullable<int>;
             }
-            """;
-        await TestInRegularAndScriptAsync(content, result);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/919815")]
@@ -2154,22 +2136,18 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538991")]
     public async Task SimplifyMissingOnGeneric()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             class A<T, S>
             {
                 class B : [|A<B, B>|] { }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539000")]
     public async Task SimplifyMissingOnUnmentionableTypeParameter1()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             class A<T>
             {
                 class D : A<T[]> { }
@@ -2180,9 +2158,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     D.B x = new [|D.B|]();
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact]
@@ -3804,8 +3780,7 @@ index: 1);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
     public async Task TestSimplifyStaticMemberAccess()
     {
-        var source =
-            """
+        await TestInRegularAndScriptAsync("""
             class Preserve
             {
             	public static int Y;
@@ -3822,8 +3797,7 @@ index: 1);
             		int k = [|Z<float>.Y|];
             	}
             }
-            """;
-        await TestInRegularAndScriptAsync(source,
+            """,
             """
             class Preserve
             {
@@ -3847,8 +3821,7 @@ index: 1);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
     public async Task TestSimplifyNestedType()
     {
-        var source =
-            """
+        await TestInRegularAndScriptAsync("""
             class Preserve
             {
             	public class X
@@ -3868,8 +3841,7 @@ index: 1);
             		int k = [|Z<float>.X|].Y;
             	}
             }
-            """;
-        await TestInRegularAndScriptAsync(source,
+            """,
             """
             class Preserve
             {
@@ -3896,8 +3868,7 @@ index: 1);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
     public async Task DoNotSimplifyNamesWhenThereAreParseErrors()
     {
-        var markup =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -3910,9 +3881,7 @@ index: 1);
                     Console.[||]
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566749")]
@@ -6891,8 +6860,7 @@ namespace N
     [Fact]
     public async Task TestMissingOnInstanceMemberAccessOfOtherValue()
     {
-        var content =
-            """
+        await TestMissingInRegularAndScriptAsync("""
             using System;
 
             internal struct BitVector : IEquatable<BitVector>
@@ -6911,16 +6879,13 @@ namespace N
                     return [|left|].Equals(right);
                 }
             }
-            """;
-
-        await TestMissingInRegularAndScriptAsync(content);
+            """);
     }
 
     [Fact]
     public async Task TestSimplifyStaticMemberAccessThroughDerivedType()
     {
-        var source =
-            """
+        await TestInRegularAndScriptAsync("""
             class Base
             {
                 public static int Y;
@@ -6937,8 +6902,7 @@ namespace N
                     int k = [|Derived|].Y;
                 }
             }
-            """;
-        await TestInRegularAndScriptAsync(source,
+            """,
             """
             class Base
             {
@@ -7222,16 +7186,14 @@ namespace N
     [Fact]
     public async Task TestNint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
-        var source =
+        var featureOptions = PreferIntrinsicTypeEverywhere;
+        await TestMissingInRegularAndScriptAsync(
             """
             class A
             {
                 [|System.IntPtr|] i;
             }
-            """;
-        var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(
-            source, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
+            """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]
@@ -7295,16 +7257,14 @@ namespace N
     [Fact]
     public async Task TestNUint1_NoNumericIntPtr_CSharp10_NoRuntimeSupport()
     {
-        var source =
+        var featureOptions = PreferIntrinsicTypeEverywhere;
+        await TestMissingInRegularAndScriptAsync(
             """
             class A
             {
                 [|System.UIntPtr|] i;
             }
-            """;
-        var featureOptions = PreferIntrinsicTypeEverywhere;
-        await TestMissingInRegularAndScriptAsync(
-            source, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
+            """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10), options: featureOptions));
     }
 
     [Fact]

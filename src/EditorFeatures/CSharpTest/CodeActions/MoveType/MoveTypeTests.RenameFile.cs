@@ -17,47 +17,31 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     [Fact]
     public async Task SingleClassInFile_RenameFile()
     {
-        var code =
-@"[||]class Class1 { }";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        await TestRenameFileToMatchTypeAsync(@"[||]class Class1 { }", "Class1.cs");
     }
 
     [Fact]
     public async Task MoreThanOneTypeInFile_RenameFile()
     {
-        var code =
-@"[||]class Class1
+        await TestRenameFileToMatchTypeAsync(@"[||]class Class1
 { 
     class Inner { }
-}";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+}", "Class1.cs");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16284")]
     public async Task MoreThanOneTypeInFile_RenameFile_InnerType()
     {
-        var code =
-@"class Class1
+        await TestRenameFileToMatchTypeAsync(@"class Class1
 { 
     [||]class Inner { }
-}";
-
-        var expectedDocumentName = "Class1.Inner.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+}", "Class1.Inner.cs");
     }
 
     [Fact]
     public async Task TestRenameFileWithFolders()
     {
-        var code =
-@"
+        await TestRenameFileToMatchTypeAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document Folders=""A\B""> 
@@ -67,11 +51,7 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
 }
         </Document>
     </Project>
-</Workspace>";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName,
+</Workspace>", "Class1.cs",
             destinationDocumentContainers: ["A", "B"]);
     }
 
@@ -80,71 +60,46 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
         // testworkspace creates files like test1.cs, test2.cs and so on.. 
         // so type name matches filename here and rename file action should not be offered.
-        var code =
-@"[||]class test1 { }";
 
-        await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
+        await TestRenameFileToMatchTypeAsync(@"[||]class test1 { }", expectedCodeAction: false);
     }
 
     [Fact]
     public async Task TestMissing_MultipleTopLevelTypesInFileAndAtleastOneMatchesFileName_RenameFile()
     {
-        var code =
-@"[||]class Class1 { }
-class test1 { }";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedCodeAction: false);
+        await TestRenameFileToMatchTypeAsync(@"[||]class Class1 { }
+class test1 { }", expectedCodeAction: false);
     }
 
     [Fact]
     public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName_RenameFile()
     {
-        var code =
-@"[||]class Class1 { }
-class Class2 { }";
-
-        var expectedDocumentName = "Class1.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        await TestRenameFileToMatchTypeAsync(@"[||]class Class1 { }
+class Class2 { }", "Class1.cs");
     }
 
     [Fact]
     public async Task MultipleTopLevelTypesInFileAndNoneMatchFileName2_RenameFile()
     {
-        var code =
-@"class Class1 { }
-[||]class Class2 { }";
-
-        var expectedDocumentName = "Class2.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+        await TestRenameFileToMatchTypeAsync(@"class Class1 { }
+[||]class Class2 { }", "Class2.cs");
     }
 
     [Fact]
     public async Task NestedFile_Simple_RenameFile()
     {
-        var code =
-@"class OuterType
+        await TestRenameFileToMatchTypeAsync(@"class OuterType
 {
     [||]class InnerType { }
-}";
-
-        var expectedDocumentName = "InnerType.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+}", "InnerType.cs");
     }
 
     [Fact]
     public async Task NestedFile_DottedName_RenameFile()
     {
-        var code =
-@"class OuterType
+        await TestRenameFileToMatchTypeAsync(@"class OuterType
 {
     [||]class InnerType { }
-}";
-
-        var expectedDocumentName = "OuterType.InnerType.cs";
-
-        await TestRenameFileToMatchTypeAsync(code, expectedDocumentName);
+}", "OuterType.InnerType.cs");
     }
 }

@@ -1145,21 +1145,19 @@ public sealed class ConvertConcatenationToInterpolatedStringTests
                  """)]
     public async Task TestInliningOfInterpolatedString(string before, string after)
     {
-        var initialMarkup = $@"
+        await VerifyCS.VerifyRefactoringAsync($@"
 class C
 {{
     void M() {{
         _ = {before};
     }}
-}}";
-        var expected = $@"
+}}", $@"
 class C
 {{
     void M() {{
         _ = {after};
     }}
-}}";
-        await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
+}}");
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
@@ -1195,23 +1193,21 @@ class C
         """)]
     public async Task TestUnicodeAndEscapeHandling(string before, string after)
     {
-        var initialMarkup = $$"""
+        await VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M() {
                     _ = {{before}};
                 }
             }
-            """;
-        var expected = $$"""
+            """, $$"""
             class C
             {
                 void M() {
                     _ = {{after}};
                 }
             }
-            """;
-        await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
+            """);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/49229")]
@@ -1241,23 +1237,21 @@ class C
         """)]
     public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
     {
-        var initialMarkup = $$"""
+        await VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M() {
                     _ = {{before}};
                 }
             }
-            """;
-        var expected = $$"""
+            """, $$"""
             class C
             {
                 void M() {
                     _ = {{after}};
                 }
             }
-            """;
-        await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]

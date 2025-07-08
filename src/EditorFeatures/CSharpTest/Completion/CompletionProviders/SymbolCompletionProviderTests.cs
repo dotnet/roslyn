@@ -317,9 +317,8 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task OpenStringLiteralInDirective()
     {
-        var code = "#r \"$$";
         await VerifyExpectedItemsAsync(
-            code, [
+            "#r \"$$", [
                 ItemExpectation.Absent("String"),
                 ItemExpectation.Absent("System")
             ],
@@ -339,11 +338,10 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task StringLiteralInDirective()
     {
-        var code = """
-            #r "$$"
-            """;
         await VerifyExpectedItemsAsync(
-            code, [
+            """
+            #r "$$"
+            """, [
                 ItemExpectation.Absent("String"),
                 ItemExpectation.Absent("System")
             ],
@@ -363,8 +361,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AssemblyAttribute1()
     {
-        var code = @"[assembly: $$]";
-        await VerifyExpectedItemsAsync(code, [
+        await VerifyExpectedItemsAsync(@"[assembly: $$]", [
             ItemExpectation.Absent("String"),
             ItemExpectation.Exists("System")
         ]);
@@ -384,12 +381,10 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task SystemAttributeIsNotAnAttribute()
     {
-        var content = """
+        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", """
             [$$]
             class CL {}
-            """;
-
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"Attribute");
+            """), @"Attribute");
     }
 
     [Fact]
@@ -463,35 +458,29 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_EmptyNameSpan_TopLevel()
     {
-        var source = @"namespace $$ { }";
-
-        await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyItemExistsAsync(@"namespace $$ { }", "System", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_EmptyNameSpan_Nested()
     {
-        var source = """
+        await VerifyItemExistsAsync("""
             ;
             namespace System
             {
                 namespace $$ { }
             }
-            """;
-
-        await VerifyItemExistsAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
+            """, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_TopLevelNoPeers()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             using System;
 
             namespace $$
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Exists("System"),
                 ItemExpectation.Absent("String")
@@ -502,13 +491,11 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_TopLevelNoPeers_FileScopedNamespace()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             using System;
 
             namespace $$;
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Exists("System"),
                 ItemExpectation.Absent("String")
@@ -519,41 +506,35 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_TopLevelWithPeer()
     {
-        var source = """
+        await VerifyItemExistsAsync("""
             namespace A { }
 
             namespace $$
-            """;
-
-        await VerifyItemExistsAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            """, "A", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_NestedWithNoPeers()
     {
-        var source = """
+        await VerifyNoItemsExistAsync("""
             namespace A
             {
                 namespace $$
             }
-            """;
-
-        await VerifyNoItemsExistAsync(source, sourceCodeKind: SourceCodeKind.Regular);
+            """, sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_NestedWithPeer()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace A
             {
                 namespace B { }
 
                 namespace $$
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Absent("A"),
                 ItemExpectation.Exists("B")
@@ -564,15 +545,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_ExcludesCurrentDeclaration()
     {
-        var source = @"namespace N$$S";
-
-        await VerifyItemIsAbsentAsync(source, "NS", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyItemIsAbsentAsync(@"namespace N$$S", "NS", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_WithNested()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace A
             {
                 namespace $$
@@ -580,9 +559,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     namespace B { }
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Absent("A"),
                 ItemExpectation.Absent("B")
@@ -593,7 +570,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_WithNestedAndMatchingPeer()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace A.B { }
 
             namespace A
@@ -603,9 +580,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     namespace B { }
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Absent("A"),
                 ItemExpectation.Exists("B")
@@ -616,9 +591,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_InnerCompletionPosition()
     {
-        var source = @"namespace Sys$$tem { }";
-
-        await VerifyExpectedItemsAsync(source,
+        await VerifyExpectedItemsAsync(@"namespace Sys$$tem { }",
             [
                 ItemExpectation.Exists("System"),
                 ItemExpectation.Absent("Runtime")
@@ -629,7 +602,8 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Unqualified_IncompleteDeclaration()
     {
-        var source = """
+        await VerifyExpectedItemsAsync(
+            """
             namespace A
             {
                 namespace B
@@ -641,10 +615,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             namespace A.B.C3 { }
-            """;
-
-        await VerifyExpectedItemsAsync(
-            source, [
+            """, [
                 // Ideally, all the C* namespaces would be recommended but, because of how the parser
                 // recovers from the missing braces, they end up with the following qualified names...
                 //
@@ -668,48 +639,40 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_NoPeers()
     {
-        var source = @"namespace A.$$";
-
-        await VerifyNoItemsExistAsync(source, sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyNoItemsExistAsync(@"namespace A.$$", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_TopLevelWithPeer()
     {
-        var source = """
+        await VerifyItemExistsAsync("""
             namespace A.B { }
 
             namespace A.$$
-            """;
-
-        await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+            """, "B", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_TopLevelWithPeer_FileScopedNamespace()
     {
-        var source = """
+        await VerifyItemExistsAsync("""
             namespace A.B { }
 
             namespace A.$$;
-            """;
-
-        await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+            """, "B", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_NestedWithPeer()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace A
             {
                 namespace B.C { }
 
                 namespace B.$$
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Absent("A"),
                 ItemExpectation.Absent("B"),
@@ -721,14 +684,12 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_WithNested()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace A.$$
             {
                 namespace B { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Absent("A"),
                 ItemExpectation.Absent("B")
@@ -739,16 +700,14 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_WithNestedAndMatchingPeer()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace A.B { }
 
             namespace A.$$
             {
                 namespace B { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Absent("A"),
                 ItemExpectation.Exists("B")
@@ -759,9 +718,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_InnerCompletionPosition()
     {
-        var source = @"namespace Sys$$tem.Runtime { }";
-
-        await VerifyExpectedItemsAsync(source,
+        await VerifyExpectedItemsAsync(@"namespace Sys$$tem.Runtime { }",
             [
                 ItemExpectation.Exists("System"),
                 ItemExpectation.Absent("Runtime")
@@ -772,22 +729,18 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_OnKeyword()
     {
-        var source = @"name$$space System { }";
-
-        await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyItemExistsAsync(@"name$$space System { }", "System", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_OnNestedKeyword()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace System
             {
                 name$$space Runtime { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source,
+            """,
             [
                 ItemExpectation.Absent("System"),
                 ItemExpectation.Absent("Runtime")
@@ -798,7 +751,8 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
     public async Task NamespaceName_Qualified_IncompleteDeclaration()
     {
-        var source = """
+        await VerifyExpectedItemsAsync(
+            """
             namespace A
             {
                 namespace B
@@ -812,10 +766,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             namespace A.B.C.D3 { }
-            """;
-
-        await VerifyExpectedItemsAsync(
-            source, [
+            """, [
                 ItemExpectation.Absent("A"),
                 ItemExpectation.Absent("B"),
                 ItemExpectation.Absent("C"),
@@ -838,8 +789,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task UnderNamespace()
     {
-        var source = @"namespace NS { $$";
-        await VerifyExpectedItemsAsync(source, [
+        await VerifyExpectedItemsAsync(@"namespace NS { $$", [
             ItemExpectation.Absent("String"),
             ItemExpectation.Absent("System")
         ]);
@@ -848,12 +798,11 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task OutsideOfType1()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace NS {
             class CL {}
             $$
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Absent("String"),
             ItemExpectation.Absent("System")
         ]);
@@ -877,7 +826,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task CompletionInsideProperty()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 private string name;
@@ -886,8 +835,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     set
                     {
                         name = $$
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("value"),
             ItemExpectation.Exists("C")
         ]);
@@ -2285,7 +2233,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
     public async Task InheritedMember1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 private void Hidden() { }
@@ -2298,8 +2246,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Hidden"),
             ItemExpectation.Exists("Goo")
         ]);
@@ -2308,7 +2255,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
     public async Task InheritedMember2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 private void Hidden() { }
@@ -2321,8 +2268,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     this.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Hidden"),
             ItemExpectation.Exists("Goo")
         ]);
@@ -2331,7 +2277,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
     public async Task InheritedMember3()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 private void Hidden() { }
@@ -2344,8 +2290,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     base.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Hidden"),
             ItemExpectation.Exists("Goo"),
             ItemExpectation.Absent("Bar"),
@@ -2355,7 +2300,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
     public async Task InheritedStaticMember1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 private static void Hidden() { }
@@ -2368,8 +2313,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Hidden"),
             ItemExpectation.Exists("Goo")
         ]);
@@ -2378,7 +2322,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
     public async Task InheritedStaticMember2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 private static void Hidden() { }
@@ -2391,8 +2335,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     B.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Hidden"),
             ItemExpectation.Exists("Goo")
         ]);
@@ -2401,7 +2344,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
     public async Task InheritedStaticMember3()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                  private static void Hidden() { }
@@ -2414,8 +2357,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     A.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Hidden"),
             ItemExpectation.Exists("Goo")
         ]);
@@ -2424,7 +2366,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539812")]
     public async Task InheritedInstanceAndStaticMembers()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                  private static void HiddenStatic() { }
@@ -2440,8 +2382,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("HiddenStatic"),
             ItemExpectation.Exists("GooStatic"),
             ItemExpectation.Absent("HiddenInstance"),
@@ -2452,159 +2393,142 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540155")]
     public async Task ForLoopIndexer1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
                 {
                     for (int i = 0; $$
-            """;
-        await VerifyItemExistsAsync(markup, "i");
+            """, "i");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540155")]
     public async Task ForLoopIndexer2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
                 {
                     for (int i = 0; i < 10; $$
-            """;
-        await VerifyItemExistsAsync(markup, "i");
+            """, "i");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task NoInstanceMembersAfterType1()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C
             {
                 void M()
                 {
                     System.IDisposable.$$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Dispose");
+            """, "Dispose");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task NoInstanceMembersAfterType2()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C
             {
                 void M()
                 {
                     (System.IDisposable).$$
-            """;
-        await VerifyItemIsAbsentAsync(markup, "Dispose");
+            """, "Dispose");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task NoInstanceMembersAfterType3()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
             class C
             {
                 void M()
                 {
                     IDisposable.$$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Dispose");
+            """, "Dispose");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task NoInstanceMembersAfterType4()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
             class C
             {
                 void M()
                 {
                     (IDisposable).$$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Dispose");
+            """, "Dispose");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task StaticMembersAfterType1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
                 {
                     System.IDisposable.$$
-            """;
-
-        await VerifyItemExistsAsync(markup, "ReferenceEquals");
+            """, "ReferenceEquals");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task StaticMembersAfterType2()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C
             {
                 void M()
                 {
                     (System.IDisposable).$$
-            """;
-        await VerifyItemIsAbsentAsync(markup, "ReferenceEquals");
+            """, "ReferenceEquals");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task StaticMembersAfterType3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             class C
             {
                 void M()
                 {
                     IDisposable.$$
-            """;
-
-        await VerifyItemExistsAsync(markup, "ReferenceEquals");
+            """, "ReferenceEquals");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540012")]
     public async Task StaticMembersAfterType4()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
             class C
             {
                 void M()
                 {
                     (IDisposable).$$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "ReferenceEquals");
+            """, "ReferenceEquals");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540197")]
     public async Task TypeParametersInClass()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C<T, R>
             {
                 $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "T");
+            """, "T");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
     public async Task AfterRefInLambda_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2613,8 +2537,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     Func<int, int> f = (ref $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2623,7 +2546,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
     public async Task AfterOutInLambda_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2632,8 +2555,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     Func<int, int> f = (out $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2642,7 +2564,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24326")]
     public async Task AfterInInLambda_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2651,8 +2573,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     Func<int, int> f = (in $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2661,7 +2582,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterRefInMethodDeclaration_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2670,8 +2591,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 {
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("field")
         ]);
@@ -2680,7 +2600,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterOutInMethodDeclaration_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2689,8 +2609,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 {
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("field")
         ]);
@@ -2699,7 +2618,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24326")]
     public async Task AfterInInMethodDeclaration_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2708,8 +2627,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 {
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("field")
         ]);
@@ -2718,7 +2636,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterRefInInvocation_TypeAndVariable()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2727,8 +2645,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     M(ref $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Exists("parameter")
         ]);
@@ -2737,7 +2654,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterOutInInvocation_TypeAndVariable()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2746,8 +2663,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     M(out $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Exists("parameter")
         ]);
@@ -2756,7 +2672,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24326")]
     public async Task AfterInInInvocation_TypeAndVariable()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2765,8 +2681,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     M(in $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Exists("parameter")
         ]);
@@ -2775,7 +2690,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
     public async Task AfterRefExpression_TypeAndVariable()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2784,8 +2699,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ref var x = ref $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Exists("parameter")
         ]);
@@ -2794,7 +2708,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
     public async Task AfterRefInStatementContext_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2803,8 +2717,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ref $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2813,7 +2726,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
     public async Task AfterRefReadonlyInStatementContext_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2822,8 +2735,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ref readonly $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2832,7 +2744,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterRefLocalDeclaration_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2841,8 +2753,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ref $$ int local;
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2851,7 +2762,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterRefReadonlyLocalDeclaration_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2860,8 +2771,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ref readonly $$ int local;
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2870,7 +2780,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterRefLocalFunction_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2879,8 +2789,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ref $$ int Function();
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2889,7 +2798,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AfterRefReadonlyLocalFunction_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2898,8 +2807,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ref readonly $$ int Function();
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -2908,7 +2816,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35178")]
     public async Task RefStructMembersEmptyByDefault()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             ref struct Test {}
             class C
             {
@@ -2918,14 +2826,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     test.$$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35178")]
     public async Task RefStructMembersHasMethodIfItWasOverriden()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             ref struct Test
             {
                 public override string ToString() => string.Empty;
@@ -2938,8 +2845,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     test.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("ToString"),
             ItemExpectation.Absent("GetType"),
             ItemExpectation.Absent("Equals"),
@@ -2950,7 +2856,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35178")]
     public async Task RefStructMembersHasMethodsForNameof()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             ref struct Test {}
             class C
             {
@@ -2960,8 +2866,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     _ = nameof(test.$$);
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("ToString"),
             ItemExpectation.Exists("GetType"),
             ItemExpectation.Exists("Equals"),
@@ -2972,7 +2877,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
     public async Task AfterStaticLocalFunction_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -2981,8 +2886,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     static $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -3000,7 +2904,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [InlineData("extern unsafe")]
     public async Task AfterLocalFunction_TypeOnly(string keyword)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             using System;
             class C
             {
@@ -3009,8 +2913,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     {{keyword}} $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -3026,7 +2929,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [InlineData("extern unsafe async static")]
     public async Task AfterLocalFunction_TypeOnly_Async(string keyword)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             using System;
             class C
             {
@@ -3035,8 +2938,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     {{keyword}} $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -3045,7 +2947,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     public async Task AfterAsyncLocalFunctionWithTwoAsyncs()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -3054,8 +2956,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     async async $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -3071,7 +2972,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [InlineData("int Function")]
     public async Task NotAfterReturnTypeInLocalFunction(string returnType)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             using System;
             class C
             {
@@ -3080,8 +2981,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     static {{returnType}} $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("String"),
             ItemExpectation.Absent("parameter")
         ]);
@@ -3090,15 +2990,14 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
     public async Task AfterRefInMemberContext_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
                 String field;
                 ref $$
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("field")
         ]);
@@ -3107,15 +3006,14 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
     public async Task AfterRefReadonlyInMemberContext_TypeOnly()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
                 String field;
                 ref readonly $$
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("String"),
             ItemExpectation.Absent("field")
         ]);
@@ -3124,7 +3022,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
     public async Task NestedType1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class Q
             {
                 $$
@@ -3133,8 +3031,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
 
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Q"),
             ItemExpectation.Exists("R")
         ]);
@@ -3143,7 +3040,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
     public async Task NestedType2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class Q
             {
                 class R
@@ -3151,8 +3048,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Q"),
             ItemExpectation.Exists("R")
         ]);
@@ -3161,7 +3057,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
     public async Task NestedType3()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class Q
             {
                 class R
@@ -3169,8 +3065,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 }
                 $$
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Q"),
             ItemExpectation.Exists("R")
         ]);
@@ -3218,15 +3113,14 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
     public async Task NestedType5()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class Q
             {
                 class R
                 {
                 }
                 $$
-            """; // At EOF
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Q"),
             ItemExpectation.Exists("R")
         ]);
@@ -3235,14 +3129,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
     public async Task NestedType6()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class Q
             {
                 class R
                 {
                     $$
-            """; // At EOF
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Q"),
             ItemExpectation.Exists("R")
         ]);
@@ -3251,7 +3144,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540574")]
     public async Task AmbiguityBetweenTypeAndLocal()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -3264,15 +3157,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     List<string> ml = new List<string>();
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "CompareTo");
+            """, "CompareTo");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21596")]
     public async Task AmbiguityBetweenExpressionAndLocalFunctionReturnType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -3306,54 +3197,46 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     return true;
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Add");
+            """, "Add");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540750")]
     public async Task CompletionAfterNewInScript()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             new $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            """, "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540933")]
     public async Task ExtensionMethodsInScript()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Linq;
             var a = new int[] { 1, 2 };
             a.$$
-            """;
-
-        await VerifyItemExistsAsync(markup, "ElementAt", displayTextSuffix: "<>", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            """, "ElementAt", displayTextSuffix: "<>", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541019")]
     public async Task ExpressionsInForLoopInitializer()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public class C
             {
                 public void M()
                 {
                     int count = 0;
                     for ($$
-            """;
-
-        await VerifyItemExistsAsync(markup, "count");
+            """, "count");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541108")]
     public async Task AfterLambdaExpression1()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             public class C
             {
                 public void M()
@@ -3361,15 +3244,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     System.Func<int, int> f = arg => { arg = 2; return arg; }.$$
                 }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "ToString");
+            """, "ToString");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541108")]
     public async Task AfterLambdaExpression2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             public class C
             {
                 public void M()
@@ -3377,9 +3258,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     ((System.Func<int, int>)(arg => { arg = 2; return arg; })).$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("ToString"),
             ItemExpectation.Exists("Invoke")
         ]);
@@ -3388,18 +3267,16 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541216")]
     public async Task InMultiLineCommentAtEndOfFile()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
             /*$$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Console", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            """, "Console", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541218")]
     public async Task TypeParametersAtEndOfFile()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             using System.Collections.Generic;
             using System.Linq;
@@ -3415,15 +3292,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             public static void F(T t)
             {
             Outer<$$
-            """;
-
-        await VerifyItemExistsAsync(markup, "T");
+            """, "T");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
     public async Task LabelInCaseSwitchAbsentForCase()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class Program
             {
                 static void Main()
@@ -3433,15 +3308,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     {
                         case 0:
                             goto $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "case 0:");
+            """, "case 0:");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
     public async Task LabelInCaseSwitchAbsentForDefaultWhenAbsent()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class Program
             {
                 static void Main()
@@ -3451,15 +3324,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     {
                         case 0:
                             goto $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "default:");
+            """, "default:");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552717")]
     public async Task LabelInCaseSwitchPresentForDefault()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 static void Main()
@@ -3469,15 +3340,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     {
                         default:
                             goto $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "default");
+            """, "default");
     }
 
     [Fact]
     public async Task LabelAfterGoto1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 static void Main()
@@ -3485,15 +3354,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 Goo:
                     int Goo;
                     goto $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "Goo");
+            """, "Goo");
     }
 
     [Fact]
     public async Task LabelAfterGoto2()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class Program
             {
                 static void Main()
@@ -3501,20 +3368,16 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 Goo:
                     int Goo;
                     goto Goo $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Goo");
+            """, "Goo");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public async Task AttributeName()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             [$$
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("CLSCompliant"),
             ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
@@ -3523,12 +3386,10 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public async Task AttributeNameAfterSpecifier()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             [assembly:$$
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("CLSCompliant"),
             ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
@@ -3537,12 +3398,10 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public async Task AttributeNameInAttributeList()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             [CLSCompliant, $$
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("CLSCompliant"),
             ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
@@ -3551,13 +3410,11 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public async Task AttributeNameBeforeClass()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             [$$
             class C { }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("CLSCompliant"),
             ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
@@ -3566,13 +3423,11 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public async Task AttributeNameAfterSpecifierBeforeClass()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             [assembly:$$
             class C { }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("CLSCompliant"),
             ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
@@ -3581,13 +3436,11 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public async Task AttributeNameInAttributeArgumentList()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             [CLSCompliant($$
             class C { }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("CLSCompliantAttribute"),
             ItemExpectation.Absent("CLSCompliant")
         ]);
@@ -3596,12 +3449,10 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public async Task AttributeNameInsideClass()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C { $$ }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("CLSCompliantAttribute"),
             ItemExpectation.Absent("CLSCompliant")
         ]);
@@ -3610,58 +3461,51 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542954")]
     public async Task NamespaceAliasInAttributeName1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using Alias = System;
 
             [$$
             class C { }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Alias");
+            """, "Alias");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542954")]
     public async Task NamespaceAliasInAttributeName2()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using Alias = Goo;
 
             namespace Goo { }
 
             [$$
             class C { }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Alias");
+            """, "Alias");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542954")]
     public async Task NamespaceAliasInAttributeName3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using Alias = Goo;
 
             namespace Goo { class A : System.Attribute { } }
 
             [$$
             class C { }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Alias");
+            """, "Alias");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
     public async Task AttributeNameAfterNamespace()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             namespace Test
             {
                 class MyAttribute : System.Attribute { }
                 [Test.$$
                 class Program { }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("My"),
             ItemExpectation.Absent("MyAttribute")
         ]);
@@ -3670,7 +3514,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
     public async Task AttributeNameAfterNamespace2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             namespace Test
             {
                 namespace Two
@@ -3680,8 +3524,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     class Program { }
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("My"),
             ItemExpectation.Absent("MyAttribute")
         ]);
@@ -3690,15 +3533,14 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
     public async Task AttributeNameWhenSuffixlessFormIsKeyword()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             namespace Test
             {
                 class namespaceAttribute : System.Attribute { }
                 [$$
                 class Program { }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("namespaceAttribute"),
             ItemExpectation.Absent("namespace"),
             ItemExpectation.Absent("@namespace")
@@ -3708,15 +3550,14 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
     public async Task AttributeNameAfterNamespaceWhenSuffixlessFormIsKeyword()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             namespace Test
             {
                 class namespaceAttribute : System.Attribute { }
                 [Test.$$
                 class Program { }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("namespaceAttribute"),
             ItemExpectation.Absent("namespace"),
             ItemExpectation.Absent("@namespace")
@@ -3726,7 +3567,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
     public async Task KeywordsUsedAsLocals()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 void M()
@@ -3737,9 +3578,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     Console.Write($$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             // preprocessor keyword
             ItemExpectation.Exists("error"),
             ItemExpectation.Absent("@error"),
@@ -3757,7 +3596,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
     public async Task QueryContextualKeywords1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 void M()
@@ -3766,9 +3605,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     var r = from x in $$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("@from"),
             ItemExpectation.Absent("from")
         ]);
@@ -3777,7 +3614,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
     public async Task QueryContextualKeywords2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 void M()
@@ -3788,9 +3625,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                             select @from;
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("@from"),
             ItemExpectation.Absent("from"),
             ItemExpectation.Exists("@where"),
@@ -3801,7 +3636,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
     public async Task QueryContextualKeywords3()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 void M()
@@ -3812,9 +3647,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                             select $$;
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("@from"),
             ItemExpectation.Absent("from"),
             ItemExpectation.Exists("@where"),
@@ -3825,13 +3658,12 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
     public async Task AttributeNameAfterGlobalAlias()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync(
+            """
             class MyAttribute : System.Attribute { }
             [global::$$
             class Program { }
-            """;
-        await VerifyExpectedItemsAsync(
-            markup, [
+            """, [
                 ItemExpectation.Exists("My"),
                 ItemExpectation.Absent("MyAttribute")
             ],
@@ -3841,13 +3673,12 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
     public async Task AttributeNameAfterGlobalAliasWhenSuffixlessFormIsKeyword()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync(
+            """
             class namespaceAttribute : System.Attribute { }
             [global::$$
             class Program { }
-            """;
-        await VerifyExpectedItemsAsync(
-            markup, [
+            """, [
                 ItemExpectation.Exists("namespaceAttribute"),
                 ItemExpectation.Absent("namespace"),
                 ItemExpectation.Absent("@namespace")
@@ -3858,7 +3689,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25589")]
     public async Task AttributeSearch_NamespaceWithNestedAttribute1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             namespace Namespace1
             {
                 namespace Namespace2 { class NonAttribute { } }
@@ -3866,14 +3697,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             [$$]
-            """;
-        await VerifyItemExistsAsync(markup, "Namespace1");
+            """, "Namespace1");
     }
 
     [Fact]
     public async Task AttributeSearch_NamespaceWithNestedAttribute2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             namespace Namespace1
             {
                 namespace Namespace2 { class NonAttribute { } }
@@ -3881,8 +3711,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             [Namespace1.$$]
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Namespace2"),
             ItemExpectation.Exists("Namespace3"),
         ]);
@@ -3891,7 +3720,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AttributeSearch_NamespaceWithNestedAttribute3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             namespace Namespace1
             {
                 namespace Namespace2 { class NonAttribute { } }
@@ -3899,14 +3728,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             [Namespace1.Namespace3.$$]
-            """;
-        await VerifyItemExistsAsync(markup, "Namespace4");
+            """, "Namespace4");
     }
 
     [Fact]
     public async Task AttributeSearch_NamespaceWithNestedAttribute4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             namespace Namespace1
             {
                 namespace Namespace2 { class NonAttribute { } }
@@ -3914,14 +3742,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             [Namespace1.Namespace3.Namespace4.$$]
-            """;
-        await VerifyItemExistsAsync(markup, "Custom");
+            """, "Custom");
     }
 
     [Fact]
     public async Task AttributeSearch_NamespaceWithNestedAttribute_NamespaceAlias()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using Namespace1Alias = Namespace1;
             using Namespace2Alias = Namespace1.Namespace2;
             using Namespace3Alias = Namespace1.Namespace3;
@@ -3934,8 +3761,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             [$$]
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Namespace1Alias"),
             ItemExpectation.Absent("Namespace2Alias"),
             ItemExpectation.Exists("Namespace3Alias"),
@@ -3946,7 +3772,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact]
     public async Task AttributeSearch_NamespaceWithoutNestedAttribute()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             namespace Namespace1
             {
                 namespace Namespace2 { class NonAttribute { } }
@@ -3954,14 +3780,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             }
 
             [$$]
-            """;
-        await VerifyItemIsAbsentAsync(markup, "Namespace1");
+            """, "Namespace1");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542230")]
     public async Task RangeVariableInQuerySelect()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Linq;
             class P
             {
@@ -3970,15 +3795,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     var src = new string[] { "Goo", "Bar" };
                     var q = from x in src
                             select x.$$
-            """;
-
-        await VerifyItemExistsAsync(markup, "Length");
+            """, "Length");
     }
 
     [Fact]
     public async Task ConstantsInIsExpression()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int MAX_SIZE = 10;
@@ -3986,15 +3809,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 {
                     int i = 10;
                     if (i is $$ int
-            """; // 'int' to force this to be parsed as an IsExpression rather than IsPatternExpression
-
-        await VerifyItemExistsAsync(markup, "MAX_SIZE");
+            """, "MAX_SIZE");
     }
 
     [Fact]
     public async Task ConstantsInIsPatternExpression()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int MAX_SIZE = 10;
@@ -4002,15 +3823,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 {
                     int i = 10;
                     if (i is $$ 1
-            """;
-
-        await VerifyItemExistsAsync(markup, "MAX_SIZE");
+            """, "MAX_SIZE");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInSwitchCase()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int MAX_SIZE = 10;
@@ -4020,15 +3839,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     switch (i)
                     {
                         case $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "MAX_SIZE");
+            """, "MAX_SIZE");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25084#issuecomment-370148553")]
     public async Task ConstantsInSwitchPatternCase()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int MAX_SIZE = 10;
@@ -4038,15 +3855,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     switch (i)
                     {
                         case $$ when
-            """;
-
-        await VerifyItemExistsAsync(markup, "MAX_SIZE");
+            """, "MAX_SIZE");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInSwitchGotoCase()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int MAX_SIZE = 10;
@@ -4059,138 +3874,118 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                             break;
                         case GOO:
                             goto case $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "MAX_SIZE");
+            """, "MAX_SIZE");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInEnumMember()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 enum E
                 {
                     A = $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInAttribute1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 [System.AttributeUsage($$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInAttribute2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 [System.AttributeUsage(GOO, $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInAttribute3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 [System.AttributeUsage(validOn: $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInAttribute4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 [System.AttributeUsage(AllowMultiple = $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInParameterDefaultValue()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 void M(int x = $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInConstField()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 const int BAR = $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542429")]
     public async Task ConstantsInConstLocal()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public const int GOO = 0;
                 void M()
                 {
                     const int BAR = $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "GOO");
+            """, "GOO");
     }
 
     [Fact]
     public async Task DescriptionWith1Overload()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M(int i) { }
                 void M()
                 {
                     $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
+            """, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
     }
 
     [Fact]
     public async Task DescriptionWith2Overloads()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M(int i) { }
@@ -4198,30 +3993,26 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 void M()
                 {
                     $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 2 {FeaturesResources.overloads_})");
+            """, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 2 {FeaturesResources.overloads_})");
     }
 
     [Fact]
     public async Task DescriptionWith1GenericOverload()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M<T>(T i) { }
                 void M<T>()
                 {
                     $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "M", displayTextSuffix: "<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.generic_overload})");
+            """, "M", displayTextSuffix: "<>", expectedDescriptionOrNull: $"void C.M<T>(T i) (+ 1 {FeaturesResources.generic_overload})");
     }
 
     [Fact]
     public async Task DescriptionWith2GenericOverloads()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M<T>(int i) { }
@@ -4229,95 +4020,80 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 void M<T>()
                 {
                     $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "M", displayTextSuffix: "<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.generic_overloads})");
+            """, "M", displayTextSuffix: "<>", expectedDescriptionOrNull: $"void C.M<T>(int i) (+ 2 {FeaturesResources.generic_overloads})");
     }
 
     [Fact]
     public async Task DescriptionNamedGenericType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C<T>
             {
                 void M()
                 {
                     $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "C", displayTextSuffix: "<>", expectedDescriptionOrNull: "class C<T>");
+            """, "C", displayTextSuffix: "<>", expectedDescriptionOrNull: "class C<T>");
     }
 
     [Fact]
     public async Task DescriptionParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C<T>
             {
                 void M(T goo)
                 {
                     $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "goo", expectedDescriptionOrNull: $"({FeaturesResources.parameter}) T goo");
+            """, "goo", expectedDescriptionOrNull: $"({FeaturesResources.parameter}) T goo");
     }
 
     [Fact]
     public async Task DescriptionGenericTypeParameter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C<T>
             {
                 void M()
                 {
                     $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "T", expectedDescriptionOrNull: $"T {FeaturesResources.in_} C<T>");
+            """, "T", expectedDescriptionOrNull: $"T {FeaturesResources.in_} C<T>");
     }
 
     [Fact]
     public async Task DescriptionAnonymousType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
                 {
                     var a = new { };
                     $$
-            """;
-
-        var expectedDescription =
-            $$"""
+            """, "a", $$"""
             ({{FeaturesResources.local_variable}}) 'a a
 
             {{FeaturesResources.Types_colon}}
                 'a {{FeaturesResources.is_}} new {  }
-            """;
-
-        await VerifyItemExistsAsync(markup, "a", expectedDescription);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543288")]
     public async Task AfterNewInAnonymousType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program {
                 string field = 0;
                 static void Main()     {
                     var an = new {  new $$  }; 
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Program");
+            """, "Program");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
     public async Task NoInstanceFieldsInStaticMethod()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C
             {
                 int x = 0;
@@ -4326,29 +4102,25 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     $$
                 }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "x");
+            """, "x");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
     public async Task NoInstanceFieldsInStaticFieldInitializer()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C
             {
                 int x = 0;
                 static int y = $$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "x");
+            """, "x");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
     public async Task StaticFieldsInStaticMethod()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 static int x = 0;
@@ -4357,29 +4129,25 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     $$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "x");
+            """, "x");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
     public async Task StaticFieldsInStaticFieldInitializer()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 static int x = 0;
                 static int y = $$
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "x");
+            """, "x");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")]
     public async Task NoInstanceFieldsFromOuterClassInInstanceMethod()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class outer
             {
                 int i;
@@ -4391,15 +4159,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     }
                 }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "i");
+            """, "i");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543680")]
     public async Task StaticFieldsFromOuterClassInInstanceMethod()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class outer
             {
                 static int i;
@@ -4411,15 +4177,13 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     }
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "i");
+            """, "i");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")]
     public async Task OnlyEnumMembersInEnumMemberAccess()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 enum x {a,b,c}
@@ -4428,9 +4192,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     x.$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("a"),
             ItemExpectation.Exists("b"),
             ItemExpectation.Exists("c"),
@@ -4441,7 +4203,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543104")]
     public async Task NoEnumMembersInEnumLocalAccess()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 enum x {a,b,c}
@@ -4451,9 +4213,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     y.$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("a"),
             ItemExpectation.Absent("b"),
             ItemExpectation.Absent("c"),
@@ -4464,7 +4224,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529138")]
     public async Task AfterLambdaParameterDot()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             using System.Linq;
             class A
@@ -4479,9 +4239,7 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     new A().E += ss => ss.$$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Substring");
+            """, "Substring");
     }
 
     [Fact, WorkItem(61343, "https://github.com/dotnet/roslyn/issues/61343")]
@@ -7988,7 +7746,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545557")]
     public async Task TestColorColor1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 static void Goo() { }
@@ -8000,8 +7758,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     A.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Goo"),
             ItemExpectation.Exists("Bar"),
         ]);
@@ -8010,7 +7767,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
     public async Task TestLaterLocalHidesType1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             class C
             {
@@ -8020,15 +7777,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     Console.WriteLine();
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Console");
+            """, "Console");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545647")]
     public async Task TestLaterLocalHidesType2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             class C
             {
@@ -8038,9 +7793,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     Console.WriteLine();
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Console");
+            """, "Console");
     }
 
     [Fact]
@@ -8100,7 +7853,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546841")]
     public async Task TestDeclarationAmbiguity()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class Program
@@ -8111,28 +7864,24 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var v;
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "CommandLine");
+            """, "CommandLine");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12781")]
     public async Task TestFieldDeclarationAmbiguity()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             Environment.$$
             var v;
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "CommandLine", sourceCodeKind: SourceCodeKind.Script);
+            """, "CommandLine", sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact]
     public async Task TestCursorOnClassCloseBrace()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class Outer
@@ -8140,43 +7889,37 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 class Inner { }
 
             $$}
-            """;
-
-        await VerifyItemExistsAsync(markup, "Inner");
+            """, "Inner");
     }
 
     [Fact]
     public async Task AfterAsync1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading.Tasks;
             class Program
             {
                 async $$
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Task");
+            """, "Task");
     }
 
     [Fact]
     public async Task AfterAsync2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading.Tasks;
             class Program
             {
                 public async T$$
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Task");
+            """, "Task");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     public async Task AfterAsync3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -8184,24 +7927,20 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 public void M() {}
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Task");
+            """, "Task");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     public async Task AfterAsync4()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             using System.Threading.Tasks;
             class Program
             {
                 public async $$
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Task"),
             ItemExpectation.Absent("Console"),
         ]);
@@ -8210,7 +7949,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
     public async Task AfterAsync5()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -8218,9 +7957,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
 
             class Test {}
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Task"),
             ItemExpectation.Absent("Test"),
         ]);
@@ -8229,7 +7966,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task NotAfterAsyncInMethodBody()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System.Threading.Tasks;
             class Program
             {
@@ -8238,15 +7975,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var x = async $$
                 }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "Task");
+            """, "Task");
     }
 
     [Fact]
     public async Task NotAwaitable1()
     {
-        var markup = """
+        await VerifyItemWithMscorlib45Async("""
             class Program
             {
                 void goo()
@@ -8254,15 +7989,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-
-        await VerifyItemWithMscorlib45Async(markup, "goo", "void Program.goo()", "C#");
+            """, "goo", "void Program.goo()", "C#");
     }
 
     [Fact]
     public async Task NotAwaitable2()
     {
-        var markup = """
+        await VerifyItemWithMscorlib45Async("""
             class Program
             {
                 async void goo()
@@ -8270,15 +8003,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-
-        await VerifyItemWithMscorlib45Async(markup, "goo", "void Program.goo()", "C#");
+            """, "goo", "void Program.goo()", "C#");
     }
 
     [Fact]
     public async Task Awaitable1()
     {
-        var markup = """
+        await VerifyItemWithMscorlib45Async("""
             using System.Threading;
             using System.Threading.Tasks;
 
@@ -8289,17 +8020,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-
-        var description = $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()";
-
-        await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
+            """, "goo", $@"({CSharpFeaturesResources.awaitable}) Task Program.goo()", "C#");
     }
 
     [Fact]
     public async Task Awaitable2()
     {
-        var markup = """
+        await VerifyItemWithMscorlib45Async("""
             using System.Threading.Tasks;
 
             class Program
@@ -8309,17 +8036,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-
-        var description = $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()";
-
-        await VerifyItemWithMscorlib45Async(markup, "goo", description, "C#");
+            """, "goo", $@"({CSharpFeaturesResources.awaitable}) Task<int> Program.goo()", "C#");
     }
 
     [Fact]
     public async Task AwaitableDotsLikeRangeExpression()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.IO;
             using System.Threading.Tasks;
 
@@ -8339,15 +8062,14 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     public Task<Stream> ReadAsStreamAsync() => null;
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "ReadAsStreamAsync");
+            """, "ReadAsStreamAsync");
     }
 
     [Fact]
     public async Task AwaitableDotsLikeRangeExpressionWithParentheses()
     {
-        var markup = """
+        // Nothing should be found: no awaiter for request.
+        await VerifyExpectedItemsAsync("""
             using System.IO;
             using System.Threading.Tasks;
 
@@ -8367,9 +8089,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     public Task<Stream> ReadAsStreamAsync() => null;
                 }
             }
-            """;
-        // Nothing should be found: no awaiter for request.
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Result"),
             ItemExpectation.Absent("ReadAsStreamAsync"),
         ]);
@@ -8378,7 +8098,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task AwaitableDotsLikeRangeExpressionWithTaskAndParentheses()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System.IO;
             using System.Threading.Tasks;
 
@@ -8398,9 +8118,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     public Task<Stream> ReadAsStreamAsync() => null;
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Result"),
             ItemExpectation.Exists("ReadAsStreamAsync"),
         ]);
@@ -8409,7 +8127,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task ObsoleteItem()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class Program
@@ -8420,14 +8138,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "goo", $"[{CSharpFeaturesResources.deprecated}] void Program.goo()");
+            """, "goo", $"[{CSharpFeaturesResources.deprecated}] void Program.goo()");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568986")]
     public async Task NoMembersOnDottingIntoUnboundType()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 RegistryKey goo;
@@ -8437,38 +8154,35 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     goo.$$
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/550717")]
     public async Task TypeArgumentsInConstraintAfterBaselist()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public class Goo<T> : System.Object where $$
             {
             }
-            """;
-        await VerifyItemExistsAsync(markup, "T");
+            """, "T");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/647175")]
     public async Task NoDestructor()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C
             {
                 ~C()
                 {
                     $$
-            """;
-        await VerifyItemIsAbsentAsync(markup, "Finalize");
+            """, "Finalize");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/669624")]
     public async Task ExtensionMethodOnCovariantInterface()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Schema<T> { }
 
             interface ISet<out T> { }
@@ -8492,49 +8206,42 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var set = new Context().Set<CustomSchema>();
 
                     set.$$
-            """;
-
-        await VerifyItemExistsAsync(markup, "ForSchemaSet", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
+            """, "ForSchemaSet", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667752")]
     public async Task ForEachInsideParentheses()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             class C
             {
                 void M()
                 {
                     foreach($$)
-            """;
-
-        await VerifyItemExistsAsync(markup, "String");
+            """, "String");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/766869")]
     public async Task TestFieldInitializerInP2P()
     {
-        var markup = """
+        await VerifyItemWithProjectReferenceAsync("""
             class Class
             {
                 int i = Consts.$$;
             }
-            """;
-
-        var referencedCode = """
+            """, """
             public static class Consts
             {
                 public const int C = 1;
             }
-            """;
-        await VerifyItemWithProjectReferenceAsync(markup, referencedCode, "C", 1, LanguageNames.CSharp, LanguageNames.CSharp);
+            """, "C", 1, LanguageNames.CSharp, LanguageNames.CSharp);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834605")]
     public async Task ShowWithEqualsSign()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class c { public int value {set; get; }}
 
             class d
@@ -8544,15 +8251,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                    c goo = new c { value$$=
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825661")]
     public async Task NothingAfterThisDotInStaticContext()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M1() { }
@@ -8562,15 +8267,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     this.$$
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/825661")]
     public async Task NothingAfterBaseDotInStaticContext()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M1() { }
@@ -8580,9 +8283,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     base.$$
                 }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://github.com/dotnet/roslyn/issues/7648")]
@@ -8592,7 +8293,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858086")]
     public async Task NoNestedTypeWhenDisplayingInstance()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C
             {
                 class D
@@ -8604,15 +8305,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     new C().$$
                 }
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markup, "D");
+            """, "D");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876031")]
     public async Task CatchVariableInExceptionFilter()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -8621,15 +8320,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     {
                     }
                     catch (System.Exception myExn) when ($$
-            """;
-
-        await VerifyItemExistsAsync(markup, "myExn");
+            """, "myExn");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849698")]
     public async Task CompletionAfterExternAlias()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void goo()
@@ -8637,15 +8334,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     global::$$
                 }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "System", usePreviousCharAsTrigger: true);
+            """, "System", usePreviousCharAsTrigger: true);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849698")]
     public async Task ExternAliasSuggested()
     {
-        var markup = """
+        await VerifyItemWithAliasedMetadataReferencesAsync("""
             extern alias Bar;
             class C
             {
@@ -8654,8 +8349,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-        await VerifyItemWithAliasedMetadataReferencesAsync(markup, "Bar", "Bar", 1, "C#", "C#");
+            """, "Bar", "Bar", 1, "C#", "C#");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
@@ -8694,13 +8388,12 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
     public async Task StructDestructor()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             struct C
             {
                ~$$
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "C");
+            """, "C");
     }
 
     [Theory]
@@ -8708,31 +8401,29 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("record class")]
     public async Task RecordDestructor(string record)
     {
-        var markup = $$"""
+        await VerifyItemExistsAsync($$"""
             {{record}} C
             {
                ~$$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "C");
+            """, "C");
     }
 
     [Fact]
     public async Task RecordStructDestructor()
     {
-        var markup = $$"""
+        await VerifyItemIsAbsentAsync($$"""
             record struct C
             {
                ~$$
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "C");
+            """, "C");
     }
 
     [Fact]
     public async Task FieldAvailableInBothLinkedFiles()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -8751,15 +8442,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        await VerifyItemInLinkedFilesAsync(markup, "x", $"({FeaturesResources.field}) int C.x");
+            """, "x", $"({FeaturesResources.field}) int C.x");
     }
 
     [Fact]
     public async Task FieldUnavailableInOneLinkedFile()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -8780,23 +8469,20 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"""
+            """, "x", $"""
             ({FeaturesResources.field}) int C.x
 
                 {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
                 {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
-            """;
-
-        await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
+            """);
     }
 
     [Fact]
     public async Task FieldUnavailableInTwoLinkedFiles()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -8820,8 +8506,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"""
+            """, "x", $"""
             ({FeaturesResources.field}) int C.x
 
                 {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
@@ -8829,15 +8514,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
-            """;
-
-        await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
+            """);
     }
 
     [Fact]
     public async Task ExcludeFilesWithInactiveRegions()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO,BAR">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -8864,23 +8547,20 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"""
+            """, "x", $"""
             ({FeaturesResources.field}) int C.x
 
                 {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
                 {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
-            """;
-
-        await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
+            """);
     }
 
     [Fact]
     public async Task UnionOfItemsFromBothContexts()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -8911,8 +8591,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"""
+            """, "DoGStuff", $"""
             void G.DoGStuff()
 
                 {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
@@ -8920,15 +8599,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
-            """;
-
-        await VerifyItemInLinkedFilesAsync(markup, "DoGStuff", expectedDescription);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task LocalsValidInLinkedDocuments()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -8947,15 +8624,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"({FeaturesResources.local_variable}) int xyz";
-        await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
+            """, "xyz", $"({FeaturesResources.local_variable}) int xyz");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task LocalWarningInLinkedDocuments()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="PROJ1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -8976,22 +8651,20 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"""
+            """, "xyz", $"""
             ({FeaturesResources.local_variable}) int xyz
 
                 {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
                 {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
-            """;
-        await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task LabelsValidInLinkedDocuments()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9010,15 +8683,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"({FeaturesResources.label}) LABEL";
-        await VerifyItemInLinkedFilesAsync(markup, "LABEL", expectedDescription);
+            """, "LABEL", $"({FeaturesResources.label}) LABEL");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task RangeVariablesValidInLinkedDocuments()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9037,15 +8708,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-        var expectedDescription = $"({FeaturesResources.range_variable}) ? y";
-        await VerifyItemInLinkedFilesAsync(markup, "y", expectedDescription);
+            """, "y", $"({FeaturesResources.range_variable}) ? y");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063403")]
     public async Task MethodOverloadDifferencesIgnored()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9071,16 +8740,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedDescription = $"void C.Do(int x)";
-        await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
+            """, "Do", $"void C.Do(int x)");
     }
 
     [Fact]
     public async Task MethodOverloadDifferencesIgnored_ExtensionMethod()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9112,16 +8778,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedDescription = $"void C.Do(int x)";
-        await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
+            """, "Do", $"void C.Do(int x)");
     }
 
     [Fact]
     public async Task MethodOverloadDifferencesIgnored_ExtensionMethod2()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="TWO">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9153,16 +8816,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedDescription = $"({CSharpFeaturesResources.extension}) void C.Do(string x)";
-        await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
+            """, "Do", $"({CSharpFeaturesResources.extension}) void C.Do(string x)");
     }
 
     [Fact]
     public async Task MethodOverloadDifferencesIgnored_ContainingType()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9209,16 +8869,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedDescription = $"void Methods1.Do(string x)";
-        await VerifyItemInLinkedFilesAsync(markup, "Do", expectedDescription);
+            """, "Do", $"void Methods1.Do(string x)");
     }
 
     [Fact]
     public async Task SharedProjectFieldAndPropertiesTreatedAsIdentical()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9242,16 +8899,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedDescription = $"({FeaturesResources.field}) int C.x";
-        await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
+            """, "x", $"({FeaturesResources.field}) int C.x");
     }
 
     [Fact]
     public async Task SharedProjectFieldAndPropertiesTreatedAsIdentical2()
     {
-        var markup = """
+        await VerifyItemInLinkedFilesAsync("""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
                     <Document FilePath="CurrentDocument.cs"><![CDATA[
@@ -9275,16 +8929,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.cs"/>
                 </Project>
             </Workspace>
-            """;
-
-        var expectedDescription = "int C.x { get; set; }";
-        await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
+            """, "x", "int C.x { get; set; }");
     }
 
     [Fact]
     public async Task ConditionalAccessWalkUp()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             public class B
             {
                 public A BA;
@@ -9303,8 +8954,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var q = a?.$$AB.BA.AB.BA;
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("AA"),
             ItemExpectation.Exists("AB"),
         ]);
@@ -9313,7 +8963,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task ConditionalAccessNullableIsUnwrapped()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             public struct S
             {
                 public int? i;
@@ -9329,8 +8979,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var q = a?.s?.$$;
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("i"),
             ItemExpectation.Absent("Value"),
         ]);
@@ -9339,7 +8988,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task ConditionalAccessNullableIsUnwrapped2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             public struct S
             {
                 public int? i;
@@ -9354,8 +9003,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var q = s?.$$i?.ToString();
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("i"),
             ItemExpectation.Absent("Value"),
         ]);
@@ -9364,7 +9012,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54361")]
     public async Task ConditionalAccessNullableIsUnwrappedOnParameter()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 void M(System.DateTime? dt)
@@ -9372,8 +9020,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     dt?.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Day"),
             ItemExpectation.Absent("Value"),
         ]);
@@ -9382,7 +9029,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54361")]
     public async Task NullableIsNotUnwrappedOnParameter()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             class A
             {
                 void M(System.DateTime? dt)
@@ -9390,8 +9037,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     dt.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Value"),
             ItemExpectation.Absent("Day"),
         ]);
@@ -9400,7 +9046,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task CompletionAfterConditionalIndexing()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public struct S
             {
                 public int? i;
@@ -9416,14 +9062,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var q = a?.s?[$$;
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "System");
+            """, "System");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
     public async Task WithinChainOfConditionalAccesses1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -9437,14 +9082,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class B { public C c; }
             class C { public D d; }
             class D { public int e; }
-            """;
-        await VerifyItemExistsAsync(markup, "b");
+            """, "b");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
     public async Task WithinChainOfConditionalAccesses2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -9458,14 +9102,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class B { public C c; }
             class C { public D d; }
             class D { public int e; }
-            """;
-        await VerifyItemExistsAsync(markup, "c");
+            """, "c");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
     public async Task WithinChainOfConditionalAccesses3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -9479,14 +9122,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class B { public C c; }
             class C { public D d; }
             class D { public int e; }
-            """;
-        await VerifyItemExistsAsync(markup, "d");
+            """, "d");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]
     public async Task NestedAttributeAccessibleOnSelf()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             [My]
             class X
@@ -9497,14 +9139,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "My");
+            """, "My");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843466")]
     public async Task NestedAttributeAccessibleOnOuterType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             [My]
@@ -9522,14 +9163,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "My");
+            """, "My");
     }
 
     [Fact]
     public async Task InstanceMembersFromBaseOuterType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             abstract class Test
             {
               private int _field;
@@ -9543,14 +9183,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
               }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "_field");
+            """, "_field");
     }
 
     [Fact]
     public async Task InstanceMembersFromBaseOuterType2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C<T>
             {
                 void M() { }
@@ -9570,14 +9209,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "M");
+            """, "M");
     }
 
     [Fact]
     public async Task InstanceMembersFromBaseOuterType3()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class C<T>
             {
                 void M() { }
@@ -9597,14 +9235,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "M");
+            """, "M");
     }
 
     [Fact]
     public async Task InstanceMembersFromBaseOuterType4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C<T>
             {
                 void M() { }
@@ -9624,14 +9261,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "M");
+            """, "M");
     }
 
     [Fact]
     public async Task InstanceMembersFromBaseOuterType5()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class D
             {
                 public void Q() { }
@@ -9646,14 +9282,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "Q");
+            """, "Q");
     }
 
     [Fact]
     public async Task InstanceMembersFromBaseOuterType6()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class Base<T>
             {
                 public int X;
@@ -9669,26 +9304,24 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "X");
+            """, "X");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/983367")]
     public async Task NoTypeParametersDefinedInCrefs()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             using System;
 
             /// <see cref="Program{T$$}"/>
             class Program<T> { }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "T");
+            """, "T");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
     public async Task ShowTypesInGenericMethodTypeParameterList1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Class1<T, D>
             {
                 public static Class1<T, D> Create() { return null; }
@@ -9706,14 +9339,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     Class1<string, int>.Create().Test<$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Class1", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
+            """, "Class1", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/988025")]
     public async Task ShowTypesInGenericMethodTypeParameterList2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Class1<T, D>
             {
                 public static Class1<T, D> Create() { return null; }
@@ -9731,14 +9363,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     Class1<string, int>.Create().Test<string,$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Class1", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
+            """, "Class1", displayTextSuffix: "<>", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991466")]
     public async Task DescriptionInAliasedType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using IAlias = IGoo;
             ///<summary>summary for interface IGoo</summary>
             interface IGoo {  }
@@ -9746,8 +9377,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             { 
                 I$$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "IAlias", expectedDescriptionOrNull: """
+            """, "IAlias", expectedDescriptionOrNull: """
             interface IGoo
             summary for interface IGoo
             """);
@@ -9756,7 +9386,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task WithinNameOf()
     {
-        var markup = """
+        await VerifyAnyItemExistsAsync("""
             class C 
             { 
                 void goo()
@@ -9764,40 +9394,37 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var x = nameof($$)
                 }
             }
-            """;
-        await VerifyAnyItemExistsAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997410")]
     public async Task InstanceMemberInNameOfInStaticContext()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
               int y1 = 15;
               static int y2 = 1;
               static string x = nameof($$
-            """;
-        await VerifyItemExistsAsync(markup, "y1");
+            """, "y1");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/997410")]
     public async Task StaticMemberInNameOfInStaticContext()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
               int y1 = 15;
               static int y2 = 1;
               static string x = nameof($$
-            """;
-        await VerifyItemExistsAsync(markup, "y2");
+            """, "y2");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883293")]
     public async Task IncompleteDeclarationExpressionType()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             class C
             {
@@ -9807,14 +9434,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var y = 3;
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "WriteLine");
+            """, "WriteLine");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024380")]
     public async Task StaticAndInstanceInNameOf()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -9829,8 +9455,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var z = nameof(C.D.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("x"),
             ItemExpectation.Exists("y"),
         ]);
@@ -9839,7 +9464,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1663")]
     public async Task NameOfMembersListedForLocals()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -9857,14 +9482,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 public int nope;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "nope");
+            """, "nope");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029522")]
     public async Task NameOfMembersListedForNamespacesAndTypes2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -9882,14 +9506,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 public int nope;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "nope");
+            """, "nope");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029522")]
     public async Task NameOfMembersListedForNamespacesAndTypes3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -9905,14 +9528,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 public int nope;
             }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "U");
+            """, "U");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029522")]
     public async Task NameOfMembersListedForNamespacesAndTypes4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using z = System;
             class C
             {
@@ -9921,14 +9543,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var x = nameof(z.$$)
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Console");
+            """, "Console");
     }
 
     [Fact]
     public async Task InterpolatedStrings1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -9936,14 +9557,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var a = "Hello";
                     var b = "World";
                     var c = $"{$$
-            """;
-        await VerifyItemExistsAsync(markup, "a");
+            """, "a");
     }
 
     [Fact]
     public async Task InterpolatedStrings2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -9953,14 +9573,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var c = $"{$$}";
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "a");
+            """, "a");
     }
 
     [Fact]
     public async Task InterpolatedStrings3()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -9968,14 +9587,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var a = "Hello";
                     var b = "World";
                     var c = $"{a}, {$$
-            """;
-        await VerifyItemExistsAsync(markup, "b");
+            """, "b");
     }
 
     [Fact]
     public async Task InterpolatedStrings4()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -9985,14 +9603,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var c = $"{a}, {$$}";
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "b");
+            """, "b");
     }
 
     [Fact]
     public async Task InterpolatedStrings5()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -10000,14 +9617,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var a = "Hello";
                     var b = "World";
                     var c = $@"{a}, {$$
-            """;
-        await VerifyItemExistsAsync(markup, "b");
+            """, "b");
     }
 
     [Fact]
     public async Task InterpolatedStrings6()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M()
@@ -10017,8 +9633,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var c = $@"{a}, {$$}";
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "b");
+            """, "b");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -10062,7 +9677,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingDirectives1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using $$
 
             class A { }
@@ -10075,9 +9690,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("A"),
             ItemExpectation.Absent("B"),
             ItemExpectation.Exists("N"),
@@ -10087,7 +9700,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingDirectives2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using N.$$
 
             class A { }
@@ -10100,9 +9713,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("C"),
             ItemExpectation.Absent("D"),
             ItemExpectation.Exists("M"),
@@ -10112,7 +9723,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingDirectives3()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using G = $$
 
             class A { }
@@ -10125,9 +9736,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("A"),
             ItemExpectation.Exists("B"),
             ItemExpectation.Exists("N"),
@@ -10137,7 +9746,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingDirectives4()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using G = N.$$
 
             class A { }
@@ -10150,9 +9759,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("C"),
             ItemExpectation.Exists("D"),
             ItemExpectation.Exists("M"),
@@ -10162,7 +9769,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingDirectives5()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static $$
 
             class A { }
@@ -10175,9 +9782,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("A"),
             ItemExpectation.Exists("B"),
             ItemExpectation.Exists("N"),
@@ -10187,7 +9792,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingDirectives6()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static N.$$
 
             class A { }
@@ -10200,9 +9805,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("C"),
             ItemExpectation.Exists("D"),
             ItemExpectation.Exists("M"),
@@ -10212,7 +9815,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
     public async Task UsingDirectives7()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static unsafe $$
 
             class A { }
@@ -10225,9 +9828,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("A"),
             ItemExpectation.Exists("B"),
             ItemExpectation.Exists("N"),
@@ -10237,7 +9838,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticDoesNotShowDelegates1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static $$
 
             class A { }
@@ -10250,9 +9851,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("A"),
             ItemExpectation.Absent("B"),
             ItemExpectation.Exists("N"),
@@ -10262,7 +9861,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticDoesNotShowDelegates2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static N.$$
 
             class A { }
@@ -10275,9 +9874,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("C"),
             ItemExpectation.Absent("D"),
             ItemExpectation.Exists("M"),
@@ -10287,7 +9884,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67985")]
     public async Task UsingStaticDoesNotShowDelegates3()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static unsafe $$
 
             class A { }
@@ -10300,9 +9897,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("A"),
             ItemExpectation.Absent("B"),
             ItemExpectation.Exists("N"),
@@ -10313,7 +9908,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task UsingStaticShowInterfaces1()
     {
         // Interfaces can have implemented static methods
-        var markup = """
+
+        await VerifyExpectedItemsAsync("""
             using static N.$$
 
             class A { }
@@ -10326,9 +9922,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("C"),
             ItemExpectation.Exists("I"),
             ItemExpectation.Exists("M"),
@@ -10339,7 +9933,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task UsingStaticShowInterfaces2()
     {
         // Interfaces can have implemented static methods
-        var markup = """
+
+        await VerifyExpectedItemsAsync("""
             using static $$
 
             class A { }
@@ -10352,9 +9947,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("A"),
             ItemExpectation.Exists("I"),
             ItemExpectation.Exists("N"),
@@ -10365,7 +9958,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task UsingStaticShowInterfaces3()
     {
         // Interfaces can have implemented static methods
-        var markup = """
+
+        await VerifyExpectedItemsAsync("""
             using static unsafe $$
 
             class A { }
@@ -10378,9 +9972,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 namespace M { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("A"),
             ItemExpectation.Exists("I"),
             ItemExpectation.Exists("N"),
@@ -10390,7 +9982,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticAndExtensionMethods1()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static A;
             using static B;
 
@@ -10411,9 +10003,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Goo"),
             ItemExpectation.Absent("Bar"),
         ]);
@@ -10422,7 +10012,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticAndExtensionMethods2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using N;
 
             namespace N
@@ -10445,9 +10035,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Goo"),
             ItemExpectation.Absent("Bar"),
         ]);
@@ -10456,7 +10044,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticAndExtensionMethods3()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using N;
 
             namespace N
@@ -10480,9 +10068,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     s.$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Goo"),
             ItemExpectation.Exists("Bar"),
         ]);
@@ -10491,7 +10077,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticAndExtensionMethods4()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static N.A;
             using static N.B;
 
@@ -10516,9 +10102,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     s.$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Goo"),
             ItemExpectation.Exists("Bar"),
         ]);
@@ -10527,7 +10111,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticAndExtensionMethods5()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static N.A;
 
             namespace N
@@ -10551,9 +10135,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     s.$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Goo"),
             ItemExpectation.Absent("Bar"),
         ]);
@@ -10562,7 +10144,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticAndExtensionMethods6()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using static N.B;
 
             namespace N
@@ -10586,9 +10168,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     s.$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Goo"),
             ItemExpectation.Exists("Bar"),
         ]);
@@ -10597,7 +10177,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task UsingStaticAndExtensionMethods7()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using N;
             using static N.B;
 
@@ -10622,9 +10202,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     s.$$;
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Goo"),
             ItemExpectation.Exists("Bar"),
         ]);
@@ -10633,7 +10211,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7932")]
     public async Task ExtensionMethodWithinSameClassOfferedForCompletion()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public static class Test
             {
                 static void TestB()
@@ -10642,14 +10220,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 }
                 static void TestA(this string s) { }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "TestA");
+            """, "TestA");
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7932")]
     public async Task ExtensionMethodWithinParentClassOfferedForCompletion()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             public static class Parent
             {
                 static void TestA(this string s) { }
@@ -10662,14 +10239,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "TestA");
+            """, "TestA");
     }
 
     [Fact]
     public async Task ExceptionFilter1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class C
@@ -10680,15 +10256,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     {
                     }
                     catch when ($$
-            """;
-
-        await VerifyItemExistsAsync(markup, "x");
+            """, "x");
     }
 
     [Fact]
     public async Task ExceptionFilter1_NotBeforeOpenParen()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System;
 
             class C
@@ -10699,15 +10273,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     {
                     }
                     catch when $$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task ExceptionFilter2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class C
@@ -10718,15 +10290,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     {
                     }
                     catch (Exception ex) when ($$
-            """;
-
-        await VerifyItemExistsAsync(markup, "x");
+            """, "x");
     }
 
     [Fact]
     public async Task ExceptionFilter2_NotBeforeOpenParen()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using System;
 
             class C
@@ -10737,15 +10307,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     {
                     }
                     catch (Exception ex) when $$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25084")]
     public async Task SwitchCaseWhenClause1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M(bool x)
@@ -10753,15 +10321,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     switch (1)
                     {
                         case 1 when $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "x");
+            """, "x");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25084")]
     public async Task SwitchCaseWhenClause2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 void M(bool x)
@@ -10769,15 +10335,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     switch (1)
                     {
                         case int i when $$
-            """;
-
-        await VerifyItemExistsAsync(markup, "x");
+            """, "x");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/717")]
     public async Task ExpressionContextCompletionWithinCast()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 void M()
@@ -10789,119 +10353,109 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "i");
+            """, "i");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1277")]
     public async Task NoInstanceMembersInPropertyInitializer()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class A {
                 int abc;
                 int B { get; } = $$
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "abc");
+            """, "abc");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1277")]
     public async Task StaticMembersInPropertyInitializer()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class A {
                 static Action s_abc;
                 event Action B = $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "s_abc");
+            """, "s_abc");
     }
 
     [Fact]
     public async Task NoInstanceMembersInFieldLikeEventInitializer()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync("""
             class A {
                 Action abc;
                 event Action B = $$
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "abc");
+            """, "abc");
     }
 
     [Fact]
     public async Task StaticMembersInFieldLikeEventInitializer()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class A {
                 static Action s_abc;
                 event Action B = $$
             }
-            """;
-        await VerifyItemExistsAsync(markup, "s_abc");
+            """, "s_abc");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5069")]
     public async Task InstanceMembersInTopLevelFieldInitializer()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             int aaa = 1;
             int bbb = $$
-            """;
-        await VerifyItemExistsAsync(markup, "aaa", sourceCodeKind: SourceCodeKind.Script);
+            """, "aaa", sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/5069")]
     public async Task InstanceMembersInTopLevelFieldLikeEventInitializer()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             Action aaa = null;
             event Action bbb = $$
-            """;
-        await VerifyItemExistsAsync(markup, "aaa", sourceCodeKind: SourceCodeKind.Script);
+            """, "aaa", sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33")]
     public async Task NoConditionalAccessCompletionOnTypes1()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             using A = System
             class C
             {
                 A?.$$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33")]
     public async Task NoConditionalAccessCompletionOnTypes2()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 System?.$$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33")]
     public async Task NoConditionalAccessCompletionOnTypes3()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 System.Console?.$$
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task CompletionInIncompletePropertyDeclaration()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Class1
             {
                 public string Property1 { get; set; }
@@ -10912,8 +10466,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 public string Property { get { return this.Source.$$
                 public Class1 Source { get; set; }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Property1");
+            """, "Property1");
     }
 
     [Fact]
@@ -10926,7 +10479,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task CompoundNameTargetTypePreselection()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class Class1
             {
                 void goo()
@@ -10935,14 +10488,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     string y = x.$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "ToString", matchPriority: SymbolMatchPriority.PreferEventOrMethod);
+            """, "ToString", matchPriority: SymbolMatchPriority.PreferEventOrMethod);
     }
 
     [Fact]
     public async Task TargetTypeInCollectionInitializer1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             class Program
@@ -10954,14 +10506,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     List<int> x = new List<int>() { $$  }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+            """, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
     }
 
     [Fact]
     public async Task TargetTypeInCollectionInitializer2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System.Collections.Generic;
 
             class Program
@@ -10973,14 +10524,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     List<int> x = new List<int>() { 1, $$  }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+            """, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
     }
 
     [Fact]
     public async Task TargeTypeInObjectInitializer1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public int X { get; set; }
@@ -10992,14 +10542,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var c = new C() { X = $$ }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+            """, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
     }
 
     [Fact]
     public async Task TargeTypeInObjectInitializer2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             class C
             {
                 public int X { get; set; }
@@ -11011,8 +10560,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var c = new C() { X = 1, Y = $$ }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
+            """, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
     }
 
     [Fact]
@@ -11074,15 +10622,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [WorkItem("https://github.com/dotnet/roslyn/issues/13480")]
     public async Task NoCompletionInLocalFuncGenericParamList()
     {
-        var markup = """
+        await VerifyNoItemsExistAsync("""
             class C
             {
                 void M()
                 {
                     int Local<$$
-            """;
-
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -11090,15 +10636,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [WorkItem("https://github.com/dotnet/roslyn/issues/13480")]
     public async Task CompletionForAwaitWithoutAsync()
     {
-        var markup = """
+        await VerifyAnyItemExistsAsync("""
             class C
             {
                 void M()
                 {
                     await Local<$$
-            """;
-
-        await VerifyAnyItemExistsAsync(markup);
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14127")]
@@ -11258,8 +10802,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [WorkItem("https://github.com/dotnet/roslyn/issues/8321")]
     public async Task NotOnMethodGroup1()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             namespace ConsoleApp
             {
                 class Program
@@ -11270,75 +10813,62 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/8321")]
     public async Task NotOnMethodGroup2()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class C {
                 void M<T>() {M<C>.$$ }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/8321")]
     public async Task NotOnMethodGroup3()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class C {
                 void M() {M.$$}
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=420697&_a=edit")]
     public async Task DoNotCrashInExtensionMethoWithExpressionBodiedMember()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public static class Extensions { public static T Get<T>(this object o) => $$}
-            """;
-        await VerifyItemExistsAsync(markup, "o");
+            """, "o");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task EnumConstraint()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class X<T> where T : System.$$
-            """;
-        await VerifyItemExistsAsync(markup, "Enum");
+            """, "Enum");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task DelegateConstraint()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class X<T> where T : System.$$
-            """;
-        await VerifyItemExistsAsync(markup, "Delegate");
+            """, "Delegate");
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public async Task MulticastDelegateConstraint()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class X<T> where T : System.$$
-            """;
-        await VerifyItemExistsAsync(markup, "MulticastDelegate");
+            """, "MulticastDelegate");
     }
 
     private static string CreateThenIncludeTestCode(string lambdaExpressionString, string methodDeclarationString)
@@ -11599,7 +11129,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task CompletionForLambdaWithOverloads()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -11636,9 +11166,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Substring"),
             ItemExpectation.Exists("A"),
             ItemExpectation.Exists("B"),
@@ -11714,7 +11242,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42997")]
     public async Task CompletionForLambdaWithTypeParameters()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -11729,15 +11257,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
 
             class Product { public void MyProperty() { } }
-            """;
-
-        await VerifyItemExistsAsync(markup, "MyProperty");
+            """, "MyProperty");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42997")]
     public async Task CompletionForLambdaWithTypeParametersAndOverloads()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -11754,9 +11280,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
             class Product1 { public void MyProperty1() { } }
             class Product2 { public void MyProperty2() { } }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("MyProperty1"),
             ItemExpectation.Exists("MyProperty2"),
         ]);
@@ -11765,7 +11289,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42997")]
     public async Task CompletionForLambdaWithTypeParametersAndOverloads2()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             using System.Collections.Generic;
 
@@ -11784,9 +11308,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             class Product1 { public void MyProperty1() { } }
             class Product2 { public void MyProperty2() { } }
             class Product3 { public void MyProperty3() { } }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("MyProperty1"),
             ItemExpectation.Exists("MyProperty2"),
             ItemExpectation.Exists("MyProperty3")
@@ -11865,7 +11387,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40216")]
     public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter1()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class C
@@ -11877,15 +11399,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 void X(int x = 7, Action<string> y = null) { }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Length");
+            """, "Length");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40216")]
     public async Task CompletionForLambdaPassedAsNamedArgumentAtDifferentPositionFromCorrespondingParameter2()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             class C
@@ -11897,15 +11417,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 void X(int x, int z, Action<string> y) { }
             }
-            """;
-
-        await VerifyItemExistsAsync(markup, "Length");
+            """, "Length");
     }
 
     [Fact]
     public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_NonInteractive()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             static class CExtensions
@@ -11920,14 +11438,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     new C().X(t => Console.WriteLine(t.$$));
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Regular);
+            """, "Length", sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact]
     public async Task CompletionForLambdaPassedAsArgumentInReducedExtensionMethod_Interactive()
     {
-        var markup = """
+        await VerifyItemExistsAsync("""
             using System;
 
             public static void X(this C x, Action<string> y) { }
@@ -11939,14 +11456,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     new C().X(t => Console.WriteLine(t.$$));
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "Length", sourceCodeKind: SourceCodeKind.Script);
+            """, "Length", sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact]
     public async Task CompletionInsideMethodsWithNonFunctionsAsArguments()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class c
             {
@@ -11968,9 +11484,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 public int Something { get; set; }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("Something"),
             ItemExpectation.Absent("BeginInvoke"),
             ItemExpectation.Absent("Clone"),
@@ -11982,7 +11496,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task CompletionInsideMethodsWithDelegatesAsArguments()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
 
             class Program
@@ -11998,9 +11512,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     M(d => d.$$)
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             // Guid
             ItemExpectation.Exists("ToByteArray"),
 
@@ -12020,7 +11532,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task CompletionInsideMethodsWithDelegatesAndReversingArguments()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
 
             class Program
@@ -12036,8 +11548,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     M(d => d.$$)
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             // Guid
             ItemExpectation.Exists("ToByteArray"),
 
@@ -12057,7 +11568,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36029")]
     public async Task CompletionInsideMethodWithParamsBeforeParams()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -12082,9 +11593,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 public int AnotherSomething { get; set; }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("AnotherSomething"),
             ItemExpectation.Absent("FirstOrDefault"),
             ItemExpectation.Exists("Something")
@@ -12094,7 +11603,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36029")]
     public async Task CompletionInsideMethodWithParamsInParams()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             using System;
             class C
             {
@@ -12116,9 +11625,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 public int AnotherSomething { get; set; }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("Something"),
             ItemExpectation.Absent("FirstOrDefault"),
             ItemExpectation.Exists("AnotherSomething")
@@ -12129,8 +11636,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task TestTargetTypeFilterWithExperimentEnabled()
     {
         ShowTargetTypedCompletionFilter = true;
-
-        var markup =
+        await VerifyItemExistsAsync(
             """
             public class C
             {
@@ -12140,9 +11646,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     M($$);
                 }
             }
-            """;
-        await VerifyItemExistsAsync(
-            markup, "intField",
+            """, "intField",
             matchingFilters: [FilterSet.FieldFilter, FilterSet.TargetTypedFilter]);
     }
 
@@ -12150,8 +11654,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task TestNoTargetTypeFilterWithExperimentDisabled()
     {
         ShowTargetTypedCompletionFilter = false;
-
-        var markup =
+        await VerifyItemExistsAsync(
             """
             public class C
             {
@@ -12161,9 +11664,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     M($$);
                 }
             }
-            """;
-        await VerifyItemExistsAsync(
-            markup, "intField",
+            """, "intField",
             matchingFilters: [FilterSet.FieldFilter]);
     }
 
@@ -12171,8 +11672,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     public async Task TestTargetTypeFilter_NotOnObjectMembers()
     {
         ShowTargetTypedCompletionFilter = true;
-
-        var markup =
+        await VerifyItemExistsAsync(
             """
             public class C
             {
@@ -12181,9 +11681,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     M($$);
                 }
             }
-            """;
-        await VerifyItemExistsAsync(
-            markup, "GetHashCode",
+            """, "GetHashCode",
             matchingFilters: [FilterSet.MethodFilter]);
     }
 
@@ -12214,7 +11712,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task CompletionShouldNotProvideExtensionMethodsIfTypeConstraintDoesNotMatch()
     {
-        var markup = """
+        await VerifyExpectedItemsAsync("""
             public static class Ext
             {
                 public static void DoSomething<T>(this T thing, string s) where T : class, I
@@ -12233,9 +11731,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     this.$$
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("M"),
             ItemExpectation.Exists("Equals"),
             ItemExpectation.Absent("DoSomething") with
@@ -12265,7 +11761,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1152109")]
     public async Task NoItemWithEmptyDisplayName()
     {
-        var markup = """
+        await VerifyItemIsAbsentAsync(
+            """
             class C
             {
                 static void M()
@@ -12273,9 +11770,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     int$$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(
-            markup, "",
+            """, "",
             matchingFilters: [FilterSet.LocalAndParameterFilter]);
     }
 
@@ -12284,7 +11779,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData(';')]
     public async Task CompletionWithCustomizedCommitCharForMethod(char commitChar)
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 private void Bar()
@@ -12300,8 +11795,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 {
                 }
             }
-            """;
-        var expected = $$"""
+            """, "Foo", $$"""
             class Program
             {
                 private void Bar()
@@ -12317,8 +11811,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 {
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
+            """, commitChar: commitChar);
     }
 
     [Theory]
@@ -12326,7 +11819,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData(';')]
     public async Task CompletionWithSemicolonInNestedMethod(char commitChar)
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 private void Bar()
@@ -12339,8 +11832,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     return 1;
                 }
             }
-            """;
-        var expected = $$"""
+            """, "Foo", $$"""
             class Program
             {
                 private void Bar()
@@ -12353,8 +11845,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     return 1;
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
+            """, commitChar: commitChar);
     }
 
     [Theory]
@@ -12362,7 +11853,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData(';')]
     public async Task CompletionWithCustomizedCommitCharForDelegateInferredType(char commitChar)
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             using System;
             class Program
             {
@@ -12377,8 +11868,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 void Bar2(Action t) { }
             }
-            """;
-        var expected = $$"""
+            """, "Foo", $$"""
             using System;
             class Program
             {
@@ -12393,8 +11883,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
                 void Bar2(Action t) { }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
+            """, commitChar: commitChar);
     }
 
     [Theory]
@@ -12402,7 +11891,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData(';')]
     public async Task CompletionWithCustomizedCommitCharForConstructor(char commitChar)
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 private static void Bar()
@@ -12410,8 +11899,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var o = new P$$
                 }
             }
-            """;
-        var expected = $$"""
+            """, "Program", $$"""
             class Program
             {
                 private static void Bar()
@@ -12419,8 +11907,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var o = new Program(){{commitChar}}
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
+            """, commitChar: commitChar);
     }
 
     [Theory]
@@ -12428,7 +11915,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData(';')]
     public async Task CompletionWithCustomizedCharForTypeUnderNonObjectCreationContext(char commitChar)
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             class Program
             {
                 private static void Bar()
@@ -12436,8 +11923,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var o = P$$
                 }
             }
-            """;
-        var expected = $$"""
+            """, "Program", $$"""
             class Program
             {
                 private static void Bar()
@@ -12445,8 +11931,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var o = Program{{commitChar}}
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
+            """, commitChar: commitChar);
     }
 
     [Theory]
@@ -12454,7 +11939,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData(';')]
     public async Task CompletionWithCustomizedCommitCharForAliasConstructor(char commitChar)
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             using String2 = System.String;
             namespace Bar1
             {
@@ -12466,8 +11951,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        var expected = $$"""
+            """, "String2", $$"""
             using String2 = System.String;
             namespace Bar1
             {
@@ -12479,14 +11963,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: commitChar);
+            """, commitChar: commitChar);
     }
 
     [Fact]
     public async Task CompletionWithSemicolonUnderNameofContext()
     {
-        var markup = """
+        await VerifyProviderCommitAsync("""
             namespace Bar1
             {
                 class Program
@@ -12497,8 +11980,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        var expected = """
+            """, "Bar", """
             namespace Bar1
             {
                 class Program
@@ -12509,15 +11991,14 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyProviderCommitAsync(markup, "Bar", expected, commitChar: ';');
+            """, commitChar: ';');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49072")]
     public async Task EnumMemberAfterPatternMatch()
     {
-        var markup =
-            """
+        // VerifyItemExistsAsync also tests with the item typed.
+        await VerifyExpectedItemsAsync("""
             namespace N
             {
             	enum RankedMusicians
@@ -12534,9 +12015,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             		}
             	}
             }
-            """;
-        // VerifyItemExistsAsync also tests with the item typed.
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("BillyJoel"),
             ItemExpectation.Exists("EveryoneElse"),
             ItemExpectation.Absent("Equals"),
@@ -12546,8 +12025,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49072")]
     public async Task EnumMemberAfterPatternMatchWithDeclaration()
     {
-        var markup =
-            """
+        // VerifyItemExistsAsync also tests with the item typed.
+        await VerifyExpectedItemsAsync("""
             namespace N
             {
             	enum RankedMusicians
@@ -12566,9 +12045,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             		}
             	}
             }
-            """;
-        // VerifyItemExistsAsync also tests with the item typed.
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("BillyJoel"),
             ItemExpectation.Exists("EveryoneElse"),
             ItemExpectation.Absent("Equals"),
@@ -12578,8 +12055,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49072")]
     public async Task EnumMemberAfterPropertyPatternMatch()
     {
-        var markup =
-            """
+        // VerifyItemExistsAsync also tests with the item typed.
+        await VerifyExpectedItemsAsync("""
             namespace N
             {
             	enum RankedMusicians
@@ -12598,9 +12075,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             		}
             	}
             }
-            """;
-        // VerifyItemExistsAsync also tests with the item typed.
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("BillyJoel"),
             ItemExpectation.Exists("EveryoneElse"),
             ItemExpectation.Absent("Equals"),
@@ -12633,8 +12108,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49072")]
     public async Task EnumMemberAfterBinaryExpression()
     {
-        var markup =
-            """
+        // VerifyItemExistsAsync also tests with the item typed.
+        await VerifyExpectedItemsAsync("""
             namespace N
             {
             	enum RankedMusicians
@@ -12651,9 +12126,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             		}
             	}
             }
-            """;
-        // VerifyItemExistsAsync also tests with the item typed.
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("BillyJoel"),
             ItemExpectation.Exists("EveryoneElse"),
             ItemExpectation.Absent("Equals"),
@@ -12663,8 +12136,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49072")]
     public async Task EnumMemberAfterBinaryExpressionWithDeclaration()
     {
-        var markup =
-            """
+        // VerifyItemExistsAsync also tests with the item typed.
+        await VerifyExpectedItemsAsync("""
             namespace N
             {
             	enum RankedMusicians
@@ -12683,9 +12156,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             		}
             	}
             }
-            """;
-        // VerifyItemExistsAsync also tests with the item typed.
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("BillyJoel"),
             ItemExpectation.Exists("EveryoneElse"),
             ItemExpectation.Absent("Equals"),
@@ -12695,8 +12166,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49609")]
     public async Task ObsoleteOverloadsAreSkippedIfNonObsoleteOverloadIsAvailable()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class C
             {
                 [System.Obsolete]
@@ -12709,15 +12179,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     this.$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
+            """, "M", expectedDescriptionOrNull: $"void C.M(int i) (+ 1 {FeaturesResources.overload})");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49609")]
     public async Task FirstObsoleteOverloadIsUsedIfAllOverloadsAreObsolete()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class C
             {
                 [System.Obsolete]
@@ -12731,15 +12199,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     this.$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"[{CSharpFeaturesResources.deprecated}] void C.M() (+ 1 {FeaturesResources.overload})");
+            """, "M", expectedDescriptionOrNull: $"[{CSharpFeaturesResources.deprecated}] void C.M() (+ 1 {FeaturesResources.overload})");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49609")]
     public async Task IgnoreCustomObsoleteAttribute()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class ObsoleteAttribute: System.Attribute
             {
             }
@@ -12756,8 +12222,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     this.$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M() (+ 1 {FeaturesResources.overload})");
+            """, "M", expectedDescriptionOrNull: $"void C.M() (+ 1 {FeaturesResources.overload})");
     }
 
     [InlineData("int", "")]
@@ -12767,8 +12232,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     {
         // Check the description displayed is based on symbol matches targeted type
         ShowTargetTypedCompletionFilter = true;
-
-        var markup =
+        await VerifyItemExistsAsync(
             $$"""
             public class C
             {
@@ -12783,9 +12247,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     N(c.$$);
                 }
             }
-            """;
-        await VerifyItemExistsAsync(
-            markup, "Bar",
+            """, "Bar",
             expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
             matchingFilters: [FilterSet.MethodFilter, FilterSet.TargetTypedFilter]);
     }
@@ -12896,7 +12358,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [WorkItem("https://github.com/dotnet/roslyn/issues/64733")]
     public async Task TestTypeParameterConstrainedToInterfaceWithStatics()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             interface I1
             {
                 static void M0();
@@ -12918,8 +12380,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     T.$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Absent("M0"),
 
             ItemExpectation.Exists("M1"),
@@ -12933,7 +12394,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnPointerParameter()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             struct TestStruct
             {
                 public int X;
@@ -12948,8 +12409,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     a->$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
             ItemExpectation.Exists("Method"),
@@ -12960,7 +12420,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnAwaitedPointerParameter()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             struct TestStruct
             {
                 public int X;
@@ -12975,8 +12435,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     await a->$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
             ItemExpectation.Exists("Method"),
@@ -12987,7 +12446,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnLambdaPointerParameter()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             struct TestStruct
             {
                 public int X;
@@ -13004,8 +12463,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     return a => a->$$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
             ItemExpectation.Exists("Method"),
@@ -13016,8 +12474,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnOverloadedLambdaPointerParameter()
     {
-
-        var source = """
+        await VerifyExpectedItemsAsync("""
             struct TestStruct1
             {
                 public int X;
@@ -13044,8 +12501,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void TestMethod()
                     => Overloaded(a => a->$$);
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y")
         ]);
@@ -13054,8 +12510,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnOverloadedLambdaPointerParameterWithExplicitType()
     {
-
-        var source = """
+        await VerifyExpectedItemsAsync("""
             struct TestStruct1
             {
                 public int X;
@@ -13082,8 +12537,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void TestMethod()
                     => Overloaded((TestStruct1* a) => a->$$);
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Absent("Y")
         ]);
@@ -13092,7 +12546,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnPointerParameterWithSimpleMemberAccess()
     {
-        var source = """
+        await VerifyItemIsAbsentAsync("""
             struct TestStruct
             {
                 public int X;
@@ -13107,15 +12561,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     a.$$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(source, "X");
+            """, "X");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnOverloadedLambdaPointerParameterWithSimpleMemberAccess()
     {
-
-        var source = """
+        await VerifyExpectedItemsAsync("""
             struct TestStruct1
             {
                 public int X;
@@ -13142,8 +12594,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void TestMethod()
                     => Overloaded(a => a.$$);
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Absent("X"),
             ItemExpectation.Absent("Y")
         ]);
@@ -13152,8 +12603,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
     public async Task CompletionOnOverloadedLambdaPointerParameterWithSimpleMemberAccessAndExplicitType()
     {
-
-        var source = """
+        await VerifyExpectedItemsAsync("""
             struct TestStruct1
             {
                 public int X;
@@ -13180,8 +12630,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void TestMethod()
                     => Overloaded((TestStruct1* a) => a.$$);
             }
-            """;
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Absent("X"),
             ItemExpectation.Absent("Y")
         ]);
@@ -13194,7 +12643,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [WorkItem("https://github.com/dotnet/roslyn/issues/59714")]
     public async Task OptionalExclamationsAfterConditionalAccessShouldBeHandled(string conditionalAccessExpression)
     {
-        var source = $$"""
+        await VerifyItemExistsAsync($$"""
             class MyClass
             {
                 public MyClass? MyObject { get; set; }
@@ -13206,8 +12655,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     {{conditionalAccessExpression}};
                 }
             }
-            """;
-        await VerifyItemExistsAsync(source, "MyValue");
+            """, "MyValue");
     }
 
     [Fact]
@@ -13295,20 +12743,19 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60812")]
     public async Task ParameterNotAvailableInMethodAttributeNameofWithNoArgument()
     {
-        var source = """
+        await VerifyItemExistsAsync(MakeMarkup("""
             class C
             {
                 [Some(nameof($$))]
                 void M(int parameter) { }
             }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+            """), "parameter");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66982")]
     public async Task CapturedParameters1()
     {
-        var source = """
+        await VerifyItemIsAbsentAsync(MakeMarkup("""
             class C
             {
                 void M(string args)
@@ -13319,14 +12766,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(MakeMarkup(source), "args");
+            """), "args");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66982")]
     public async Task CapturedParameters2()
     {
-        var source = """
+        await VerifyItemExistsAsync(MakeMarkup("""
             class C
             {
                 void M(string args)
@@ -13337,20 +12783,18 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "args");
+            """), "args");
     }
 
     [Fact]
     public async Task ParameterAvailableInMethodParameterAttributeNameof()
     {
-        var source = """
+        await VerifyItemExistsAsync(MakeMarkup("""
             class C
             {
                 void M([Some(nameof(p$$))] int parameter) { }
             }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "parameter");
+            """), "parameter");
     }
 
     [Fact]
@@ -13448,20 +12892,19 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64585")]
     public async Task AfterRequired()
     {
-        var source = """
+        await VerifyAnyItemExistsAsync("""
             class C
             {
                 required $$
             }
-            """;
-        await VerifyAnyItemExistsAsync(source);
+            """);
     }
 
     [Theory, CombinatorialData]
     public async Task AfterScopedInsideMethod(bool useRef)
     {
         var refKeyword = useRef ? "ref " : "";
-        var source = $$"""
+        await VerifyItemExistsAsync(MakeMarkup($$"""
             class C
             {
                 void M()
@@ -13471,67 +12914,61 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
 
             ref struct MyRefStruct { }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+            """), "MyRefStruct");
     }
 
     [Theory, CombinatorialData]
     public async Task AfterScopedGlobalStatement_FollowedByRefStruct(bool useRef)
     {
         var refKeyword = useRef ? "ref " : "";
-        var source = $$"""
+        await VerifyItemExistsAsync(MakeMarkup($$"""
             scoped {{refKeyword}}$$
 
             ref struct MyRefStruct { }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+            """), "MyRefStruct");
     }
 
     [Theory, CombinatorialData]
     public async Task AfterScopedGlobalStatement_FollowedByStruct(bool useRef)
     {
         var refKeyword = useRef ? "ref " : "";
-        var source = $$"""
+        await VerifyItemExistsAsync(MakeMarkup($$"""
             using System;
 
             scoped {{refKeyword}}$$
 
             struct S { }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+            """), "ReadOnlySpan", displayTextSuffix: "<>");
     }
 
     [Theory, CombinatorialData]
     public async Task AfterScopedGlobalStatement_FollowedByPartialStruct(bool useRef)
     {
         var refKeyword = useRef ? "ref " : "";
-        var source = $$"""
+        await VerifyItemExistsAsync(MakeMarkup($$"""
             using System;
 
             scoped {{refKeyword}}$$
 
             partial struct S { }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+            """), "ReadOnlySpan", displayTextSuffix: "<>");
     }
 
     [Theory, CombinatorialData]
     public async Task AfterScopedGlobalStatement_NotFollowedByType(bool useRef)
     {
         var refKeyword = useRef ? "ref " : "";
-        var source = $"""
+        await VerifyItemExistsAsync(MakeMarkup($"""
             using System;
 
             scoped {refKeyword}$$
-            """;
-
-        await VerifyItemExistsAsync(MakeMarkup(source), "ReadOnlySpan", displayTextSuffix: "<>");
+            """), "ReadOnlySpan", displayTextSuffix: "<>");
     }
 
     [Fact]
     public async Task AfterScopedInParameter()
     {
-        var source = """
+        await VerifyItemExistsAsync(MakeMarkup("""
             class C
             {
                 void M(scoped $$)
@@ -13540,14 +12977,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
 
             ref struct MyRefStruct { }
-            """;
-        await VerifyItemExistsAsync(MakeMarkup(source), "MyRefStruct");
+            """), "MyRefStruct");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65020")]
     public async Task DoNotProvideMemberOnSystemVoid()
     {
-        var source = """
+        await VerifyItemIsAbsentAsync(MakeMarkup("""
             class C
             {
                 void M1(){}
@@ -13561,16 +12997,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             {
                 public static bool ExtMethod(this object x) => false;
             }
-            """;
-        await VerifyItemIsAbsentAsync(MakeMarkup(source), "ExtMethod");
+            """), "ExtMethod");
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList1(string underlyingType)
     {
-        var source = "enum E : $$";
-
-        await VerifyExpectedItemsAsync(source, [
+        await VerifyExpectedItemsAsync("enum E : $$", [
             ItemExpectation.Exists("System"),
 
             // Not accessible in the given context
@@ -13599,13 +13032,11 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList3(string underlyingType)
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             using System;
 
             enum E : $$
-            """;
-
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("System"),
 
             ItemExpectation.Exists(underlyingType),
@@ -13620,15 +13051,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList4(string underlyingType)
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             namespace MyNamespace
             {
             }
 
             enum E : global::$$
-            """;
-
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Absent("E"),
 
             ItemExpectation.Exists("System"),
@@ -13642,9 +13071,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList5(string underlyingType)
     {
-        var source = "enum E : System.$$";
-
-        await VerifyExpectedItemsAsync(source, [
+        await VerifyExpectedItemsAsync("enum E : System.$$", [
             ItemExpectation.Absent("System"),
 
             ItemExpectation.Exists(underlyingType),
@@ -13659,9 +13086,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList6(string underlyingType)
     {
-        var source = "enum E : global::System.$$";
-
-        await VerifyExpectedItemsAsync(source, [
+        await VerifyExpectedItemsAsync("enum E : global::System.$$", [
             ItemExpectation.Absent("System"),
 
             ItemExpectation.Exists(underlyingType),
@@ -13676,15 +13101,13 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task EnumBaseList7()
     {
-        var source = "enum E : System.Collections.Generic.$$";
-
-        await VerifyNoItemsExistAsync(source);
+        await VerifyNoItemsExistAsync("enum E : System.Collections.Generic.$$");
     }
 
     [Fact]
     public async Task EnumBaseList8()
     {
-        var source = """
+        await VerifyNoItemsExistAsync("""
             namespace MyNamespace
             {
                 namespace System {}
@@ -13699,45 +13122,37 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             }
 
             enum E : MyNamespace.$$
-            """;
-
-        await VerifyNoItemsExistAsync(source);
+            """);
     }
 
     [Fact]
     public async Task EnumBaseList9()
     {
-        var source = """
+        await VerifyItemExistsAsync("""
             using MySystem = System;
 
             enum E : $$
-            """;
-
-        await VerifyItemExistsAsync(source, "MySystem");
+            """, "MySystem");
     }
 
     [Fact]
     public async Task EnumBaseList10()
     {
-        var source = """
+        await VerifyItemIsAbsentAsync("""
             using MySystem = System;
 
             enum E : global::$$
-            """;
-
-        await VerifyItemIsAbsentAsync(source, "MySystem");
+            """, "MySystem");
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList11(string underlyingType)
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             using MySystem = System;
 
             enum E : MySystem.$$
-            """;
-
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Absent("System"),
             ItemExpectation.Absent("MySystem"),
 
@@ -13753,69 +13168,59 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task EnumBaseList12()
     {
-        var source = """
+        await VerifyNoItemsExistAsync("""
             using MySystem = System;
 
             enum E : global::MySystem.$$
-            """;
-
-        await VerifyNoItemsExistAsync(source);
+            """);
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList13(string underlyingType)
     {
-        var source = $"""
+        await VerifyItemExistsAsync($"""
             using My{underlyingType} = System.{underlyingType};
 
             enum E : $$
-            """;
-
-        await VerifyItemExistsAsync(source, $"My{underlyingType}");
+            """, $"My{underlyingType}");
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList14(string underlyingType)
     {
-        var source = $"""
+        await VerifyItemIsAbsentAsync($"""
             using My{underlyingType} = System.{underlyingType};
 
             enum E : global::$$
-            """;
-
-        await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
+            """, $"My{underlyingType}");
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList15(string underlyingType)
     {
-        var source = $"""
+        await VerifyItemIsAbsentAsync($"""
             using My{underlyingType} = System.{underlyingType};
 
             enum E : System.$$
-            """;
-
-        await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
+            """, $"My{underlyingType}");
 
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
     public async Task EnumBaseList16(string underlyingType)
     {
-        var source = $"""
+        await VerifyItemIsAbsentAsync($"""
             using MySystem = System;
             using My{underlyingType} = System.{underlyingType};
 
             enum E : MySystem.$$
-            """;
-
-        await VerifyItemIsAbsentAsync(source, $"My{underlyingType}");
+            """, $"My{underlyingType}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
     public async Task InRangeExpression()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 const int Test = 1;
@@ -13826,9 +13231,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var substr = s[1..$$];
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("endIndex"),
             ItemExpectation.Exists("Test"),
             ItemExpectation.Exists("C"),
@@ -13838,7 +13241,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
     public async Task InRangeExpression_WhitespaceAfterDotDotToken()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 const int Test = 1;
@@ -13849,9 +13252,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var substr = s[1.. $$];
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("endIndex"),
             ItemExpectation.Exists("Test"),
             ItemExpectation.Exists("C"),
@@ -13861,7 +13262,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
     public async Task PropertyAndGenericExtensionMethodCandidates()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -13876,9 +13277,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     }
                 }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("foo"),
             ItemExpectation.Exists("M"),
             ItemExpectation.Exists("System"),
@@ -13889,7 +13288,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
     public async Task GenericWithNonGenericOverload()
     {
-        var source = """
+        await VerifyExpectedItemsAsync("""
             class C
             {
                 void M(C other)
@@ -13902,9 +13301,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 void A() { }
                 void A<T>() { }
             }
-            """;
-
-        await VerifyExpectedItemsAsync(source, [
+            """, [
             ItemExpectation.Exists("System"),
             ItemExpectation.Exists("C"),
             ItemExpectation.Absent("other"),
@@ -14883,7 +14280,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("record struct")]
     public async Task RecommendedPrimaryConstructorParameters01(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public {{typeKind}} Point(int X, int Y)
@@ -14893,8 +14290,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("X"),
             ItemExpectation.Absent("Y"),
         ]);
@@ -14905,7 +14301,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("record class")]
     public async Task RecommendedPrimaryConstructorParameters02(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public abstract {{typeKind}} BasePoint(int X);
@@ -14918,8 +14314,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("X"),
             ItemExpectation.Absent("Y"),
         ]);
@@ -14930,7 +14325,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("record class")]
     public async Task RecommendedPrimaryConstructorParameters03(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public abstract {{typeKind}} BasePoint(int X);
@@ -14945,8 +14340,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("X"),
             ItemExpectation.Absent("Y"),
         ]);
@@ -14959,7 +14353,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("record struct")]
     public async Task RecommendedPrimaryConstructorParameters04(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public {{typeKind}} Point(int X, int Y)
@@ -14969,8 +14363,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var n = nameof($$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
         ]);
@@ -14981,7 +14374,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("class")]
     public async Task RecommendedPrimaryConstructorParameters05(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public abstract {{typeKind}} BasePoint(int X);
@@ -14994,8 +14387,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var n = nameof($$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
         ]);
@@ -15006,7 +14398,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("class")]
     public async Task RecommendedPrimaryConstructorParameters06(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public abstract {{typeKind}} BasePoint(int X);
@@ -15021,8 +14413,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var n = nameof($$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
         ]);
@@ -15035,7 +14426,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("record struct")]
     public async Task RecommendedPrimaryConstructorParameters07(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public {{typeKind}} Point(int X, int Y)
@@ -15047,8 +14438,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     $$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Absent("X"),
             ItemExpectation.Exists("Y"),
         ]);
@@ -15061,7 +14451,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [InlineData("record struct")]
     public async Task RecommendedPrimaryConstructorParameters08(string typeKind)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             namespace PrimaryConstructor;
 
             public {{typeKind}} Point(int X, int Y)
@@ -15073,8 +14463,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     var n = nameof($$
                 }
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
         ]);
@@ -15085,13 +14474,12 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         [CombinatorialValues("class", "struct", "record", "record class", "record struct", "interface")] string typeKind,
         [CombinatorialValues("", "public", "private", "static", "extern")] string modifiers)
     {
-        var markup = $$"""
+        await VerifyExpectedItemsAsync($$"""
             partial {{typeKind}} C
             {
                 {{modifiers}} partial $$
             }
-            """;
-        await VerifyExpectedItemsAsync(markup, [
+            """, [
             ItemExpectation.Exists("C"),
         ]);
     }
@@ -15099,7 +14487,8 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
     [Fact]
     public async Task ModernExtensionMethod1()
     {
-        var source = """
+        await VerifyItemExistsAsync(
+            MakeMarkup("""
             static class C
             {
                 extension(string s)
@@ -15112,9 +14501,7 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                     s.$$
                 }
             }
-            """;
-        await VerifyItemExistsAsync(
-            MakeMarkup(source),
+            """),
             "IsNullOrEmpty",
             sourceCodeKind: SourceCodeKind.Regular,
             glyph: Glyph.ExtensionMethodPublic);

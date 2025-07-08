@@ -1322,17 +1322,6 @@ public sealed partial class UseObjectInitializerTests
                 }
             }
             """;
-
-        var globalConfig =
-            $"""
-            is_global = true
-
-            dotnet_style_object_initializer = true
-            dotnet_diagnostic.IDE0017.severity = warning
-
-            build_property.EnableCodeStyleSeverity = {enabled}
-            """;
-
         await new VerifyCS.Test
         {
             TestState =
@@ -1345,7 +1334,14 @@ public sealed partial class UseObjectInitializerTests
                 },
                 AnalyzerConfigFiles =
                 {
-                    ("/.globalconfig", globalConfig),
+                    ("/.globalconfig", $"""
+            is_global = true
+
+            dotnet_style_object_initializer = true
+            dotnet_diagnostic.IDE0017.severity = warning
+
+            build_property.EnableCodeStyleSeverity = {enabled}
+            """),
                 }
             },
             FixedState = { Sources = { fixedCode } },

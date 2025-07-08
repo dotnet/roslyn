@@ -24,8 +24,7 @@ public sealed class DiagnosticDataTests
     [Fact]
     public async Task DiagnosticData_GetText()
     {
-        var code = "";
-        await VerifyTextSpanAsync(code, 10, 10, 20, 20, new TextSpan(0, 0));
+        await VerifyTextSpanAsync("", 10, 10, 20, 20, new TextSpan(0, 0));
     }
 
     [Fact]
@@ -94,16 +93,14 @@ public sealed class DiagnosticDataTests
     [Fact]
     public async Task DiagnosticData_GetText8()
     {
-        var code = @"
+        await VerifyTextSpanAsync(@"
 namespace B
 {
     class A
     {
     }
 }
-";
-
-        await VerifyTextSpanAsync(code, 3, 10, 3, 11, new TextSpan(28, 1));
+", 3, 10, 3, 11, new TextSpan(28, 1));
     }
 
     private static async Task VerifyTextSpanAsync(string code, int startLine, int startColumn, int endLine, int endColumn, TextSpan span)

@@ -250,9 +250,7 @@ public abstract class AbstractPdbSourceDocumentTests
         var dllFilePath = GetDllPath(path);
         var sourceCodePath = GetSourceFilePath(path);
         var pdbFilePath = GetPdbPath(path);
-        var assemblyName = "reference";
-
-        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+        CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, "reference", source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
     }
 
     protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)

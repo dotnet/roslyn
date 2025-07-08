@@ -150,8 +150,9 @@ $@"<Workspace>
     [Theory, CombinatorialData]
     public async Task TestRename_WithMappedFileAsync(bool mutatingLspWorkspace)
     {
-        var markup =
-@"class A
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        AddMappedDocument(testLspServer.TestWorkspace, @"class A
 {
     void M()
     {
@@ -160,10 +161,7 @@ $@"<Workspace>
     {
         M()
     }
-}";
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
-
-        AddMappedDocument(testLspServer.TestWorkspace, markup);
+}");
 
         var startPosition = new LSP.Position { Line = 2, Character = 9 };
         var endPosition = new LSP.Position { Line = 2, Character = 10 };

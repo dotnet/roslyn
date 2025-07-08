@@ -1436,19 +1436,16 @@ public sealed class RemoveUnnecessaryImportsTests
     [Fact]
     public async Task TestSpan()
     {
-        var code = """
+        await VerifyCS.VerifyCodeFixAsync("""
             namespace N
             {
                 [|{|IDE0005:using System;|}|]
             }
-            """;
-        var fixedCode = """
+            """, """
             namespace N
             {
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543000")]

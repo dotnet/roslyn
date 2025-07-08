@@ -32,7 +32,7 @@ public sealed class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeAc
     [Fact]
     public async Task TestCrossLanguageInline()
     {
-        var input = @"
+        await TestNoActionIsProvided(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
     <ProjectReference>VBAssembly</ProjectReference>
@@ -56,8 +56,7 @@ public sealed class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeAc
         End Class
     </Document>
     </Project>
-</Workspace>";
-        await TestNoActionIsProvided(input);
+</Workspace>");
     }
 }
 

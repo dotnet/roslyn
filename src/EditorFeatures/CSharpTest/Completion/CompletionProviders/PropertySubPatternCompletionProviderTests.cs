@@ -105,8 +105,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
     [Fact]
     public async Task PropertiesInRecursivePattern_WriteOnlyProperties()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { set => throw null; }
@@ -116,8 +115,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                     _ = this is Program { $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -167,8 +165,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
     [Fact]
     public async Task PropertiesInRecursivePattern_WithDerivedType_WithInaccessibleMembers()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 void M()
@@ -181,15 +178,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                 private int P1 { get; set; }
                 private int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_WithDerivedType_WithPrivateMember()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             class Program
             {
                 private int P1 { get; set; }
@@ -202,8 +197,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
             {
                 private int P2 { get; set; }
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            """, "P1", displayTextSuffix: "");
     }
 
     [Fact]
@@ -379,8 +373,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
     [Fact]
     public async Task PropertiesInRecursivePattern_Nested_WithMissingProperty()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             public class Nested
             {
                 public int P3 { get; set; }
@@ -396,15 +389,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                      _ = this is Program { : { $$ } }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_NoType()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { get; set; }
@@ -415,15 +406,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                     _ = missing is { $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_MissingAfterColon()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { get; set; }
@@ -434,8 +423,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                     _ = this is { P1: $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -462,8 +450,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
     [Fact]
     public async Task PropertiesInRecursivePattern_PositionalInFirstProperty()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 public D P1 { get; set; }
@@ -477,15 +464,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterComma()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 public D P1 { get; set; }
@@ -499,15 +484,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_PositionalInFirstProperty_AfterCommaAndBeforeParen()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 public D P1 { get; set; }
@@ -521,15 +504,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_InPositional_Incomplete()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -541,15 +522,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            """, "P1", displayTextSuffix: "");
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -561,15 +540,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            """, "P1", displayTextSuffix: "");
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithTwoTypes()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             public class Program
             {
                 void M()
@@ -583,15 +560,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
             {
                 public int P2 { get; set; }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_InPositional_Complete_BeforeComma()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -603,15 +578,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            """, "P1", displayTextSuffix: "");
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_InPositional_Complete_AfterComma()
     {
-        var markup =
-            """
+        await VerifyItemExistsAsync("""
             public class Program
             {
                 public int P1 { get; set; }
@@ -623,15 +596,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
 
                 public void Deconstruct(out Program x, out Program y) => throw null;
             }
-            """;
-        await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            """, "P1", displayTextSuffix: "");
     }
 
     [Fact]
     public async Task PropertiesInRecursivePattern_NoPropertyLeft()
     {
-        var markup =
-            """
+        await VerifyNoItemsExistAsync("""
             class Program
             {
                 public int P1 { get; set; }
@@ -642,8 +613,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                     _ = this is Program { P2: 1, P1: 2, $$ }
                 }
             }
-            """;
-        await VerifyNoItemsExistAsync(markup);
+            """);
     }
 
     [Fact]
@@ -672,8 +642,7 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33250")]
     public async Task StaticProperties_NotSuggested()
     {
-        var markup =
-            """
+        await VerifyItemIsAbsentAsync("""
             class Program
             {
                 void M()
@@ -681,15 +650,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                     _ = "" is { $$ }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "Empty");
+            """, "Empty");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33250")]
     public async Task StaticFields_NotSuggested()
     {
-        var markup =
-            """
+        await VerifyItemIsAbsentAsync("""
             class Program
             {
                 static int x = 42;
@@ -699,15 +666,13 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                     _ = this is { $$ }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "x");
+            """, "x");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33250")]
     public async Task ConstFields_NotSuggested()
     {
-        var markup =
-            """
+        await VerifyItemIsAbsentAsync("""
             class Program
             {
                 void M()
@@ -715,7 +680,6 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                     _ = 5 is { $$ }
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markup, "MaxValue");
+            """, "MaxValue");
     }
 }
