@@ -7,7 +7,7 @@
   "tools": {
     "dotnet": "10.0.100-preview.5.25277.114",
     "vs": {
-      "version": "17.8.0"
+      "version": "17.14.0"
     },
     "vswhere": "3.1.7"
   },
