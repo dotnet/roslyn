@@ -28,7 +28,7 @@ public class CSharpNewDocumentFormatting : AbstractIntegrationTest
         await TestServices.Workspace.SetFullSolutionAnalysisAsync(false, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/79302"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1411721")]
     public async Task CreateLegacyProjectWithFileScopedNamespaces()
     {
         await TestServices.Workspace.SetFileScopedNamespaceAsync(true, HangMitigatingCancellationToken);

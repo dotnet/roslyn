@@ -259,7 +259,7 @@ public static void Main(string[] args)
         // VerifyErrorCount(0);
     }
 
-    [IdeTheory]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/79301")]
     [InlineData("32")]
     [InlineData("64")]
     [InlineData("core")]

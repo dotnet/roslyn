@@ -362,7 +362,7 @@ Public Class CustomAttribute$$
 End Class", HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/79300"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeNotCapitalizedRename()
     {
         var markup = @"
