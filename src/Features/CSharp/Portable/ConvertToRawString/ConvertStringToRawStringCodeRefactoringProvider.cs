@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -151,6 +153,8 @@ internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider() 
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
+        using var _ = PooledDictionary<ExpressionSyntax, IConvertStringProvider>.GetInstance(out var expressionToProvider);
+
         foreach (var fixSpan in fixAllSpans)
         {
             var node = editor.OriginalRoot.FindNode(fixSpan);
@@ -183,19 +187,29 @@ internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider() 
                 if (!hasMatchingKind)
                     continue;
 
-                editor.ReplaceNode(
-                    expression,
-                    (current, _) =>
-                    {
-                        if (current is not ExpressionSyntax currentExpression)
-                            return current;
-
-                        var currentParsedDocument = parsedDocument.WithChangedRoot(
-                            currentExpression.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
-                        var replacement = provider.Convert(currentParsedDocument, currentExpression, kind, formattingOptions, cancellationToken);
-                        return replacement;
-                    });
+                expressionToProvider[expression] = provider;
             }
+        }
+
+        foreach (var (expression, provider) in expressionToProvider)
+        {
+            // Don't update a string if we're updating a parent string around it.  We may not be able to find
+            // it if we've already updated the parent string.
+            if (expression.Ancestors().OfType<ExpressionSyntax>().Any(static (e, expressionToProvider) => expressionToProvider.ContainsKey(e), expressionToProvider))
+                continue;
+
+            editor.ReplaceNode(
+                expression,
+                (current, _) =>
+                {
+                    if (current is not ExpressionSyntax currentExpression)
+                        return current;
+
+                    var currentParsedDocument = parsedDocument.WithChangedRoot(
+                        currentExpression.SyntaxTree.GetRoot(cancellationToken), cancellationToken);
+                    var replacement = provider.Convert(currentParsedDocument, currentExpression, kind, formattingOptions, cancellationToken);
+                    return replacement;
+                });
         }
     }
 }
