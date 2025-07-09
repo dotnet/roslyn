@@ -29,9 +29,8 @@ public sealed partial class AddUsingTestsWithAddImportDiagnosticProvider : Abstr
         => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-    public async Task TestUnknownIdentifierGenericName()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnknownIdentifierGenericName()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     private [|List<int>|]
@@ -42,12 +41,10 @@ class C
 {
     private List<int>
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
-    public async Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     [[|Extension|]]
@@ -58,22 +55,18 @@ class C
 {
     [Extension]
 }");
-    }
 
     [Fact]
-    public async Task TestOutsideOfMethodWithMalformedGenericParameters()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestOutsideOfMethodWithMalformedGenericParameters()
+        => TestMissingInRegularAndScriptAsync(
 @"using System;
 class Program
 {
     Func<[|FlowControl|] x }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/752640")]
-    public async Task TestUnknownIdentifierWithSyntaxError()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUnknownIdentifierWithSyntaxError()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     [|Directory|] private int i;
@@ -84,7 +77,6 @@ class C
 {
     Directory private int i;
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855748")]
     public async Task TestGenericNameWithBrackets()
@@ -146,9 +138,8 @@ class Class
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18621")]
-    public async Task TestIncompleteMemberWithAsyncTaskReturnType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestIncompleteMemberWithAsyncTaskReturnType()
+        => TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -186,12 +177,10 @@ namespace ConsoleApp282
         public async Task<IReadOnlyCollection<ProjectConfiguration>>
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23667")]
-    public async Task TestMissingDiagnosticForNameOf()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TestMissingDiagnosticForNameOf()
+        => TestDiagnosticMissingAsync(
 @"using System;
 
 class C
@@ -201,5 +190,4 @@ class C
 #warning xxx
     };
 }");
-    }
 }

@@ -257,7 +257,7 @@ public namespace MyNamespace
             var options = SymbolNamesWithValueOption<string>.Create(symbolNames, compilation, null,
                 getSymbolNamePartsFunc: symbolName =>
                 {
-                    var split = symbolName.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
+                    var split = symbolName.Split(["->"], StringSplitOptions.RemoveEmptyEntries);
                     return new SymbolNamesWithValueOption<string>.NameParts(split[0], split[1]);
                 });
 

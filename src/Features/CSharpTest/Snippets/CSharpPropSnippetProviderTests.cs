@@ -13,21 +13,16 @@ public sealed class CSharpPropSnippetProviderTests : AbstractCSharpAutoPropertyS
 
     protected override string DefaultPropertyBlockText => "{ get; set; }";
 
-    public override async Task InsertSnippetInReadonlyStructTest()
-    {
-        // Ensure we don't generate redundant `set` accessor when executed in readonly struct
-        await VerifyPropertyAsync("""
+    public override Task InsertSnippetInReadonlyStructTest()
+        => VerifyPropertyAsync("""
             readonly struct MyStruct
             {
                 $$
             }
             """, "public {|0:int|} {|1:MyProperty|} { get; }");
-    }
 
-    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
-    {
-        // Ensure we don't generate redundant `set` accessor when executed in readonly struct
-        await VerifyPropertyAsync("""
+    public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
+        => VerifyPropertyAsync("""
             partial struct MyStruct
             {
                 $$
@@ -37,15 +32,9 @@ public sealed class CSharpPropSnippetProviderTests : AbstractCSharpAutoPropertyS
             {
             }
             """, "public {|0:int|} {|1:MyProperty|} { get; }");
-    }
 
-    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
-    {
-        // Even though there is no `partial` modifier on the first declaration
-        // compiler still treats the whole type as partial since it is more likely that
-        // the user's intent was to have a partial type and they just forgot the modifier.
-        // Thus we still recognize that as `readonly` context and don't generate a setter
-        await VerifyPropertyAsync("""
+    public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
+        => VerifyPropertyAsync("""
             struct MyStruct
             {
                 $$
@@ -55,17 +44,14 @@ public sealed class CSharpPropSnippetProviderTests : AbstractCSharpAutoPropertyS
             {
             }
             """, "public {|0:int|} {|1:MyProperty|} { get; }");
-    }
 
-    public override async Task VerifySnippetInInterfaceTest()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public override Task VerifySnippetInInterfaceTest()
+        => VerifyDefaultPropertyAsync("""
             interface MyInterface
             {
                 $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]

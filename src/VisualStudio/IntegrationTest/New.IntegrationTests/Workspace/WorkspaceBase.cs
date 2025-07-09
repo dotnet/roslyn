@@ -59,8 +59,7 @@ End Class", HangMitigatingCancellationToken);
 
     public virtual async Task MetadataReference()
     {
-        var reference = "WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35";
-        await TestServices.SolutionExplorer.AddMetadataReferenceAsync(reference, "TestProj", HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddMetadataReferenceAsync("WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35", "TestProj", HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetTextAsync("class C { System.Windows.Point p; }", HangMitigatingCancellationToken);

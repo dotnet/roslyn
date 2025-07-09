@@ -16,9 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
 public sealed partial class CSharpAsAndNullCheckTests
 {
     [Fact]
-    public async Task FixAllInDocument1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -70,12 +69,10 @@ public sealed partial class CSharpAsAndNullCheckTests
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
-    }
 
     [Fact]
-    public async Task FixAllInDocument1_CSharp9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument1_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -127,12 +124,10 @@ public sealed partial class CSharpAsAndNullCheckTests
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact]
-    public async Task FixAllInDocument2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument2()
+        => TestInRegularAndScriptAsync(
             """
             class Symbol
             {
@@ -182,12 +177,10 @@ public sealed partial class CSharpAsAndNullCheckTests
             }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26679")]
-    public async Task FixAllInDocument3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument3()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -251,12 +244,10 @@ public sealed partial class CSharpAsAndNullCheckTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26680")]
-    public async Task FixAllInDocument4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInDocument4()
+        => TestInRegularAndScriptAsync(
             """
             class Test
             {
@@ -283,5 +274,4 @@ public sealed partial class CSharpAsAndNullCheckTests
                 }
             }
             """);
-    }
 }

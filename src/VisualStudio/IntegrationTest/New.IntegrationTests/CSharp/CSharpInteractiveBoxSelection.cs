@@ -326,9 +326,8 @@ CDEF
         Assert.Equal(@"__4567890ABCDEF", await TestServices.InteractiveWindow.GetLastReplInputAsync(HangMitigatingCancellationToken));
     }
 
-    private async Task InsertInputWithXAtLeftAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
+    private Task InsertInputWithXAtLeftAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
@@ -336,11 +335,9 @@ CDEF
 1234567890ABCDEF
 x234567890ABCDEF
 1234567890ABCDEF", cancellationToken);
-    }
 
-    private async Task InsertInputWithSAndEAtLeftAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
+    private Task InsertInputWithSAndEAtLeftAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
 1234567890ABCDEF
 s234567890ABCDEF
 1234567890ABCDEF
@@ -348,11 +345,9 @@ s234567890ABCDEF
 1234567890ABCDEF
 e234567890ABCDEF
 1234567890ABCDEF", cancellationToken);
-    }
 
-    private async Task InsertInputWithSAndEInTheMiddleAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"12s4567890ABCDEF
+    private Task InsertInputWithSAndEInTheMiddleAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync(@"12s4567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
@@ -360,11 +355,9 @@ e234567890ABCDEF
 1234567890ABCDEF
 1234567890AeCDEF
 1234567890ABCDEF", cancellationToken);
-    }
 
-    private async Task InsertInputWithEInTheMiddleAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
+    private Task InsertInputWithEInTheMiddleAsync(CancellationToken cancellationToken)
+        => TestServices.InteractiveWindow.InsertCodeAsync(@"1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
 1234567890ABCDEF
@@ -372,7 +365,6 @@ e234567890ABCDEF
 1234567890ABCDEF
 1234567890AeCDEF
 1234567890ABCDEF", cancellationToken);
-    }
 
     private async Task VerifyOriginalCodeWithSAndEAtLeftAsync(CancellationToken cancellationToken)
     {

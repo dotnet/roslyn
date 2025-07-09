@@ -25,7 +25,7 @@ public class CSharpF1Help : AbstractEditorTest
     [IdeFact]
     private async Task F1Help()
     {
-        var text = @"
+        await SetUpEditorAsync(@"
 using System;
 using System.IO;
 using System.Linq;
@@ -66,9 +66,7 @@ namespace F1TestNamespace
 
     }
     #endregion TaoRegion
-}";
-
-        await SetUpEditorAsync(text, HangMitigatingCancellationToken);
+}", HangMitigatingCancellationToken);
         await VerifyAsync("abstract", "abstract_CSharpKeyword", HangMitigatingCancellationToken);
         await VerifyAsync("ascending", "ascending_CSharpKeyword", HangMitigatingCancellationToken);
         await VerifyAsync("from", "from_CSharpKeyword", HangMitigatingCancellationToken);

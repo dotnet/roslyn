@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddFileBanner;
 public sealed partial class AddFileBannerTests
 {
     [Fact]
-    public async Task FixAllInProject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInProject()
+        => TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -71,12 +70,10 @@ class Program3
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task FixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAllInSolution()
+        => TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -135,12 +132,10 @@ class Program3
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task FixAll_AlreadyHasBanner()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAll_AlreadyHasBanner()
+        => TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -225,12 +220,10 @@ class Program5
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task FixAll_UpdatedFileNameInBanner()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAll_UpdatedFileNameInBanner()
+        => TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -293,7 +286,6 @@ class Program3
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Theory]
     [InlineData(FixAllScope.ContainingMember)]

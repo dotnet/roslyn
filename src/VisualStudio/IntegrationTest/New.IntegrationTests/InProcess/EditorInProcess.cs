@@ -1063,15 +1063,11 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         return TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.FORMATSELECTION, cancellationToken);
     }
 
-    private async Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
-    }
+    private Task WaitForSignatureHelpAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SignatureHelp, cancellationToken);
 
-    private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
-    }
+    private Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
+        => TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);
 
     public async Task AddWinFormButtonAsync(string buttonName, CancellationToken cancellationToken)
     {

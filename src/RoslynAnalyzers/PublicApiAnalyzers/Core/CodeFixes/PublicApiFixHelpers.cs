@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     internal static class PublicApiFixHelpers
     {
-        private static readonly char[] SemicolonSplit = new[] { ';' };
+        private static readonly char[] SemicolonSplit = [';'];
 
         internal static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> kv, out TKey key, out TValue value)
         {

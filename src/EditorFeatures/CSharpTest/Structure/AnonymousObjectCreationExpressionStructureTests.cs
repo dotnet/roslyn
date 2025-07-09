@@ -18,9 +18,8 @@ public sealed class AnonymousObjectCreationExpressionStructureTests : AbstractCS
         => new AnonymousObjectCreationExpressionStructureProvider();
 
     [Fact]
-    public async Task TestAnonymousObjectCreation()
-    {
-        await VerifyBlockSpansAsync(
+    public Task TestAnonymousObjectCreation()
+        => VerifyBlockSpansAsync(
             """
                 class C
                 {
@@ -34,5 +33,4 @@ public sealed class AnonymousObjectCreationExpressionStructureTests : AbstractCS
                 }
                 """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

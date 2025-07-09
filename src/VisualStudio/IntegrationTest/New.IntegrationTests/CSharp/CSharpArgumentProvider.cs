@@ -514,8 +514,7 @@ $$
 
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("#if true$$", assertCaretPosition: true, HangMitigatingCancellationToken);
-
-        var expected = @"
+        AssertEx.EqualOrDiff(@"
 using System;
 public class TestClass
 {
@@ -523,8 +522,6 @@ public class TestClass
 
 #endif
 }
-";
-
-        AssertEx.EqualOrDiff(expected, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
     }
 }

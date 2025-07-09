@@ -501,9 +501,8 @@ End Class
         }
 
         [Fact]
-        public async Task Basic_VerifyISymbolAsync()
-        {
-            var source = @"
+        public Task Basic_VerifyISymbolAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 ' Causes many compile errors, because not all members are implemented.
 Class C1
     Implements Microsoft.CodeAnalysis.ISymbol
@@ -511,10 +510,7 @@ End Class
 Class C2
     Implements Microsoft.CodeAnalysis.IAssemblySymbol
 End Class
-";
-
-            // Verify that ISymbol is not implementable.
-            await VerifyVB.VerifyAnalyzerAsync(source,
+",
                 // Test0.vb(3,7): error RS1009: Type C1 cannot implement interface ISymbol because ISymbol is not available for public implementation.
                 VerifyVB.Diagnostic().WithSpan(3, 7, 3, 9).WithArguments("C1", "ISymbol"),
                 // Test0.vb(4) : error BC30149: Class 'C1' must implement 'Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult' for interface 'ISymbol'.
@@ -674,12 +670,10 @@ End Class
                 // Test0.vb(7) : error BC30149: Class 'C2' must implement 'Sub Accept(visitor As SymbolVisitor)' for interface 'ISymbol'.
                 DiagnosticResult.CompilerError("BC30149").WithSpan(7, 16, 7, 54).WithArguments("Class", "C2", "Sub Accept(visitor As Microsoft.CodeAnalysis.SymbolVisitor)", "ISymbol")
             );
-        }
 
         [Fact]
-        public async Task Basic_VerifyIOperationAsync()
-        {
-            var source = @"
+        public Task Basic_VerifyIOperationAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 ' Causes many compile errors, because not all members are implemented.
 Class C1
     Implements Microsoft.CodeAnalysis.IOperation
@@ -687,10 +681,7 @@ End Class
 Class C2
     Implements Microsoft.CodeAnalysis.Operations.IInvocationOperation
 End Class
-";
-
-            // Verify that IOperation is not implementable.
-            await VerifyVB.VerifyAnalyzerAsync(source,
+",
                 // Test0.vb(3,7): error RS1009: Type C1 cannot implement interface IOperation because IOperation is not available for public implementation.
                 VerifyVB.Diagnostic().WithSpan(3, 7, 3, 9).WithArguments("C1", "IOperation"),
                 // Test0.vb(4) : error BC30149: Class 'C1' must implement 'Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult' for interface 'IOperation'.
@@ -748,6 +739,5 @@ End Class
                 // Test0.vb(7) : error BC30149: Class 'C2' must implement 'Sub Accept(visitor As OperationVisitor)' for interface 'IOperation'.
                 DiagnosticResult.CompilerError("BC30149").WithSpan(7, 16, 7, 70).WithArguments("Class", "C2", "Sub Accept(visitor As Microsoft.CodeAnalysis.Operations.OperationVisitor)", "IOperation")
             );
-        }
     }
 }

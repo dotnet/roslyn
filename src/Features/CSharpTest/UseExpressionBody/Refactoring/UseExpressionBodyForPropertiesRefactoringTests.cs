@@ -74,9 +74,8 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
         };
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -90,12 +89,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -115,12 +112,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties_DisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestUpdateAccessorIfAccessWantsBlockAndPropertyWantsExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUpdateAccessorIfAccessWantsBlockAndPropertyWantsExpression()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -143,12 +138,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -168,12 +161,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -193,12 +184,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestNotOfferedInLambda()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedInLambda()
+        => TestMissingAsync(
             """
             class C
             {
@@ -212,12 +201,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -225,12 +212,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody2()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody2()
+        => TestMissingAsync(
             """
             class C
             {
@@ -238,12 +223,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -263,12 +246,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -288,12 +269,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -313,12 +292,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody2()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -338,12 +315,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_ExpressionBodyForProperties));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20360")]
-    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody_CSharp6()
-    {
-        await TestAsync(
+    public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody_CSharp6()
+        => TestAsync(
             """
             class C
             {
@@ -364,12 +339,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             """,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
             options: UseExpressionBodyForAccessors_ExpressionBodyForProperties);
-    }
 
     [Fact]
-    public async Task TestOfferedWithSelectionInsideBlockBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOfferedWithSelectionInsideBlockBody()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -389,12 +362,10 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
-    }
 
     [Fact]
-    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
-    {
-        await TestMissingAsync(
+    public Task TestNotOfferedWithSelectionOutsideBlockBody()
+        => TestMissingAsync(
             """
             class C
             {
@@ -408,5 +379,4 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             }|]
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties));
-    }
 }

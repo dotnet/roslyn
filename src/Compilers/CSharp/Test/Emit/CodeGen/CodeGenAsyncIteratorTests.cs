@@ -10,9 +10,11 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10645,6 +10647,258 @@ class Test1
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember("Test1.<M2>d__0.<>3__x").GetAttributes().Select(a => a.ToString()));
             }
+        }
+
+        [Fact]
+        [WorkItem(78640, "https://github.com/dotnet/roslyn/issues/78640")]
+        public void Repro_78640()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                using System.Threading;
+                using System;
+
+                static class C
+                {
+                    #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+                    public static async IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IEnumerable<T> enumerable, [EnumeratorCancellation] CancellationToken cancellationToken)
+                    #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+                    {
+                        ArgumentNullException.ThrowIfNull(enumerable);
+
+                        cancellationToken.ThrowIfCancellationRequested();
+                        foreach (T item in enumerable)
+                        {
+                            yield return item;
+                            cancellationToken.ThrowIfCancellationRequested();
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, DynamicAnalysisResourceTests.InstrumentationHelperSource],
+                targetFramework: TargetFramework.NetCoreApp,
+                emitOptions: EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.TestCoverage]),
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.<AsAsyncEnumerable>d__0<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+                {
+                  // Code size      518 (0x206)
+                  .maxstack  6
+                  .locals init (int V_0,
+                                T V_1, //item
+                                System.Exception V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                  IL_0006:  stloc.0
+                  .try
+                  {
+                    IL_0007:  ldloc.0
+                    IL_0008:  ldc.i4.s   -4
+                    IL_000a:  beq        IL_00b4
+                    IL_000f:  ldloc.0
+                    IL_0010:  ldc.i4.s   -3
+                    IL_0012:  pop
+                    IL_0013:  pop
+                    IL_0014:  ldarg.0
+                    IL_0015:  ldfld      "bool C.<AsAsyncEnumerable>d__0<T>.<>w__disposeMode"
+                    IL_001a:  brfalse.s  IL_0021
+                    IL_001c:  leave      IL_01a5
+                    IL_0021:  ldarg.0
+                    IL_0022:  ldc.i4.m1
+                    IL_0023:  dup
+                    IL_0024:  stloc.0
+                    IL_0025:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                    IL_002a:  ldarg.0
+                    IL_002b:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+                    IL_0030:  ldtoken    "System.Collections.Generic.IAsyncEnumerable<T> C.AsAsyncEnumerable<T>(System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken)"
+                    IL_0035:  ldelem.ref
+                    IL_0036:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_003b:  ldarg.0
+                    IL_003c:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_0041:  brtrue.s   IL_006d
+                    IL_0043:  ldarg.0
+                    IL_0044:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+                    IL_0049:  ldtoken    "System.Collections.Generic.IAsyncEnumerable<T> C.AsAsyncEnumerable<T>(System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken)"
+                    IL_004e:  ldtoken    Source Document 0
+                    IL_0053:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+                    IL_0058:  ldtoken    "System.Collections.Generic.IAsyncEnumerable<T> C.AsAsyncEnumerable<T>(System.Collections.Generic.IEnumerable<T>, System.Threading.CancellationToken)"
+                    IL_005d:  ldelema    "bool[]"
+                    IL_0062:  ldc.i4.6
+                    IL_0063:  call       "bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)"
+                    IL_0068:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_006d:  ldarg.0
+                    IL_006e:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_0073:  ldc.i4.0
+                    IL_0074:  ldc.i4.1
+                    IL_0075:  stelem.i1
+                    IL_0076:  ldarg.0
+                    IL_0077:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_007c:  ldc.i4.1
+                    IL_007d:  ldc.i4.1
+                    IL_007e:  stelem.i1
+                    IL_007f:  ldarg.0
+                    IL_0080:  ldfld      "System.Collections.Generic.IEnumerable<T> C.<AsAsyncEnumerable>d__0<T>.enumerable"
+                    IL_0085:  ldstr      "enumerable"
+                    IL_008a:  call       "void System.ArgumentNullException.ThrowIfNull(object, string)"
+                    IL_008f:  ldarg.0
+                    IL_0090:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_0095:  ldc.i4.2
+                    IL_0096:  ldc.i4.1
+                    IL_0097:  stelem.i1
+                    IL_0098:  ldarg.0
+                    IL_0099:  ldflda     "System.Threading.CancellationToken C.<AsAsyncEnumerable>d__0<T>.cancellationToken"
+                    IL_009e:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+                    IL_00a3:  ldarg.0
+                    IL_00a4:  ldarg.0
+                    IL_00a5:  ldfld      "System.Collections.Generic.IEnumerable<T> C.<AsAsyncEnumerable>d__0<T>.enumerable"
+                    IL_00aa:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
+                    IL_00af:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                    IL_00b4:  nop
+                    .try
+                    {
+                      IL_00b5:  ldloc.0
+                      IL_00b6:  ldc.i4.s   -4
+                      IL_00b8:  beq.s      IL_00f0
+                      IL_00ba:  br.s       IL_0115
+                      IL_00bc:  ldarg.0
+                      IL_00bd:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                      IL_00c2:  ldc.i4.5
+                      IL_00c3:  ldc.i4.1
+                      IL_00c4:  stelem.i1
+                      IL_00c5:  ldarg.0
+                      IL_00c6:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_00cb:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
+                      IL_00d0:  stloc.1
+                      IL_00d1:  ldarg.0
+                      IL_00d2:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                      IL_00d7:  ldc.i4.3
+                      IL_00d8:  ldc.i4.1
+                      IL_00d9:  stelem.i1
+                      IL_00da:  ldarg.0
+                      IL_00db:  ldloc.1
+                      IL_00dc:  stfld      "T C.<AsAsyncEnumerable>d__0<T>.<>2__current"
+                      IL_00e1:  ldarg.0
+                      IL_00e2:  ldc.i4.s   -4
+                      IL_00e4:  dup
+                      IL_00e5:  stloc.0
+                      IL_00e6:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                      IL_00eb:  leave      IL_01f9
+                      IL_00f0:  ldarg.0
+                      IL_00f1:  ldc.i4.m1
+                      IL_00f2:  dup
+                      IL_00f3:  stloc.0
+                      IL_00f4:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                      IL_00f9:  ldarg.0
+                      IL_00fa:  ldfld      "bool C.<AsAsyncEnumerable>d__0<T>.<>w__disposeMode"
+                      IL_00ff:  brtrue.s   IL_0122
+                      IL_0101:  ldarg.0
+                      IL_0102:  ldfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                      IL_0107:  ldc.i4.4
+                      IL_0108:  ldc.i4.1
+                      IL_0109:  stelem.i1
+                      IL_010a:  ldarg.0
+                      IL_010b:  ldflda     "System.Threading.CancellationToken C.<AsAsyncEnumerable>d__0<T>.cancellationToken"
+                      IL_0110:  call       "void System.Threading.CancellationToken.ThrowIfCancellationRequested()"
+                      IL_0115:  ldarg.0
+                      IL_0116:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_011b:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                      IL_0120:  brtrue.s   IL_00bc
+                      IL_0122:  leave.s    IL_013c
+                    }
+                    finally
+                    {
+                      IL_0124:  ldloc.0
+                      IL_0125:  ldc.i4.m1
+                      IL_0126:  bne.un.s   IL_013b
+                      IL_0128:  ldarg.0
+                      IL_0129:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_012e:  brfalse.s  IL_013b
+                      IL_0130:  ldarg.0
+                      IL_0131:  ldfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                      IL_0136:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_013b:  endfinally
+                    }
+                    IL_013c:  ldarg.0
+                    IL_013d:  ldfld      "bool C.<AsAsyncEnumerable>d__0<T>.<>w__disposeMode"
+                    IL_0142:  brfalse.s  IL_0146
+                    IL_0144:  leave.s    IL_01a5
+                    IL_0146:  ldarg.0
+                    IL_0147:  ldnull
+                    IL_0148:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                    IL_014d:  leave.s    IL_01a5
+                  }
+                  catch System.Exception
+                  {
+                    IL_014f:  stloc.2
+                    IL_0150:  ldarg.0
+                    IL_0151:  ldc.i4.s   -2
+                    IL_0153:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                    IL_0158:  ldarg.0
+                    IL_0159:  ldnull
+                    IL_015a:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                    IL_015f:  ldarg.0
+                    IL_0160:  ldnull
+                    IL_0161:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                    IL_0166:  ldarg.0
+                    IL_0167:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                    IL_016c:  brfalse.s  IL_0180
+                    IL_016e:  ldarg.0
+                    IL_016f:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                    IL_0174:  callvirt   "void System.Threading.CancellationTokenSource.Dispose()"
+                    IL_0179:  ldarg.0
+                    IL_017a:  ldnull
+                    IL_017b:  stfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                    IL_0180:  ldarg.0
+                    IL_0181:  ldflda     "T C.<AsAsyncEnumerable>d__0<T>.<>2__current"
+                    IL_0186:  initobj    "T"
+                    IL_018c:  ldarg.0
+                    IL_018d:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<AsAsyncEnumerable>d__0<T>.<>t__builder"
+                    IL_0192:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                    IL_0197:  ldarg.0
+                    IL_0198:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<AsAsyncEnumerable>d__0<T>.<>v__promiseOfValueOrEnd"
+                    IL_019d:  ldloc.2
+                    IL_019e:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+                    IL_01a3:  leave.s    IL_0205
+                  }
+                  IL_01a5:  ldarg.0
+                  IL_01a6:  ldc.i4.s   -2
+                  IL_01a8:  stfld      "int C.<AsAsyncEnumerable>d__0<T>.<>1__state"
+                  IL_01ad:  ldarg.0
+                  IL_01ae:  ldnull
+                  IL_01af:  stfld      "bool[] C.<AsAsyncEnumerable>d__0<T>.<>7__wrap1"
+                  IL_01b4:  ldarg.0
+                  IL_01b5:  ldnull
+                  IL_01b6:  stfld      "System.Collections.Generic.IEnumerator<T> C.<AsAsyncEnumerable>d__0<T>.<>7__wrap2"
+                  IL_01bb:  ldarg.0
+                  IL_01bc:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                  IL_01c1:  brfalse.s  IL_01d5
+                  IL_01c3:  ldarg.0
+                  IL_01c4:  ldfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                  IL_01c9:  callvirt   "void System.Threading.CancellationTokenSource.Dispose()"
+                  IL_01ce:  ldarg.0
+                  IL_01cf:  ldnull
+                  IL_01d0:  stfld      "System.Threading.CancellationTokenSource C.<AsAsyncEnumerable>d__0<T>.<>x__combinedTokens"
+                  IL_01d5:  ldarg.0
+                  IL_01d6:  ldflda     "T C.<AsAsyncEnumerable>d__0<T>.<>2__current"
+                  IL_01db:  initobj    "T"
+                  IL_01e1:  ldarg.0
+                  IL_01e2:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<AsAsyncEnumerable>d__0<T>.<>t__builder"
+                  IL_01e7:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+                  IL_01ec:  ldarg.0
+                  IL_01ed:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<AsAsyncEnumerable>d__0<T>.<>v__promiseOfValueOrEnd"
+                  IL_01f2:  ldc.i4.0
+                  IL_01f3:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_01f8:  ret
+                  IL_01f9:  ldarg.0
+                  IL_01fa:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<AsAsyncEnumerable>d__0<T>.<>v__promiseOfValueOrEnd"
+                  IL_01ff:  ldc.i4.1
+                  IL_0200:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+                  IL_0205:  ret
+                }
+                """);
         }
     }
 }

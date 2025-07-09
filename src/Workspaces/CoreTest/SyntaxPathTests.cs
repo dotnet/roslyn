@@ -362,17 +362,6 @@ public sealed class SyntaxPathTests
     struct D {
     }
   }";
-
-        var text2 =
-@"namespace N {
-#if true
-    class C {
-    }
-    struct D {
-    }
-#endif
-  }";
-
         var tree = SyntaxFactory.ParseSyntaxTree(text);
         var namespaceDecl = (NamespaceDeclarationSyntax)((CompilationUnitSyntax)tree.GetRoot()).Members[0];
         var class1 = (TypeDeclarationSyntax)namespaceDecl.Members[0];
@@ -381,7 +370,14 @@ public sealed class SyntaxPathTests
         var path1 = new SyntaxPath(class1);
         var path2 = new SyntaxPath(class2);
 
-        tree = WithReplace(tree, 0, text.Length, text2);
+        tree = WithReplace(tree, 0, text.Length, @"namespace N {
+#if true
+    class C {
+    }
+    struct D {
+    }
+#endif
+  }");
         Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
         Assert.True(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
 

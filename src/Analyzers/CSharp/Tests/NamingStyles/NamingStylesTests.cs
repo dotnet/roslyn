@@ -30,20 +30,17 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
         => base.GetComposition().AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
     [Fact]
-    public async Task TestPascalCaseClass_CorrectName()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseClass_CorrectName()
+        => TestMissingInRegularAndScriptAsync(
             """
             class [|C|]
             {
             }
             """, new TestParameters(options: s_options.ClassNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseClass_NameGetsCapitalized()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPascalCaseClass_NameGetsCapitalized()
+        => TestInRegularAndScriptAsync(
             """
             class [|c|]
             {
@@ -55,7 +52,6 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.ClassNamesArePascalCase);
-    }
 
     [Theory]
     [InlineData("M_bar", "bar")]
@@ -76,9 +72,8 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     [InlineData("S_", "s_")]
     [InlineData("T_", "t_")]
     [InlineData("M_S__T_", "t_")]
-    public async Task TestCamelCaseField_PrefixGetsStripped(string fieldName, string correctedName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseField_PrefixGetsStripped(string fieldName, string correctedName)
+        => TestInRegularAndScriptAsync(
             $$"""
             class C
             {
@@ -92,7 +87,6 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.FieldNamesAreCamelCase);
-    }
 
     [Theory]
     [InlineData("M_bar", "_bar")]
@@ -114,9 +108,8 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     [InlineData("S_", "_s_")]
     [InlineData("T_", "_t_")]
     [InlineData("M_S__T_", "_t_")]
-    public async Task TestCamelCaseField_PrefixGetsStrippedBeforeAddition(string fieldName, string correctedName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseField_PrefixGetsStrippedBeforeAddition(string fieldName, string correctedName)
+        => TestInRegularAndScriptAsync(
             $$"""
             class C
             {
@@ -130,12 +123,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.FieldNamesAreCamelCaseWithUnderscorePrefix);
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_CorrectName()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_CorrectName()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -144,7 +135,6 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Theory]
     [InlineData("")]
@@ -289,9 +279,8 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestPascalCaseMethod_NameGetsCapitalized()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_NameGetsCapitalized()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -309,12 +298,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.MethodNamesArePascalCase);
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_ConstructorsAreIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_ConstructorsAreIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class c
             {
@@ -323,24 +310,20 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_PropertyAccessorsAreIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_PropertyAccessorsAreIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 public int P { [|get|]; set; }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_IndexerNameIsIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_IndexerNameIsIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -353,12 +336,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_LocalFunctionIsIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_LocalFunctionIsIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -370,12 +351,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseParameters()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -393,12 +372,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.ParameterNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_LocalDeclaration1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_LocalDeclaration1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -418,12 +395,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_LocalDeclaration2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_LocalDeclaration2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -443,12 +418,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_UsingVariable1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_UsingVariable1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -472,12 +445,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_UsingVariable2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_UsingVariable2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -501,12 +472,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_ForVariable1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_ForVariable1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -530,12 +499,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_ForVariable2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_ForVariable2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -559,12 +526,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_ForEachVariable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_ForEachVariable()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -588,12 +553,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_CatchVariable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_CatchVariable()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -625,12 +588,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_CatchWithoutVariableIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_CatchWithoutVariableIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -646,12 +607,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_CatchWithoutDeclarationIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_CatchWithoutDeclarationIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -667,12 +626,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_Deconstruction1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_Deconstruction1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -694,12 +651,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_Deconstruction2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_Deconstruction2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -721,12 +676,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_ForEachDeconstruction1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_ForEachDeconstruction1()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -748,12 +701,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_ForEachDeconstruction2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_ForEachDeconstruction2()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -775,12 +726,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_OutVariable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_OutVariable()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -802,12 +751,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_PatternVariable()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_PatternVariable()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -829,13 +776,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_QueryFromClauseIgnored()
-    {
-        // This is an IRangeVariableSymbol, not ILocalSymbol
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_QueryFromClauseIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -850,13 +794,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_QueryLetClauseIgnored()
-    {
-        // This is an IRangeVariableSymbol, not ILocalSymbol
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_QueryLetClauseIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System.Linq;
 
@@ -871,12 +812,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_ParameterIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_ParameterIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -885,12 +824,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_TupleTypeElementNameIgnored1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_TupleTypeElementNameIgnored1()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -900,12 +837,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_TupleTypeElementNameIgnored2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_TupleTypeElementNameIgnored2()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -915,12 +850,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocals_TupleExpressionElementNameIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocals_TupleExpressionElementNameIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -930,12 +863,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestUpperCaseConstants_ConstField()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpperCaseConstants_ConstField()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -949,12 +880,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.ConstantsAreUpperCase);
-    }
 
     [Fact]
-    public async Task TestUpperCaseConstants_ConstLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestUpperCaseConstants_ConstLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -974,24 +903,20 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.ConstantsAreUpperCase);
-    }
 
     [Fact]
-    public async Task TestUpperCaseConstants_NonConstFieldIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestUpperCaseConstants_NonConstFieldIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 readonly int [|field|] = 0;
             }
             """, new TestParameters(options: s_options.ConstantsAreUpperCase));
-    }
 
     [Fact]
-    public async Task TestUpperCaseConstants_NonConstLocalIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestUpperCaseConstants_NonConstLocalIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1001,12 +926,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.ConstantsAreUpperCase));
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocalsUpperCaseConstants_ConstLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocalsUpperCaseConstants_ConstLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1026,12 +949,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalsAreCamelCaseConstantsAreUpperCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocalsUpperCaseConstants_NonConstLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocalsUpperCaseConstants_NonConstLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1051,12 +972,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalsAreCamelCaseConstantsAreUpperCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocalFunctions()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestCamelCaseLocalFunctions()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1080,12 +999,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.LocalFunctionNamesAreCamelCase);
-    }
 
     [Fact]
-    public async Task TestCamelCaseLocalFunctions_MethodIsIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestCamelCaseLocalFunctions_MethodIsIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1094,12 +1011,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalFunctionNamesAreCamelCase));
-    }
 
     [Fact]
-    public async Task TestAsyncFunctions_AsyncMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncFunctions_AsyncMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1117,12 +1032,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.AsyncFunctionNamesEndWithAsync);
-    }
 
     [Fact]
-    public async Task TestAsyncFunctions_AsyncLocalFunction()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestAsyncFunctions_AsyncLocalFunction()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1146,12 +1059,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.AsyncFunctionNamesEndWithAsync);
-    }
 
     [Fact]
-    public async Task TestAsyncFunctions_NonAsyncMethodIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestAsyncFunctions_NonAsyncMethodIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1163,12 +1074,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
-    }
 
     [Fact]
-    public async Task TestAsyncFunctions_NonAsyncLocalFunctionIgnored()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestAsyncFunctions_NonAsyncLocalFunctionIgnored()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1180,12 +1089,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
+        => TestInRegularAndScriptAsync(
             """
             interface I
             {
@@ -1209,12 +1116,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.MethodNamesArePascalCase);
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_InInterfaceWithExplicitImplementation()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_InInterfaceWithExplicitImplementation()
+        => TestInRegularAndScriptAsync(
             """
             interface I
             {
@@ -1238,12 +1143,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.MethodNamesArePascalCase);
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_NotInImplicitInterfaceImplementation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_NotInImplicitInterfaceImplementation()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface I
             {
@@ -1255,12 +1158,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 public void [|m|]() { }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_NotInExplicitInterfaceImplementation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_NotInExplicitInterfaceImplementation()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface I
             {
@@ -1272,12 +1173,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 void I.[|m|]() { }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_InAbstractType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_InAbstractType()
+        => TestInRegularAndScriptAsync(
             """
             abstract class C
             {
@@ -1301,12 +1200,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.MethodNamesArePascalCase);
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_NotInAbstractMethodImplementation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_NotInAbstractMethodImplementation()
+        => TestMissingInRegularAndScriptAsync(
             """
             abstract class C
             {
@@ -1318,12 +1215,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 public override void [|m|]() { }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseProperty_InInterface()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestPascalCaseProperty_InInterface()
+        => TestInRegularAndScriptAsync(
             """
             interface I
             {
@@ -1347,12 +1242,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             options: s_options.PropertyNamesArePascalCase);
-    }
 
     [Fact]
-    public async Task TestPascalCaseProperty_NotInImplicitInterfaceImplementation()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseProperty_NotInImplicitInterfaceImplementation()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface I
             {
@@ -1364,12 +1257,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 public int [|p|] { get { return 1; } set { } }
             }
             """, new TestParameters(options: s_options.PropertyNamesArePascalCase));
-    }
 
     [Fact]
-    public async Task TestPascalCaseMethod_OverrideInternalMethod()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestPascalCaseMethod_OverrideInternalMethod()
+        => TestMissingInRegularAndScriptAsync(
             """
             abstract class C
             {
@@ -1381,47 +1272,38 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 internal override void [|m|]() { }
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19106")]
-    public async Task TestMissingOnSymbolsWithNoName()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnSymbolsWithNoName()
+        => TestMissingInRegularAndScriptAsync(
             """
             namespace Microsoft.CodeAnalysis.Host
             {
                 internal interface 
             [|}|]
             """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
-    public async Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI1()
+        => TestInRegularAndScript1Async("""
             interface [|InputStream|] { }
             """, """
             interface IInputStream { }
             """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
-    public async Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI2()
+        => TestInRegularAndScript1Async("""
             interface [|Stream|] { }
             """, """
             interface IStream { }
             """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
-    public async Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI3()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI3()
+        => TestMissingInRegularAndScriptAsync("""
             interface [|IInputStream|] { }
             """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
-    }
 
 #if CODE_STYLE
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
@@ -1504,17 +1386,14 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47508")]
-    public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestRecordParameter_NoDiagnosticWhenCorrect()
+        => TestMissingInRegularAndScriptAsync(
 @"record Foo(int [|MyInt|]);",
             new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47508")]
-    public async Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
+        => TestMissingInRegularAndScriptAsync(
             """
             record Foo(int MyInt)
             {
@@ -1524,16 +1403,13 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
             }
             """,
             new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47508")]
-    public async Task TestRecordParameter_ParameterFormattedAsProperties()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestRecordParameter_ParameterFormattedAsProperties()
+        => TestInRegularAndScriptAsync(
 @"public record Foo(int [|myInt|]);",
 @"public record Foo(int [|MyInt|]);",
             options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix));
-    }
 
     [Theory]
     [InlineData("_")]
@@ -1541,9 +1417,8 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     [InlineData("_123")]
     [InlineData("__")]
     [InlineData("___")]
-    public async Task TestDiscardParameterAsync(string identifier)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDiscardParameterAsync(string identifier)
+        => TestMissingInRegularAndScriptAsync(
             $$"""
             class C
             {
@@ -1552,7 +1427,6 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.ParameterNamesAreCamelCase));
-    }
 
     [Theory]
     [InlineData("_")]
@@ -1560,9 +1434,8 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
     [InlineData("_123")]
     [InlineData("__")]
     [InlineData("___")]
-    public async Task TestDiscardLocalAsync(string identifier)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDiscardLocalAsync(string identifier)
+        => TestMissingInRegularAndScriptAsync(
             $$"""
             class C
             {
@@ -1572,12 +1445,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.LocalNamesAreCamelCase));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49535")]
-    public async Task TestGlobalDirectiveAsync()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestGlobalDirectiveAsync()
+        => TestMissingInRegularAndScriptAsync(
             """
             interface I
             {
@@ -1589,12 +1460,10 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 int [|global::I.X|] => 0;
             }
             """, new TestParameters(options: s_options.PropertyNamesArePascalCase));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50734")]
-    public async Task TestAsyncEntryPoint()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestAsyncEntryPoint()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             class C
@@ -1605,27 +1474,22 @@ public sealed class NamingStylesTests(ITestOutputHelper logger)
                 }
             }
             """, new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49648")]
-    public async Task TestAsyncEntryPoint_TopLevel()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestAsyncEntryPoint_TopLevel()
+        => TestMissingInRegularAndScriptAsync("""
             using System.Threading.Tasks;
 
             [|await Task.Delay(0);|]
             """, new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51727")]
-    public async Task TestExternAsync()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestExternAsync()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
                 static extern void [|some_p_invoke()|];
             }
             """, new TestParameters(options: s_options.MethodNamesArePascalCase));
-    }
 }

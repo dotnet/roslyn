@@ -17,9 +17,8 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
     internal override AbstractSyntaxStructureProvider CreateProvider() => new SimpleLambdaExpressionStructureProvider();
 
     [Fact]
-    public async Task TestLambda()
-    {
-        var code = """
+    public Task TestLambda()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -29,16 +28,12 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         };|}|}
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestLambdaInForLoop()
-    {
-        var code = """
+    public Task TestLambdaInForLoop()
+        => VerifyNoBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -46,15 +41,11 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         for (Action a = x$$ => { }; true; a()) { }
                     }
                 }
-                """;
-
-        await VerifyNoBlockSpansAsync(code);
-    }
+                """);
 
     [Fact]
-    public async Task TestLambdaInMethodCall1()
-    {
-        var code = """
+    public Task TestLambdaInMethodCall1()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -64,16 +55,12 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         }|}|}, "other arguments}");
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 
     [Fact]
-    public async Task TestLambdaInMethodCall2()
-    {
-        var code = """
+    public Task TestLambdaInMethodCall2()
+        => VerifyBlockSpansAsync("""
                 class C
                 {
                     void M()
@@ -83,9 +70,6 @@ public sealed class SimpleLambdaExpressionStructureTests : AbstractCSharpSyntaxN
                         }|}|});
                     }
                 }
-                """;
-
-        await VerifyBlockSpansAsync(code,
+                """,
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
-    }
 }

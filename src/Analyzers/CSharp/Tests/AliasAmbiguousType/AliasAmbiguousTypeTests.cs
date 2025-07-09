@@ -178,12 +178,8 @@ namespace Test
     }
 
     [Fact]
-    public async Task TestNamespaceAndTypenameIdenticalOffersNoDiagnostics()
-    {
-        // This gives CS0433: The type 'Ambiguous' exists in both 'Assembly1' and 'Assembly2'
-        // Couldn't get a CS0104 in this situation. Keep the test anyway if someone finds a way to force CS0104 here
-        // or CS0433 is added as a supported diagnostic for this fix.
-        await TestMissingAsync(@"
+    public Task TestNamespaceAndTypenameIdenticalOffersNoDiagnostics()
+        => TestMissingAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath=""File1.cs"">
@@ -223,19 +219,16 @@ namespace N1
     </Project>
 </Workspace>
 ");
-    }
 
     [Fact]
-    public async Task TestAmbiguousAliasNoDiagnostics()
-    {
-        await TestMissingAsync(@"
+    public Task TestAmbiguousAliasNoDiagnostics()
+        => TestMissingAsync(@"
 extern alias alias;
 using alias=alias;
 class myClass : [|alias|]::Uri
     {
     }
 ");
-    }
 
     [Fact]
     public async Task TestAmbiguousNestedClass()
@@ -260,7 +253,7 @@ class D
         c.M();
     }
 }";
-        var expectedMarkup0 = @"
+        await TestInRegularAndScriptAsync(initialMarkup, @"
 using static Static<string>;
 using static Static<int>;
 using Nested = Static<string>.Nested;
@@ -280,8 +273,8 @@ class D
         var c = new Nested();
         c.M();
     }
-}";
-        var expectedMarkup1 = @"
+}", index: 0);
+        await TestInRegularAndScriptAsync(initialMarkup, @"
 using static Static<string>;
 using static Static<int>;
 using Nested = Static<int>.Nested;
@@ -301,9 +294,7 @@ class D
         var c = new Nested();
         c.M();
     }
-}";
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup0, index: 0);
-        await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup1, index: 1);
+}", index: 1);
         await TestSmartTagTextAsync(initialMarkup, "using Nested = Static<string>.Nested;");
     }
 

@@ -16,9 +16,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Theory]
         [InlineData("default")]
         [InlineData("default(object)")]
-        public async Task PreferNullLiteral_ClassAsync(string defaultValueExpression)
-        {
-            var source = $@"
+        public Task PreferNullLiteral_ClassAsync(string defaultValueExpression)
+            => VerifyCS.VerifyCodeFixAsync($@"
 class Type
 {{
     object Method()
@@ -26,8 +25,7 @@ class Type
         return [|{defaultValueExpression}|];
     }}
 }}
-";
-            var fixedSource = @"
+", @"
 class Type
 {
     object Method()
@@ -35,10 +33,7 @@ class Type
         return null;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+");
 
         [Fact]
         public async Task UnresolvedTypeAsync()
@@ -64,9 +59,10 @@ class Type
         [InlineData("default", "null")]
         [InlineData("default(object)", "null")]
         [InlineData("default(object?)", "null")]
-        public async Task ReturnFromNullableContextAsync(string defaultValueExpression, string fixedExpression)
-        {
-            var source = $@"
+        public Task ReturnFromNullableContextAsync(string defaultValueExpression, string fixedExpression)
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 #nullable enable
 
 class Type
@@ -76,8 +72,8 @@ class Type
         return [|{defaultValueExpression}|]!;
     }}
 }}
-";
-            var fixedSource = $@"
+",
+                FixedCode = $@"
 #nullable enable
 
 class Type
@@ -87,24 +83,19 @@ class Type
         return {fixedExpression}!;
     }}
 }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
-                FixedCode = fixedSource,
+",
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("[|default(object)|]!", "((object?)null)!")]
         [InlineData("[|default(object?)|]!", "((object?)null)!")]
         [InlineData("[|default(object)|]", "(object?)null")]
         [InlineData("[|default(object?)|]", "(object?)null")]
-        public async Task InvocationInNullableContextAsync(string defaultValueExpression, string fixedExpression)
-        {
-            var source = $@"
+        public Task InvocationInNullableContextAsync(string defaultValueExpression, string fixedExpression)
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 #nullable enable
 
 class Type
@@ -118,8 +109,8 @@ class Type
     {{
     }}
 }}
-";
-            var fixedSource = $@"
+",
+                FixedCode = $@"
 #nullable enable
 
 class Type
@@ -133,15 +124,9 @@ class Type
     {{
     }}
 }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
-                FixedCode = fixedSource,
+",
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
         public async Task NullPointerAsync()
@@ -175,9 +160,10 @@ unsafe class Type
         }
 
         [Fact]
-        public async Task PointerInNullableContextAsync()
-        {
-            var source = @"
+        public Task PointerInNullableContextAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 #nullable enable
 
 unsafe class Type
@@ -190,8 +176,8 @@ unsafe class Type
     void Method2(int* value) { }
     void Method2(byte* value) { }
 }
-";
-            var fixedSource = @"
+",
+                FixedCode = @"
 #nullable enable
 
 unsafe class Type
@@ -204,15 +190,9 @@ unsafe class Type
     void Method2(int* value) { }
     void Method2(byte* value) { }
 }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
-                FixedCode = fixedSource,
+",
                 LanguageVersion = LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("default")]

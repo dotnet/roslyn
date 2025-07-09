@@ -23,7 +23,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         [Fact, WorkItem(7196, "https://github.com/dotnet/roslyn-analyzers/issues/7196")]
         public async Task CSharp_VerifyDiagnosticAsync()
         {
-            var source = @"
+            DiagnosticResult[] expected =
+            [
+                GetCSharpExpectedDiagnostic(19, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
+                GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
+                GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetCSharpExpectedDiagnostic(22, 31, violatingTypeName: "MyCompilation"),
+                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName),
+                GetCSharpExpectedDiagnostic(24, 29, violatingTypeName: typeof(ISymbol).FullName),
+                GetCSharpExpectedDiagnostic(25, 29, violatingTypeName: typeof(IOperation).FullName)
+            ];
+
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -60,25 +71,24 @@ class MyAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context)
     {
     }
-}";
-            DiagnosticResult[] expected = new[]
-            {
-                GetCSharpExpectedDiagnostic(19, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
-                GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
-                GetCSharpExpectedDiagnostic(22, 31, violatingTypeName: "MyCompilation"),
-                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperation).FullName),
-                GetCSharpExpectedDiagnostic(24, 29, violatingTypeName: typeof(ISymbol).FullName),
-                GetCSharpExpectedDiagnostic(25, 29, violatingTypeName: typeof(IOperation).FullName)
-            };
-
-            await VerifyCS.VerifyAnalyzerAsync(source, expected);
+}", expected);
         }
 
         [Fact, WorkItem(7196, "https://github.com/dotnet/roslyn-analyzers/issues/7196")]
         public async Task VisualBasic_VerifyDiagnosticAsync()
         {
-            var source = @"
+            DiagnosticResult[] expected =
+            [
+                GetBasicExpectedDiagnostic(19, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
+                GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
+                GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetBasicExpectedDiagnostic(22, 40, violatingTypeName: "MyCompilation"),
+                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName),
+                GetBasicExpectedDiagnostic(24, 35, violatingTypeName: typeof(ISymbol).FullName),
+                GetBasicExpectedDiagnostic(25, 35, violatingTypeName: typeof(IOperation).FullName)
+            ];
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -113,25 +123,13 @@ Class MyAnalyzer
     Public Overrides Sub Initialize(context As AnalysisContext)
     End Sub
 End Class
-";
-            DiagnosticResult[] expected = new[]
-            {
-                GetBasicExpectedDiagnostic(19, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
-                GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
-                GetBasicExpectedDiagnostic(22, 40, violatingTypeName: "MyCompilation"),
-                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperation).FullName),
-                GetBasicExpectedDiagnostic(24, 35, violatingTypeName: typeof(ISymbol).FullName),
-                GetBasicExpectedDiagnostic(25, 35, violatingTypeName: typeof(IOperation).FullName)
-            };
-
-            await VerifyVB.VerifyAnalyzerAsync(source, expected);
+", expected);
         }
 
         [Fact]
         public async Task CSharp_NoDiagnosticCasesAsync()
         {
-            var source = @"
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -203,15 +201,13 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
     {
         throw new NotImplementedException();
     }
-}";
-
-            await VerifyCS.VerifyAnalyzerAsync(source);
+}");
         }
 
         [Fact]
         public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
-            var source = @"
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -275,9 +271,7 @@ Class MyAnalyzerWithoutAttribute
         Throw New NotImplementedException()
     End Sub
 End Class
-";
-
-            await VerifyVB.VerifyAnalyzerAsync(source);
+");
         }
 
         [Fact, WorkItem(4308, "https://github.com/dotnet/roslyn-analyzers/issues/4308")]

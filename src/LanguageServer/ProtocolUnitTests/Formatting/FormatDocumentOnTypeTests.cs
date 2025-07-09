@@ -33,8 +33,9 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, ";", locationTyped, """
             class A
             {
                 void M()
@@ -43,11 +44,7 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
                     {
                 }
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var characterTyped = ";";
-        var locationTyped = testLspServer.GetLocations("type").Single();
-        await AssertFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, expected);
+            """);
     }
 
     [Theory, CombinatorialData]
@@ -64,8 +61,9 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
             	}
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, ";", locationTyped, """
             class A
             {
             	void M()
@@ -74,11 +72,7 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
             		{
             	}
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var characterTyped = ";";
-        var locationTyped = testLspServer.GetLocations("type").Single();
-        await AssertFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, expected, insertSpaces: false, tabSize: 4);
+            """, insertSpaces: false, tabSize: 4);
     }
 
     [Theory, CombinatorialData]
@@ -93,8 +87,9 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
                 }
             }
             """;
-        var expected =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var locationTyped = testLspServer.GetLocations("type").Single();
+        await AssertFormatDocumentOnTypeAsync(testLspServer, "\n", locationTyped, """
             class A
             {
                 void M()
@@ -102,11 +97,7 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
                     
                 }
             }
-            """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var characterTyped = "\n";
-        var locationTyped = testLspServer.GetLocations("type").Single();
-        await AssertFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, expected);
+            """);
     }
 
     private static async Task AssertFormatDocumentOnTypeAsync(
