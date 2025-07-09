@@ -3762,7 +3762,7 @@ class Derived : Test
             CheckLambdaArgumentInBadCall(source);
         }
 
-        private static void CheckLambdaArgumentInBadCall(string source)
+        private void CheckLambdaArgumentInBadCall(string source)
         {
             var comp = (Compilation)CreateCompilation(source);
 

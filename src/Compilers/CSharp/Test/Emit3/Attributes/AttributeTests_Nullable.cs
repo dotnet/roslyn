@@ -5204,7 +5204,7 @@ public class A
             AssertNullableAttributes(comp, expected);
         }
 
-        private static MetadataReference GetAnnotationUtilsLibrary()
+        private MetadataReference GetAnnotationUtilsLibrary()
         {
             var source =
 @"using System;

@@ -332,7 +332,7 @@ public sealed class SymbolKeyErrorTypeTests : SymbolKeyTestBase
             """, c => c.GetMember("N.C.E"));
     }
 
-    private static void VerifyResolution(string source, Func<Compilation, ISymbol> symbolToResolve)
+    private void VerifyResolution(string source, Func<Compilation, ISymbol> symbolToResolve)
     {
         var sourceCompilation = (Compilation)CreateCompilation(source, options: new(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         var symbol = symbolToResolve(sourceCompilation);

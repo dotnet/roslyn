@@ -192,7 +192,7 @@ class Test
         [Fact]
         public void MissingSpanType()
         {
-            CreateCompilation(@"
+            CreateCompilationWithNetStandard(@"
 class Test
 {
     void M()
@@ -211,7 +211,7 @@ class Test
         [Fact]
         public void MissingSpanConstructor()
         {
-            CreateCompilation(@"
+            CreateCompilationWithNetStandard(@"
 namespace System
 {
     ref struct Span<T>

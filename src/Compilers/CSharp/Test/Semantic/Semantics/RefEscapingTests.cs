@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     [CompilerTrait(CompilerFeature.ReadOnlyReferences, CompilerFeature.RefLifetime)]
-    public class RefEscapingTests : CompilingTestBase
+    public class RefEscapingTests() : CompilingTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void RefStructSemanticModel()
@@ -4071,7 +4071,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilationWithSpan([code, UnscopedRefAttributeDefinition], TestOptions.UnsafeDebugDll, TestOptions.Regular11);
+            var comp = CreateCompilationWithNetStandard([code, TestSources.Span, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (29,23): error CS8352: Cannot use variable '[x] = ""' in this context because it may expose referenced variables outside of their declaration scope
                 //         local = new() { [x] = "" }; // 1
@@ -4115,7 +4115,7 @@ class Program
 
                 """;
 
-            var comp = CreateCompilationWithSpan([code, UnscopedRefAttributeDefinition], TestOptions.UnsafeDebugDll, TestOptions.Regular11);
+            var comp = CreateCompilationWithNetStandard([code, TestSources.Span, UnscopedRefAttributeDefinition], options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
                 // (9,40): error CS8352: Cannot use variable '[in x] = ""' in this context because it may expose referenced variables outside of their declaration scope
                 //     static S1 Test1(int x) => new S1() { [in x] = "" }; // 1
