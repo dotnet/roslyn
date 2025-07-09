@@ -152,7 +152,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             MaxWidth = _textView.ViewportRight;
             MinWidth = Math.Min(DefaultMinWidth, _textView.ViewportWidth);
 
-            Canvas.SetTop(this, Math.Max(0, top));
+            // Top can be negative if the viewport is scrolled up, but not left
+            Canvas.SetTop(this, top);
             Canvas.SetLeft(this, Math.Max(0, left));
         }
 
