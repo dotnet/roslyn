@@ -16,29 +16,33 @@ public sealed partial class AddUsingTests_Razor : AbstractAddUsingTests
     [Theory, CombinatorialData]
     public Task TestAddIntoHiddenRegionWithModernSpanMapper(TestHost host)
         => TestAsync(
-@"#line hidden
-using System.Collections.Generic;
-#line default
+            """
+            #line hidden
+            using System.Collections.Generic;
+            #line default
 
-class Program
-{
-    void Main()
-    {
-        [|DateTime|] d;
-    }
-}",
-@"#line hidden
-using System;
-using System.Collections.Generic;
-#line default
+            class Program
+            {
+                void Main()
+                {
+                    [|DateTime|] d;
+                }
+            }
+            """,
+            """
+            #line hidden
+            using System;
+            using System.Collections.Generic;
+            #line default
 
-class Program
-{
-    void Main()
-    {
-        DateTime d;
-    }
-}", host);
+            class Program
+            {
+                void Main()
+                {
+                    DateTime d;
+                }
+            }
+            """, host);
 
     private protected override IDocumentServiceProvider GetDocumentServiceProvider()
     {

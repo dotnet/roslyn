@@ -25,12 +25,14 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
     public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" FilePath=""C:\CSProj1.csproj"">
-        <Document FilePath=""C:\C.cs""></Document>
-        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
+                    <Document FilePath="C:\C.cs"></Document>
+                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
@@ -51,12 +53,14 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
     public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" FilePath=""C:\CSProj1.csproj"">
-        <Document FilePath=""C:\C.cs""></Document>
-        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
+                    <Document FilePath="C:\C.cs"></Document>
+                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
@@ -84,16 +88,18 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
     public async Task TestWorkspaceDiagnosticsWithAdditionalFileInMultipleProjects(bool mutatingLspWorkspace)
     {
         var workspaceXml =
-@$"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" FilePath=""C:\CSProj1.csproj"">
-        <Document FilePath=""C:\A.cs""></Document>
-        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"" FilePath=""C:\CSProj1.csproj"">
-        <Document FilePath=""C:\B.cs""></Document>
-        <AdditionalDocument FilePath=""C:\Test.txt""></AdditionalDocument>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
+                    <Document FilePath="C:\A.cs"></Document>
+                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2" FilePath="C:\CSProj1.csproj">
+                    <Document FilePath="C:\B.cs"></Document>
+                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
 

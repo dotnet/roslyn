@@ -92,26 +92,27 @@ public sealed class ActiveStatementsMapTests
     {
         using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
 
-        var source = @"
-class C
-{
-    void F()
-    {
-#line 2 ""x""
-S1();
-S2();
-S3();
-#line 1 ""x""    
-S0();
-S1();
-S2();
-#line 5 ""x""
-S4();
-S5();
-S5();
-#line default
-    }
-}";
+        var source = """
+            class C
+            {
+                void F()
+                {
+            #line 2 "x"
+            S1();
+            S2();
+            S3();
+            #line 1 "x"    
+            S0();
+            S1();
+            S2();
+            #line 5 "x"
+            S4();
+            S5();
+            S5();
+            #line default
+                }
+            }
+            """;
 
         var solution = workspace.CurrentSolution
             .AddProject("proj", "proj", LanguageNames.CSharp)
@@ -159,14 +160,15 @@ S5();
     {
         using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
 
-        var source = @"
-class C
-{
-    void F()
-    {
-S1();
-    }
-}";
+        var source = """
+            class C
+            {
+                void F()
+                {
+            S1();
+                }
+            }
+            """;
 
         var solution = workspace.CurrentSolution
             .AddProject("proj", "proj", LanguageNames.CSharp)
@@ -200,24 +202,25 @@ S1();
     {
         using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
 
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    void F()
-    {
-        G(x => x switch
-        {
-            _ => 0,
-        });
-    }
+            class C
+            {
+                void F()
+                {
+                    G(x => x switch
+                    {
+                        _ => 0,
+                    });
+                }
 
-    static void G(Func<int, int> a)
-    {
-        a(1);
-    }
-}";
+                static void G(Func<int, int> a)
+                {
+                    a(1);
+                }
+            }
+            """;
 
         var solution = workspace.CurrentSolution
             .AddProject("proj", "proj", LanguageNames.CSharp)
@@ -266,22 +269,24 @@ class C
     public void NonRemappableRegionOrdering(bool reverse)
     {
         var source1 =
-@"class C
-{
-    static void M()
-    {
-        try 
-        {
-        }
-        <ER:0.0>catch
-        {
+            """
+            class C
+            {
+                static void M()
+                {
+                    try 
+                    {
+                    }
+                    <ER:0.0>catch
+                    {
 
 
 
-            <AS:0>M();</AS:0>
-        }</ER:0.0>
-    }
-}";
+                        <AS:0>M();</AS:0>
+                    }</ER:0.0>
+                }
+            }
+            """;
         var unmappedActiveStatements = GetUnmappedActiveStatementsCSharp(
             [source1],
             flags: [ActiveStatementFlags.LeafFrame]);
@@ -315,13 +320,15 @@ class C
     public void SubSpan(bool reverse)
     {
         var source1 =
-@"class C
-{
-    static void M()
-    {
-        <AS:0>var x = y switch { 1 => 0, _ => <AS:1>1</AS:1> };</AS:0>
-    }
-}";
+            """
+            class C
+            {
+                static void M()
+                {
+                    <AS:0>var x = y switch { 1 => 0, _ => <AS:1>1</AS:1> };</AS:0>
+                }
+            }
+            """;
         var unmappedActiveStatements = GetUnmappedActiveStatementsCSharp(
             [source1],
             flags: [ActiveStatementFlags.LeafFrame, ActiveStatementFlags.LeafFrame]);

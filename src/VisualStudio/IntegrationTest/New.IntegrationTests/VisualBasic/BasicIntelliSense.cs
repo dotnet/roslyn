@@ -42,24 +42,26 @@ public class BasicIntelliSense : AbstractEditorTest
     [IdeFact]
     public async Task IntelliSenseTriggersOnParenWithBraceCompletionAndCorrectUndoMerging()
     {
-        await SetUpEditorAsync(@"
-Module Module1
-    Sub Main()
-        $$
-    End Sub
-End Module", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Module Module1
+                Sub Main()
+                    $$
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("dim q as lis(", HangMitigatingCancellationToken);
         Assert.Contains("Of", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As List($$)
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As List($$)
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
@@ -70,12 +72,13 @@ HangMitigatingCancellationToken);
             ],
             HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As List(Of$$)
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As List(Of$$)
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
@@ -84,78 +87,85 @@ HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(')', HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As List(Of Integer)$$
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As List(Of Integer)$$
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As List(Of inte)$$
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As List(Of inte)$$
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As List(Of inte$$)
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As List(Of inte$$)
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As List(Of$$)
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As List(Of$$)
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As List($$)
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As List($$)
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As lis($$)
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As lis($$)
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync((VirtualKeyCode.VK_Z, VirtualKeyCode.CONTROL), HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Sub Main()
-        Dim q As lis($$
-    End Sub
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Sub Main()
+                    Dim q As lis($$
+                End Sub
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
@@ -163,12 +173,13 @@ HangMitigatingCancellationToken);
     [IdeFact]
     public async Task TypeAVariableDeclaration()
     {
-        await SetUpEditorAsync(@"
-Module Module1
-    Sub Main()
-        $$
-    End Sub
-End Module", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Module Module1
+                Sub Main()
+                    $$
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
 
@@ -223,12 +234,13 @@ End Module", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task DismissIntelliSenseOnApostrophe()
     {
-        await SetUpEditorAsync(@"
-Module Module1
-    Sub Main()
-        $$
-    End Sub
-End Module", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Module Module1
+                Sub Main()
+                    $$
+                End Sub
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
 
@@ -238,18 +250,21 @@ End Module", HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("'", HangMitigatingCancellationToken);
         Assert.False(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Module Module1
-    Sub Main()
-        Dim q As '
-    End Sub
-End Module", actualText);
+        Assert.Contains("""
+            Module Module1
+                Sub Main()
+                    Dim q As '
+                End Sub
+            End Module
+            """, actualText);
     }
 
     [IdeFact]
     public async Task TypeLeftAngleAfterImports()
     {
-        await SetUpEditorAsync(@"
-Imports$$", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Imports$$
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
 
@@ -264,12 +279,13 @@ Imports$$", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task DismissAndRetriggerIntelliSenseOnEquals()
     {
-        await SetUpEditorAsync(@"
-Module Module1
-    Function M(val As Integer) As Integer
-        $$
-    End Function
-End Module", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Module Module1
+                Function M(val As Integer) As Integer
+                    $$
+                End Function
+            End Module
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
 
@@ -280,12 +296,13 @@ End Module", HangMitigatingCancellationToken);
         Assert.Contains("val", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
 
         await TestServices.Input.SendAsync(' ', HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Module Module1
-    Function M(val As Integer) As Integer
-        M=val $$
-    End Function
-End Module",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Module Module1
+                Function M(val As Integer) As Integer
+                    M=val $$
+                End Function
+            End Module
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
@@ -325,15 +342,16 @@ HangMitigatingCancellationToken);
     [IdeFact]
     public async Task EnterTriggerCompletionListAndImplementInterface()
     {
-        await SetUpEditorAsync(@"
-Interface UFoo
-    Sub FooBar()
-End Interface
+        await SetUpEditorAsync("""
+            Interface UFoo
+                Sub FooBar()
+            End Interface
 
-Public Class Bar
-    Implements$$
+            Public Class Bar
+                Implements$$
 
-End Class", HangMitigatingCancellationToken);
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
 
@@ -343,17 +361,18 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         Assert.False(await TestServices.Editor.IsCompletionActiveAsync(HangMitigatingCancellationToken));
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"
-Interface UFoo
-    Sub FooBar()
-End Interface
+        Assert.Contains("""
+            Interface UFoo
+                Sub FooBar()
+            End Interface
 
-Public Class Bar
-    Implements UFoo
+            Public Class Bar
+                Implements UFoo
 
-    Public Sub FooBar() Implements UFoo.FooBar
-        Throw New NotImplementedException()
-    End Sub
-End Class", actualText);
+                Public Sub FooBar() Implements UFoo.FooBar
+                    Throw New NotImplementedException()
+                End Sub
+            End Class
+            """, actualText);
     }
 }

@@ -47,19 +47,19 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
     [InlineData(DebugInformationFormat.Pdb, true)]
     public void DebugInfo(DebugInformationFormat format, bool useSymReader)
     {
-        var source = @"
-using System;
-delegate void D();
-class C
-{
-    public static void Main()
-    {
-        int x = 1;
-        D d = () => Console.Write(x);
-        d();
-    }
-}
-";
+        var source = """
+            using System;
+            delegate void D();
+            class C
+            {
+                public static void Main()
+                {
+                    int x = 1;
+                    D d = () => Console.Write(x);
+                    d();
+                }
+            }
+            """;
         var tree = CSharpTestSource.Parse(source, path: "/a/c.cs", options: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), checksumAlgorithm: SourceHashAlgorithm.Sha1);
         var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(tree, options: TestOptions.DebugDll);
 

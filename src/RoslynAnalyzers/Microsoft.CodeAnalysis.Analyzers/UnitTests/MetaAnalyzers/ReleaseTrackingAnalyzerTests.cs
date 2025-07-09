@@ -26,48 +26,54 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         }
 
         [InlineData(@"{|RS2008:""Id1""|}", null, null)]
-        [InlineData(@"""Id1""", "", null)]
-        [InlineData(@"""Id1""", null, "")]
+        [InlineData("""
+            "Id1"
+            """, "", null)]
+        [InlineData("""
+            "Id1"
+            """, null, "")]
         [InlineData(@"{|RS2000:""Id1""|}", "", "")]
         [Theory]
         public async Task TestMissingReleasesFilesAsync(string id, string shippedText, string unshippedText)
         {
-            await VerifyCSharpAsync($@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync($$"""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    // Enabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({id}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    // Enabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({{id}}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, unshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText);
         }
 
         [Fact]
         public async Task TestCodeFixToEnableAnalyzerReleaseTrackingAsync()
         {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            var source = """
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({|RS2008:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|RS2008:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}";
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """;
 
             var test = new CSharpCodeFixVerifier<DiagnosticDescriptorCreationAnalyzer, AnalyzerReleaseTrackingFix>.Test()
             {
@@ -139,22 +145,23 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
         {
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    // Enabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    // Enabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) {{ }}
-}", shippedText, unshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) {{ }}
+                }
+                """, shippedText, unshippedText);
         }
 
         [Fact]
@@ -162,18 +169,19 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
             var unshippedText = DefaultUnshippedHeader + "Id1 | Category1 | Warning |";
 
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-    public override void Initialize(AnalysisContext context) {{ }} 
-}", @"", unshippedText,
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+                    public override void Initialize(AnalysisContext context) {{ }} 
+                }
+                """, @"", unshippedText,
                 new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.RemoveUnshippedDeletedDiagnosticIdRule).WithArguments("Id1"));
         }
 
@@ -181,94 +189,102 @@ class MyAnalyzer : DiagnosticAnalyzer
         public async Task TestRemoveShippedDeletedDiagnosticIdRuleAsync()
         {
             var shippedText = DefaultShippedHeader + "Id1 | Category1 | Warning |";
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-    public override void Initialize(AnalysisContext context) {{ }} 
-}", shippedText, @"",
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+                    public override void Initialize(AnalysisContext context) {{ }} 
+                }
+                """, shippedText, @"",
                 new DiagnosticResult(DiagnosticDescriptorCreationAnalyzer.RemoveShippedDeletedDiagnosticIdRule).WithArguments("Id1", "1.0"));
         }
 
         [Fact]
         public async Task TestCodeFixToAddUnshippedEntriesAsync()
         {
-            await VerifyCSharpAdditionalFileFixAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAdditionalFileFixAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    // Enabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({|RS2000:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    // Enabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|RS2000:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    // Duplicate descriptor with different message.
-    private static readonly DiagnosticDescriptor descriptor1_dupe =
-        new DiagnosticDescriptor({|RS2000:""Id1""|}, ""Title1"", ""DifferentMessage"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                    // Duplicate descriptor with different message.
+                    private static readonly DiagnosticDescriptor descriptor1_dupe =
+                        new DiagnosticDescriptor({|RS2000:"Id1"|}, "Title1", "DifferentMessage", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    // Disabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor({|RS2000:""Id2""|}, ""Title2"", ""Message2"", ""Category2"", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+                    // Disabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor2 =
+                        new DiagnosticDescriptor({|RS2000:"Id2"|}, "Title2", "Message2", "Category2", DiagnosticSeverity.Warning, isEnabledByDefault: false);
 
-    // Descriptor with help link.
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor({|RS2000:""Id3""|}, ""Title3"", ""Message3"", ""Category3"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""Dummy"");
+                    // Descriptor with help link.
+                    private static readonly DiagnosticDescriptor descriptor3 =
+                        new DiagnosticDescriptor({|RS2000:"Id3"|}, "Title3", "Message3", "Category3", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "Dummy");
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor1_dupe, descriptor2, descriptor3);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
-Id2 | Category2 | Disabled | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor1_dupe, descriptor2, descriptor3);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", @"", $"""
+                {DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
+                Id2 | Category2 | Disabled | MyAnalyzer
+                Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)
+                """);
         }
 
         [Fact]
         public async Task TestCodeFixToAddUnshippedEntries_DiagnosticDescriptorHelperAsync()
         {
-            var source = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            var source = """
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    // Enabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor1 =
-        DiagnosticDescriptorHelper.Create({|RS2000:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", RuleLevel.BuildWarning);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    // Enabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        DiagnosticDescriptorHelper.Create({|RS2000:"Id1"|}, "Title1", "Message1", "Category1", RuleLevel.BuildWarning);
 
-    // Duplicate descriptor with different message.
-    private static readonly DiagnosticDescriptor descriptor1_dupe =
-        DiagnosticDescriptorHelper.Create({|RS2000:""Id1""|}, ""Title1"", ""DifferentMessage"", ""Category1"", RuleLevel.BuildWarning);
+                    // Duplicate descriptor with different message.
+                    private static readonly DiagnosticDescriptor descriptor1_dupe =
+                        DiagnosticDescriptorHelper.Create({|RS2000:"Id1"|}, "Title1", "DifferentMessage", "Category1", RuleLevel.BuildWarning);
 
-    // Disabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor2 =
-        DiagnosticDescriptorHelper.Create({|RS2000:""Id2""|}, ""Title2"", ""Message2"", ""Category2"", RuleLevel.Disabled);
+                    // Disabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor2 =
+                        DiagnosticDescriptorHelper.Create({|RS2000:"Id2"|}, "Title2", "Message2", "Category2", RuleLevel.Disabled);
 
-    // Descriptor with help link.
-    private static readonly DiagnosticDescriptor descriptor3 =
-        DiagnosticDescriptorHelper.Create({|RS2000:""Id3""|}, ""Title3"", ""Message3"", ""Category3"", RuleLevel.BuildWarning, helpLinkUri: ""Dummy"");
+                    // Descriptor with help link.
+                    private static readonly DiagnosticDescriptor descriptor3 =
+                        DiagnosticDescriptorHelper.Create({|RS2000:"Id3"|}, "Title3", "Message3", "Category3", RuleLevel.BuildWarning, helpLinkUri: "Dummy");
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor1_dupe, descriptor2, descriptor3);
-    public override void Initialize(AnalysisContext context) { }
-}" + CSharpDiagnosticDescriptorCreationHelper;
-            await VerifyCSharpAdditionalFileFixAsync(source, @"", @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
-Id2 | Category2 | Disabled | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor1_dupe, descriptor2, descriptor3);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """ + CSharpDiagnosticDescriptorCreationHelper;
+            await VerifyCSharpAdditionalFileFixAsync(source, @"", @"", $"""
+                {DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
+                Id2 | Category2 | Disabled | MyAnalyzer
+                Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)
+                """);
         }
 
-        private const string BlankLine = @"
-";
+        private const string BlankLine = """
+
+            """;
 
         // Comments
         [InlineData(DefaultUnshippedHeader + @"; Comments are preserved" + BlankLine,
@@ -282,21 +298,22 @@ Id3 | Category3 | Warning | MyAnalyzer, [Documentation](Dummy)");
         [Theory]
         public async Task TestCodeFixToAddUnshippedEntries_TriviaIsPreservedAsync(string unshippedText, string fixedUnshippedText)
         {
-            await VerifyCSharpAdditionalFileFixAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAdditionalFileFixAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({|RS2000:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|RS2000:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", unshippedText, fixedUnshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", unshippedText, fixedUnshippedText);
         }
 
         // Added after current entry.
@@ -316,24 +333,25 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentUnshippedEntriesAsync(string differentRuleId, string unshippedText, string fixedUnshippedText, string shippedText = "")
         {
-            await VerifyCSharpAdditionalFileFixAsync($@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAdditionalFileFixAsync($$"""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({{|RS2000:""Id1""|}}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|RS2000:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""{differentRuleId}"", ""DifferentTitle"", ""DifferentMessage"", ""DifferentCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                    private static readonly DiagnosticDescriptor descriptor2 =
+                        new DiagnosticDescriptor("{{differentRuleId}}", "DifferentTitle", "DifferentMessage", "DifferentCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor2);
-    public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, unshippedText, fixedUnshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor2);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText, fixedUnshippedText);
         }
 
         // Adds to existing new rules table and creates a new changed rules table.
@@ -347,27 +365,28 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestCodeFixToAddUnshippedEntriesToMultipleTablesAsync(string unshippedText, string fixedUnshippedText, string shippedText = "")
         {
-            await VerifyCSharpAdditionalFileFixAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAdditionalFileFixAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor0 =
-        new DiagnosticDescriptor(""Id0"", ""Title0"", ""Message0"", ""Category0"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor0 =
+                        new DiagnosticDescriptor("Id0", "Title0", "Message0", "Category0", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({|RS2000:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|RS2000:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor({|RS2001:""Id2""|}, ""DifferentTitle"", ""DifferentMessage"", ""DifferentCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                    private static readonly DiagnosticDescriptor descriptor2 =
+                        new DiagnosticDescriptor({|RS2001:"Id2"|}, "DifferentTitle", "DifferentMessage", "DifferentCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor0, descriptor1, descriptor2);
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText, fixedUnshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor0, descriptor1, descriptor2);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText, fixedUnshippedText);
         }
 
         [InlineData("",
@@ -385,85 +404,92 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestCodeFixToAddUnshippedEntries_AlreadyHasDifferentShippedEntryAsync(string shippedText, string fixedUnshippedText, string expectedDiagnosticId)
         {
-            await VerifyCSharpAdditionalFileFixAsync($@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAdditionalFileFixAsync($$"""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    // Enabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({{|{expectedDiagnosticId}:""Id1""|}}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    // Enabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|{{expectedDiagnosticId}}:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, @"", fixedUnshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, @"", fixedUnshippedText);
         }
 
         [Fact]
         public async Task TestCodeFixToUpdateMultipleUnshippedEntriesAsync()
         {
-            await VerifyCSharpAdditionalFileFixAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAdditionalFileFixAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    // Enabled by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({|RS2001:""Id1""|}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    // Enabled by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|RS2001:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    // Disable by default descriptor.
-    private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor({|RS2001:""Id2""|}, ""Title2"", ""Message2"", ""Category2"", DiagnosticSeverity.Warning, isEnabledByDefault: false);
+                    // Disable by default descriptor.
+                    private static readonly DiagnosticDescriptor descriptor2 =
+                        new DiagnosticDescriptor({|RS2001:"Id2"|}, "Title2", "Message2", "Category2", DiagnosticSeverity.Warning, isEnabledByDefault: false);
 
-    // Descriptor with help - ensure that just adding a help link does not require a new analyzer release entry.
-    private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""Id3"", ""Title3"", ""Message3"", ""Category3"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""Dummy"");
+                    // Descriptor with help - ensure that just adding a help link does not require a new analyzer release entry.
+                    private static readonly DiagnosticDescriptor descriptor3 =
+                        new DiagnosticDescriptor("Id3", "Title3", "Message3", "Category3", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "Dummy");
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", $@"{DefaultUnshippedHeader}Id1 | DifferentCategory | Warning | MyAnalyzer
-Id2 | Category2 | Warning | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
-Id2 | Category2 | Disabled | MyAnalyzer
-Id3 | Category3 | Warning | MyAnalyzer");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1, descriptor2, descriptor3);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", $"""
+                {DefaultUnshippedHeader}Id1 | DifferentCategory | Warning | MyAnalyzer
+                Id2 | Category2 | Warning | MyAnalyzer
+                Id3 | Category3 | Warning | MyAnalyzer
+                """, $"""
+                {DefaultUnshippedHeader}Id1 | Category1 | Warning | MyAnalyzer
+                Id2 | Category2 | Disabled | MyAnalyzer
+                Id3 | Category3 | Warning | MyAnalyzer
+                """);
         }
 
         [Fact]
         public async Task TestCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
         {
             var entry = $@"Id1 | {ReleaseTrackingHelper.UndetectedText} | {ReleaseTrackingHelper.UndetectedText} | MyAnalyzer";
-            await VerifyCSharpAdditionalFileFixAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAdditionalFileFixAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-public static class DiagnosticDescriptorHelper
-{
-    public static DiagnosticDescriptor Create(
-        string id,
-        LocalizableString title,
-        LocalizableString messageFormat)
-    => null;
-}
+                public static class DiagnosticDescriptorHelper
+                {
+                    public static DiagnosticDescriptor Create(
+                        string id,
+                        LocalizableString title,
+                        LocalizableString messageFormat)
+                    => null;
+                }
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        DiagnosticDescriptorHelper.Create({|RS2000:""Id1""|}, ""Title1"", ""Message1"");
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        DiagnosticDescriptorHelper.Create({|RS2000:"Id1"|}, "Title1", "Message1");
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", @"", $@"{DefaultUnshippedHeader}{entry}", additionalExpectedDiagnosticsInInput: ImmutableArray<DiagnosticResult>.Empty,
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", @"", $@"{DefaultUnshippedHeader}{entry}", additionalExpectedDiagnosticsInInput: ImmutableArray<DiagnosticResult>.Empty,
                 additionalExpectedDiagnosticsInResult: ImmutableArray.Create(
                     GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
@@ -475,30 +501,31 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Fact]
         public async Task TestNoCodeFixToAddUnshippedEntries_UndetectedFieldsAsync()
         {
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-public static class DiagnosticDescriptorHelper
-{
-    public static DiagnosticDescriptor Create(
-        string id,
-        LocalizableString title,
-        LocalizableString messageFormat)
-    => null;
-}
+                public static class DiagnosticDescriptorHelper
+                {
+                    public static DiagnosticDescriptor Create(
+                        string id,
+                        LocalizableString title,
+                        LocalizableString messageFormat)
+                    => null;
+                }
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        DiagnosticDescriptorHelper.Create(""Id1"", ""Title1"", ""Message1"");
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        DiagnosticDescriptorHelper.Create("Id1", "Title1", "Message1");
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", $@"{DefaultUnshippedHeader}Id1 | CustomCategory | Warning |");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", $@"{DefaultUnshippedHeader}Id1 | CustomCategory | Warning |");
         }
 
         // No header in unshipped
@@ -542,21 +569,22 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var diagnosticText = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).ElementAt(line - 1);
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText,
                     GetAdditionalFileResultAt(line, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidHeaderInAnalyzerReleasesFileRule,
@@ -588,21 +616,22 @@ class MyAnalyzer : DiagnosticAnalyzer
                 DiagnosticDescriptorCreationAnalyzer.InvalidEntryInAnalyzerReleasesFileRule;
             var unshippedText = DefaultUnshippedHeader + entry;
 
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", unshippedText,
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", unshippedText,
                     GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
                         rule,
@@ -646,21 +675,22 @@ class MyAnalyzer : DiagnosticAnalyzer
                 DiagnosticDescriptorCreationAnalyzer.InvalidEntryInAnalyzerReleasesFileRule;
             var unshippedText = DefaultChangedUnshippedHeader + entry;
 
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", unshippedText,
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", unshippedText,
                     GetAdditionalFileResultAt(5, 1,
                         ReleaseTrackingHelper.UnshippedFileName,
                         rule,
@@ -685,21 +715,22 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestDuplicateEntryInReleaseDiagnosticAsync(string shippedText, string unshippedText)
         {
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText);
         }
 
         // Duplicate entries across shipped and unshipped.
@@ -719,21 +750,22 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestDuplicateEntryBetweenReleasesDiagnosticAsync(string shippedText, string unshippedText)
         {
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText);
         }
 
         // Remove entry in unshipped for already shipped release.
@@ -745,21 +777,22 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestRemoveEntryInReleaseFile_DiagnosticCasesAsync(string shippedText, string unshippedText, string expectedDiagnosticId)
         {
-            await VerifyCSharpAsync($@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync($$"""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor({{|{expectedDiagnosticId}:""Id1""|}}, ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor({|{{expectedDiagnosticId}}:"Id1"|}, "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) {{ }}
-}}", shippedText, unshippedText);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText);
         }
 
         // Invalid remove entry without prior shipped entry in shipped.
@@ -771,18 +804,19 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
@@ -800,21 +834,22 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
             var lineCount = (shippedText.Length > 0 ? shippedText : unshippedText).Split([Environment.NewLine], StringSplitOptions.None).Length;
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText,
                     GetAdditionalFileResultAt(lineCount, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
@@ -831,21 +866,22 @@ class MyAnalyzer : DiagnosticAnalyzer
         public async Task TestInvalidRemoveWithoutShippedEntryInReleaseFile_02Async(string shippedText, string unshippedText)
         {
             var fileWithDiagnostics = shippedText.Length > 0 ? ReleaseTrackingHelper.ShippedFileName : ReleaseTrackingHelper.UnshippedFileName;
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new DiagnosticDescriptor("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText,
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText,
                     GetAdditionalFileResultAt(7, 1,
                         fileWithDiagnostics,
                         DiagnosticDescriptorCreationAnalyzer.InvalidRemovedOrChangedWithoutPriorNewEntryInAnalyzerReleasesFileRule,
@@ -863,38 +899,40 @@ class MyAnalyzer : DiagnosticAnalyzer
         [Theory]
         public async Task TestRemoveEntryInReleaseFile_NoDiagnosticCasesAsync(string shippedText, string unshippedText)
         {
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-    public override void Initialize(AnalysisContext context) { }
-}", shippedText, unshippedText);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, shippedText, unshippedText);
         }
 
         [Fact, WorkItem(5828, "https://github.com/dotnet/roslyn-analyzers/issues/5828")]
         public async Task TestTargetTypedNew()
         {
-            await VerifyCSharpAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCSharpAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 =
-        new(""Id1"", ""Title1"", ""Message1"", ""Category1"", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 =
+                        new("Id1", "Title1", "Message1", "Category1", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
-    public override void Initialize(AnalysisContext context) { }
-}", @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |");
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(descriptor1);
+                    public override void Initialize(AnalysisContext context) { }
+                }
+                """, @"", $@"{DefaultUnshippedHeader}Id1 | Category1 | Warning |");
         }
         #region Helpers
 
@@ -1024,31 +1062,32 @@ class MyAnalyzer : DiagnosticAnalyzer
             await test.RunAsync();
         }
 
-        private const string CSharpDiagnosticDescriptorCreationHelper = @"
-internal static class DiagnosticDescriptorHelper
-{
-    // Dummy DiagnosticDescriptor creation helper.
-    public static DiagnosticDescriptor Create(
-        string id,
-        LocalizableString title,
-        LocalizableString messageFormat,
-        string category,
-        RuleLevel ruleLevel,
-        string helpLinkUri = null)
-    => null;
-}
+        private const string CSharpDiagnosticDescriptorCreationHelper = """
+            internal static class DiagnosticDescriptorHelper
+            {
+                // Dummy DiagnosticDescriptor creation helper.
+                public static DiagnosticDescriptor Create(
+                    string id,
+                    LocalizableString title,
+                    LocalizableString messageFormat,
+                    string category,
+                    RuleLevel ruleLevel,
+                    string helpLinkUri = null)
+                => null;
+            }
 
-namespace Microsoft.CodeAnalysis
-{
-    internal enum RuleLevel
-    {
-        BuildWarning = 1,
-        IdeSuggestion = 2,
-        IdeHidden_BulkConfigurable = 3,
-        Disabled = 4,
-        CandidateForRemoval = 5,
-    }
-}";
+            namespace Microsoft.CodeAnalysis
+            {
+                internal enum RuleLevel
+                {
+                    BuildWarning = 1,
+                    IdeSuggestion = 2,
+                    IdeHidden_BulkConfigurable = 3,
+                    Disabled = 4,
+                    CandidateForRemoval = 5,
+                }
+            }
+            """;
         #endregion
     }
 }

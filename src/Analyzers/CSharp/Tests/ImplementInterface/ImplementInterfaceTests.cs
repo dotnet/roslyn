@@ -5880,14 +5880,16 @@ class B : IGoo
             using System;
             class C : {|CS0535:IDisposable|}{|CS1513:|}{|CS1514:|}
             """,
-$@"using System;
-class C : IDisposable
-{{
-    private bool disposedValue;
+            $$"""
+            using System;
+            class C : IDisposable
+            {
+                private bool disposedValue;
 
-{DisposePattern("protected virtual ", "C", "public void ")}
-}}
-", codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            {{DisposePattern("protected virtual ", "C", "public void ")}}
+            }
+
+            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5922,17 +5924,19 @@ class C : IDisposable
                 }
             }
             """,
-$@"using System;
-class C : System.IDisposable
-{{
-    private bool disposedValue;
+            $$"""
+            using System;
+            class C : System.IDisposable
+            {
+                private bool disposedValue;
 
-    class IDisposable
-    {{
-    }}
+                class IDisposable
+                {
+                }
 
-{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}
-}}", codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            {{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}}
+            }
+            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5980,13 +5984,15 @@ class C : System.IDisposable
         => new VerifyCS.Test
         {
             TestCode = @"class C : {|CS0535:System.IDisposable|}{|CS1513:|}{|CS1514:|}",
-            FixedCode = $@"class C : System.IDisposable
-{{
-    private bool disposedValue;
+            FixedCode = $$"""
+            class C : System.IDisposable
+            {
+                private bool disposedValue;
 
-{DisposePattern("protected virtual ", "C", "void System.IDisposable.", gcPrefix: "System.")}
-}}
-",
+            {{DisposePattern("protected virtual ", "C", "void System.IDisposable.", gcPrefix: "System.")}}
+            }
+
+            """,
             CodeActionIndex = 3,
 
             // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
@@ -6039,22 +6045,24 @@ class C : System.IDisposable
             {
             }
             """,
-$@"using System;
-interface I : IDisposable
-{{
-    void F();
-}}
-class C : I
-{{
-    private bool disposedValue;
+            $$"""
+            using System;
+            interface I : IDisposable
+            {
+                void F();
+            }
+            class C : I
+            {
+                private bool disposedValue;
 
-    public void F()
-    {{
-        throw new NotImplementedException();
-    }}
+                public void F()
+                {
+                    throw new NotImplementedException();
+                }
 
-{DisposePattern("protected virtual ", "C", "public void ")}
-}}", codeAction: ("False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            {{DisposePattern("protected virtual ", "C", "public void ")}}
+            }
+            """, codeAction: ("False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
     public Task TestImplementIDisposableExplicitlyViaBaseInterface()
@@ -6069,22 +6077,24 @@ class C : I
             {
             }
             """,
-$@"using System;
-interface I : IDisposable
-{{
-    void F();
-}}
-class C : I
-{{
-    private bool disposedValue;
+            $$"""
+            using System;
+            interface I : IDisposable
+            {
+                void F();
+            }
+            class C : I
+            {
+                private bool disposedValue;
 
-    void I.F()
-    {{
-        throw new NotImplementedException();
-    }}
+                void I.F()
+                {
+                    throw new NotImplementedException();
+                }
 
-{DisposePattern("protected virtual ", "C", "void IDisposable.")}
-}}", codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            {{DisposePattern("protected virtual ", "C", "void IDisposable.")}}
+            }
+            """, codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     public Task TestDoNotImplementDisposePatternForLocallyDefinedIDisposable()
@@ -6969,14 +6979,16 @@ class Goo : [|IComparable|]
             {
             }
             """,
-$@"using System;
+            $$"""
+            using System;
 
-class Program : IDisposable
-{{
-    private bool disposedValue;
+            class Program : IDisposable
+            {
+                private bool disposedValue;
 
-{DisposePattern("protected virtual ", "Program", "public void ")}
-}}", codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            {{DisposePattern("protected virtual ", "Program", "public void ")}}
+            }
+            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
 
     [Fact]
     public Task TestImplementInterfaceForExplicitIDisposable()
@@ -6989,15 +7001,17 @@ class Program : IDisposable
                 private bool DisposedValue;
             }
             """,
-$@"using System;
+            $$"""
+            using System;
 
-class Program : IDisposable
-{{
-    private bool DisposedValue;
-    private bool disposedValue;
+            class Program : IDisposable
+            {
+                private bool DisposedValue;
+                private bool disposedValue;
 
-{DisposePattern("protected virtual ", "Program", "void IDisposable.")}
-}}", codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            {{DisposePattern("protected virtual ", "Program", "void IDisposable.")}}
+            }
+            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
 
     [Fact]
     public Task TestImplementInterfaceForIDisposableNonApplicable1()
@@ -7063,14 +7077,16 @@ class Program : IDisposable
             {
             }
             """,
-$@"using System;
+            $$"""
+            using System;
 
-sealed class Program : IDisposable
-{{
-    private bool disposedValue;
+            sealed class Program : IDisposable
+            {
+                private bool disposedValue;
 
-{DisposePattern("private ", "Program", "void IDisposable.")}
-}}", codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            {{DisposePattern("private ", "Program", "void IDisposable.")}}
+            }
+            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9760")]
     public Task TestImplementInterfaceForExplicitIDisposableWithExistingField()
@@ -7083,15 +7099,17 @@ sealed class Program : IDisposable
                 private bool disposedValue;
             }
             """,
-$@"using System;
+            $$"""
+            using System;
 
-class Program : IDisposable
-{{
-    private bool disposedValue;
-    private bool disposedValue1;
+            class Program : IDisposable
+            {
+                private bool disposedValue;
+                private bool disposedValue1;
 
-{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "disposedValue1")}
-}}", codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            {{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "disposedValue1")}}
+            }
+            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9760")]
     public Task TestImplementInterfaceUnderscoreNameForFields()
@@ -7104,14 +7122,16 @@ class Program : IDisposable
             {
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class Program : IDisposable
-{{
-    private bool _disposedValue;
+            class Program : IDisposable
+            {
+                private bool _disposedValue;
 
-{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "_disposedValue")}
-}}",
+            {{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "_disposedValue")}}
+            }
+            """,
             Options =
             {
                 _options.FieldNamesAreCamelCaseWithUnderscorePrefix,
@@ -10147,28 +10167,32 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             LanguageVersion = LanguageVersion.CSharp12,
-            TestCode = $@"
-interface I
-{{
-    void M1();
-}}
+            TestCode = $$"""
 
-{record} C : {{|CS0535:I|}}; // hello
-",
-            FixedCode = $@"
-interface I
-{{
-    void M1();
-}}
+            interface I
+            {
+                void M1();
+            }
 
-{record} C : {{|CS0535:I|}} // hello
-{{
-    public void M1()
-    {{
-        throw new System.NotImplementedException();
-    }}
-}}
-",
+            {{record}} C : {|CS0535:I|}; // hello
+
+            """,
+            FixedCode = $$"""
+
+            interface I
+            {
+                void M1();
+            }
+
+            {{record}} C : {|CS0535:I|} // hello
+            {
+                public void M1()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+
+            """,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49019")]

@@ -324,69 +324,77 @@ public sealed class CSharpUsePatternCombinatorsDiagnosticAnalyzerTests(ITestOutp
     [InlineData("||")]
     public Task TestMissingInPropertyAccess_EnumCheckAndNullCheck(string logicalOperator)
         => TestMissingAsync(
-$@"using System.Diagnostics;
+            $$"""
+            using System.Diagnostics;
 
-public class C
-{{
-    public void M()
-    {{
-            var p = default(Process);
-            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] p.StartInfo != null)
-            {{
-            }}
-    }}
-}}");
+            public class C
+            {
+                public void M()
+                {
+                        var p = default(Process);
+                        if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{{logicalOperator}}|] p.StartInfo != null)
+                        {
+                        }
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51691")]
     [InlineData("&&")]
     [InlineData("||")]
     public Task TestMissingInPropertyAccess_EnumCheckAndNullCheckOnOtherType(string logicalOperator)
         => TestMissingAsync(
-$@"using System.Diagnostics;
+            $$"""
+            using System.Diagnostics;
 
-public class C
-{{
-    public void M()
-    {{
-            var p = default(Process);
-            if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{logicalOperator}|] this != null)
-            {{
-            }}
-    }}
-}}");
+            public class C
+            {
+                public void M()
+                {
+                        var p = default(Process);
+                        if (p.StartInfo.WindowStyle == ProcessWindowStyle.Hidden [|{{logicalOperator}}|] this != null)
+                        {
+                        }
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/51693")]
     [InlineData("&&")]
     [InlineData("||")]
     public Task TestMissingInPropertyAccess_IsCheckAndNullCheck(string logicalOperator)
         => TestMissingAsync(
-$@"using System;
+            $$"""
+            using System;
 
-public class C
-{{
-    public void M()
-    {{
-            var o1 = new object();
-            if (o1 is IAsyncResult ar [|{logicalOperator}|] ar.AsyncWaitHandle != null)
-            {{
-            }}
-    }}
-}}");
+            public class C
+            {
+                public void M()
+                {
+                        var o1 = new object();
+                        if (o1 is IAsyncResult ar [|{{logicalOperator}}|] ar.AsyncWaitHandle != null)
+                        {
+                        }
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52573")]
     [InlineData("&&")]
     [InlineData("||")]
     public Task TestMissingIntegerAndStringIndex(string logicalOperator)
         => TestMissingAsync(
-$@"using System;
+            $$"""
+            using System;
 
-public class C
-{{
-    private static bool IsS(char[] ch, int count)
-    {{
-        return count == 1 [|{logicalOperator}|] ch[0] == 'S';
-    }}
-}}");
+            public class C
+            {
+                private static bool IsS(char[] ch, int count)
+                {
+                    return count == 1 [|{{logicalOperator}}|] ch[0] == 'S';
+                }
+            }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66787")]
     public Task TestMissingForImplicitUserDefinedCasts1()

@@ -30,54 +30,55 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 GetCSharpExpectedDiagnostic(46, 9, unsupportedDescriptorName: "descriptor2")
             ];
 
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor(""MyDiagnosticId1"", null, null, null, DiagnosticSeverity.Warning, false);
-    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor(""MyDiagnosticId2"", null, null, null, DiagnosticSeverity.Warning, false);
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor("MyDiagnosticId1", null, null, null, DiagnosticSeverity.Warning, false);
+                    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor("MyDiagnosticId2", null, null, null, DiagnosticSeverity.Warning, false);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1);
-        }
-    }
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            return ImmutableArray.Create(descriptor1);
+                        }
+                    }
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context)
-    {
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
+                    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
 
-        var diag = Diagnostic.Create(descriptor2, Location.None);
-        context.ReportDiagnostic(diag);
-    }
+                        var diag = Diagnostic.Create(descriptor2, Location.None);
+                        context.ReportDiagnostic(diag);
+                    }
 
-    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-    {
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
+                    private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
 
-        Diagnostic diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None);
-        context.ReportDiagnostic(diag);
-    }
+                        Diagnostic diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None);
+                        context.ReportDiagnostic(diag);
+                    }
 
-    private static void AnalyzeOperation(OperationAnalysisContext context)
-    {
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
+                    private static void AnalyzeOperation(OperationAnalysisContext context)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
 
-        var diag = Diagnostic.Create(descriptor2, Location.None);
-        context.ReportDiagnostic(diag);
-    }
-}", expected);
+                        var diag = Diagnostic.Create(descriptor2, Location.None);
+                        context.ReportDiagnostic(diag);
+                    }
+                }
+                """, expected);
         }
 
         [Fact, WorkItem(1689, "https://github.com/dotnet/roslyn-analyzers/issues/1689")]
@@ -89,32 +90,33 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(24, 9, unsupportedDescriptorName: "descriptor2")
             ];
 
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor(""MyDiagnosticId1"", null, null, null, DiagnosticSeverity.Warning, false);
-    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor(""MyDiagnosticId2"", null, null, null, DiagnosticSeverity.Warning, false);
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor("MyDiagnosticId1", null, null, null, DiagnosticSeverity.Warning, false);
+                    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor("MyDiagnosticId2", null, null, null, DiagnosticSeverity.Warning, false);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(descriptor1);
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(descriptor1);
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context)
-    {
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
+                    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None));
 
-        var diag = Diagnostic.Create(descriptor2, Location.None);
-        context.ReportDiagnostic(diag);
-    }
-}", expected);
+                        var diag = Diagnostic.Create(descriptor2, Location.None);
+                        context.ReportDiagnostic(diag);
+                    }
+                }
+                """, expected);
         }
 
         [Fact]
@@ -130,133 +132,134 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetBasicExpectedDiagnostic(41, 9, unsupportedDescriptorName: "descriptor2")
             ];
 
-            await VerifyVB.VerifyAnalyzerAsync(@"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+            await VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.CSharp)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                <DiagnosticAnalyzer(LanguageNames.CSharp)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId1"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId2"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
+                    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor("MyDiagnosticId1", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
+                    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor("MyDiagnosticId2", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Return ImmutableArray.Create(descriptor1)
-        End Get
-    End Property
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Return ImmutableArray.Create(descriptor1)
+                        End Get
+                    End Property
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-    End Sub
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                    End Sub
 
-    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None))
+                    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None))
 
-        Dim diag = Diagnostic.Create(descriptor2, Location.None)
-        context.ReportDiagnostic(diag)
-    End Sub
+                        Dim diag = Diagnostic.Create(descriptor2, Location.None)
+                        context.ReportDiagnostic(diag)
+                    End Sub
 
-    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None))
+                    Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None))
 
-        Dim diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None)
-        context.ReportDiagnostic(diag)
-    End Sub
+                        Dim diag = Diagnostic.Create(descriptor2, Location.None), diag2 = Diagnostic.Create(descriptor2, Location.None)
+                        context.ReportDiagnostic(diag)
+                    End Sub
 
-    Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None))
+                    Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None))
 
-        Dim diag = Diagnostic.Create(descriptor2, Location.None)
-        context.ReportDiagnostic(diag)
-    End Sub
-End Class
-", expected);
+                        Dim diag = Diagnostic.Create(descriptor2, Location.None)
+                        context.ReportDiagnostic(diag)
+                    End Sub
+                End Class
+                """, expected);
         }
 
         [Fact]
         public async Task CSharp_NoDiagnosticCasesAsync()
         {
-            await VerifyCS.VerifyAnalyzerAsync(@"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+            await VerifyCS.VerifyAnalyzerAsync("""
+                using System;
+                using System.Collections.Immutable;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor(""MyDiagnosticId1"", null, null, null, DiagnosticSeverity.Warning, false);
-    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor(""MyDiagnosticId2"", null, null, null, DiagnosticSeverity.Warning, false);
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer : DiagnosticAnalyzer
+                {
+                    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor("MyDiagnosticId1", null, null, null, DiagnosticSeverity.Warning, false);
+                    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor("MyDiagnosticId2", null, null, null, DiagnosticSeverity.Warning, false);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            return ImmutableArray.Create(descriptor1);
-        }
-    }
+                    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                    {
+                        get
+                        {
+                            return ImmutableArray.Create(descriptor1);
+                        }
+                    }
 
-    public override void Initialize(AnalysisContext context)
-    {
-    }
+                    public override void Initialize(AnalysisContext context)
+                    {
+                    }
 
-    private static void AnalyzeSymbol(SymbolAnalysisContext context)
-    {
-        // Overload resolution failures
-        context.{|CS1501:ReportDiagnostic|}(Diagnostic.Create(descriptor2, Location.None), null);
-        context.ReportDiagnostic(Diagnostic.{|CS0121:Create|}(descriptor2, Location.None, null));
-        context.ReportDiagnostic({|CS0841:diag|});
+                    private static void AnalyzeSymbol(SymbolAnalysisContext context)
+                    {
+                        // Overload resolution failures
+                        context.{|CS1501:ReportDiagnostic|}(Diagnostic.Create(descriptor2, Location.None), null);
+                        context.ReportDiagnostic(Diagnostic.{|CS0121:Create|}(descriptor2, Location.None, null));
+                        context.ReportDiagnostic({|CS0841:diag|});
 
-        // Needs flow analysis
-        var diag = Diagnostic.Create(descriptor2, Location.None);
-        var diag2 = diag;
-        context.ReportDiagnostic(diag2);
-    }
-}");
+                        // Needs flow analysis
+                        var diag = Diagnostic.Create(descriptor2, Location.None);
+                        var diag2 = diag;
+                        context.ReportDiagnostic(diag2);
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task VisualBasic_NoDiagnosticCasesAsync()
         {
-            await VerifyVB.VerifyAnalyzerAsync(@"
-Imports System
-Imports System.Collections.Generic
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+            await VerifyVB.VerifyAnalyzerAsync("""
+                Imports System
+                Imports System.Collections.Generic
+                Imports System.Collections.Immutable
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.CSharp)>
-Class MyAnalyzer
-    Inherits DiagnosticAnalyzer
+                <DiagnosticAnalyzer(LanguageNames.CSharp)>
+                Class MyAnalyzer
+                    Inherits DiagnosticAnalyzer
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId1"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId2"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
+                    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor("MyDiagnosticId1", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
+                    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor("MyDiagnosticId2", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
 
-    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-        Get
-            Return ImmutableArray.Create(descriptor1)
-        End Get
-    End Property
+                    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+                        Get
+                            Return ImmutableArray.Create(descriptor1)
+                        End Get
+                    End Property
 
-    Public Overrides Sub Initialize(context As AnalysisContext)
-    End Sub
+                    Public Overrides Sub Initialize(context As AnalysisContext)
+                    End Sub
 
-    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-        ' Overload resolution failures
-        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None), {|BC30057:Nothing|})
-        context.ReportDiagnostic(Diagnostic.{|BC30521:Create|}(descriptor2, Location.None, Nothing))
-        context.ReportDiagnostic({|BC32000:diag|})
+                    Private Shared Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+                        ' Overload resolution failures
+                        context.ReportDiagnostic(Diagnostic.Create(descriptor2, Location.None), {|BC30057:Nothing|})
+                        context.ReportDiagnostic(Diagnostic.{|BC30521:Create|}(descriptor2, Location.None, Nothing))
+                        context.ReportDiagnostic({|BC32000:diag|})
 
-        ' Needs flow analysis
-        Dim diag = Diagnostic.Create(descriptor2, Location.None)
-        Dim diag2 = diag
-        context.ReportDiagnostic(diag2)
-    End Sub
-End Class
-");
+                        ' Needs flow analysis
+                        Dim diag = Diagnostic.Create(descriptor2, Location.None)
+                        Dim diag2 = diag
+                        context.ReportDiagnostic(diag2)
+                    End Sub
+                End Class
+                """);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string unsupportedDescriptorName) =>

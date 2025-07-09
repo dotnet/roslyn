@@ -69,70 +69,69 @@ public sealed class EnableNullableTests
     [InlineData("#nullable enable$$")]
     public async Task EnabledOnNullableEnable(string directive)
     {
-        var code1 = $@"
-{directive}
+        var code1 = $$"""
+            {{directive}}
 
-class Example
-{{
-  string? value;
-}}
-";
-        var code2 = @"
-class Example2
-{
-  string value;
-}
-";
-        var code3 = @"
-class Example3
-{
-#nullable enable
-  string? value;
-#nullable restore
-}
-";
-        var code4 = @"
-#nullable disable
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var code2 = """
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var code3 = """
+            class Example3
+            {
+            #nullable enable
+              string? value;
+            #nullable restore
+            }
+            """;
+        var code4 = """
+            #nullable disable
 
-class Example4
-{
-  string value;
-}
-";
+            class Example4
+            {
+              string value;
+            }
+            """;
 
-        var fixedCode1 = @"
+        var fixedCode1 = """
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var fixedCode2 = """
+            #nullable disable
 
-class Example
-{
-  string? value;
-}
-";
-        var fixedCode2 = @"
-#nullable disable
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var fixedCode3 = """
+            #nullable disable
 
-class Example2
-{
-  string value;
-}
-";
-        var fixedCode3 = @"
-#nullable disable
+            class Example3
+            {
+            #nullable restore
+              string? value;
+            #nullable disable
+            }
+            """;
+        var fixedCode4 = """
+            #nullable disable
 
-class Example3
-{
-#nullable restore
-  string? value;
-#nullable disable
-}
-";
-        var fixedCode4 = @"
-#nullable disable
-
-class Example4
-{
-  string value;
-}
-";
+            class Example4
+            {
+              string value;
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -163,62 +162,65 @@ class Example4
     [Fact]
     public async Task PlacementAfterHeader()
     {
-        var code1 = @"
-#nullable enable$$
+        var code1 = """
+            #nullable enable$$
 
-class Example
-{
-  string? value;
-}
-";
-        var code2 = @"// File header line 1
-// File header line 2
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var code2 = """
+            // File header line 1
+            // File header line 2
 
-class Example2
-{
-  string value;
-}
-";
-        var code3 = @"#region File Header
-// File header line 1
-// File header line 2
-#endregion
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var code3 = """
+            #region File Header
+            // File header line 1
+            // File header line 2
+            #endregion
 
-class Example3
-{
-  string value;
-}
-";
+            class Example3
+            {
+              string value;
+            }
+            """;
 
-        var fixedCode1 = @"
+        var fixedCode1 = """
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var fixedCode2 = """
+            // File header line 1
+            // File header line 2
 
-class Example
-{
-  string? value;
-}
-";
-        var fixedCode2 = @"// File header line 1
-// File header line 2
+            #nullable disable
 
-#nullable disable
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var fixedCode3 = """
+            #region File Header
+            // File header line 1
+            // File header line 2
+            #endregion
 
-class Example2
-{
-  string value;
-}
-";
-        var fixedCode3 = @"#region File Header
-// File header line 1
-// File header line 2
-#endregion
+            #nullable disable
 
-#nullable disable
-
-class Example3
-{
-  string value;
-}
-";
+            class Example3
+            {
+              string value;
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -247,86 +249,93 @@ class Example3
     [Fact]
     public async Task PlacementBeforeDocComment()
     {
-        var code1 = @"
-#nullable enable$$
+        var code1 = """
+            #nullable enable$$
 
-class Example
-{
-  string? value;
-}
-";
-        var code2 = @"// Line comment
-class Example2
-{
-  string value;
-}
-";
-        var code3 = @"/*
- * Block comment
- */
-class Example3
-{
-  string value;
-}
-";
-        var code4 = @"/// <summary>Single line doc comment</summary>
-class Example4
-{
-  string value;
-}
-";
-        var code5 = @"/**
- * Multi-line doc comment
- */
-class Example5
-{
-  string value;
-}
-";
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var code2 = """
+            // Line comment
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var code3 = """
+            /*
+             * Block comment
+             */
+            class Example3
+            {
+              string value;
+            }
+            """;
+        var code4 = """
+            /// <summary>Single line doc comment</summary>
+            class Example4
+            {
+              string value;
+            }
+            """;
+        var code5 = """
+            /**
+             * Multi-line doc comment
+             */
+            class Example5
+            {
+              string value;
+            }
+            """;
 
-        var fixedCode1 = @"
+        var fixedCode1 = """
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var fixedCode2 = """
+            // Line comment
+            #nullable disable
 
-class Example
-{
-  string? value;
-}
-";
-        var fixedCode2 = @"// Line comment
-#nullable disable
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var fixedCode3 = """
+            /*
+             * Block comment
+             */
+            #nullable disable
 
-class Example2
-{
-  string value;
-}
-";
-        var fixedCode3 = @"/*
- * Block comment
- */
-#nullable disable
+            class Example3
+            {
+              string value;
+            }
+            """;
+        var fixedCode4 = """
+            #nullable disable
 
-class Example3
-{
-  string value;
-}
-";
-        var fixedCode4 = @"#nullable disable
+            /// <summary>Single line doc comment</summary>
+            class Example4
+            {
+              string value;
+            }
+            """;
+        var fixedCode5 = """
+            #nullable disable
 
-/// <summary>Single line doc comment</summary>
-class Example4
-{
-  string value;
-}
-";
-        var fixedCode5 = @"#nullable disable
-
-/**
- * Multi-line doc comment
- */
-class Example5
-{
-  string value;
-}
-";
+            /**
+             * Multi-line doc comment
+             */
+            class Example5
+            {
+              string value;
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -359,73 +368,71 @@ class Example5
     [Fact]
     public async Task OmitLeadingRestore()
     {
-        var code1 = @"
-#nullable enable$$
+        var code1 = """
+            #nullable enable$$
 
-class Example
-{
-  string? value;
-}
-";
-        var code2 = @"
-#nullable enable
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var code2 = """
+            #nullable enable
 
-class Example2
-{
-  string? value;
-}
-";
-        var code3 = @"
-#nullable enable warnings
+            class Example2
+            {
+              string? value;
+            }
+            """;
+        var code3 = """
+            #nullable enable warnings
 
-class Example3
-{
-  string value;
-}
-";
-        var code4 = @"
-#nullable enable annotations
+            class Example3
+            {
+              string value;
+            }
+            """;
+        var code4 = """
+            #nullable enable annotations
 
-class Example4
-{
-  string? value;
-}
-";
+            class Example4
+            {
+              string? value;
+            }
+            """;
 
-        var fixedCode1 = @"
+        var fixedCode1 = """
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var fixedCode2 = """
+            class Example2
+            {
+              string? value;
+            }
+            """;
+        var fixedCode3 = """
+            #nullable disable
 
-class Example
-{
-  string? value;
-}
-";
-        var fixedCode2 = @"
+            #nullable restore warnings
 
-class Example2
-{
-  string? value;
-}
-";
-        var fixedCode3 = @"
-#nullable disable
+            class Example3
+            {
+              string value;
+            }
+            """;
+        var fixedCode4 = """
+            #nullable disable
 
-#nullable restore warnings
+            #nullable restore annotations
 
-class Example3
-{
-  string value;
-}
-";
-        var fixedCode4 = @"
-#nullable disable
-
-#nullable restore annotations
-
-class Example4
-{
-  string? value;
-}
-";
+            class Example4
+            {
+              string? value;
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -456,49 +463,51 @@ class Example4
     [Fact]
     public async Task IgnoreGeneratedCode()
     {
-        var code1 = @"
-#nullable enable$$
+        var code1 = """
+            #nullable enable$$
 
-class Example
-{
-  string? value;
-}
-";
-        var generatedCode1 = @"// <auto-generated/>
+            class Example
+            {
+              string? value;
+            }
+            """;
+        var generatedCode1 = """
+            // <auto-generated/>
 
-#nullable enable
+            #nullable enable
 
-class Example2
-{
-  string? value;
-}
-";
-        var generatedCode2 = @"// <auto-generated/>
+            class Example2
+            {
+              string? value;
+            }
+            """;
+        var generatedCode2 = """
+            // <auto-generated/>
 
-#nullable disable
+            #nullable disable
 
-class Example3
-{
-  string value;
-}
-";
-        var generatedCode3 = @"// <auto-generated/>
+            class Example3
+            {
+              string value;
+            }
+            """;
+        var generatedCode3 = """
+            // <auto-generated/>
 
-#nullable restore
+            #nullable restore
 
-class Example4
-{
-  string {|#0:value|};
-}
-";
+            class Example4
+            {
+              string {|#0:value|};
+            }
+            """;
 
-        var fixedCode1 = @"
-
-class Example
-{
-  string? value;
-}
-";
+        var fixedCode1 = """
+            class Example
+            {
+              string? value;
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -538,9 +547,9 @@ class Example
     public Task DisabledIfSetInProject(NullableContextOptions nullableContextOptions)
         => new VerifyCS.Test
         {
-            TestCode = @"
-#nullable enable$$
-",
+            TestCode = """
+            #nullable enable$$
+            """,
             SolutionTransforms =
             {
                 (solution, projectId) =>
@@ -564,9 +573,9 @@ class Example
     [InlineData(LanguageVersion.CSharp7_3)]
     public async Task DisabledForUnsupportedLanguageVersion(LanguageVersion languageVersion)
     {
-        var code = @"
-#{|#0:nullable|} enable$$
-";
+        var code = """
+            #{|#0:nullable|} enable$$
+            """;
 
         var error = languageVersion switch
         {
@@ -610,73 +619,73 @@ class Example
     [InlineData("#nullable restore$$")]
     public async Task EnabledOnNullableRestore(string directive)
     {
-        var code1 = $@"
-{directive}
+        var code1 = $$"""
+            {{directive}}
 
-class Example
-{{
-  string value;
-}}
-";
-        var code2 = @"
-class Example2
-{
-  string value;
-}
-";
-        var code3 = @"
-class Example3
-{
-#nullable enable
-  string? value;
-#nullable restore
-}
-";
-        var code4 = @"
-#nullable disable
+            class Example
+            {
+              string value;
+            }
+            """;
+        var code2 = """
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var code3 = """
+            class Example3
+            {
+            #nullable enable
+              string? value;
+            #nullable restore
+            }
+            """;
+        var code4 = """
+            #nullable disable
 
-class Example4
-{
-  string value;
-}
-";
+            class Example4
+            {
+              string value;
+            }
+            """;
 
         var fixedDirective = directive.Replace("$$", "").Replace("restore", "disable");
 
-        var fixedCode1 = $@"
-{fixedDirective}
+        var fixedCode1 = $$"""
+            {{fixedDirective}}
 
-class Example
-{{
-  string value;
-}}
-";
-        var fixedCode2 = @"
-#nullable disable
+            class Example
+            {
+              string value;
+            }
+            """;
+        var fixedCode2 = """
+            #nullable disable
 
-class Example2
-{
-  string value;
-}
-";
-        var fixedCode3 = @"
-#nullable disable
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var fixedCode3 = """
+            #nullable disable
 
-class Example3
-{
-#nullable restore
-  string? value;
-#nullable disable
-}
-";
-        var fixedCode4 = @"
-#nullable disable
+            class Example3
+            {
+            #nullable restore
+              string? value;
+            #nullable disable
+            }
+            """;
+        var fixedCode4 = """
+            #nullable disable
 
-class Example4
-{
-  string value;
-}
-";
+            class Example4
+            {
+              string value;
+            }
+            """;
 
         await new VerifyCS.Test
         {
@@ -715,77 +724,77 @@ class Example4
     [InlineData("#nullable disable$$")]
     public async Task EnabledOnNullableDisable(string directive)
     {
-        var code1 = $@"
-{directive}
+        var code1 = $$"""
+            {{directive}}
 
-class Example
-{{
-  string value;
-}}
+            class Example
+            {
+              string value;
+            }
 
-#nullable restore
-";
-        var code2 = @"
-class Example2
-{
-  string value;
-}
-";
-        var code3 = @"
-class Example3
-{
-#nullable enable
-  string? value;
-#nullable restore
-}
-";
-        var code4 = @"
-#nullable disable
+            #nullable restore
+            """;
+        var code2 = """
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var code3 = """
+            class Example3
+            {
+            #nullable enable
+              string? value;
+            #nullable restore
+            }
+            """;
+        var code4 = """
+            #nullable disable
 
-class Example4
-{
-  string value;
-}
-";
+            class Example4
+            {
+              string value;
+            }
+            """;
 
         var fixedDirective = directive.Replace("$$", "");
 
-        var fixedCode1 = $@"
-{fixedDirective}
+        var fixedCode1 = $$"""
+            {{fixedDirective}}
 
-class Example
-{{
-  string value;
-}}
+            class Example
+            {
+              string value;
+            }
 
-#nullable disable
-";
-        var fixedCode2 = @"
-#nullable disable
+            #nullable disable
+            """;
+        var fixedCode2 = """
+            #nullable disable
 
-class Example2
-{
-  string value;
-}
-";
-        var fixedCode3 = @"
-#nullable disable
+            class Example2
+            {
+              string value;
+            }
+            """;
+        var fixedCode3 = """
+            #nullable disable
 
-class Example3
-{
-#nullable restore
-  string? value;
-#nullable disable
-}
-";
-        var fixedCode4 = @"
-#nullable disable
+            class Example3
+            {
+            #nullable restore
+              string? value;
+            #nullable disable
+            }
+            """;
+        var fixedCode4 = """
+            #nullable disable
 
-class Example4
-{
-  string value;
-}
-";
+            class Example4
+            {
+              string value;
+            }
+            """;
 
         await new VerifyCS.Test
         {

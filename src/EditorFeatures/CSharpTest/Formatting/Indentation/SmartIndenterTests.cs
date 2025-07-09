@@ -42,21 +42,23 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
     public void NoPreviousLine()
     {
         AssertSmartIndent(
-            @"#region Test
+            """
+            #region Test
 
-#warning 0
-#undef SYMBOL
-#define SYMBOL
-#if false
-#elif true
-#else
-#endif
-#pragma warning disable 99999
-#goo
+            #warning 0
+            #undef SYMBOL
+            #define SYMBOL
+            #if false
+            #elif true
+            #else
+            #endif
+            #pragma warning disable 99999
+            #goo
 
-#endregion
+            #endregion
 
-",
+
+            """,
             indentationLine: 13,
             expectedIndentation: 0);
     }
@@ -65,12 +67,14 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
     public void EndOfFileInactive()
     {
         AssertSmartIndent(
-            @"
-    // Line 1
-#if false
-#endif
+            """
 
-",
+                // Line 1
+            #if false
+            #endif
+
+
+            """,
             indentationLine: 4,
             expectedIndentation: 0);
     }
@@ -79,13 +83,15 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
     public void EndOfFileInactive2()
     {
         AssertSmartIndent(
-            @"
-    // Line 1
-#if false
-#endif
-// Line 2
+            """
 
-",
+                // Line 1
+            #if false
+            #endif
+            // Line 2
+
+
+            """,
             indentationLine: 5,
             expectedIndentation: 0);
     }
@@ -94,14 +100,16 @@ public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
     public void Comments()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-class Class
-{
-    // Comments
-    /// Xml Comments
+            class Class
+            {
+                // Comments
+                /// Xml Comments
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 4);
     }
@@ -110,14 +118,16 @@ class Class
     public void TestExplicitNoneIndentStyle()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-class Class
-{
-    // Comments
-    /// Xml Comments
+            class Class
+            {
+                // Comments
+                /// Xml Comments
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 0,
             indentStyle: IndentStyle.None);
@@ -127,9 +137,11 @@ class Class
     public void UsingDirective()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-",
+
+            """,
             indentationLine: 1,
             expectedIndentation: 0);
     }
@@ -138,9 +150,11 @@ class Class
     public void DottedName()
     {
         AssertSmartIndent(
-            @"using System.
+            """
+            using System.
 
-",
+
+            """,
             indentationLine: 1,
             expectedIndentation: 4);
     }
@@ -148,11 +162,13 @@ class Class
     [WpfFact]
     public void Namespace()
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-namespace NS
+            namespace NS
 
-";
+
+            """;
         AssertSmartIndent(
             code,
             indentationLine: 3,
@@ -168,11 +184,13 @@ namespace NS
     public void NamespaceDottedName()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS.
+            namespace NS.
 
-",
+
+            """,
             indentationLine: 3,
             expectedIndentation: 4);
     }
@@ -181,12 +199,14 @@ namespace NS.
     public void NamespaceBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
+            namespace NS
+            {
 
-",
+
+            """,
             indentationLine: 4,
             expectedIndentation: 4);
     }
@@ -194,12 +214,14 @@ namespace NS
     [WpfFact]
     public void FileScopedNamespace()
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-namespace NS;
+            namespace NS;
 
 
-";
+
+            """;
         AssertSmartIndent(
             code,
             indentationLine: 1,
@@ -220,13 +242,15 @@ namespace NS;
     public void Class()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
+            namespace NS
+            {
+                class Class
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -235,14 +259,16 @@ namespace NS
     public void ClassBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
+            namespace NS
+            {
+                class Class
+                {
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 8);
     }
@@ -251,15 +277,17 @@ namespace NS
     public void Method()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
+            namespace NS
+            {
+                class Class
+                {
+                    void Method()
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12);
     }
@@ -268,16 +296,18 @@ namespace NS
     public void MethodBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    void Method()
+                    {
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 12);
     }
@@ -286,15 +316,17 @@ namespace NS
     public void Property()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static string Name
+            namespace NS
+            {
+                class Class
+                {
+                    public static string Name
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12);
     }
@@ -303,18 +335,20 @@ namespace NS
     public void PropertyGetBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        private string name;
-        public string Names
-        {
-            get
+            namespace NS
+            {
+                class Class
+                {
+                    private string name;
+                    public string Names
+                    {
+                        get
 
-",
+
+            """,
             indentationLine: 10,
             expectedIndentation: 16);
     }
@@ -323,18 +357,20 @@ namespace NS
     public void PropertySetBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        private static string name;
-        public static string Names
-        {
-            set
+            namespace NS
+            {
+                class Class
+                {
+                    private static string name;
+                    public static string Names
+                    {
+                        set
 
-",
+
+            """,
             indentationLine: 10,
             expectedIndentation: 16);
     }
@@ -343,17 +379,19 @@ namespace NS
     public void Statement()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
-            int i = 10;
+            namespace NS
+            {
+                class Class
+                {
+                    void Method()
+                    {
+                        int i = 10;
 
-",
+
+            """,
             indentationLine: 9,
             expectedIndentation: 12);
     }
@@ -362,10 +400,12 @@ namespace NS
     public void FieldInitializer()
     {
         AssertSmartIndent(
-            @"class C
-{
-    int i = 2;
-",
+            """
+            class C
+            {
+                int i = 2;
+
+            """,
             indentationLine: 3,
             expectedIndentation: 4);
     }
@@ -374,13 +414,15 @@ namespace NS
     public void FieldInitializerWithNamespace()
     {
         AssertSmartIndent(
-            @"namespace NS
-{
-    class C
-    {
-        C c = new C();
+            """
+            namespace NS
+            {
+                class C
+                {
+                    C c = new C();
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -388,15 +430,17 @@ namespace NS
     [WpfFact]
     public void MethodCall()
     {
-        var code = @"class c
-{
-    void Method()
-    {
-        M(
-            a: 1, 
-            b: 1);
-    }
-}";
+        var code = """
+            class c
+            {
+                void Method()
+                {
+                    M(
+                        a: 1, 
+                        b: 1);
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code,
@@ -416,17 +460,19 @@ namespace NS
     public void Switch()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
-            switch (10)
+            namespace NS
+            {
+                class Class
+                {
+                    void Method()
+                    {
+                        switch (10)
 
-",
+
+            """,
             indentationLine: 9,
             expectedIndentation: 16);
     }
@@ -435,18 +481,20 @@ namespace NS
     public void SwitchBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
-            switch (10)
+            namespace NS
             {
+                class Class
+                {
+                    void Method()
+                    {
+                        switch (10)
+                        {
 
-",
+
+            """,
             indentationLine: 10,
             expectedIndentation: 16);
     }
@@ -455,19 +503,21 @@ namespace NS
     public void SwitchCase()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
-            switch (10)
+            namespace NS
             {
-                case 10 :
+                class Class
+                {
+                    void Method()
+                    {
+                        switch (10)
+                        {
+                            case 10 :
 
-",
+
+            """,
             indentationLine: 11,
             expectedIndentation: 20);
     }
@@ -476,15 +526,17 @@ namespace NS
     public void ExtendedPropertyPattern()
     {
         AssertSmartIndent(
-            @"
-class C
-{
-    void M()
-    {
-        _ = this is
-        {
+            """
 
-",
+            class C
+            {
+                void M()
+                {
+                    _ = this is
+                    {
+
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12);
     }
@@ -492,17 +544,19 @@ class C
     [WpfFact]
     public void ExtendedPropertyPattern_WithPattern()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this is
-        {
+        var code = """
 
-            A.B: 1,
+            class C
+            {
+                void M()
+                {
+                    _ = this is
+                    {
 
-";
+                        A.B: 1,
+
+
+            """;
         AssertSmartIndent(
             code,
             indentationLine: 7,
@@ -517,20 +571,22 @@ class C
     public void Block()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
-            switch (10)
+            namespace NS
             {
-                case 10 :
+                class Class
+                {
+                    void Method()
                     {
+                        switch (10)
+                        {
+                            case 10 :
+                                {
 
-",
+
+            """,
             indentationLine: 12,
             expectedIndentation: 24);
     }
@@ -539,17 +595,19 @@ namespace NS
     public void MultilineStatement1()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
-            int i = 10 +
+            namespace NS
+            {
+                class Class
+                {
+                    void Method()
+                    {
+                        int i = 10 +
 
-",
+
+            """,
             indentationLine: 9,
             expectedIndentation: 16);
     }
@@ -558,18 +616,20 @@ namespace NS
     public void MultilineStatement2()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        void Method()
-        {
-            int i = 10 +
-                    20 +
+            namespace NS
+            {
+                class Class
+                {
+                    void Method()
+                    {
+                        int i = 10 +
+                                20 +
 
-",
+
+            """,
             indentationLine: 10,
             expectedIndentation: 20);
     }
@@ -579,15 +639,17 @@ namespace NS
     public void Comments2()
     {
         AssertSmartIndent(
-            @"class Class
-{
-    void Method()
-    {
-        if (true) // Test
+            """
+            class Class
+            {
+                void Method()
+                {
+                    if (true) // Test
 
-    }
-}
-",
+                }
+            }
+
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -596,16 +658,18 @@ namespace NS
     public void AfterCompletedBlock()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        foreach(var a in x) {}
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    foreach(var a in x) {}
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -614,17 +678,19 @@ namespace NS
     public void AfterCompletedBlockNestedInOtherBlock()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        foreach(var a in x) {{}
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    foreach(var a in x) {{}
 
-        }
-    }
-}
+                    }
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -633,13 +699,15 @@ namespace NS
     public void AfterTopLevelAttribute()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    [Attr]
+            """
+            class Program
+            {
+                [Attr]
 
-}
+            }
 
-",
+
+            """,
             indentationLine: 3,
             expectedIndentation: 4);
     }
@@ -648,17 +716,19 @@ namespace NS
     public void EmbeddedStatement()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            Console.WriteLine(1);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        Console.WriteLine(1);
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 8);
     }
@@ -673,16 +743,18 @@ namespace NS
     public void EmbeddedStatement2(string statement)
     {
         AssertSmartIndent(
-            $@"class Program
-{{
-    static void Main(string[] args)
-    {{
-{statement}
+            $$"""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            {{statement}}
 
-    }}
-}}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 4);
     }
@@ -691,16 +763,18 @@ namespace NS
     public void EnterAfterComment()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        int a; // enter
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int a; // enter
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -709,16 +783,18 @@ namespace NS
     public void NestedBlock1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        {
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    {
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -727,18 +803,20 @@ namespace NS
     public void NestedEmbeddedStatement1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    args = null;
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                args = null;
 
-    }
-}
-",
+                }
+            }
+
+            """,
             indentationLine: 8,
             expectedIndentation: 8);
     }
@@ -747,18 +825,20 @@ namespace NS
     public void NestedEmbeddedStatement2()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    { }
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                { }
 
-    }
-}
-",
+                }
+            }
+
+            """,
             indentationLine: 8,
             expectedIndentation: 8);
     }
@@ -767,18 +847,20 @@ namespace NS
     public void NestedEmbeddedStatement3()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    { return; }
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                { return; }
 
-    }
-}
-",
+                }
+            }
+
+            """,
             indentationLine: 8,
             expectedIndentation: 8);
     }
@@ -787,16 +869,18 @@ namespace NS
     public void NestedEmbeddedStatement4()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    args = null;
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                args = null;
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 8);
     }
@@ -805,16 +889,18 @@ namespace NS
     public void NestedEmbeddedStatement5()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    { }
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                { }
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 8);
     }
@@ -823,16 +909,18 @@ namespace NS
     public void NestedEmbeddedStatement6()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    { return; }
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                { return; }
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 8);
     }
@@ -841,18 +929,20 @@ namespace NS
     public void NestedEmbeddedStatement7()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    return;
-                else
-                    return;
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                return;
+                            else
+                                return;
 
-",
+
+            """,
             indentationLine: 10,
             expectedIndentation: 8);
     }
@@ -861,19 +951,21 @@ namespace NS
     public void NestedEmbeddedStatement8()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        if (true)
-            if (true)
-                if (true)
-                    return;
-                else
-                    return;
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    if (true)
+                        if (true)
+                            if (true)
+                                return;
+                            else
+                                return;
 
-    }
-}",
+                }
+            }
+            """,
             indentationLine: 10,
             expectedIndentation: 8);
     }
@@ -882,17 +974,19 @@ namespace NS
     public void Label1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-    Label:
-        Console.WriteLine(1);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                Label:
+                    Console.WriteLine(1);
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 8);
     }
@@ -901,16 +995,18 @@ namespace NS
     public void Label2()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-    Label: Console.WriteLine(1);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                Label: Console.WriteLine(1);
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -919,19 +1015,21 @@ namespace NS
     public void Label3()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        switch(args.GetType())
-        {
-            case 1:
-                Console.WriteLine(1);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    switch(args.GetType())
+                    {
+                        case 1:
+                            Console.WriteLine(1);
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 16);
     }
@@ -940,18 +1038,20 @@ namespace NS
     public void Label4()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        switch(args.GetType())
-        {
-            case 1: Console.WriteLine(1);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    switch(args.GetType())
+                    {
+                        case 1: Console.WriteLine(1);
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 16);
     }
@@ -960,18 +1060,20 @@ namespace NS
     public void Label5()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        switch(args.GetType())
-        {
-            case 1:
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    switch(args.GetType())
+                    {
+                        case 1:
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 16);
     }
@@ -980,16 +1082,18 @@ namespace NS
     public void Label6()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-    Label:
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                Label:
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -998,16 +1102,18 @@ namespace NS
     public void QueryExpression1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var a = from c in
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var a = from c in
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 20);
     }
@@ -1016,16 +1122,18 @@ namespace NS
     public void QueryExpression2()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var a = from c in b
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var a = from c in b
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 16);
     }
@@ -1034,16 +1142,18 @@ namespace NS
     public void QueryExpression3()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var a = from c in b.
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var a = from c in b.
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 16);
     }
@@ -1052,16 +1162,18 @@ namespace NS
     public void QueryExpression4()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var a = from c in b where c > 10
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var a = from c in b where c > 10
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 16);
     }
@@ -1070,17 +1182,19 @@ namespace NS
     public void QueryExpression5()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var a = from c in
-                    from b in G
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var a = from c in
+                                from b in G
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 20);
     }
@@ -1089,18 +1203,20 @@ namespace NS
     public void QueryExpression6()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var a = from c in
-                    from b in G
-                    select b
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var a = from c in
+                                from b in G
+                                select b
 
-    }
-}
+                }
+            }
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 20);
     }
@@ -1109,18 +1225,20 @@ namespace NS
     public void QueryExpression7()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var q = from string s in args
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var q = from string s in args
 
-                where s == null
-                select s;
-    }
-}
+                            where s == null
+                            select s;
+                }
+            }
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 16);
     }
@@ -1129,19 +1247,21 @@ namespace NS
     public void QueryExpression8()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var q = from string s in args.
-                              b.c.
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var q = from string s in args.
+                                          b.c.
 
-                where s == null
-                select s;
-    }
-}
+                            where s == null
+                            select s;
+                }
+            }
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 30);
     }
@@ -1150,18 +1270,20 @@ namespace NS
     public void QueryExpression9()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var q = from string s in args
-                where s == null
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var q = from string s in args
+                            where s == null
 
-                select s;
-    }
-}
+                            select s;
+                }
+            }
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 16);
     }
@@ -1170,19 +1292,21 @@ namespace NS
     public void QueryExpression10()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var q = from string s in args
-                where s == null
-                        == 1
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var q = from string s in args
+                            where s == null
+                                    == 1
 
-                select s;
-    }
-}
+                            select s;
+                }
+            }
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 24);
     }
@@ -1191,11 +1315,13 @@ namespace NS
     public void Statement1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() { }
+            """
+            class Program
+            {
+                void Test() { }
 
-}",
+            }
+            """,
             indentationLine: 3,
             expectedIndentation: 4);
     }
@@ -1204,14 +1330,16 @@ namespace NS
     public void EndOfFile1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        int i;
+            """
+            class Program
+            {
+                void Test() 
+                {
+                    int i;
 
 
-",
+
+            """,
             indentationLine: 6,
             expectedIndentation: 8);
     }
@@ -1220,13 +1348,15 @@ namespace NS
     public void VerbatimString()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = @""Goo
+            """
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = @"Goo
 
-",
+
+            """,
             indentationLine: 5,
             expectedIndentation: 0);
     }
@@ -1235,16 +1365,18 @@ namespace NS
     public void RawString1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = """"""
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = """
 
-            """""";
-    }
-}
-",
+                        """;
+                }
+            }
+
+            """",
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -1253,16 +1385,18 @@ namespace NS
     public void RawString2()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = """"""
-            Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = """
+                        Goo
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 6,
             expectedIndentation: 12);
     }
@@ -1271,16 +1405,18 @@ namespace NS
     public void RawString3()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = """"""
-        Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = """
+                    Goo
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 6,
             expectedIndentation: 12);
     }
@@ -1289,16 +1425,18 @@ namespace NS
     public void RawString4()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = """"""
-                Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = """
+                            Goo
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 6,
             expectedIndentation: 16);
     }
@@ -1307,17 +1445,19 @@ namespace NS
     public void RawString5()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = """"""
-                Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = """
+                            Goo
 
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 7,
             expectedIndentation: 16);
     }
@@ -1325,10 +1465,12 @@ namespace NS
     [WpfFact]
     public void RawString6()
     {
-        var code = @"var goo = """"""
+        var code = """"
+            var goo = """
 
-    """""";
-";
+                """;
+
+            """";
 
         AssertSmartIndent(
             code,
@@ -1380,16 +1522,18 @@ namespace NS
     public void InterpolatedRawString1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = $""""""
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = $"""
 
-            """""";
-    }
-}
-",
+                        """;
+                }
+            }
+
+            """",
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -1398,16 +1542,18 @@ namespace NS
     public void InterpolatedRawString2()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = $""""""
-            Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = $"""
+                        Goo
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 6,
             expectedIndentation: 12);
     }
@@ -1416,16 +1562,18 @@ namespace NS
     public void InterpolatedRawString3()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = $""""""
-        Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = $"""
+                    Goo
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 6,
             expectedIndentation: 12);
     }
@@ -1434,16 +1582,18 @@ namespace NS
     public void InterpolatedRawString4()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = $""""""
-                Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = $"""
+                            Goo
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 6,
             expectedIndentation: 16);
     }
@@ -1452,17 +1602,19 @@ namespace NS
     public void InterpolatedRawString5()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Test() 
-    {
-        var goo = $""""""
-                Goo
+            """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = $"""
+                            Goo
 
 
-            """"""
+                        """
 
-",
+
+            """",
             indentationLine: 7,
             expectedIndentation: 16);
     }
@@ -1470,10 +1622,12 @@ namespace NS
     [WpfFact]
     public void InterpolatedRawString6()
     {
-        var code = @"var goo = $""""""
+        var code = """"
+            var goo = $"""
 
-    """""";
-";
+                """;
+
+            """";
 
         AssertSmartIndent(
             code,
@@ -1488,17 +1642,19 @@ namespace NS
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
     public void InterpolatedRawString7()
     {
-        var code = @"class Program
-{
-    void Test() 
-    {
-        var goo = $""""""
-                Goo{nameof(goo)}
+        var code = """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = $"""
+                            Goo{nameof(goo)}
 
 
-            """"""
+                        """
 
-";
+
+            """";
 
         AssertSmartIndent(
             code,
@@ -1513,18 +1669,20 @@ namespace NS
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/60946")]
     public void InterpolatedRawString8()
     {
-        var code = @"class Program
-{
-    void Test() 
-    {
-        var goo = $""""""
-                Goo{
-nameof(goo)}
+        var code = """"
+            class Program
+            {
+                void Test() 
+                {
+                    var goo = $"""
+                            Goo{
+            nameof(goo)}
 
 
-            """"""
+                        """
 
-";
+
+            """";
 
         AssertSmartIndent(
             code,
@@ -1540,22 +1698,24 @@ nameof(goo)}
     public void Bug5994()
     {
         AssertSmartIndent(
-            @"using System;
-using System.Collections.Generic;
-using System.Linq;
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var studentQuery =
-            from student in students
-               group student by (avg == 0 ? 0 : avg / 10) into g
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var studentQuery =
+                        from student in students
+                           group student by (avg == 0 ? 0 : avg / 10) into g
 
-            ;
-    }
-}
-",
+                        ;
+                }
+            }
+
+            """,
             indentationLine: 11,
             expectedIndentation: 15);
     }
@@ -1564,21 +1724,23 @@ class Program
     public void Bug6124()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Main()
-    {
-        var commandLine = string.Format(
-            "",
-            0,
-            42,
-            string.Format("",
-                0,
-                0),
+            """
+            class Program
+            {
+                void Main()
+                {
+                    var commandLine = string.Format(
+                        ",
+                        0,
+                        42,
+                        string.Format(",
+                            0,
+                            0),
 
-            0);
-    }
-}",
+                        0);
+                }
+            }
+            """,
             indentationLine: 11,
             expectedIndentation: 12);
     }
@@ -1587,22 +1749,24 @@ class Program
     public void Bug6124_1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    void Main()
-    {
-        var commandLine = string.Format(
-            "",
-            0,
-            42,
-            string.Format("",
-                0,
-                0
+            """
+            class Program
+            {
+                void Main()
+                {
+                    var commandLine = string.Format(
+                        ",
+                        0,
+                        42,
+                        string.Format(",
+                            0,
+                            0
 
-),
-            0);
-    }
-}",
+            ),
+                        0);
+                }
+            }
+            """,
             indentationLine: 11,
             expectedIndentation: 16);
     }
@@ -1611,12 +1775,14 @@ class Program
     public void AfterIfWithSingleStatementInTopLevelMethod_Bug7291_1()
     {
         AssertSmartIndent(
-            @"int fact(int x)
-{
-    if (x < 1)
-        return 1;
+            """
+            int fact(int x)
+            {
+                if (x < 1)
+                    return 1;
 
-",
+
+            """,
             indentationLine: 4,
             expectedIndentation: 4,
             options: TestOptions.Script);
@@ -1626,13 +1792,15 @@ class Program
     public void AfterIfWithSingleStatementInTopLevelMethod_Bug7291_2()
     {
         AssertSmartIndent(
-            @"int fact(int x)
-{
-    if (x < 1)
-        return 1;
+            """
+            int fact(int x)
+            {
+                if (x < 1)
+                    return 1;
 
-}
-",
+            }
+
+            """,
             indentationLine: 4,
             expectedIndentation: 4,
             options: TestOptions.Script);
@@ -1643,24 +1811,26 @@ class Program
     public void FirstArgumentInArgumentList()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    public Program(
-        string a,
-        int b,
-        bool c)
-        : this(
-            a,
-            new Program(
+            """
+            class Program
+            {
+                public Program(
+                    string a,
+                    int b,
+                    bool c)
+                    : this(
+                        a,
+                        new Program(
 
-                "",
-                3,
-                true),
-            b,
-            c)
-    {
-    }
-}",
+                            ",
+                            3,
+                            true),
+                        b,
+                        c)
+                {
+                }
+            }
+            """,
             indentationLine: 9,
             expectedIndentation: 16);
     }
@@ -1669,14 +1839,16 @@ class Program
     public void ForLoop()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        for (;      
-        ;) { }
-    }
-}",
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    for (;      
+                    ;) { }
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -1685,11 +1857,13 @@ class Program
     public void CallBaseCtor()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    public Program() :           
-    base() { }
-}",
+            """
+            class Program
+            {
+                public Program() :           
+                base() { }
+            }
+            """,
             indentationLine: 3,
             expectedIndentation: 8);
     }
@@ -1698,14 +1872,16 @@ class Program
     public void MultipleDeclarations()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        int i,
-        j = 42;
-    }
-}",
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int i,
+                    j = 42;
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -1714,14 +1890,16 @@ class Program
     public void CloseBracket()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var i = new int[1]
-        ;
-    }
-}",
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var i = new int[1]
+                    ;
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -1730,19 +1908,21 @@ class Program
     public void SwitchLabel()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        switch (args[0])
-        {
-            case ""goo"":
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    switch (args[0])
+                    {
+                        case "goo":
 
-            case ""bar"":
-                break;
-        }
-    }
-}",
+                        case "bar":
+                            break;
+                    }
+                }
+            }
+            """,
             indentationLine: 7,
             expectedIndentation: 16);
     }
@@ -1751,11 +1931,13 @@ class Program
     public void TypeParameters()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Goo<T1,                 
-T2>() { }
-}",
+            """
+            class Program
+            {
+                static void Goo<T1,                 
+            T2>() { }
+            }
+            """,
             indentationLine: 3,
             expectedIndentation: 8);
     }
@@ -1764,16 +1946,18 @@ T2>() { }
     public void TypeArguments()
     {
         AssertSmartIndent(
-            @"class Program
-{
-        static void Goo<T1, T2>(T1 t1, T2 t2) { }
+            """
+            class Program
+            {
+                    static void Goo<T1, T2>(T1 t1, T2 t2) { }
 
-        static void Main(string[] args)
-        {
-            Goo<int, 
-            int>(4, 2);
-        }
-}",
+                    static void Main(string[] args)
+                    {
+                        Goo<int, 
+                        int>(4, 2);
+                    }
+            }
+            """,
             indentationLine: 7,
             expectedIndentation: 16);
     }
@@ -1782,11 +1966,13 @@ T2>() { }
     public void ConstructorInitializer1()
     {
         AssertSmartIndent(
-            @"public class Asset
-{
-    public Asset() : this(
+            """
+            public class Asset
+            {
+                public Asset() : this(
 
-",
+
+            """,
             indentationLine: 3,
             expectedIndentation: 8);
     }
@@ -1795,12 +1981,14 @@ T2>() { }
     public void ConstructorInitializer2()
     {
         AssertSmartIndent(
-            @"public class Asset
-{
-    public Asset()
-        : this(
+            """
+            public class Asset
+            {
+                public Asset()
+                    : this(
 
-",
+
+            """,
             indentationLine: 4,
             expectedIndentation: 14);
     }
@@ -1809,12 +1997,14 @@ T2>() { }
     public void ConstructorInitializer3()
     {
         AssertSmartIndent(
-            @"public class Asset
-{
-    public Asset() :
-        this(
+            """
+            public class Asset
+            {
+                public Asset() :
+                    this(
 
-",
+
+            """,
             indentationLine: 4,
             expectedIndentation: 12);
     }
@@ -1823,20 +2013,22 @@ T2>() { }
     public void LockStatement1()
     {
         AssertSmartIndent(
-            @"using System;
-class Program
-{
-    static object lockObj = new object();
-    static int Main()
-    {
-        int sum = 0;
-        lock (lockObj)
-            try
-            { sum = 0; }
+            """
+            using System;
+            class Program
+            {
+                static object lockObj = new object();
+                static int Main()
+                {
+                    int sum = 0;
+                    lock (lockObj)
+                        try
+                        { sum = 0; }
 
-        return sum;
-    }
-}",
+                    return sum;
+                }
+            }
+            """,
             indentationLine: 10,
             expectedIndentation: 12);
     }
@@ -1845,11 +2037,13 @@ class Program
     public void ConstructorInitializer()
     {
         AssertSmartIndent(
-            @"public class Asset
-{
-    public Asset() :
+            """
+            public class Asset
+            {
+                public Asset() :
 
-",
+
+            """,
             indentationLine: 3,
             expectedIndentation: 8);
     }
@@ -1858,19 +2052,21 @@ class Program
     public void ArrayInitializer()
     {
         AssertSmartIndent(
-            @"using System.Collections.ObjectModel;
+            """
+            using System.Collections.ObjectModel;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        new ReadOnlyCollection<int>(new int[]
-        {
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    new ReadOnlyCollection<int>(new int[]
+                    {
 
-        });
-    }
-}
-",
+                    });
+                }
+            }
+
+            """,
             indentationLine: 8,
             expectedIndentation: 12);
     }
@@ -1879,35 +2075,37 @@ class Program
     public void LambdaEmbededInExpression()
     {
         AssertSmartIndent(
-            @"using System;
-using System.Collections.Generic;
-using System.Linq;
- 
-class Program
-{
-    static void Main(string[] args)
-    {
-        using (var var = new GooClass(() =>
-        {
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+             
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    using (var var = new GooClass(() =>
+                    {
 
-        }))
-        {
-            var var2 = var;
-        }
-    }
-}
- 
-class GooClass : IDisposable
-{
-    public GooClass(Action a)
-    {
-    }
- 
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                    }))
+                    {
+                        var var2 = var;
+                    }
+                }
+            }
+             
+            class GooClass : IDisposable
+            {
+                public GooClass(Action a)
+                {
+                }
+             
+                public void Dispose()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
             indentationLine: 10,
             expectedIndentation: 12);
     }
@@ -1916,14 +2114,16 @@ class GooClass : IDisposable
     public void LambdaEmbededInExpression_1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        using (var var = new GooClass(() =>
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    using (var var = new GooClass(() =>
 
-    }
-}",
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 16);
     }
@@ -1932,33 +2132,35 @@ class GooClass : IDisposable
     public void LambdaEmbededInExpression_3()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        using (var var = new GooClass(() =>
-        {
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    using (var var = new GooClass(() =>
+                    {
 
-        }))
-        {
-            var var2 = var;
-        }
-    }
-}
+                    }))
+                    {
+                        var var2 = var;
+                    }
+                }
+            }
 
-class GooClass : IDisposable
-{
-    public GooClass(Action a)
-    {
-    }
+            class GooClass : IDisposable
+            {
+                public GooClass(Action a)
+                {
+                }
 
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                public void Dispose()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
             indentationLine: 8,
             expectedIndentation: 12);
     }
@@ -1967,15 +2169,17 @@ class GooClass : IDisposable
     public void LambdaEmbededInExpression_2()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        using (var var = new GooClass(
-            () =>
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    using (var var = new GooClass(
+                        () =>
 
-    }
-}",
+                }
+            }
+            """,
             indentationLine: 6,
             expectedIndentation: 16);
     }
@@ -1984,22 +2188,24 @@ class GooClass : IDisposable
     public void LambdaEmbededInExpression_4()
     {
         AssertSmartIndent(
-            @"using System;
-class Class
-{
-    public void Method()
-    {
-        OtherMethod(() =>
-        {
-            var aaa = new object(); if (aaa != null)
+            """
+            using System;
+            class Class
             {
-                var bbb = new object();
+                public void Method()
+                {
+                    OtherMethod(() =>
+                    {
+                        var aaa = new object(); if (aaa != null)
+                        {
+                            var bbb = new object();
 
+                        }
+                    });
+                }
+                private void OtherMethod(Action action) { }
             }
-        });
-    }
-    private void OtherMethod(Action action) { }
-}",
+            """,
             indentationLine: 10,
             expectedIndentation: 16);
     }
@@ -2008,14 +2214,16 @@ class Class
     public void LambdaDefaultParameter_EnterAfterParamList()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    public void Main()
-    {
-        var lam = (int x = 7) =>
-        
-    }
-}",
+            """
+            class Program
+            {
+                public void Main()
+                {
+                    var lam = (int x = 7) =>
+                    
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -2024,13 +2232,15 @@ class Class
     public void LambdaDefaultParameter_EnterAfterEquals()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    public void Main()
-    {
-        var lam = (int x =
-    }
-}",
+            """
+            class Program
+            {
+                public void Main()
+                {
+                    var lam = (int x =
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -2038,16 +2248,18 @@ class Class
     [WpfFact]
     public void LambdaDefaultParameter_EnterBeforeEquals()
     {
-        var code = @"class Program
-{
-    public void Main()
-    {
-        var lam = (int x
-                    = 10,
-                    int y
-                    = 20) => x + y;
-    }
-}";
+        var code = """
+            class Program
+            {
+                public void Main()
+                {
+                    var lam = (int x
+                                = 10,
+                                int y
+                                = 20) => x + y;
+                }
+            }
+            """;
         AssertSmartIndent(
             code,
             indentationLine: 5,
@@ -2068,14 +2280,16 @@ class Class
     public void EnterInArgumentList1()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        Main(args,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Main(args,
 
-    }
-}",
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -2084,14 +2298,16 @@ class Class
     public void EnterInArgumentList2()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        Main(args,
-)
-    }
-}",
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Main(args,
+            )
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -2100,14 +2316,16 @@ class Class
     public void EnterInArgumentList3()
     {
         AssertSmartIndent(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-        var s = string.Format(1,
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = string.Format(1,
 
-    }
-}",
+                }
+            }
+            """,
             indentationLine: 5,
             expectedIndentation: 12);
     }
@@ -2115,16 +2333,18 @@ class Class
     [WpfFact, WorkItem(9216, "DevDiv_Projects/Roslyn")]
     public void FollowPreviousLineInMultilineStatements()
     {
-        AssertSmartIndent(@"class Program
-{
-    static void Main(string[] args)
-    {
-        var accessibleConstructors = normalType.InstanceConstructors
-                                       .Where(c => c.IsAccessibleWithin(within))
-                                       .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
-.Sort(symbolDisplayService, invocationExpression.GetLocation(), semanticModel);
-    }
-}", indentationLine: 7, expectedIndentation: 39);
+        AssertSmartIndent("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var accessibleConstructors = normalType.InstanceConstructors
+                                                   .Where(c => c.IsAccessibleWithin(within))
+                                                   .Where(s => s.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation))
+            .Sort(symbolDisplayService, invocationExpression.GetLocation(), semanticModel);
+                }
+            }
+            """, indentationLine: 7, expectedIndentation: 39);
     }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648068")]
@@ -2133,34 +2353,38 @@ class Class
     public void AtBeginningOfSpanInNugget()
     {
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|
-$$Console.WriteLine();|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 4);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|
+            $$Console.WriteLine();|]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 4);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AtEndOfSpanInNugget()
     {
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|Console.WriteLine();
-$$|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 4);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|Console.WriteLine();
+            $$|]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 4);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
@@ -2172,17 +2396,19 @@ $$|]|}
         // for the nugget (where we think the statement should be), plus one more since it is
         // a continuation
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|Console.Wri
-$$teLine();|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 8);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|Console.Wri
+            $$teLine();|]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 8);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
@@ -2194,37 +2420,41 @@ $$teLine();|]|}
         // for the nugget (where we think the statement should be), plus one more since it is
         // a continuation
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|
-              Console.Wri
-$$teLine();|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 8);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|
+                          Console.Wri
+            $$teLine();|]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 8);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterStatementInNugget()
     {
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|
-              Console.WriteLine();
-$$
-            |]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 4);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|
+                          Console.WriteLine();
+            $$
+                        |]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 4);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
@@ -2242,74 +2472,82 @@ $$
         // as Roslyn has.  The Roslyn formatting engine currently always formats
         // each statement independently, so let's not change that just for Venus
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|Console.WriteLine();
-$$
-|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 4);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|Console.WriteLine();
+            $$
+            |]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 4);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InQueryOnFistLineOfNugget()
     {
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|var q = from
-$$
-|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 8);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|var q = from
+            $$
+            |]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 8);
     }
 
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InQueryInNugget()
     {
         AssertSmartIndentInProjection(
-            @"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|
-              var q = from
-$$
-|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 8);
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|
+                          var q = from
+            $$
+            |]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 8);
     }
 
     [WorkItem(9216, "DevDiv_Projects/Roslyn")]
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void InsideBracesInNugget()
     {
-        AssertSmartIndentInProjection(@"class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-                    {|S1:[|if (true)
-        {
-$$
-        }|]|}
-#line default
-#line hidden
-    }
-}", BaseIndentationOfNugget + 8);
+        AssertSmartIndentInProjection("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                                {|S1:[|if (true)
+                    {
+            $$
+                    }|]|}
+            #line default
+            #line hidden
+                }
+            }
+            """, BaseIndentationOfNugget + 8);
     }
 
     [WorkItem(9216, "DevDiv_Projects/Roslyn")]
@@ -2319,20 +2557,22 @@ $$
 
         // In this case, we align the next statement with the "if" (though we _don't_
         // align the braces with it :S)
-        AssertSmartIndentInProjection(@"class Program
-        {
-            static void Main(string[] args)
-            {
-        #line ""Goo.aspx"", 27
-                            {|S1:[|if (true)
-                {
-                }
-                $$
-|]|}
-        #line default
-        #line hidden
-            }
-        }",
+        AssertSmartIndentInProjection("""
+            class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                    #line "Goo.aspx", 27
+                                        {|S1:[|if (true)
+                            {
+                            }
+                            $$
+            |]|}
+                    #line default
+                    #line hidden
+                        }
+                    }
+            """,
             expectedIndentation: BaseIndentationOfNugget + 2);
     }
 
@@ -2342,21 +2582,23 @@ $$
     {
 
         // In this case we align with the "if", - the base indentation we pass in doesn't matter.
-        AssertSmartIndentInProjection(@"class Program
-        {
-            static void Main(string[] args)
-            {
-        #line ""Goo.aspx"", 27
-                            {|S1:[|
-            if (true)
-            {
-            }
-$$
-|]|}
-        #line default
-        #line hidden
-            }
-        }",
+        AssertSmartIndentInProjection("""
+            class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                    #line "Goo.aspx", 27
+                                        {|S1:[|
+                        if (true)
+                        {
+                        }
+            $$
+            |]|}
+                    #line default
+                    #line hidden
+                        }
+                    }
+            """,
             expectedIndentation: BaseIndentationOfNugget + 4);
     }
 
@@ -2368,21 +2610,23 @@ $$
 
         // It's yuck that I saw differences depending on where the end of the nugget is
         // but I did, so lets add a test.
-        AssertSmartIndentInProjection(@"
-class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|switch (10)
+        AssertSmartIndentInProjection("""
+
+            class Program
             {
-                case 10:
-$$
-            }|]|}
-#line default
-#line hidden
-    }
-}",
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|switch (10)
+                        {
+                            case 10:
+            $$
+                        }|]|}
+            #line default
+            #line hidden
+                }
+            }
+            """,
             expectedIndentation: BaseIndentationOfNugget + 12);
     }
 
@@ -2391,39 +2635,43 @@ $$
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void AfterSwitchStatementInNugget()
     {
-        AssertSmartIndentInProjection(@"
-class Program
-{
-    static void Main(string[] args)
-    {
-#line ""Goo.aspx"", 27
-            {|S1:[|switch (10)
+        AssertSmartIndentInProjection("""
+
+            class Program
             {
-                case 10:
-$$
+                static void Main(string[] args)
+                {
+            #line "Goo.aspx", 27
+                        {|S1:[|switch (10)
+                        {
+                            case 10:
+            $$
+                        }
+            |]|}
+            #line default
+            #line hidden
+                }
             }
-|]|}
-#line default
-#line hidden
-    }
-}",
+            """,
             expectedIndentation: BaseIndentationOfNugget + 12);
     }
 
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529876"), Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)]
     public void InEmptyNugget()
     {
-        AssertSmartIndentInProjection(@"class Program
-        {
-            static void Main(string[] args)
-            {
-        #line ""Goo.aspx"", 27
-            {|S1:[|
-$$|]|}
-        #line default
-        #line hidden
-            }
-        }",
+        AssertSmartIndentInProjection("""
+            class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                    #line "Goo.aspx", 27
+                        {|S1:[|
+            $$|]|}
+                    #line default
+                    #line hidden
+                        }
+                    }
+            """,
             expectedIndentation: BaseIndentationOfNugget + 4);
     }
 
@@ -2431,71 +2679,73 @@ $$|]|}
     [WpfFact, Trait(Traits.Feature, Traits.Features.Venus)]
     public void GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_CS()
     {
-        AssertSmartIndentInProjection(@"//------------------------------------------------------------------------------
-// <auto-generated>
-//     This code was generated by a tool.
-//     Runtime Version:4.0.30319.42000
-//
-//     Changes to this file may cause incorrect behavior and will be lost if
-//     the code is regenerated.
-// </auto-generated>
-//------------------------------------------------------------------------------
+        AssertSmartIndentInProjection("""
+            //------------------------------------------------------------------------------
+            // <auto-generated>
+            //     This code was generated by a tool.
+            //     Runtime Version:4.0.30319.42000
+            //
+            //     Changes to this file may cause incorrect behavior and will be lost if
+            //     the code is regenerated.
+            // </auto-generated>
+            //------------------------------------------------------------------------------
 
-namespace ASP {
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Web;
-using System.Web.Helpers;
-using System.Web.Security;
-using System.Web.UI;
-using System.Web.WebPages;
-using System.Web.WebPages.Html;
-using WebMatrix.Data;
-using WebMatrix.WebData;
-using Microsoft.Web.WebPages.OAuth;
-using DotNetOpenAuth.AspNet;
+            namespace ASP {
+            using System;
+            using System.Collections.Generic;
+            using System.IO;
+            using System.Linq;
+            using System.Net;
+            using System.Web;
+            using System.Web.Helpers;
+            using System.Web.Security;
+            using System.Web.UI;
+            using System.Web.WebPages;
+            using System.Web.WebPages.Html;
+            using WebMatrix.Data;
+            using WebMatrix.WebData;
+            using Microsoft.Web.WebPages.OAuth;
+            using DotNetOpenAuth.AspNet;
 
-public class _Page_Default_cshtml : System.Web.WebPages.WebPage {
-#line hidden
-public _Page_Default_cshtml() {
-}
-protected System.Web.HttpApplication ApplicationInstance {
-get {
-return ((System.Web.HttpApplication)(Context.ApplicationInstance));
-}
-}
-public override void Execute() {
+            public class _Page_Default_cshtml : System.Web.WebPages.WebPage {
+            #line hidden
+            public _Page_Default_cshtml() {
+            }
+            protected System.Web.HttpApplication ApplicationInstance {
+            get {
+            return ((System.Web.HttpApplication)(Context.ApplicationInstance));
+            }
+            }
+            public override void Execute() {
 
-#line 1 ""C:\Users\basoundr\Documents\Visual Studio 2015\WebSites\WebSite6\Default.cshtml""
+            #line 1 "C:\Users\basoundr\Documents\Visual Studio 2015\WebSites\WebSite6\Default.cshtml"
 
-    {|S1:[|public class LanguagePreference
-        {
+                {|S1:[|public class LanguagePreference
+                    {
 
-        }
+                    }
 
-if (!File.Exists(physicalPath))
-{
-    Context.Response.SetStatus(HttpStatusCode.NotFound);
-    return;
-}
-$$
-    string[] languages = Context.Request.UserLanguages;
+            if (!File.Exists(physicalPath))
+            {
+                Context.Response.SetStatus(HttpStatusCode.NotFound);
+                return;
+            }
+            $$
+                string[] languages = Context.Request.UserLanguages;
 
-if(languages == null || languages.Length == 0)
-{
+            if(languages == null || languages.Length == 0)
+            {
 
-    Response.Redirect()
-    }
+                Response.Redirect()
+                }
 
-|]|}
-#line default
-#line hidden
-}
-}
-}",
+            |]|}
+            #line default
+            #line hidden
+            }
+            }
+            }
+            """,
             expectedIndentation: 24);
     }
 
@@ -2503,11 +2753,13 @@ if(languages == null || languages.Length == 0)
     public void CommaSeparatedListEnumMembers()
     {
         AssertSmartIndent(
-            @"enum MyEnum
-{
-    e1,
+            """
+            enum MyEnum
+            {
+                e1,
 
-}",
+            }
+            """,
             indentationLine: 3,
             expectedIndentation: 4);
     }
@@ -2516,17 +2768,19 @@ if(languages == null || languages.Length == 0)
     public void RelativeIndentationForBracesInExpression()
     {
         AssertSmartIndent(
-            @"class C
-{
-    void M(C c)
-    {
-        M(new C()
-        {
+            """
+            class C
+            {
+                void M(C c)
+                {
+                    M(new C()
+                    {
 
-        });
-    }
-}
-",
+                    });
+                }
+            }
+
+            """,
             indentationLine: 6,
             expectedIndentation: 12);
     }
@@ -2534,24 +2788,26 @@ if(languages == null || languages.Length == 0)
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void SwitchSection()
     {
-        var code = @"class C
-{
-    void Method()
-    {
-        switch (i)
-        {
+        var code = """
+            class C
+            {
+                void Method()
+                {
+                    switch (i)
+                    {
 
-            case 1:
+                        case 1:
 
-            case 2:
+                        case 2:
 
-                int i2 = 10;
+                            int i2 = 10;
 
-            case 4:
+                        case 4:
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code,
@@ -2582,29 +2838,31 @@ if(languages == null || languages.Length == 0)
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void SwitchSection2()
     {
-        var code = @"class C
-{
-    void Method()
-    {
-        switch (i)
-        {
-            // test
+        var code = """
+            class C
+            {
+                void Method()
+                {
+                    switch (i)
+                    {
+                        // test
 
-            case 1:
-                // test
+                        case 1:
+                            // test
 
-            case 2:
-                // test
+                        case 2:
+                            // test
 
-                int i2 = 10;
-            // test
+                            int i2 = 10;
+                        // test
 
-            case 4:
-            // test
+                        case 4:
+                        // test
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code,
@@ -2635,19 +2893,21 @@ if(languages == null || languages.Length == 0)
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/584599"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void CommentAtTheEndOfLine()
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine(); /* this is a comment */
-                             // that I would like to keep
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Console.WriteLine(); /* this is a comment */
+                                         // that I would like to keep
 
 
-        // properly indented
-    }
-}";
+                    // properly indented
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code,
@@ -2663,19 +2923,21 @@ class Program
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912735"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void CommentAtTheEndOfLineWithExecutableAfterCaret()
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        // A
-        // B
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    // A
+                    // B
 
 
-        return;
-    }
-}";
+                    return;
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code,
@@ -2691,23 +2953,25 @@ class Program
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912735"), Trait(Traits.Feature, Traits.Features.SmartIndent)]
     public void CommentAtTheEndOfLineInsideInitializer()
     {
-        var code = @"using System;
-using System.Collections.Generic;
+        var code = """
+            using System;
+            using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var s = new List<string>
-                        {
-                            """",
-                                    """",/*sdfsdfsdfsdf*/
-                                       // dfsdfsdfsdfsdf
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var s = new List<string>
+                                    {
+                                        "",
+                                                "",/*sdfsdfsdfsdf*/
+                                                   // dfsdfsdfsdfsdf
 
 
-                        };
-    }
-}";
+                                    };
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code,
@@ -2724,45 +2988,47 @@ class Program
     public void AfterBadQueryContinuationWithSelectOrGroupClause()
     {
         AssertSmartIndent(
-            @"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-namespace ConsoleApplication1
-{
-    class AutomapperConfig
-    {
-        public static IEnumerable<string> ConfigureMappings(string name)
-        {
-            List<User> anEntireSlewOfItems = new List<User>();
-            List<UserViewModel> viewModels = new List<UserViewModel>();
+            namespace ConsoleApplication1
+            {
+                class AutomapperConfig
+                {
+                    public static IEnumerable<string> ConfigureMappings(string name)
+                    {
+                        List<User> anEntireSlewOfItems = new List<User>();
+                        List<UserViewModel> viewModels = new List<UserViewModel>();
 
-            var items = (from m in anEntireSlewOfItems into man
+                        var items = (from m in anEntireSlewOfItems into man
 
-             join at in viewModels on m.id equals at.id
-             join c in viewModels on m.name equals c.name
-             join ct in viewModels on m.phonenumber equals ct.phonenumber
-             where m.id == 1 &&
-                 m.name == name
-             select new { M = true, I = at, AT = at }).ToList();
-            //Mapper.CreateMap<User, UserViewModel>()
-            //    .ForMember(t => t.)
-        }
-    }
+                         join at in viewModels on m.id equals at.id
+                         join c in viewModels on m.name equals c.name
+                         join ct in viewModels on m.phonenumber equals ct.phonenumber
+                         where m.id == 1 &&
+                             m.name == name
+                         select new { M = true, I = at, AT = at }).ToList();
+                        //Mapper.CreateMap<User, UserViewModel>()
+                        //    .ForMember(t => t.)
+                    }
+                }
 
-    class User
-    {
-        public int id { get; set; }
-        public string name { get; set; }
-        public int phonenumber { get; set; }
-    }
+                class User
+                {
+                    public int id { get; set; }
+                    public string name { get; set; }
+                    public int phonenumber { get; set; }
+                }
 
-    class UserViewModel
-    {
-        public int id { get; set; }
-        public string name { get; set; }
-        public int phonenumber { get; set; }
-    }
-}",
+                class UserViewModel
+                {
+                    public int id { get; set; }
+                    public string name { get; set; }
+                    public int phonenumber { get; set; }
+                }
+            }
+            """,
             indentationLine: 13,
             expectedIndentation: 25);
     }
@@ -2771,18 +3037,20 @@ namespace ConsoleApplication1
     public void AfterPartialFromClause()
     {
         AssertSmartIndent(
-            @"
-using System.Linq;
+            """
 
-class C
-{
-    void M()
-    {
-        var q = from x
+            using System.Linq;
 
-    }
-}
-",
+            class C
+            {
+                void M()
+                {
+                    var q = from x
+
+                }
+            }
+
+            """,
             indentationLine: 8,
             expectedIndentation: 16);
     }
@@ -2791,14 +3059,16 @@ class C
     public void ConstructorInitializerMissingBaseOrThisKeyword()
     {
         AssertSmartIndent(
-            @"
-class C
-{
-     C(string s)
-         :
+            """
 
-}
-",
+            class C
+            {
+                 C(string s)
+                     :
+
+            }
+
+            """,
             indentationLine: 5,
             expectedIndentation: 8);
     }
@@ -2807,16 +3077,18 @@ class C
     public void CreateIndentOperationForBrokenBracketedArgumentList()
     {
         AssertSmartIndent(
-            @"
-class Program
-{
-    static void M()
-    {
-        string (userInput == ""Y"")
+            """
 
-    }
-}
-",
+            class Program
+            {
+                static void M()
+                {
+                    string (userInput == "Y")
+
+                }
+            }
+
+            """,
             indentationLine: 6,
             expectedIndentation: 12);
     }
@@ -2825,17 +3097,19 @@ class Program
     public void PatternPropertyIndentFirst()
     {
         AssertSmartIndent(
-            @"
-class C
-{
-    void M(object o)
-    {
-        var y = o is Point
-        {
+            """
 
-        }
-    }
-}",
+            class C
+            {
+                void M(object o)
+                {
+                    var y = o is Point
+                    {
+
+                    }
+                }
+            }
+            """,
             indentationLine: 7,
             expectedIndentation: 12);
     }
@@ -2844,18 +3118,20 @@ class C
     public void PatternPropertyIndentSecond()
     {
         AssertSmartIndent(
-            @"
-class C
-{
-    void M(object o)
-    {
-        var y = o is Point
-        {
-            X is 4,
+            """
 
-        }
-    }
-}",
+            class C
+            {
+                void M(object o)
+                {
+                    var y = o is Point
+                    {
+                        X is 4,
+
+                    }
+                }
+            }
+            """,
             indentationLine: 8,
             expectedIndentation: 12);
     }
@@ -2864,21 +3140,23 @@ class C
     public void PatternPropertyIndentNestedFirst()
     {
         AssertSmartIndent(
-            @"
-class C
-{
-    void M(object o)
-    {
-        var y = o is Point
-        {
-            X is Widget 
+            """
+
+            class C
             {
+                void M(object o)
+                {
+                    var y = o is Point
+                    {
+                        X is Widget 
+                        {
 
-            },
+                        },
 
-        }
-    }
-}",
+                    }
+                }
+            }
+            """,
             indentationLine: 9,
             expectedIndentation: 16);
     }
@@ -2887,21 +3165,23 @@ class C
     public void PatternPropertyIndentNestedSecond()
     {
         AssertSmartIndent(
-            @"
-class C
-{
-    void M(object o)
-    {
-        var y = o is Point
-        {
-            X is Widget 
-            {
-                Y is 42,
+            """
 
-            },
-        }
-    }
-}",
+            class C
+            {
+                void M(object o)
+                {
+                    var y = o is Point
+                    {
+                        X is Widget 
+                        {
+                            Y is 42,
+
+                        },
+                    }
+                }
+            }
+            """,
             indentationLine: 10,
             expectedIndentation: 16);
     }
@@ -2909,17 +3189,19 @@ class C
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33253")]
     public void EnterAfterFluentSequences_1()
     {
-        var code = @"public class Test
-{
-    public void Test()
-    {
-        new List<DateTime>()
-            .Where(d => d.Kind == DateTimeKind.Local ||
-                        d.Kind == DateTimeKind.Utc)
+        var code = """
+            public class Test
+            {
+                public void Test()
+                {
+                    new List<DateTime>()
+                        .Where(d => d.Kind == DateTimeKind.Local ||
+                                    d.Kind == DateTimeKind.Utc)
 
-            .ToArray();
-    }
-}";
+                        .ToArray();
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code: code,
@@ -2930,17 +3212,19 @@ class C
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33253")]
     public void EnterAfterFluentSequences_2()
     {
-        var code = @"public class Test
-{
-    public void Test()
-    {
-        new List<DateTime>()
-                .Where(d => d.Kind == DateTimeKind.Local ||
-                            d.Kind == DateTimeKind.Utc)
+        var code = """
+            public class Test
+            {
+                public void Test()
+                {
+                    new List<DateTime>()
+                            .Where(d => d.Kind == DateTimeKind.Local ||
+                                        d.Kind == DateTimeKind.Utc)
 
-                .ToArray();
-    }
-}";
+                            .ToArray();
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code: code,
@@ -2951,16 +3235,18 @@ class C
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33253")]
     public void EnterAfterFluentSequences_3()
     {
-        var code = @"public class Test
-{
-    public void Test()
-    {
-        new List<DateTime>().Where(d => d.Kind == DateTimeKind.Local ||
-                                        d.Kind == DateTimeKind.Utc)
+        var code = """
+            public class Test
+            {
+                public void Test()
+                {
+                    new List<DateTime>().Where(d => d.Kind == DateTimeKind.Local ||
+                                                    d.Kind == DateTimeKind.Utc)
 
-                            .ToArray();
-    }
-}";
+                                        .ToArray();
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code: code,
@@ -2971,15 +3257,17 @@ class C
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/33253")]
     public void EnterAfterFluentSequences_4()
     {
-        var code = @"public class Test
-{
-    public void Test()
-    {
-        new List<DateTime>().Where(d => d.Kind == DateTimeKind.Local || d.Kind == DateTimeKind.Utc)
+        var code = """
+            public class Test
+            {
+                public void Test()
+                {
+                    new List<DateTime>().Where(d => d.Kind == DateTimeKind.Local || d.Kind == DateTimeKind.Utc)
 
-            .ToArray();
-    }
-}";
+                        .ToArray();
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code: code,
@@ -2990,15 +3278,17 @@ class C
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/28752")]
     public void EnterAfterBlankLineAfterCommentedOutCode1()
     {
-        var code = @"class Test
-{
-    public void Test()
-    {
-        // comment
+        var code = """
+            class Test
+            {
+                public void Test()
+                {
+                    // comment
 
 
-    }
-}";
+                }
+            }
+            """;
 
         AssertSmartIndent(
             code: code,
@@ -3014,16 +3304,18 @@ class C
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/28752")]
     public void EnterAfterBlankLineAfterCommentedOutCode2()
     {
-        var code = @"
-class T
-{
-    // comment
+        var code = """
+
+            class T
+            {
+                // comment
 
 
 
-    // comment
-    int i = 1;
-}";
+                // comment
+                int i = 1;
+            }
+            """;
 
         AssertSmartIndent(
             code: code,
@@ -3044,15 +3336,17 @@ class T
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/38819")]
     public void IndentationOfReturnInFileWithTabs1()
     {
-        var code = @"
-public class Example
-{
-	public void Test(object session)
-	{
-		if (session == null)
-return;
-	}
-}";
+        var code = """
+
+            public class Example
+            {
+            	public void Test(object session)
+            	{
+            		if (session == null)
+            return;
+            	}
+            }
+            """;
         // Ensure the test code doesn't get switched to spaces
         Assert.Contains("\t\tif (session == null)", code);
         AssertSmartIndent(
@@ -3068,15 +3362,17 @@ return;
     public void Operator()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator +(Class x, Class y)
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator +(Class x, Class y)
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12);
     }
@@ -3085,15 +3381,17 @@ namespace NS
     public void CastOperator()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static explicit operator Class(int x)
+            namespace NS
+            {
+                class Class
+                {
+                    public static explicit operator Class(int x)
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12);
     }
@@ -3102,16 +3400,18 @@ namespace NS
     public void OperatorBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator +(Class x, Class y)
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator +(Class x, Class y)
+                    {
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 12);
     }
@@ -3120,16 +3420,18 @@ namespace NS
     public void CastOperatorBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static explicit operator Class(int x)
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    public static explicit operator Class(int x)
+                    {
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 12);
     }
@@ -3138,15 +3440,17 @@ namespace NS
     public void CheckedOperator()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator checked +(Class x, Class y)
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator checked +(Class x, Class y)
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
@@ -3156,15 +3460,17 @@ namespace NS
     public void ExplicitCastCheckedOperator()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static explicit operator checked Class(int x)
+            namespace NS
+            {
+                class Class
+                {
+                    public static explicit operator checked Class(int x)
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
@@ -3174,16 +3480,18 @@ namespace NS
     public void CheckedOperatorBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator checked +(Class x, Class y)
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator checked +(Class x, Class y)
+                    {
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
@@ -3193,16 +3501,18 @@ namespace NS
     public void ExplicitCastCheckedOperatorBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static explicit operator checked Class(int x)
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    public static explicit operator checked Class(int x)
+                    {
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 12,
             options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12));
@@ -3212,15 +3522,17 @@ namespace NS
     public void UnsignedRightShift()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator >>>(Class x, Class y)
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator >>>(Class x, Class y)
 
-",
+
+            """,
             indentationLine: 7,
             expectedIndentation: 12);
     }
@@ -3229,16 +3541,18 @@ namespace NS
     public void UnsignedRightShiftBody()
     {
         AssertSmartIndent(
-            @"using System;
+            """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator >>>(Class x, Class y)
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator >>>(Class x, Class y)
+                    {
 
-",
+
+            """,
             indentationLine: 8,
             expectedIndentation: 12);
     }
@@ -3247,15 +3561,19 @@ namespace NS
     [CombinatorialData]
     public void InstanceIncrementOperator([CombinatorialValues("++", "--")] string op, bool isChecked)
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public void operator " + (isChecked ? "checked " : "") + op + @"()
+            namespace NS
+            {
+                class Class
+                {
+                    public void operator 
+            """ + (isChecked ? "checked " : "") + op + """
+            ()
 
-";
+
+            """;
 
         AssertSmartIndent(
             code,
@@ -3267,16 +3585,20 @@ namespace NS
     [CombinatorialData]
     public void InstanceIncrementOperatorBody([CombinatorialValues("++", "--")] string op, bool isChecked)
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public void operator " + (isChecked ? "checked " : "") + op + @"()
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    public void operator 
+            """ + (isChecked ? "checked " : "") + op + """
+            ()
+                    {
 
-";
+
+            """;
 
         AssertSmartIndent(
             code,
@@ -3288,15 +3610,19 @@ namespace NS
     [CombinatorialData]
     public void InstanceCompoundAssignmentOperator([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool isChecked)
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator " + (isChecked ? "checked " : "") + op + @"(Class x)
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator 
+            """ + (isChecked ? "checked " : "") + op + """
+            (Class x)
 
-";
+
+            """;
 
         AssertSmartIndent(
             code,
@@ -3308,16 +3634,20 @@ namespace NS
     [CombinatorialData]
     public void InstanceCompoundAssignmentOperatorBody([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op, bool isChecked)
     {
-        var code = @"using System;
+        var code = """
+            using System;
 
-namespace NS
-{
-    class Class
-    {
-        public static Class operator " + (isChecked ? "checked " : "") + op + @"(Class x)
-        {
+            namespace NS
+            {
+                class Class
+                {
+                    public static Class operator 
+            """ + (isChecked ? "checked " : "") + op + """
+            (Class x)
+                    {
 
-";
+
+            """;
 
         AssertSmartIndent(
             code,

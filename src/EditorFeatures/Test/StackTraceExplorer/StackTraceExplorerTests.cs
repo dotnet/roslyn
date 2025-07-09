@@ -75,15 +75,17 @@ public sealed class StackTraceExplorerTests
     {
         return TestSymbolFoundAsync(
             "ConsoleApp4.dll!ConsoleApp4.MyClass.M()",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|]() {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|]() {}
+                }
+            }
+            """);
     }
 
     [Theory]
@@ -105,15 +107,17 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             $"at ConsoleApp.MyClass.M({typeName} value)",
-            @$"using System;
+            $$"""
+            using System;
 
-namespace ConsoleApp
-{{
-    class MyClass
-    {{
-        void [|M|]({type} value) {{}}
-    }}
-}}");
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|]({{type}} value) {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -121,15 +125,17 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "ConsoleApp4.dll!ConsoleApp4.MyClass.M(String s)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|](string s) {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|](string s) {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -137,15 +143,17 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass.M()",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|]() {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|]() {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -153,15 +161,17 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass.M(String s)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|](string s) {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|](string s) {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -169,15 +179,17 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|]() {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|]() {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -185,14 +197,16 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp.MyClass`1.M(String s)",
-            @"using System;
-namespace ConsoleApp
-{
-    class MyClass<T> 
-    {
-        void [|M|](string s) { }
-    }
-}");
+            """
+            using System;
+            namespace ConsoleApp
+            {
+                class MyClass<T> 
+                {
+                    void [|M|](string s) { }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -200,14 +214,16 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp.MyClass`2.M(String s)",
-            @"using System;
-namespace ConsoleApp
-{
-    class MyClass<T, U> 
-    {
-        void [|M|](string s) { }
-    }
-}");
+            """
+            using System;
+            namespace ConsoleApp
+            {
+                class MyClass<T, U> 
+                {
+                    void [|M|](string s) { }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -215,14 +231,16 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp.MyClass`1.M(T s)",
-            @"using System;
-namespace ConsoleApp
-{
-    class MyClass<T>
-    {
-        void [|M|](T s) { }
-    }
-}");
+            """
+            using System;
+            namespace ConsoleApp
+            {
+                class MyClass<T>
+                {
+                    void [|M|](T s) { }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -230,15 +248,17 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M[T](T t) in C:\repos\Test\MyClass.cs:line 7",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|]<T>(T t) {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|]<T>(T t) {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -246,15 +266,17 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M&lt;T&gt;(T t)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|]<T>(T t) {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|]<T>(T t) {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -262,15 +284,17 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass.M<T>(T t)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|]<T>(T t) {}
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|]<T>(T t) {}
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -278,16 +302,17 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M( String   s    )",
-            @"
-namespace ConsoleApp
-{
-    class MyClass
-    {
-        void [|M|](string s)
-        {
-        }
-    }
-}");
+            """
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|](string s)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -295,20 +320,21 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String value)",
-            @"
-namespace ConsoleApp
-{
-    class MyClass
-    {
-        void [|M|](string value)
-        {
-        }
+            """
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|](string value)
+                    {
+                    }
 
-        void M(int value)
-        {
-        }
-    }
-}");
+                    void M(int value)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -316,16 +342,17 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[] s)",
-            @"
-namespace ConsoleApp
-{
-    class MyClass
-    {
-        void [|M|](string[] s)
-        {
-        }
-    }
-}");
+            """
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|](string[] s)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -333,16 +360,17 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[,] s)",
-            @"
-namespace ConsoleApp
-{
-    class MyClass
-    {
-        void [|M|](string[,] s)
-        {
-        }
-    }
-}");
+            """
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|](string[,] s)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -350,16 +378,17 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[ , ] s)",
-            @"
-namespace ConsoleApp
-{
-    class MyClass
-    {
-        void [|M|](string[,] s)
-        {
-        }
-    }
-}");
+            """
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|](string[,] s)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -367,16 +396,17 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[,] s)",
-            @"
-namespace ConsoleApp
-{
-    class MyClass
-    {
-        void [|M|](string[ , ] s)
-        {
-        }
-    }
-}");
+            """
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|](string[ , ] s)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -384,16 +414,17 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp.MyClass.M(String[,][] s)",
-            @"
-namespace ConsoleApp
-{
-    class MyClass
-    {
-        void [|M|](string[,][] s)
-        {
-        }
-    }
-}");
+            """
+            namespace ConsoleApp
+            {
+                class MyClass
+                {
+                    void [|M|](string[,][] s)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact(Skip = "Symbol search for nested types does not work")]
@@ -401,21 +432,23 @@ namespace ConsoleApp
     {
         return TestSymbolFoundAsync(
             "at ConsoleApp4.MyClass`1.MyInnerClass`1.M[T](T t)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass<A>
-    {
-        public class MyInnerClass<B>
-        {
-            public void [|M|]<T>(T t) 
+            namespace ConsoleApp4
             {
-                throw new Exception();
+                class MyClass<A>
+                {
+                    public class MyInnerClass<B>
+                    {
+                        public void [|M|]<T>(T t) 
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
+            """);
     }
 
     [Fact(Skip = "ref params do not work yet")]
@@ -423,18 +456,20 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M(String& s) in C:\repos\Test\MyClass.cs:line 8",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|](ref string s)
-        {
-            s = string.Empty;
-        }
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|](ref string s)
+                    {
+                        s = string.Empty;
+                    }
+                }
+            }
+            """);
     }
 
     [Fact(Skip = "out params do not work yet")]
@@ -442,18 +477,20 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M(String& s) in C:\repos\Test\MyClass.cs:line 8",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|](out string s)
-        {
-            s = string.Empty;
-        }
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|](out string s)
+                    {
+                        s = string.Empty;
+                    }
+                }
+            }
+            """);
     }
 
     [Fact(Skip = "in params do not work yet")]
@@ -461,18 +498,20 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.M(Int32& i)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        void [|M|](in int i)
-        {
-            throw new Exception();
-        }
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    void [|M|](in int i)
+                    {
+                        throw new Exception();
+                    }
+                }
+            }
+            """);
     }
 
     [Fact(Skip = "Generated types/methods are not supported")]
@@ -480,29 +519,31 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<>c.<DoThingAsync>b__1_0() in C:\repos\Test\MyClass.cs:line 15",
-            @"namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public async Task M()
-        {
-            await DoThingAsync();
-        }
-
-        async Task DoThingAsync()
-        {
-            var task = new Task(() => 
+            """
+            namespace ConsoleApp4
             {
-                Console.WriteLine(""Doing async work"");
-                throw new Exception();
-            });
+                class MyClass
+                {
+                    public async Task M()
+                    {
+                        await DoThingAsync();
+                    }
 
-            task.Start();
+                    async Task DoThingAsync()
+                    {
+                        var task = new Task(() => 
+                        {
+                            Console.WriteLine("Doing async work");
+                            throw new Exception();
+                        });
 
-            await task;
-        }
-    }
-}");
+                        task.Start();
+
+                        await task;
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -510,19 +551,21 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.set_I(Int32 value)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public int I
-        {
-            get => throw new Exception();
-            [|set|] => throw new Exception();
-        }
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    public int I
+                    {
+                        get => throw new Exception();
+                        [|set|] => throw new Exception();
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -530,19 +573,21 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.get_I()",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public int I
-        {
-            [|get|] => throw new Exception();
-            set => throw new Exception();
-        }
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    public int I
+                    {
+                        [|get|] => throw new Exception();
+                        set => throw new Exception();
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -550,19 +595,21 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.set_Item(Int32 i, Int32 value)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public int this[int i]
-        {
-            get => throw new Exception();
-            [|set|] => throw new Exception();
-        }
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    public int this[int i]
+                    {
+                        get => throw new Exception();
+                        [|set|] => throw new Exception();
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -570,19 +617,21 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.get_Item(Int32 i)",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public int this[int i]
-        {
-            [|get|] => throw new Exception();
-            set => throw new Exception();
-        }
-    }
-}");
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    public int this[int i]
+                    {
+                        [|get|] => throw new Exception();
+                        set => throw new Exception();
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -590,27 +639,29 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public void M()
-        {
-            LocalFunction();
-
-            void [|LocalFunction|]()
+            namespace ConsoleApp4
             {
-                throw new Exception();
-            }
-        }
+                class MyClass
+                {
+                    public void M()
+                    {
+                        LocalFunction();
 
-        public void LocalFunction()
-        {
-        }
-    }
-}");
+                        void [|LocalFunction|]()
+                        {
+                            throw new Exception();
+                        }
+                    }
+
+                    public void LocalFunction()
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -618,33 +669,35 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<M>g__LocalFunction|0_0()",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public void M()
-        {
-            LocalFunction();
-
-            void [|LocalFunction|]()
+            namespace ConsoleApp4
             {
-                throw new Exception();
-            }
-        }
+                class MyClass
+                {
+                    public void M()
+                    {
+                        LocalFunction();
 
-        public void M2()
-        {
-            LocalFunction();
+                        void [|LocalFunction|]()
+                        {
+                            throw new Exception();
+                        }
+                    }
 
-            void LocalFunction()
-            {
-                throw new Exception();
+                    public void M2()
+                    {
+                        LocalFunction();
+
+                        void LocalFunction()
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
+            """);
     }
 
     [Fact]
@@ -652,33 +705,35 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.<M2>g__LocalFunction|0_0()",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public void M()
-        {
-            LocalFunction();
-
-            void LocalFunction()
+            namespace ConsoleApp4
             {
-                throw new Exception();
-            }
-        }
+                class MyClass
+                {
+                    public void M()
+                    {
+                        LocalFunction();
 
-        public void M2()
-        {
-            LocalFunction();
+                        void LocalFunction()
+                        {
+                            throw new Exception();
+                        }
+                    }
 
-            void [|LocalFunction()|]
-            {
-                throw new Exception();
+                    public void M2()
+                    {
+                        LocalFunction();
+
+                        void [|LocalFunction()|]
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
+            """);
     }
 
     [Fact]
@@ -686,27 +741,29 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass.LocalFunction()",
-            @"using System;
+            """
+            using System;
 
-namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public void M()
-        {
-            LocalFunction();
-
-            void LocalFunction()
+            namespace ConsoleApp4
             {
-                throw new Exception();
-            }
-        }
+                class MyClass
+                {
+                    public void M()
+                    {
+                        LocalFunction();
 
-        public void [|LocalFunction|]()
-        {
-        }
-    }
-}");
+                        void LocalFunction()
+                        {
+                            throw new Exception();
+                        }
+                    }
+
+                    public void [|LocalFunction|]()
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     /// <summary>
@@ -725,25 +782,27 @@ namespace ConsoleApp4
     {
         return TestSymbolFoundAsync(
             @"at C.<M>g__Local|0_1()",
-            @"using System;
+            """
+            using System;
 
-class C 
-{
-    public void M()
-    {
-        Local();
-        
-        void [|Local|]()
-        {
-            Local();
-            
-            void Local()
+            class C 
             {
-                throw new Exception();
+                public void M()
+                {
+                    Local();
+
+                    void [|Local|]()
+                    {
+                        Local();
+
+                        void Local()
+                        {
+                            throw new Exception();
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
+            """);
     }
 
     [Fact(Skip = "Top level local functions are not supported")]
@@ -751,14 +810,16 @@ class C
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.Program.<Main$>g__LocalInTopLevelStatement|0_0()",
-            @"using System;
+            """
+            using System;
 
-LocalInTopLevelStatement();
+            LocalInTopLevelStatement();
 
-void [|LocalInTopLevelStatement|]()
-{
-    throw new Exception();
-}");
+            void [|LocalInTopLevelStatement|]()
+            {
+                throw new Exception();
+            }
+            """);
     }
 
     [Fact(Skip = "The parser doesn't correctly handle ..ctor() methods yet")]
@@ -766,21 +827,23 @@ void [|LocalInTopLevelStatement|]()
     {
         return TestSymbolFoundAsync(
             @"at ConsoleApp4.MyClass..ctor()",
-            @"namespace ConsoleApp4
-{
-    class MyClass
-    {
-        public MyClass()
-        {
-            throw new Exception();
-        }
+            """
+            namespace ConsoleApp4
+            {
+                class MyClass
+                {
+                    public MyClass()
+                    {
+                        throw new Exception();
+                    }
 
-        ~MyClass()
-        {
-            throw new Exception();
-        }
-    }
-}");
+                    ~MyClass()
+                    {
+                        throw new Exception();
+                    }
+                }
+            }
+            """);
     }
 
     [Theory]
@@ -811,10 +874,11 @@ void [|LocalInTopLevelStatement|]()
     [InlineData("abcd!__.__._()")]
     public async Task TestInvalidSymbol(string line)
     {
-        using var workspace = TestWorkspace.CreateCSharp(@"
-class C
-{
-}");
+        using var workspace = TestWorkspace.CreateCSharp("""
+            class C
+            {
+            }
+            """);
 
         var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
         Assert.Equal(1, result.ParsedFrames.Length);

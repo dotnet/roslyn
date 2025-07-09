@@ -61,11 +61,12 @@ public class CSharpIntelliSense : AbstractEditorTest
     [IdeTheory, CombinatorialData]
     public async Task SpeculativeTInList(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-class C
-{
-    $$
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class C
+            {
+                $$
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -82,11 +83,12 @@ class C
 
         await TestServices.Input.SendAsync(' ', HangMitigatingCancellationToken);
         await TestServices.Input.SendAsync("Goo<T>() { }", HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-class C
-{
-    public T Goo<T>() { }$$
-}",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            class C
+            {
+                public T Goo<T>() { }$$
+            }
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
@@ -94,20 +96,21 @@ HangMitigatingCancellationToken);
     [IdeTheory, CombinatorialData]
     public async Task VerifyCompletionListMembersOnStaticTypesAndCompleteThem(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-public class Program
-{
-    static void Main(string[] args)
-    {
-        NavigateTo$$
-    }
-}
+        await SetUpEditorAsync("""
+            public class Program
+            {
+                static void Main(string[] args)
+                {
+                    NavigateTo$$
+                }
+            }
 
-public static class NavigateTo
-{
-    public static void Search(string s){ }
-    public static void Navigate(int i){ }
-}", HangMitigatingCancellationToken);
+            public static class NavigateTo
+            {
+                public static void Search(string s){ }
+                public static void Navigate(int i){ }
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -235,15 +238,16 @@ public static class NavigateTo
     [IdeTheory, CombinatorialData]
     public async Task XmlDocCommentIntelliSense(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-class Class1
-{
-    ///$$
-    void Main(string[] args)
-    {
-    
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Class1
+            {
+                ///$$
+                void Main(string[] args)
+                {
+
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -272,10 +276,10 @@ class Class1
     [IdeTheory, CombinatorialData]
     public async Task XmlTagCompletion(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-/// $$
-class C { }
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            /// $$
+            class C { }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -284,10 +288,10 @@ class C { }
         await TestServices.Input.SendAsync("<summary>", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("/// <summary>$$</summary>", assertCaretPosition: true, HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"
-/// <summary>$$
-class C { }
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            /// <summary>$$
+            class C { }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync("</", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("/// <summary></summary>$$", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -296,14 +300,15 @@ class C { }
     [IdeTheory, CombinatorialData]
     public async Task SignatureHelpShowsUp(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-        $$
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Class1
+            {
+                void Main(string[] args)
+                {
+                    $$
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -327,12 +332,13 @@ class Class1
     [WorkItem("https://github.com/dotnet/roslyn/issues/33825")]
     public async Task CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-class Class1
-{
-    void Main(string[] args)
-    $$
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Class1
+            {
+                void Main(string[] args)
+                $$
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -353,13 +359,14 @@ class Class1
 
         await TestServices.Input.SendAsync('}', HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-    }$$
-}",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            class Class1
+            {
+                void Main(string[] args)
+                {
+                }$$
+            }
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
@@ -368,14 +375,15 @@ HangMitigatingCancellationToken);
     [WorkItem("https://github.com/dotnet/roslyn/issues/33823")]
     public async Task CommitOnShiftEnter(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-        $$
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Class1
+            {
+                void Main(string[] args)
+                {
+                    $$
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -390,15 +398,16 @@ class Class1
             ],
             HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-        Main
-$$
-    }
-}",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            class Class1
+            {
+                void Main(string[] args)
+                {
+                    Main
+            $$
+                }
+            }
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
@@ -406,14 +415,15 @@ HangMitigatingCancellationToken);
     [IdeTheory, CombinatorialData]
     public async Task LineBreakOnShiftEnter(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-        $$
-    }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Class1
+            {
+                void Main(string[] args)
+                {
+                    $$
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -428,15 +438,16 @@ class Class1
             ],
             HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-class Class1
-{
-    void Main(string[] args)
-    {
-        Main
-$$
-    }
-}",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            class Class1
+            {
+                void Main(string[] args)
+                {
+                    Main
+            $$
+                }
+            }
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
 
@@ -445,11 +456,12 @@ HangMitigatingCancellationToken);
     [IdeTheory, CombinatorialData]
     public async Task CommitOnLeftCurly(bool showCompletionInArgumentLists)
     {
-        await SetUpEditorAsync(@"
-class Class1
-{
-    $$
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            class Class1
+            {
+                $$
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);
@@ -462,11 +474,12 @@ class Class1
 
         await TestServices.Input.SendAsync("{", HangMitigatingCancellationToken);
 
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-class Class1
-{
-    int P { get { $$} }
-}",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            class Class1
+            {
+                int P { get { $$} }
+            }
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
@@ -477,15 +490,16 @@ HangMitigatingCancellationToken);
     {
         var visibleColumns = await TestServices.Editor.GetVisibleColumnCountAsync(HangMitigatingCancellationToken);
         var variableName = new string('a', (int)(0.75 * visibleColumns));
-        await SetUpEditorAsync($@"
-public class Program
-{{
-    static void Main(string[] args)
-    {{
-        var {variableName} = 0;
-        {variableName} = $$
-    }}
-}}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync($$"""
+            public class Program
+            {
+                static void Main(string[] args)
+                {
+                    var {{variableName}} = 0;
+                    {{variableName}} = $$
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists);

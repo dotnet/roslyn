@@ -21,90 +21,106 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("[|if (a)|]")]
     public Task MergedIntoNextStatementOnIfSpans(string ifLine)
         => TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        " + ifLine + @"
-            return;
-        if (b)
-            return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            return;
-    }
-}");
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            """ + ifLine + """
+                        return;
+                    if (b)
+                        return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        return;
+                }
+            }
+            """);
 
     [Fact]
     public Task MergedIntoNextStatementOnIfExtendedHeaderSelection()
         => TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-[|        if (a)
-            return;
-|]        if (b)
-            return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            return;
-    }
-}");
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            [|        if (a)
+                        return;
+            |]        if (b)
+                        return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        return;
+                }
+            }
+            """);
 
     [Fact]
     public Task MergedIntoNextStatementOnIfFullSelection()
         => TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (a)
-            return;|]
-        if (b)
-            return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            return;
-    }
-}");
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    [|if (a)
+                        return;|]
+                    if (b)
+                        return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        return;
+                }
+            }
+            """);
 
     [Fact]
     public Task MergedIntoNextStatementOnIfExtendedFullSelection()
         => TestInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-[|        if (a)
-            return;
-|]        if (b)
-            return;
-    }
-}",
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a || b)
-            return;
-    }
-}");
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            [|        if (a)
+                        return;
+            |]        if (b)
+                        return;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a || b)
+                        return;
+                }
+            }
+            """);
 
     [Theory]
     [InlineData("if ([||]a)")]
@@ -116,42 +132,48 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if [|(a)|]")]
     public Task NotMergedIntoNextStatementOnIfSpans(string ifLine)
         => TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        " + ifLine + @"
-            return;
-        if (b)
-            return;
-    }
-}");
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+            """ + ifLine + """
+                        return;
+                    if (b)
+                        return;
+                }
+            }
+            """);
 
     [Fact]
     public Task NotMergedIntoNextStatementOnIfOverreachingSelection()
         => TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        [|if (a)
-        |]    return;
-        if (b)
-          return;
-    }
-}");
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    [|if (a)
+                    |]    return;
+                    if (b)
+                      return;
+                }
+            }
+            """);
 
     [Fact]
     public Task NotMergedIntoNextStatementOnIfBodySelection()
         => TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    void M(bool a, bool b)
-    {
-        if (a)
-            [|return;|]
-        if (b)
-            return;
-    }
-}");
+            """
+            class C
+            {
+                void M(bool a, bool b)
+                {
+                    if (a)
+                        [|return;|]
+                    if (b)
+                        return;
+                }
+            }
+            """);
 }

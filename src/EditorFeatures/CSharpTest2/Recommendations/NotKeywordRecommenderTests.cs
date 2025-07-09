@@ -269,7 +269,9 @@ public sealed class NotKeywordRecommenderTests : KeywordRecommenderTests
     [InlineData("or")]
     public Task TestAfterIdentifierPatternKeyword(string precedingKeyword)
         => VerifyKeywordAsync(InitializeObjectE +
-$@"if (e is Test.TestValue {precedingKeyword} $$)
+            $$"""
+            if (e is Test.TestValue {{precedingKeyword}} $$)
 
-enum Test {{ TestValue }}");
+            enum Test { TestValue }
+            """);
 }

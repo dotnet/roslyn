@@ -10019,22 +10019,26 @@ class Class
     [InlineData("dynamic")]
     public Task TestContextualKeywordsThatDoNotProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
         => TestInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|return {keyword}|];
-    }}
-}}",
-$@"class C
-{{
-    private int {keyword};
+            $$"""
+            class C
+            {
+                int M()
+                {
+                    [|return {{keyword}}|];
+                }
+            }
+            """,
+            $$"""
+            class C
+            {
+                private int {{keyword}};
 
-    int M()
-    {{
-        return {keyword};
-    }}
-}}");
+                int M()
+                {
+                    return {{keyword}};
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
     [InlineData("from")]
@@ -10044,13 +10048,15 @@ $@"class C
     [InlineData("var")]
     public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_ReturnStatement(string keyword)
         => TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|return {keyword}|];
-    }}
-}}");
+            $$"""
+            class C
+            {
+                int M()
+                {
+                    [|return {{keyword}}|];
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
     [InlineData("from")]
@@ -10060,13 +10066,15 @@ $@"class C
     [InlineData("var")]
     public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_OnTheirOwn(string keyword)
         => TestMissingInRegularAndScriptAsync(
-$@"class C
-{{
-    int M()
-    {{
-        [|{keyword}|]
-    }}
-}}");
+            $$"""
+            class C
+            {
+                int M()
+                {
+                    [|{{keyword}}|]
+                }
+            }
+            """);
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/27646")]
     [InlineData("from")]
@@ -10076,12 +10084,14 @@ $@"class C
     [InlineData("var")]
     public Task TestContextualKeywordsThatCanProbablyStartSyntacticConstructs_Local(string keyword)
         => TestMissingInRegularAndScriptAsync(
-$@"class Program
-{{
-    void Main()
-    {{
-        var x = [|{keyword}|];
-    }}");
+            $$"""
+            class Program
+            {
+                void Main()
+                {
+                    var x = [|{{keyword}}|];
+                }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60842")]
     public Task TestGenerateParameterBeforeCancellationToken_OneParameter()

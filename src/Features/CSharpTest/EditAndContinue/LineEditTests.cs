@@ -25,13 +25,12 @@ public sealed class LineEditTests : EditingTestBase
     [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
     public void TopLevelCode_LineChange()
     {
-        var src1 = @"
-Console.ReadLine(1);
-";
-        var src2 = @"
-
-Console.ReadLine(1);
-";
+        var src1 = """
+            Console.ReadLine(1);
+            """;
+        var src2 = """
+            Console.ReadLine(1);
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(1, 2)]);
@@ -40,19 +39,19 @@ Console.ReadLine(1);
     [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
     public void TopLevelCode_LocalFunction_LineChange()
     {
-        var src1 = @"
-void F()
-{
-    Console.ReadLine(1);
-}
-";
-        var src2 = @"
-void F()
-{
+        var src1 = """
+            void F()
+            {
+                Console.ReadLine(1);
+            }
+            """;
+        var src2 = """
+            void F()
+            {
 
-    Console.ReadLine(1);
-}
-";
+                Console.ReadLine(1);
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -65,33 +64,34 @@ void F()
     [Fact]
     public void Method_Reorder1()
     {
-        var src1 = @"
-class C
-{
-    static void G()
-    {
-        Console.ReadLine(1);
-    }
+        var src1 = """
+            class C
+            {
+                static void G()
+                {
+                    Console.ReadLine(1);
+                }
 
-    static void F()
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        Console.ReadLine(2);
-    }
+                static void F()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void F()
+                {
+                    Console.ReadLine(2);
+                }
 
-    static void G()
-    {
-        Console.ReadLine(1);
-    }
-}";
+                static void G()
+                {
+                    Console.ReadLine(1);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Consider: we could detect that the body of the method hasn't changed and avoid creating an update.
@@ -107,44 +107,46 @@ class C
     [Fact]
     public void Method_Reorder2()
     {
-        var src1 = @"
-class C
-{
-    static void Main()
-    {
-        F();
-        G();
-    }
+        var src1 = """
+            class C
+            {
+                static void Main()
+                {
+                    F();
+                    G();
+                }
 
-    static int G()
-    {
-        return 1;
-    }
+                static int G()
+                {
+                    return 1;
+                }
 
-    static int F()
-    {
-        return 2;
-    }
-}";
-        var src2 = @"
-class C
-{
-    static int F()
-    {
-        return 1;
-    }
+                static int F()
+                {
+                    return 2;
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static int F()
+                {
+                    return 1;
+                }
 
-    static void Main()
-    {
-        F();
-        G();
-    }
+                static void Main()
+                {
+                    F();
+                    G();
+                }
 
-    static int G()
-    {
-        return 2;
-    }
-}";
+                static int G()
+                {
+                    return 2;
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Consider: we could detect that the body of the method hasn't changed and create line edits instead of an update.
@@ -162,26 +164,27 @@ class C
     [Fact]
     public void Method_MultilineBreakpointSpans()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    {
-        var x =
-1;
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    void F()
-    {
-        var x =
+        var src1 = """
+            class C
+            {
+                void F()
+                {
+                    var x =
+            1;
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                void F()
+                {
+                    var x =
 
-1;
-    }
-}";
+            1;
+                }
+            }
+            """;
         // We need to recompile the method since an active statement span [|var x = 1;|]
         // needs to be updated but can't be by a line update.
         var edits = GetTopEdits(src1, src2);
@@ -193,25 +196,26 @@ class C
     [Fact]
     public void Method_BlockBody_EntireBody1()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
 
 
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}";
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(4, 6)]);
@@ -220,24 +224,25 @@ class C
     [Fact]
     public void Method_BlockBody_EntireBody2()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
 
-    {
-        Console.ReadLine(2);
-    }
-}";
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(4, 5)]);
@@ -246,24 +251,25 @@ class C
     [Fact]
     public void Method_BlockBody1()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
-    {
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
+                {
 
-        Console.ReadLine(2);
-    }
-}";
+                    Console.ReadLine(2);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(5, 6)]);
@@ -272,24 +278,25 @@ class C
     [Fact]
     public void Method_BlockBody2()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
 
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}";
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(6, 5)]);
@@ -298,25 +305,26 @@ class C
     [Fact]
     public void Method_BlockBody3()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    /*1*/
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
-    {
-        /*2*/
-        Console.ReadLine(2);
-    }
-}";
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                /*1*/
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
+                {
+                    /*2*/
+                    Console.ReadLine(2);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(5, 4)]);
@@ -325,24 +333,25 @@ class C
     [Fact]
     public void Method_BlockBody4()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
 
-    }
-}";
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(6, 7)]);
@@ -351,30 +360,31 @@ class C
     [Fact]
     public void Method_BlockBody5()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
-        if (F())
-        {
-            Console.ReadLine(2);
-        }
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
-    {
-        if (F())
-        {
-            Console.ReadLine(2);
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
+                    if (F())
+                    {
+                        Console.ReadLine(2);
+                    }
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
+                {
+                    if (F())
+                    {
+                        Console.ReadLine(2);
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(8, 9)]);
@@ -383,11 +393,12 @@ class C
     [Fact]
     public void Method_BlockBody_Recompile()
     {
-        var src1 = @"
-class C { static void Bar() { } }
-";
-        var src2 = @"
-class C { /*--*/static void Bar() { } }";
+        var src1 = """
+            class C { static void Bar() { } }
+            """;
+        var src2 = """
+            class C { /*--*/static void Bar() { } }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -398,21 +409,22 @@ class C { /*--*/static void Bar() { } }";
     [Fact]
     public void Method_ExpressionBody_EntireBody()
     {
-        var src1 = @"
-class C
-{
-    static int X() => 1;
+        var src1 = """
+            class C
+            {
+                static int X() => 1;
 
-    static int Y() => 1;
-}
-";
-        var src2 = @"
-class C
-{
+                static int Y() => 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
 
-    static int X() => 1;
-    static int Y() => 1;
-}";
+                static int X() => 1;
+                static int Y() => 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [
@@ -424,23 +436,24 @@ class C
     [Fact]
     public void Method_Statement_Recompile1()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
-    {
-        /**/Console.ReadLine(2);
-    }
-}";
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
+                {
+                    /**/Console.ReadLine(2);
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -450,27 +463,28 @@ class C
     [Fact]
     public void Method_Statement_Recompile2()
     {
-        var src1 = @"
-class C
-{
-    static void Bar()
-    {
-        int <N:0.0>a = 1</N:0.0>;
-        int <N:0.1>b = 2</N:0.1>;
-        <AS:0>System.Console.WriteLine(1);</AS:0>
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar()
-    {
-             int <N:0.0>a = 1</N:0.0>;
-        int <N:0.1>b = 2</N:0.1>;
-        <AS:0>System.Console.WriteLine(1);</AS:0>
-    }
-}";
+        var src1 = """
+            class C
+            {
+                static void Bar()
+                {
+                    int <N:0.0>a = 1</N:0.0>;
+                    int <N:0.1>b = 2</N:0.1>;
+                    <AS:0>System.Console.WriteLine(1);</AS:0>
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar()
+                {
+                         int <N:0.0>a = 1</N:0.0>;
+                    int <N:0.1>b = 2</N:0.1>;
+                    <AS:0>System.Console.WriteLine(1);</AS:0>
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -487,24 +501,25 @@ class C
     [Fact]
     public void Method_GenericType_LineChange()
     {
-        var src1 = @"
-class C<T>
-{
-    static void Bar()
-    {
-        /*edit*/
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C<T>
-{
-    static void Bar()
-    {
-        Console.ReadLine(2);
-    }
-}";
+        var src1 = """
+            class C<T>
+            {
+                static void Bar()
+                {
+                    /*edit*/
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C<T>
+            {
+                static void Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -514,23 +529,24 @@ class C<T>
     [Fact]
     public void Method_GenericType_Recompile()
     {
-        var src1 = @"
-class C<T>
-{
-    static void Bar()
-    {
-/******/Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C<T>
-{
-    static void Bar()
-    {
-/******//*edit*/Console.ReadLine(2);
-    }
-}";
+        var src1 = """
+            class C<T>
+            {
+                static void Bar()
+                {
+            /******/Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C<T>
+            {
+                static void Bar()
+                {
+            /******//*edit*/Console.ReadLine(2);
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -548,23 +564,24 @@ class C<T>
     [Fact]
     public void Method_GenericMethod_Recompile()
     {
-        var src1 = @"
-class C
-{
-    static void Bar<T>()
-    {
-/******//*edit*/Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static void Bar<T>()
-    {
-/******/Console.ReadLine(2);
-    }
-}";
+        var src1 = """
+            class C
+            {
+                static void Bar<T>()
+                {
+            /******//*edit*/Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void Bar<T>()
+                {
+            /******/Console.ReadLine(2);
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -581,25 +598,26 @@ class C
     [Fact]
     public void Method_Async_Recompile()
     {
-        var src1 = @"
-class C
-{
-    static async Task<int> Bar()
-    {
-        Console.ReadLine(2);
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    static async Task<int> Bar()
-    {
-        Console.ReadLine( 
+        var src1 = """
+            class C
+            {
+                static async Task<int> Bar()
+                {
+                    Console.ReadLine(2);
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static async Task<int> Bar()
+                {
+                    Console.ReadLine( 
 
-2);
-    }
-}";
+            2);
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -610,24 +628,25 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
     public void Method_StackAlloc_LineChange()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    {
-        Span<bool> x = stackalloc bool[64];
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    void F()
-    {
+        var src1 = """
+            class C
+            {
+                void F()
+                {
+                    Span<bool> x = stackalloc bool[64];
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                void F()
+                {
 
-        Span<bool> x = stackalloc bool[64];
-    }
-}";
+                    Span<bool> x = stackalloc bool[64];
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -637,23 +656,24 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
     public void Method_StackAlloc_Recompile()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    <AS:0>{</AS:0>
-        <N:0.0>Span<bool> x = stackalloc bool[64];</N:0.0>
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    void F()
-    <AS:0>{</AS:0>
-        /**/<N:0.0>Span<bool> x = stackalloc bool[64];</N:0.0>
-    }
-}";
+        var src1 = """
+            class C
+            {
+                void F()
+                <AS:0>{</AS:0>
+                    <N:0.0>Span<bool> x = stackalloc bool[64];</N:0.0>
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                void F()
+                <AS:0>{</AS:0>
+                    /**/<N:0.0>Span<bool> x = stackalloc bool[64];</N:0.0>
+                }
+            }
+            """;
 
         // TODO: https://github.com/dotnet/roslyn/issues/67307
         // When we allow updating non-active bodies with stack alloc we will need to pass active statements to VerifyLineEdits
@@ -672,23 +692,24 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
     public void Method_StackAlloc_NonActive()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    {
-        Span<bool> x = stackalloc bool[64];
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    void F()
-    {
-        /**/Span<bool> x = stackalloc bool[64];
-    }
-}";
+        var src1 = """
+            class C
+            {
+                void F()
+                {
+                    Span<bool> x = stackalloc bool[64];
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                void F()
+                {
+                    /**/Span<bool> x = stackalloc bool[64];
+                }
+            }
+            """;
 
         // TODO: consider allowing change in non-active members
         var edits = GetTopEdits(src1, src2);
@@ -700,28 +721,30 @@ class C
     [Fact]
     public void Lambda_Recompile()
     {
-        var src1 = @"
-class C
-{
-    void F()
-    {
-        var x = new System.Func<int>(
-            () => 1
+        var src1 = """
+            class C
+            {
+                void F()
+                {
+                    var x = new System.Func<int>(
+                        () => 1
 
-        );
-    }
-}";
-        var src2 = @"
-class C
-{
-    void F()
-    {
-        var x = new System.Func<int>(
-            () =>
-                  1
-        );
-    }
-}";
+                    );
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                void F()
+                {
+                    var x = new System.Func<int>(
+                        () =>
+                              1
+                    );
+                }
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
@@ -737,29 +760,30 @@ class C
     [Fact]
     public void Constructor_Reorder()
     {
-        var src1 = @"
-class C
-{
-    public C(int a)
-    {
-    }
+        var src1 = """
+            class C
+            {
+                public C(int a)
+                {
+                }
 
-    public C(bool a)
-    {
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    public C(bool a)
-    {
-    }
+                public C(bool a)
+                {
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                public C(bool a)
+                {
+                }
 
-    public C(int a)
-    {
-    }
-}";
+                public C(int a)
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Consider: we could detect that the body of the method hasn't changed and avoid creating an update.
@@ -778,21 +802,22 @@ class C
     [Fact]
     public void Constructor_ImplicitInitializer_BlockBody_LineChange()
     {
-        var src1 = @"
-class C
-{
-    public C(int a)
+        var src1 = """
+            class C
+            {
+                public C(int a)
 
-    {}
-}
-";
-        var src2 = @"
-class C
-{
+                {}
+            }
+            """;
+        var src2 = """
+            class C
+            {
 
-    public C(int a)
-    {}
-}";
+                public C(int a)
+                {}
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
         [
@@ -804,21 +829,22 @@ class C
     [Fact]
     public void Constructor_ImplicitInitializer_BlockBody_Recompile()
     {
-        var src1 = @"
-class C
-{
-    public C(int a
-    )
-    {}
-}
-";
-        var src2 = @"
-class C
-{
-    public C(int a
-        )
-    {}
-}";
+        var src1 = """
+            class C
+            {
+                public C(int a
+                )
+                {}
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                public C(int a
+                    )
+                {}
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -829,22 +855,23 @@ class C
     [Fact]
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange1()
     {
-        var src1 = @"
-class C
-{
-    int _a;
-    public C(int a) => 
-      _a = a;
-}
-";
-        var src2 = @"
-class C
-{
-    int _a;
-    public C(int a) =>
+        var src1 = """
+            class C
+            {
+                int _a;
+                public C(int a) => 
+                  _a = a;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int _a;
+                public C(int a) =>
 
-      _a = a;
-}";
+                  _a = a;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(5, 6)]);
@@ -853,22 +880,23 @@ class C
     [Fact]
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange2()
     {
-        var src1 = @"
-class C
-{
-    int _a;
-    public C(int a) 
-      => _a = a;
-}
-";
-        var src2 = @"
-class C
-{
-    int _a;
-    public C(int a)
+        var src1 = """
+            class C
+            {
+                int _a;
+                public C(int a) 
+                  => _a = a;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int _a;
+                public C(int a)
 
-      => _a = a;
-}";
+                  => _a = a;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(5, 6)]);
@@ -877,22 +905,23 @@ class C
     [Fact]
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange3()
     {
-        var src1 = @"
-class C
-{
-    int _a;
-    public C(int a) => 
-      _a = a;
-}
-";
-        var src2 = @"
-class C
-{
-    int _a;
-    public C(int a) => 
+        var src1 = """
+            class C
+            {
+                int _a;
+                public C(int a) => 
+                  _a = a;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int _a;
+                public C(int a) => 
 
-      _a = a;
-}";
+                  _a = a;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(5, 6)]);
@@ -901,25 +930,26 @@ class C
     [Fact]
     public void Constructor_ImplicitInitializer_ExpressionBodied_LineChange4()
     {
-        var src1 = @"
-class C
-{
-    int _a;
-    public C(int a) 
-      => 
-      _a = a;
-}
-";
-        var src2 = @"
-class C
-{
-    int _a;
-    public C(int a) 
-      
-      => 
+        var src1 = """
+            class C
+            {
+                int _a;
+                public C(int a) 
+                  => 
+                  _a = a;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int _a;
+                public C(int a) 
 
-      _a = a;
-}";
+                  => 
+
+                  _a = a;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(6, 8)]);
@@ -928,12 +958,13 @@ class C
     [Fact]
     public void Constructor_ImplicitInitializer_Primary_LineChange()
     {
-        var src1 = @"
-class C(int a);
-";
-        var src2 = @"
-class
-      C(int a);";
+        var src1 = """
+            class C(int a);
+            """;
+        var src2 = """
+            class
+                  C(int a);
+            """;
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -945,12 +976,12 @@ class
     [Fact]
     public void Constructor_ImplicitInitializer_Primary_Recompile1()
     {
-        var src1 = @"
-class C (int a);
-";
-        var src2 = @"
-class  C(int a);
-";
+        var src1 = """
+            class C (int a);
+            """;
+        var src2 = """
+            class  C(int a);
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -961,12 +992,12 @@ class  C(int a);
     [Fact]
     public void Constructor_ImplicitInitializer_Primary_Recompile2()
     {
-        var src1 = @"
-class C(int a);
-";
-        var src2 = @"
-class C(int a );
-";
+        var src1 = """
+            class C(int a);
+            """;
+        var src2 = """
+            class C(int a );
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -977,12 +1008,12 @@ class C(int a );
     [Fact]
     public void Constructor_ImplicitInitializer_PrimaryRecord_Recompile1()
     {
-        var src1 = @"
-record C (int P);
-";
-        var src2 = @"
-record  C(int P);
-";
+        var src1 = """
+            record C (int P);
+            """;
+        var src2 = """
+            record  C(int P);
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -996,12 +1027,12 @@ record  C(int P);
     [Fact]
     public void Constructor_ImplicitInitializer_PrimaryRecord_Recompile2()
     {
-        var src1 = @"
-record C(int P);
-";
-        var src2 = @"
-record C(int P );
-";
+        var src1 = """
+            record C(int P);
+            """;
+        var src2 = """
+            record C(int P );
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1015,12 +1046,12 @@ record C(int P );
     [Fact]
     public void Constructor_ImplicitInitializer_PrimaryAndParameter_Recompile3()
     {
-        var src1 = @"
-record C(int P);
-";
-        var src2 = @"
-record C( int P);
-";
+        var src1 = """
+            record C(int P);
+            """;
+        var src2 = """
+            record C( int P);
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1036,12 +1067,12 @@ record C( int P);
     [Fact]
     public void Constructor_ImplicitInitializer_PrimaryAndCopyCtorAndParameter_Recompile3()
     {
-        var src1 = @"
-record C<T>(int P);
-";
-        var src2 = @"
-record C<T >(int P);
-";
+        var src1 = """
+            record C<T>(int P);
+            """;
+        var src2 = """
+            record C<T >(int P);
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1059,24 +1090,25 @@ record C<T >(int P);
     [Fact]
     public void Constructor_ExplicitInitializer_BlockBody_LineChange1()
     {
-        var src1 = @"
-class C
-{
-    public C(int a)
-      : base()
-    {
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    public C(int a) 
+        var src1 = """
+            class C
+            {
+                public C(int a)
+                  : base()
+                {
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                public C(int a) 
 
-      : base()
-    {
-    }
-}";
+                  : base()
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(4, 5)]);
@@ -1085,23 +1117,24 @@ class C
     [Fact]
     public void Constructor_ExplicitInitializer_BlockBody_Recompile()
     {
-        var src1 = @"
-class C
-{
-    public C(int a)
-      : base()
-    {
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    public C(int a)
-          : base()
-    {
-    }
-}";
+        var src1 = """
+            class C
+            {
+                public C(int a)
+                  : base()
+                {
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                public C(int a)
+                      : base()
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1111,24 +1144,25 @@ class C
     [Fact]
     public void Constructor_ExplicitInitializer_BlockBody_PartialBodyLineChange1()
     {
-        var src1 = @"
-class C
-{
-    public C(int a)
-      : base()
-    {
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    public C(int a)
-      : base()
+        var src1 = """
+            class C
+            {
+                public C(int a)
+                  : base()
+                {
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                public C(int a)
+                  : base()
 
-    {
-    }
-}";
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             new SourceLineUpdate[] { new(5, 6) });
@@ -1137,23 +1171,24 @@ class C
     [Fact]
     public void Constructor_ExplicitInitializer_BlockBody_RudeRecompile1()
     {
-        var src1 = @"
-class C<T>
-{
-    public C(int a)
-      : base()
-    {
-    }
-}
-";
-        var src2 = @"
-class C<T>
-{
-    public C(int a)
-          : base()
-    {
-    }
-}";
+        var src1 = """
+            class C<T>
+            {
+                public C(int a)
+                  : base()
+                {
+                }
+            }
+            """;
+        var src2 = """
+            class C<T>
+            {
+                public C(int a)
+                      : base()
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1169,22 +1204,23 @@ class C<T>
     [Fact]
     public void Constructor_ExplicitInitializer_ExpressionBodied_LineChange1()
     {
-        var src1 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => _a = a;
-}
-";
-        var src2 = @"
-class C
-{
-    int _a;
-    public C(int a)
+        var src1 = """
+            class C
+            {
+                int _a;
+                public C(int a)
+                  : base() => _a = a;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int _a;
+                public C(int a)
 
-      : base() => _a = a;
-}";
+                  : base() => _a = a;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(5, 6)]);
@@ -1193,23 +1229,24 @@ class C
     [Fact]
     public void Constructor_ExplicitInitializer_ExpressionBodied_LineChange2()
     {
-        var src1 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => 
-                  _a = a;
-}
-";
-        var src2 = @"
-class C
-{
-    int _a;
-    public C(int a)
+        var src1 = """
+            class C
+            {
+                int _a;
+                public C(int a)
+                  : base() => 
+                              _a = a;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int _a;
+                public C(int a)
 
-      : base() => _a = a;
-}";
+                  : base() => _a = a;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             new SourceLineUpdate[] { new(5, 6) });
@@ -1218,22 +1255,23 @@ class C
     [Fact]
     public void Constructor_ExplicitInitializer_ExpressionBodied_Recompile1()
     {
-        var src1 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => _a 
-                     = a;
-}
-";
-        var src2 = @"
-class C
-{
-    int _a;
-    public C(int a)
-      : base() => _a = a;
-}";
+        var src1 = """
+            class C
+            {
+                int _a;
+                public C(int a)
+                  : base() => _a 
+                                 = a;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int _a;
+                public C(int a)
+                  : base() => _a = a;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1247,22 +1285,23 @@ class C
     [Fact]
     public void Destructor_LineChange1()
     {
-        var src1 = @"
-class C
-{
-    ~C()
+        var src1 = """
+            class C
+            {
+                ~C()
 
-    {
-    }
-}
-";
-        var src2 = @"
-class C
-{
-    ~C()
-    {
-    }
-}";
+                {
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                ~C()
+                {
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(5, 4)]);
@@ -1271,18 +1310,19 @@ class C
     [Fact]
     public void Destructor_ExpressionBodied_LineChange1()
     {
-        var src1 = @"
-class C
-{
-    ~C() => F();
-}
-";
-        var src2 = @"
-class C
-{
-    ~C() => 
-            F();
-}";
+        var src1 = """
+            class C
+            {
+                ~C() => F();
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                ~C() => 
+                        F();
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1291,18 +1331,19 @@ class C
     [Fact]
     public void Destructor_ExpressionBodied_LineChange2()
     {
-        var src1 = @"
-class C
-{
-    ~C() => F();
-}
-";
-        var src2 = @"
-class C
-{
-    ~C() 
-         => F();
-}";
+        var src1 = """
+            class C
+            {
+                ~C() => F();
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                ~C() 
+                     => F();
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1315,18 +1356,19 @@ class C
     [Fact]
     public void ConstantField()
     {
-        var src1 = @"
-class C
-{
-    const int Goo = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    const int Goo = 
-                    1;
-}";
+        var src1 = """
+            class C
+            {
+                const int Goo = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                const int Goo = 
+                                1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>());
@@ -1335,18 +1377,19 @@ class C
     [Fact]
     public void NoInitializer()
     {
-        var src1 = @"
-class C
-{
-    int Goo;
-}
-";
-        var src2 = @"
-class C
-{
-    int 
-        Goo;
-}";
+        var src1 = """
+            class C
+            {
+                int Goo;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int 
+                    Goo;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>());
@@ -1355,19 +1398,20 @@ class C
     [Fact]
     public void Field_Reorder()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1;
-    static int Bar = 2;
-}
-";
-        var src2 = @"
-class C
-{
-    static int Bar = 1;
-    static int Goo = 2;
-}";
+        var src1 = """
+            class C
+            {
+                static int Goo = 1;
+                static int Bar = 2;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static int Bar = 1;
+                static int Goo = 2;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1378,20 +1422,21 @@ class C
     [Fact]
     public void Field_LineChange1()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1;
-}
-";
-        var src2 = @"
-class C
-{
+        var src1 = """
+            class C
+            {
+                static int Goo = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
 
 
 
-    static int Goo = 1;
-}";
+                static int Goo = 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 6)]);
@@ -1400,18 +1445,19 @@ class C
     [Fact]
     public void Field_LineChange2()
     {
-        var src1 = @"
-class C
-{
-    int Goo = 1, Bar = 2;
-}
-";
-        var src2 = @"
-class C
-{
-    int Goo = 1,
-                 Bar = 2;
-}";
+        var src1 = """
+            class C
+            {
+                int Goo = 1, Bar = 2;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int Goo = 1,
+                             Bar = 2;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1424,18 +1470,19 @@ class C
     [Fact]
     public void Field_LineChange3()
     {
-        var src1 = @"
-class C
-{
-    [A]static int Goo = 1, Bar = 2;
-}
-";
-        var src2 = @"
-class C
-{
-    [A]
-       static int Goo = 1, Bar = 2;
-}";
+        var src1 = """
+            class C
+            {
+                [A]static int Goo = 1, Bar = 2;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                [A]
+                   static int Goo = 1, Bar = 2;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1444,20 +1491,21 @@ class C
     [Fact]
     public void Field_LineChange_Reloadable()
     {
-        var src1 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-class C
-{
-    int Goo = 1, Bar = 2;
-}
-";
-        var src2 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-class C
-{
-    int Goo = 1,
-                 Bar = 2;
-}";
+        var src1 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            class C
+            {
+                int Goo = 1, Bar = 2;
+            }
+            """;
+        var src2 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            class C
+            {
+                int Goo = 1,
+                             Bar = 2;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1471,18 +1519,19 @@ class C
     [Fact]
     public void Field_Recompile1a()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    static int Goo = 
-                     1;
-}";
+        var src1 = """
+            class C
+            {
+                static int Goo = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static int Goo = 
+                                 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1495,18 +1544,19 @@ class C
     [Fact]
     public void Field_Recompile1b()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    static int Goo 
-                   = 1;
-}";
+        var src1 = """
+            class C
+            {
+                static int Goo = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static int Goo 
+                               = 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1519,18 +1569,19 @@ class C
     [Fact]
     public void Field_Recompile1c()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    static int 
-               Goo = 1;
-}";
+        var src1 = """
+            class C
+            {
+                static int Goo = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static int 
+                           Goo = 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1543,18 +1594,19 @@ class C
     [Fact]
     public void Field_Recompile1d()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    static 
-           int Goo = 1;
-}";
+        var src1 = """
+            class C
+            {
+                static int Goo = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static 
+                       int Goo = 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1567,18 +1619,19 @@ class C
     [Fact]
     public void Field_Recompile1e()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    static int Goo = 1
-                      ;
-}";
+        var src1 = """
+            class C
+            {
+                static int Goo = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static int Goo = 1
+                                  ;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1591,17 +1644,18 @@ class C
     [Fact]
     public void Field_Recompile2()
     {
-        var src1 = @"
-class C
-{
-    static int Goo = 1 + 1;
-}
-";
-        var src2 = @"
-class C
-{
-    static int Goo = 1 +  1;
-}";
+        var src1 = """
+            class C
+            {
+                static int Goo = 1 + 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static int Goo = 1 +  1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1614,17 +1668,18 @@ class C
     [Fact]
     public void Field_RudeRecompile1()
     {
-        var src1 = @"
-class C<T>
-{
-    static int Goo = 1 + 1;
-}
-";
-        var src2 = @"
-class C<T>
-{
-    static int Goo = 1 +/**/1;
-}";
+        var src1 = """
+            class C<T>
+            {
+                static int Goo = 1 + 1;
+            }
+            """;
+        var src2 = """
+            class C<T>
+            {
+                static int Goo = 1 +/**/1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyLineEdits(
@@ -1644,19 +1699,20 @@ class C<T>
     [Fact]
     public void Field_Generic_Reloadable()
     {
-        var src1 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-class C<T>
-{
-    static int Goo = 1 + 1;
-}
-";
-        var src2 = ReloadableAttributeSrc + @"
-[CreateNewOnMetadataUpdate]
-class C<T>
-{
-    static int Goo = 1 +  1;
-}";
+        var src1 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            class C<T>
+            {
+                static int Goo = 1 + 1;
+            }
+            """;
+        var src2 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            class C<T>
+            {
+                static int Goo = 1 +  1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1674,18 +1730,19 @@ class C<T>
     [Fact]
     public void Property1()
     {
-        var src1 = @"
-class C
-{
-    int P { get { return 1; } }
-}
-";
-        var src2 = @"
-class C
-{
-    int P { get { return 
-                         1; } }
-}";
+        var src1 = """
+            class C
+            {
+                int P { get { return 1; } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P { get { return 
+                                     1; } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1695,18 +1752,19 @@ class C
     [Fact]
     public void Property2()
     {
-        var src1 = @"
-class C
-{
-    int P { get { return 1; } }
-}
-";
-        var src2 = @"
-class C
-{
-    int P { get 
-                { return 1; } }
-}";
+        var src1 = """
+            class C
+            {
+                int P { get { return 1; } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P { get 
+                            { return 1; } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits([new SourceLineUpdate(3, 4)]);
     }
@@ -1714,18 +1772,19 @@ class C
     [Fact]
     public void Property3()
     {
-        var src1 = @"
-class C
-{
-    int P { get { return 1; } set { } }
-}
-";
-        var src2 = @"
-class C
-{
-    
-    int P { get { return 1; } set { } }
-}";
+        var src1 = """
+            class C
+            {
+                int P { get { return 1; } set { } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+
+                int P { get { return 1; } set { } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1734,18 +1793,19 @@ class C
     [Fact]
     public void Property_ExpressionBody1()
     {
-        var src1 = @"
-class C
-{
-    int P => 1;
-}
-";
-        var src2 = @"
-class C
-{
-    int P => 
-             1;
-}";
+        var src1 = """
+            class C
+            {
+                int P => 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P => 
+                         1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1754,18 +1814,19 @@ class C
     [Fact]
     public void Property_GetterExpressionBody1()
     {
-        var src1 = @"
-class C
-{
-    int P { get => 1; }
-}
-";
-        var src2 = @"
-class C
-{
-    int P { get => 
-                   1; }
-}";
+        var src1 = """
+            class C
+            {
+                int P { get => 1; }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P { get => 
+                               1; }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1774,18 +1835,19 @@ class C
     [Fact]
     public void Property_SetterExpressionBody1()
     {
-        var src1 = @"
-class C
-{
-    int P { set => F(); }
-}
-";
-        var src2 = @"
-class C
-{
-    int P { set => 
-                   F(); }
-}";
+        var src1 = """
+            class C
+            {
+                int P { set => F(); }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P { set => 
+                               F(); }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1794,18 +1856,19 @@ class C
     [Fact]
     public void Property_Initializer1()
     {
-        var src1 = @"
-class C
-{
-    int P { get; } = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    int P { 
-            get; } = 1;
-}";
+        var src1 = """
+            class C
+            {
+                int P { get; } = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P { 
+                        get; } = 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1814,18 +1877,19 @@ class C
     [Fact]
     public void Property_Initializer2()
     {
-        var src1 = @"
-class C
-{
-    int P { get; } = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    int P { get; } = 
-                     1;
-}";
+        var src1 = """
+            class C
+            {
+                int P { get; } = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P { get; } = 
+                                 1;
+            }
+            """;
         // We can only apply one delta per line, but that affects both getter and initializer. So we need to recompile one of them.
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -1836,19 +1900,20 @@ class C
     [Fact]
     public void Property_Initializer3()
     {
-        var src1 = @"
-class C
-{
-    int P { get; } = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    int P
-          { get; } = 
-                     1;
-}";
+        var src1 = """
+            class C
+            {
+                int P { get; } = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P
+                      { get; } = 
+                                 1;
+            }
+            """;
         // We can only apply one delta per line, but that affects both getter and initializer. So we need to recompile one of them.
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -1859,17 +1924,18 @@ class C
     [Fact]
     public void Property_Initializer4()
     {
-        var src1 = @"
-class C
-{
-    int P { get; } = 1;
-}
-";
-        var src2 = @"
-class C
-{
-    int P { get; } =  1;
-}";
+        var src1 = """
+            class C
+            {
+                int P { get; } = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int P { get; } =  1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1883,18 +1949,19 @@ class C
     [Fact]
     public void Indexer1()
     {
-        var src1 = @"
-class C
-{
-    int this[int a] { get { return 1; } }
-}
-";
-        var src2 = @"
-class C
-{
-    int this[int a] { get { return 
-                                   1; } }
-}";
+        var src1 = """
+            class C
+            {
+                int this[int a] { get { return 1; } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int this[int a] { get { return 
+                                               1; } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
@@ -1904,18 +1971,19 @@ class C
     [Fact]
     public void Indexer2()
     {
-        var src1 = @"
-class C
-{
-    int this[int a] { get { return 1; } }
-}
-";
-        var src2 = @"
-class C
-{
-    int this[int a] { get 
-                          { return 1; } }
-}";
+        var src1 = """
+            class C
+            {
+                int this[int a] { get { return 1; } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int this[int a] { get 
+                                      { return 1; } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits([new SourceLineUpdate(3, 4)]);
     }
@@ -1923,18 +1991,19 @@ class C
     [Fact]
     public void Indexer3()
     {
-        var src1 = @"
-class C
-{
-    int this[int a] { get { return 1; } set { } }
-}
-";
-        var src2 = @"
-class C
-{
-    
-    int this[int a] { get { return 1; } set { } }
-}";
+        var src1 = """
+            class C
+            {
+                int this[int a] { get { return 1; } set { } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+
+                int this[int a] { get { return 1; } set { } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits([new SourceLineUpdate(3, 4)]);
     }
@@ -1942,18 +2011,19 @@ class C
     [Fact]
     public void Indexer_ExpressionBody1()
     {
-        var src1 = @"
-class C
-{
-    int this[int a] => 1;
-}
-";
-        var src2 = @"
-class C
-{
-    int this[int a] => 
-                       1;
-}";
+        var src1 = """
+            class C
+            {
+                int this[int a] => 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int this[int a] => 
+                                   1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1962,18 +2032,19 @@ class C
     [Fact]
     public void Indexer_GetterExpressionBody1()
     {
-        var src1 = @"
-class C
-{
-    int this[int a] { get => 1; }
-}
-";
-        var src2 = @"
-class C
-{
-    int this[int a] { get => 
-                             1; }
-}";
+        var src1 = """
+            class C
+            {
+                int this[int a] { get => 1; }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int this[int a] { get => 
+                                         1; }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -1982,18 +2053,19 @@ class C
     [Fact]
     public void Indexer_SetterExpressionBody1()
     {
-        var src1 = @"
-class C
-{
-    int this[int a] { set => F(); }
-}
-";
-        var src2 = @"
-class C
-{
-    int this[int a] { set => 
-                             F(); }
-}";
+        var src1 = """
+            class C
+            {
+                int this[int a] { set => F(); }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                int this[int a] { set => 
+                                         F(); }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -2006,18 +2078,19 @@ class C
     [Fact]
     public void Event_LineChange1()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add { } remove { } }
-}
-";
-        var src2 = @"
-class C
-{
+        var src1 = """
+            class C
+            {
+                event Action E { add { } remove { } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
 
-    event Action E { add { } remove { } }
-}";
+                event Action E { add { } remove { } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)]);
@@ -2026,18 +2099,19 @@ class C
     [Fact]
     public void Event_LineChange2()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add 
-                         { } remove { } }
-}
-";
-        var src2 = @"
-class C
-{
-    event Action E { add { } remove { } }
-}";
+        var src1 = """
+            class C
+            {
+                event Action E { add 
+                                     { } remove { } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                event Action E { add { } remove { } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(4, 3)]);
@@ -2046,18 +2120,19 @@ class C
     [Fact]
     public void Event_LineChange3()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add {
-                           } remove { } }
-}
-";
-        var src2 = @"
-class C
-{
-    event Action E { add { } remove { } }
-}";
+        var src1 = """
+            class C
+            {
+                event Action E { add {
+                                       } remove { } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                event Action E { add { } remove { } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(4, 3)]);
@@ -2066,18 +2141,19 @@ class C
     [Fact]
     public void Event_LineChange4()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add { } remove {
-                                      } }
-}
-";
-        var src2 = @"
-class C
-{
-    event Action E { add { } remove { } }
-}";
+        var src1 = """
+            class C
+            {
+                event Action E { add { } remove {
+                                                  } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                event Action E { add { } remove { } }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(4, 3)]);
@@ -2086,18 +2162,19 @@ class C
     [Fact]
     public void Event_Recompile1()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add { } remove { } }
-}
-";
-        var src2 = @"
-class C
-{
-    event Action E { add { } remove 
-                                    { } }
-}";
+        var src1 = """
+            class C
+            {
+                event Action E { add { } remove { } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                event Action E { add { } remove 
+                                                { } }
+            }
+            """;
         // we can only apply one delta per line, but that would affect add and remove differently, so need to recompile
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -2108,18 +2185,19 @@ class C
     [Fact]
     public void Event_Recompile2()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add { } remove { } }
-}
-";
-        var src2 = @"
-class C
-{
-    event Action E { add { } remove {
-                                      } }
-}";
+        var src1 = """
+            class C
+            {
+                event Action E { add { } remove { } }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                event Action E { add { } remove {
+                                                  } }
+            }
+            """;
         // we can only apply one delta per line, but that would affect add and remove differently, so need to recompile
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
@@ -2130,19 +2208,20 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53263")]
     public void Event_ExpressionBody_MultipleBodiesOnTheSameLine1()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add => F(); remove => F(); }
-}
-";
-        var src2 = @"
-class C
-{
-    event Action E { add => 
-                            F(); remove => 
-                                           F(); }
-}";
+        var src1 = """
+            class C
+            {
+                event Action E { add => F(); remove => F(); }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                event Action E { add => 
+                                        F(); remove => 
+                                                       F(); }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(3, 4)],
@@ -2152,19 +2231,20 @@ class C
     [Fact]
     public void Event_ExpressionBody()
     {
-        var src1 = @"
-class C
-{
-    event Action E { add 
-                         => F(); remove 
-                                        => F(); }
-}
-";
-        var src2 = @"
-class C
-{
-    event Action E { add => F(); remove => F(); }
-}";
+        var src1 = """
+            class C
+            {
+                event Action E { add 
+                                     => F(); remove 
+                                                    => F(); }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                event Action E { add => F(); remove => F(); }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [new SourceLineUpdate(4, 3), new SourceLineUpdate(5, 3)]);
@@ -2177,32 +2257,32 @@ class C
     [Fact]
     public void Type_Reorder1()
     {
-        var src1 = @"
-class C
-{
-    static int F1() => 1;
-    static int F2() => 1;
-}
+        var src1 = """
+            class C
+            {
+                static int F1() => 1;
+                static int F2() => 1;
+            }
 
-class D
-{
-    static int G1() => 1;
-    static int G2() => 1;
-}
-";
-        var src2 = @"
-class D
-{
-    static int G1() => 1;
-    static int G2() => 1;
-}
+            class D
+            {
+                static int G1() => 1;
+                static int G2() => 1;
+            }
+            """;
+        var src2 = """
+            class D
+            {
+                static int G1() => 1;
+                static int G2() => 1;
+            }
 
-class C
-{
-    static int F1() => 1;
-    static int F2() => 1;
-}
-";
+            class C
+            {
+                static int F1() => 1;
+                static int F2() => 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             [
@@ -2219,30 +2299,32 @@ class C
     [Fact]
     public void LineMapping_ChangeLineNumber_WithinMethod_NoSequencePointImpact()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        G(
-#line 2 ""c""
-            123
-#line default
-        );
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        G(
-#line 3 ""c""
-            123
-#line default
-        );
-    }
-}";
+        var src1 = """
+            class C
+            {
+                static void F()
+                {
+                    G(
+            #line 2 "c"
+                        123
+            #line default
+                    );
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void F()
+                {
+                    G(
+            #line 3 "c"
+                        123
+            #line default
+                    );
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         // Line deltas can't be applied on the whole breakpoint span hence recompilation.
@@ -2257,43 +2339,44 @@ class C
     [Fact]
     public void LineMapping_ChangeLineNumber_OutsideOfMethod()
     {
-        var src1 = @"
-#line 1 ""a""
-class C
-{
-    int x = 1;
-    static int y = 1;
-    void F1() { }
-    void F2() { }
-}
-class D
-{
-    public D() {}
+        var src1 = """
+            #line 1 "a"
+            class C
+            {
+                int x = 1;
+                static int y = 1;
+                void F1() { }
+                void F2() { }
+            }
+            class D
+            {
+                public D() {}
 
-#line 5 ""a""
-    void F3() {}
+            #line 5 "a"
+                void F3() {}
 
-#line 6 ""a""
-    void F4() {}
-}";
-        var src2 = @"
-#line 11 ""a""
-class C
-{
-    int x = 1;
-    static int y = 1;
-    void F1() { }
-    void F2() { }
-}
-class D
-{
-    public D() {}
+            #line 6 "a"
+                void F4() {}
+            }
+            """;
+        var src2 = """
+            #line 11 "a"
+            class C
+            {
+                int x = 1;
+                static int y = 1;
+                void F1() { }
+                void F2() { }
+            }
+            class D
+            {
+                public D() {}
 
-#line 5 ""a""
-    void F3() {}
-    void F4() {}
-}
-";
+            #line 5 "a"
+                void F3() {}
+                void F4() {}
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyLineEdits(
@@ -2311,22 +2394,24 @@ class D
     [Fact]
     public void LineMapping_LineDirectivesAndWhitespace()
     {
-        var src1 = @"
-class C
-{
-#line 5 ""a""
-#line 6 ""a""
+        var src1 = """
+            class C
+            {
+            #line 5 "a"
+            #line 6 "a"
 
 
 
-    static void F() { } // line 9
-}";
-        var src2 = @"
-class C
-{
-#line 9 ""a""
-    static void F() { }
-}";
+                static void F() { } // line 9
+            }
+            """;
+        var src2 = """
+            class C
+            {
+            #line 9 "a"
+                static void F() { }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemantics();
@@ -2335,30 +2420,32 @@ class C
     [Fact]
     public void LineMapping_MultipleFiles()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-#line 1 ""a""
-        A();
-#line 1 ""b""
-        B();
-#line default
-    }
-}";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-#line 2 ""a""
-        A();
-#line 2 ""b""
-        B();
-#line default
-    }
-}";
+        var src1 = """
+            class C
+            {
+                static void F()
+                {
+            #line 1 "a"
+                    A();
+            #line 1 "b"
+                    B();
+            #line default
+                }
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void F()
+                {
+            #line 2 "a"
+                    A();
+            #line 2 "b"
+                    B();
+            #line default
+                }
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyLineEdits(
@@ -2372,35 +2459,37 @@ class C
     [Fact]
     public void LineMapping_FileChange_Recompile()
     {
-        var src1 = @"
-class C
-{
-    static void F()
-    {
-        A();
-#line 1 ""a""
-        B();
-#line 3 ""a""
-        C();
-    }
+        var src1 = """
+            class C
+            {
+                static void F()
+                {
+                    A();
+            #line 1 "a"
+                    B();
+            #line 3 "a"
+                    C();
+                }
 
 
-    int x = 1;
-}";
-        var src2 = @"
-class C
-{
-    static void F()
-    {
-        A();
-#line 1 ""b""
-        B();
-#line 2 ""a""
-        C();
-    }
+                int x = 1;
+            }
+            """;
+        var src2 = """
+            class C
+            {
+                static void F()
+                {
+                    A();
+            #line 1 "b"
+                    B();
+            #line 2 "a"
+                    C();
+                }
 
-    int x = 1;
-}";
+                int x = 1;
+            }
+            """;
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifyLineEdits(
@@ -2417,13 +2506,14 @@ class C
     [Fact]
     public void LineMapping_FileChange_RudeEdit()
     {
-        var src1 = @"
-#line 1 ""a""
-class C { static void F<T>() { } }
-";
-        var src2 = @"
-#line 1 ""b""
-class C { static void F<T>() { } }";
+        var src1 = """
+            #line 1 "a"
+            class C { static void F<T>() { } }
+            """;
+        var src2 = """
+            #line 1 "b"
+            class C { static void F<T>() { } }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 

@@ -2892,29 +2892,41 @@ Keyword("async"));
             Keyword("new"),
             Class("Regex"),
             Punctuation.OpenParen,
-            String("\""),
+            String("""
+                "
+                """),
             Regex.Grouping("("),
             Regex.Text("a"),
             Regex.Grouping(")"),
-            String("\""),
+            String("""
+                "
+                """),
             Punctuation.CloseParen,
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s1"),
             Operators.Equals,
-            String("\"s1\""),
+            String("""
+                "s1"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s2"),
             Operators.Equals,
-            String("$\""),
+            String("""
+                $"
+                """),
             String("s2"),
-            String("\""),
+            String("""
+                "
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s3"),
             Operators.Equals,
-            Verbatim("@\"s3\""),
+            Verbatim("""
+                @"s3"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s4"),
@@ -2993,29 +3005,41 @@ Keyword("async"));
             Keyword("new"),
             Class("Regex"),
             Punctuation.OpenParen,
-            String("\""),
+            String("""
+                "
+                """),
             Regex.Grouping("("),
             Regex.Text("a"),
             Regex.Grouping(")"),
-            String("\""),
+            String("""
+                "
+                """),
             Punctuation.CloseParen,
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s1"),
             Operators.Equals,
-            String("\"s1\""),
+            String("""
+                "s1"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s2"),
             Operators.Equals,
-            String("$\""),
+            String("""
+                $"
+                """),
             String("s2"),
-            String("\""),
+            String("""
+                "
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s3"),
             Operators.Equals,
-            Verbatim("@\"s3\""),
+            Verbatim("""
+                @"s3"
+                """),
             Punctuation.Semicolon,
             Keyword("var"),
             Local("s4"),

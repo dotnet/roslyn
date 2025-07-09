@@ -104,19 +104,21 @@ public sealed class CSharpNewDocumentFormattingServiceTests : AbstractNewDocumen
     [Theory]
     [MemberData(nameof(EndOfDocumentSequences))]
     public Task TestBlockScopedNamespaces(string endOfDocumentSequence)
-        => TestAsync(testCode: $@"
-namespace Goo;
+        => TestAsync(testCode: $$"""
+            namespace Goo;
 
-internal class C
-{{
-}}{endOfDocumentSequence}",
-        expected: $@"
-namespace Goo
-{{
-    internal class C
-    {{
-    }}
-}}{endOfDocumentSequence}",
+            internal class C
+            {
+            }{{endOfDocumentSequence}}
+            """,
+        expected: $$"""
+            namespace Goo
+            {
+                internal class C
+                {
+                }
+            }{{endOfDocumentSequence}}
+            """,
         options: new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Error) }

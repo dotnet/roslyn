@@ -33,320 +33,342 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
     [Fact]
     public Task FixAllInDocument()
         => TestInRegularAndScript1Async(
-@"class C
-{
-    void M1()
-    {
-        {|FixAllInDocument:|}Bar();
-    }
+            """
+            class C
+            {
+                void M1()
+                {
+                    {|FixAllInDocument:|}Bar();
+                }
 
-    void M2()
-    {
-        Bar();
-    }
-}",
-@"class C
-{
-    void M1() => Bar();
+                void M2()
+                {
+                    Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M1() => Bar();
 
-    void M2() => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+                void M2() => Bar();
+            }
+            """, parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
     public Task FixAllInProject()
         => TestInRegularAndScript1Async(
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void M1()
-    {
-        {|FixAllInProject:|}Bar();
-    }
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                void M1()
+                {
+                    {|FixAllInProject:|}Bar();
+                }
 
-    void M2()
-    {
-        Bar();
-    }
-}
-        </Document>
-        <Document>
-class C2
-{
-    void M3()
-    {
-        Bar();
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class C3
-{
-    void M4()
-    {
-        Bar();
-    }
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void M1() => Bar();
+                void M2()
+                {
+                    Bar();
+                }
+            }
+                    </Document>
+                    <Document>
+            class C2
+            {
+                void M3()
+                {
+                    Bar();
+                }
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            class C3
+            {
+                void M4()
+                {
+                    Bar();
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                void M1() => Bar();
 
-    void M2() => Bar();
-}
-        </Document>
-        <Document>
-class C2
-{
-    void M3() => Bar();
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class C3
-{
-    void M4()
-    {
-        Bar();
-    }
-}
-        </Document>
-    </Project>
-</Workspace>", parameters: new TestParameters(options: UseBlockBody));
+                void M2() => Bar();
+            }
+                    </Document>
+                    <Document>
+            class C2
+            {
+                void M3() => Bar();
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            class C3
+            {
+                void M4()
+                {
+                    Bar();
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
     public Task FixAllInSolution()
         => TestInRegularAndScript1Async(
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void M1()
-    {
-        {|FixAllInSolution:|}Bar();
-    }
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                void M1()
+                {
+                    {|FixAllInSolution:|}Bar();
+                }
 
-    void M2()
-    {
-        Bar();
-    }
-}
-        </Document>
-        <Document>
-class C2
-{
-    void M3()
-    {
-        Bar();
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class C3
-{
-    void M4()
-    {
-        Bar();
-    }
-}
-        </Document>
-    </Project>
-</Workspace>",
-@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-class C
-{
-    void M1() => Bar();
+                void M2()
+                {
+                    Bar();
+                }
+            }
+                    </Document>
+                    <Document>
+            class C2
+            {
+                void M3()
+                {
+                    Bar();
+                }
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            class C3
+            {
+                void M4()
+                {
+                    Bar();
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            class C
+            {
+                void M1() => Bar();
 
-    void M2() => Bar();
-}
-        </Document>
-        <Document>
-class C2
-{
-    void M3() => Bar();
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-class C3
-{
-    void M4() => Bar();
-}
-        </Document>
-    </Project>
-</Workspace>", parameters: new TestParameters(options: UseBlockBody));
+                void M2() => Bar();
+            }
+                    </Document>
+                    <Document>
+            class C2
+            {
+                void M3() => Bar();
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <Document>
+            class C3
+            {
+                void M4() => Bar();
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
     public Task FixAllInContainingMember()
         => TestInRegularAndScript1Async(
-@"class C
-{
-    void M1()
-    {
-        {|FixAllInContainingMember:|}Bar();
-    }
+            """
+            class C
+            {
+                void M1()
+                {
+                    {|FixAllInContainingMember:|}Bar();
+                }
 
-    void M2()
-    {
-        Bar();
-    }
-}
+                void M2()
+                {
+                    Bar();
+                }
+            }
 
-class C2
-{
-    void M3()
-    {
-        Bar();
-    }
-}",
-@"class C
-{
-    void M1() => Bar();
+            class C2
+            {
+                void M3()
+                {
+                    Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M1() => Bar();
 
-    void M2()
-    {
-        Bar();
-    }
-}
+                void M2()
+                {
+                    Bar();
+                }
+            }
 
-class C2
-{
-    void M3()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+            class C2
+            {
+                void M3()
+                {
+                    Bar();
+                }
+            }
+            """, parameters: new TestParameters(options: UseBlockBody));
 
     [Fact]
     public Task FixAllInContainingType()
         => TestInRegularAndScript1Async(
-@"class C
-{
-    void M1()
-    {
-        {|FixAllInContainingType:|}Bar();
-    }
+            """
+            class C
+            {
+                void M1()
+                {
+                    {|FixAllInContainingType:|}Bar();
+                }
 
-    void M2()
-    {
-        Bar();
-    }
-}
+                void M2()
+                {
+                    Bar();
+                }
+            }
 
-class C2
-{
-    void M3()
-    {
-        Bar();
-    }
-}",
-@"class C
-{
-    void M1() => Bar();
+            class C2
+            {
+                void M3()
+                {
+                    Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M1() => Bar();
 
-    void M2() => Bar();
-}
+                void M2() => Bar();
+            }
 
-class C2
-{
-    void M3()
-    {
-        Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+            class C2
+            {
+                void M3()
+                {
+                    Bar();
+                }
+            }
+            """, parameters: new TestParameters(options: UseBlockBody));
 
     [Theory, CombinatorialData]
     public async Task FixAllDoesNotFixDifferentSymbolKinds(bool forMethods)
     {
         var fixAllAnnotationForMethods = forMethods ? "{|FixAllInDocument:|}" : string.Empty;
         var fixAllAnnotationForProperties = forMethods ? string.Empty : "{|FixAllInDocument:|}";
-        var fixedCodeForMethods = @"class C
-{
-    void M1() => Bar();
+        var fixedCodeForMethods = """
+            class C
+            {
+                void M1() => Bar();
 
-    void M2() => Bar();
+                void M2() => Bar();
 
-    int P1
-    {
-        get
-        {
-            return 0;
-        }
-    }
+                int P1
+                {
+                    get
+                    {
+                        return 0;
+                    }
+                }
 
-    int P2
-    {
-        get
-        {
-            return 0;
-        }
-    }
-}";
-        var fixedCodeForProperties = @"class C
-{
-    void M1()
-    {
-        Bar();
-    }
+                int P2
+                {
+                    get
+                    {
+                        return 0;
+                    }
+                }
+            }
+            """;
+        var fixedCodeForProperties = """
+            class C
+            {
+                void M1()
+                {
+                    Bar();
+                }
 
-    void M2()
-    {
-        Bar();
-    }
+                void M2()
+                {
+                    Bar();
+                }
 
-    int P1 => 0;
+                int P1 => 0;
 
-    int P2 => 0;
-}";
+                int P2 => 0;
+            }
+            """;
         var fixedCode = forMethods ? fixedCodeForMethods : fixedCodeForProperties;
 
-        await TestInRegularAndScript1Async(@$"class C
-{{
-    void M1()
-    {{
-        {fixAllAnnotationForMethods}Bar();
-    }}
+        await TestInRegularAndScript1Async($$"""
+            class C
+            {
+                void M1()
+                {
+                    {{fixAllAnnotationForMethods}}Bar();
+                }
 
-    void M2()
-    {{
-        Bar();
-    }}
+                void M2()
+                {
+                    Bar();
+                }
 
-    int P1
-    {{
-        get
-        {{
-            {fixAllAnnotationForProperties}return 0;
-        }}
-    }}
+                int P1
+                {
+                    get
+                    {
+                        {{fixAllAnnotationForProperties}}return 0;
+                    }
+                }
 
-    int P2
-    {{
-        get
-        {{
-            return 0;
-        }}
-    }}
-}}", fixedCode,
+                int P2
+                {
+                    get
+                    {
+                        return 0;
+                    }
+                }
+            }
+            """, fixedCode,
             parameters: new TestParameters(options: UseBlockBodyForMethodsAndAccessorsAndProperties));
     }
 }

@@ -910,16 +910,17 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        (solution, var document) = AddDefaultTestProject(solution, @"
-class C1
-{
-  void M()
-  {
-    System.Console.WriteLine(1);
-    System.Console.WriteLine(2);
-    System.Console.WriteLine(3);
-  }
-}", generator: generator);
+        (solution, var document) = AddDefaultTestProject(solution, """
+            class C1
+            {
+              void M()
+              {
+                System.Console.WriteLine(1);
+                System.Console.WriteLine(2);
+                System.Console.WriteLine(3);
+              }
+            }
+            """, generator: generator);
 
         _mockCompilationOutputs.Add(document.Project.Id, new MockCompilationOutputs(moduleId));
 
@@ -931,16 +932,17 @@ class C1
 
         // change the source:
         var document1 = solution.Projects.Single().Documents.Single();
-        solution = solution.WithDocumentText(document1.Id, CreateText(@"
-class C1
-{
-  void M()
-  {
-    System.Console.WriteLine(9);
-    System.Console.WriteLine();
-    System.Console.WriteLine(30);
-  }
-}"));
+        solution = solution.WithDocumentText(document1.Id, CreateText("""
+            class C1
+            {
+              void M()
+              {
+                System.Console.WriteLine(9);
+                System.Console.WriteLine();
+                System.Console.WriteLine(30);
+              }
+            }
+            """));
         var document2 = solution.GetDocument(document1.Id);
 
         // We do not report module diagnostics until emit.
@@ -1159,11 +1161,11 @@ class C1
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        (solution, var document) = AddDefaultTestProject(solution, @"
-/* GENERATE: class G { int X1() => 1; } */
+        (solution, var document) = AddDefaultTestProject(solution, """
+            /* GENERATE: class G { int X1() => 1; } */
 
-class C { int Y => 1; }
-", generator: generator);
+            class C { int Y => 1; }
+            """, generator: generator);
 
         // mock project build:
         _mockCompilationOutputs.Add(document.Project.Id, new MockCompilationOutputs(Guid.NewGuid()));
@@ -1173,11 +1175,11 @@ class C { int Y => 1; }
 
         // change the source:
         var document1 = solution.Projects.Single().Documents.Single();
-        solution = solution.WithDocumentText(document1.Id, CreateText(@"
-/* GENERATE: class G { int X1<T>() => 1; } */
+        solution = solution.WithDocumentText(document1.Id, CreateText("""
+            /* GENERATE: class G { int X1<T>() => 1; } */
 
-class C { int Y => 2; }
-"));
+            class C { int Y => 2; }
+            """));
 
         var generatedDocument = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).Single();
 
@@ -2127,17 +2129,17 @@ class C { int Y => 2; }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56431")]
     public async Task Capabilities_NoTypesEmitted()
     {
-        var sourceV1 = @"
-/* GENERATE:
-class G
-{
-    int M()
-    {
-        return 1;
-    }
-}
-*/
-";
+        var sourceV1 = """
+            /* GENERATE:
+            class G
+            {
+                int M()
+                {
+                    return 1;
+                }
+            }
+            */
+            """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
         using var _ = CreateWorkspace(out var solution, out var service);
@@ -2152,18 +2154,18 @@ class G
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
         // change the source
-        solution = solution.WithDocumentText(document1.Id, CreateText(@"
-/* GENERATE:
-class G
-{
-    // a change that won't cause a type to be emitted
-    int M()
-    {
-        return 1;
-    }
-}
-*/
-"));
+        solution = solution.WithDocumentText(document1.Id, CreateText("""
+            /* GENERATE:
+            class G
+            {
+                // a change that won't cause a type to be emitted
+                int M()
+                {
+                    return 1;
+                }
+            }
+            */
+            """));
 
         // validate solution update status and emit
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -2787,18 +2789,18 @@ class G
     [Fact]
     public async Task ValidSignificantChange_PartialTypes()
     {
-        var sourceA1 = @"
-partial class C { int X = 1; void F() { X = 1; } }
+        var sourceA1 = """
+            partial class C { int X = 1; void F() { X = 1; } }
 
-partial class D { int U = 1; public D() { } }
-partial class D { int W = 1; }
+            partial class D { int U = 1; public D() { } }
+            partial class D { int W = 1; }
 
-partial class E { int A; public E(int a) { A = a; } }
-";
-        var sourceB1 = @"
-partial class C { int Y = 1; }
-partial class E { int B; public E(int a, int b) { A = a; B = new System.Func<int>(() => b)(); } }
-";
+            partial class E { int A; public E(int a) { A = a; } }
+            """;
+        var sourceB1 = """
+            partial class C { int Y = 1; }
+            partial class E { int B; public E(int a, int b) { A = a; B = new System.Func<int>(() => b)(); } }
+            """;
         using var _ = CreateWorkspace(out var solution, out var service);
         solution = AddDefaultTestProject(solution, [sourceA1, sourceB1]);
         var project = solution.Projects.Single();
@@ -2812,18 +2814,18 @@ partial class E { int B; public E(int a, int b) { A = a; B = new System.Func<int
         // change the source (valid edit):
         var documentA = project.Documents.First();
         var documentB = project.Documents.Skip(1).First();
-        solution = solution.WithDocumentText(documentA.Id, CreateText(@"
-partial class C { int X = 2; void F() { X = 2; } }
+        solution = solution.WithDocumentText(documentA.Id, CreateText("""
+            partial class C { int X = 2; void F() { X = 2; } }
 
-partial class D { int U = 2; }
-partial class D { int W = 2; public D() { } }
+            partial class D { int U = 2; }
+            partial class D { int W = 2; public D() { } }
 
-partial class E { int A = 1; public E(int a) { A = a; } }
-"));
-        solution = solution.WithDocumentText(documentB.Id, CreateText(@"
-partial class C { int Y = 2; }
-partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func<int>(() => b)(); } }
-"));
+            partial class E { int A = 1; public E(int a) { A = a; } }
+            """));
+        solution = solution.WithDocumentText(documentB.Id, CreateText("""
+            partial class C { int Y = 2; }
+            partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func<int>(() => b)(); } }
+            """));
 
         // validate solution update status and emit:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -3025,11 +3027,11 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
     [WorkItem("https://github.com/dotnet/roslyn/issues/72331")]
     internal async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate(SourceGeneratorExecutionPreference executionPreference)
     {
-        var sourceV1 = @"
-/* GENERATE: file class G { int X => 1; } */
+        var sourceV1 = """
+            /* GENERATE: file class G { int X => 1; } */
 
-class C { int Y => 1; }
-";
+            class C { int Y => 1; }
+            """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
         using var workspace = CreateWorkspace(out var solution, out var service);
@@ -3052,11 +3054,11 @@ class C { int Y => 1; }
         EnterBreakState(debuggingSession);
 
         // change the source (valid edit)
-        solution = solution.WithDocumentText(document1.Id, CreateText(@"
-/* GENERATE: file class G { int X => 2; } */
+        solution = solution.WithDocumentText(document1.Id, CreateText("""
+            /* GENERATE: file class G { int X => 2; } */
 
-class C { int Y => 2; }
-"));
+            class C { int Y => 2; }
+            """));
 
         // validate solution update status and emit:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -3132,17 +3134,17 @@ class C { int Y => 2; }
     [Fact]
     public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate_LineChanges()
     {
-        var sourceV1 = @"
-/* GENERATE:
-class G
-{
-    int M()
-    {
-        return 1;
-    }
-}
-*/
-";
+        var sourceV1 = """
+            /* GENERATE:
+            class G
+            {
+                int M()
+                {
+                    return 1;
+                }
+            }
+            */
+            """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
         using var _ = CreateWorkspace(out var solution, out var service);
@@ -3156,18 +3158,18 @@ class G
         EnterBreakState(debuggingSession);
 
         // change the source (valid edit):
-        solution = solution.WithDocumentText(document1.Id, CreateText(@"
-/* GENERATE:
-class G
-{
+        solution = solution.WithDocumentText(document1.Id, CreateText("""
+            /* GENERATE:
+            class G
+            {
 
-    int M()
-    {
-        return 1;
-    }
-}
-*/
-"));
+                int M()
+                {
+                    return 1;
+                }
+            }
+            */
+            """));
 
         // validate solution update status and emit:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -3193,9 +3195,9 @@ class G
     [Fact]
     public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentInsert()
     {
-        var sourceV1 = @"
-partial class C { int X = 1; }
-";
+        var sourceV1 = """
+            partial class C { int X = 1; }
+            """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
         using var _ = CreateWorkspace(out var solution, out var service);
@@ -3209,11 +3211,11 @@ partial class C { int X = 1; }
         EnterBreakState(debuggingSession);
 
         // change the source (valid edit):
-        solution = solution.WithDocumentText(document1.Id, CreateText(@"
-/* GENERATE: partial class C { int Y = 2; } */
+        solution = solution.WithDocumentText(document1.Id, CreateText("""
+            /* GENERATE: partial class C { int Y = 2; } */
 
-partial class C { int X = 1; }
-"));
+            partial class C { int X = 1; }
+            """));
 
         // validate solution update status and emit:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -3236,13 +3238,13 @@ partial class C { int X = 1; }
     [Fact]
     public async Task ValidSignificantChange_SourceGenerators_AdditionalDocumentUpdate()
     {
-        var source = @"
-class C { int Y => 1; }
-";
+        var source = """
+            class C { int Y => 1; }
+            """;
 
-        var additionalSourceV1 = @"
-/* GENERATE: class G { int X => 1; } */
-";
+        var additionalSourceV1 = """
+            /* GENERATE: class G { int X => 1; } */
+            """;
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
         using var _ = CreateWorkspace(out var solution, out var service);
@@ -3257,9 +3259,9 @@ class C { int Y => 1; }
 
         // change the additional source (valid edit):
         var additionalDocument1 = solution.Projects.Single().AdditionalDocuments.Single();
-        solution = solution.WithAdditionalDocumentText(additionalDocument1.Id, CreateText(@"
-/* GENERATE: class G { int X => 2; } */
-"));
+        solution = solution.WithAdditionalDocumentText(additionalDocument1.Id, CreateText("""
+            /* GENERATE: class G { int X => 2; } */
+            """));
 
         // validate solution update status and emit:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -3282,9 +3284,9 @@ class C { int Y => 1; }
     [Fact]
     public async Task ValidSignificantChange_SourceGenerators_AnalyzerConfigUpdate()
     {
-        var source = @"
-class C { int Y => 1; }
-";
+        var source = """
+            class C { int Y => 1; }
+            """;
 
         var configV1 = new[] { ("enc_generator_output", "1") };
         var configV2 = new[] { ("enc_generator_output", "2") };
@@ -4010,11 +4012,13 @@ class C { int Y => 1; }
     {
         var markedSources = new[]
         {
-@"class Test1
-{
-    static void Main() => <AS:2>Project2::Test1.F();</AS:2>
-    static void F() => <AS:1>Project4::Test2.M();</AS:1>
-}",
+            """
+            class Test1
+            {
+                static void Main() => <AS:2>Project2::Test1.F();</AS:2>
+                static void F() => <AS:1>Project4::Test2.M();</AS:1>
+            }
+            """,
 @"class Test2 { static void M() => <AS:0>Console.WriteLine();</AS:0> }"
         };
 
@@ -4105,19 +4109,21 @@ class C { int Y => 1; }
     public async Task ActiveStatements_OutOfSyncDocuments()
     {
         var markedSource1 =
-@"class C
-{
-    static void M()
-    {
-        try
-        {
-        }
-        catch (Exception e)
-        {
-            <AS:0>M();</AS:0>
-        }
-    }
-}";
+            """
+            class C
+            {
+                static void M()
+                {
+                    try
+                    {
+                    }
+                    catch (Exception e)
+                    {
+                        <AS:0>M();</AS:0>
+                    }
+                }
+            }
+            """;
         var markedSources = new[] { markedSource1 };
 
         var thread1 = Guid.NewGuid();
@@ -4142,20 +4148,22 @@ class C { int Y => 1; }
         EnterBreakState(debuggingSession, debugInfos);
 
         // update document to test a changed solution
-        solution = solution.WithDocumentText(document.Id, CreateText(@"class C
-{
-    static void M()
-    {
-        try
-        {
-        }
-        catch (Exception e)
-        {
+        solution = solution.WithDocumentText(document.Id, CreateText("""
+            class C
+            {
+                static void M()
+                {
+                    try
+                    {
+                    }
+                    catch (Exception e)
+                    {
 
-            M();
-        }
-    }
-}"));
+                        M();
+                    }
+                }
+            }
+            """));
         document = solution.GetDocument(document.Id);
 
         var baseActiveStatementMap = await debuggingSession.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None).ConfigureAwait(false);
@@ -4191,38 +4199,38 @@ class C { int Y => 1; }
     [Fact]
     public async Task ActiveStatements_SourceGeneratedDocuments_LineDirectives()
     {
-        var markedSource1 = @"
-/* GENERATE:
-class C
-{
-    void F()
-    {
-#line 1 ""a.razor""
-       <AS:0>F();</AS:0>
-#line default
-    }
-}
-*/
-";
-        var markedSource2 = @"
-/* GENERATE:
-class C
-{
-    void F()
-    {
-#line 2 ""a.razor""
-       <AS:0>F();</AS:0>
-#line default
-    }
-}
-*/
-";
+        var markedSource1 = """
+            /* GENERATE:
+            class C
+            {
+                void F()
+                {
+            #line 1 "a.razor"
+                   <AS:0>F();</AS:0>
+            #line default
+                }
+            }
+            */
+            """;
+        var markedSource2 = """
+            /* GENERATE:
+            class C
+            {
+                void F()
+                {
+            #line 2 "a.razor"
+                   <AS:0>F();</AS:0>
+            #line default
+                }
+            }
+            */
+            """;
         var source1 = SourceMarkers.Clear(markedSource1);
         var source2 = SourceMarkers.Clear(markedSource2);
 
-        var additionalFileSourceV1 = @"
-       xxxxxxxxxxxxxxxxx
-";
+        var additionalFileSourceV1 = """
+            xxxxxxxxxxxxxxxxx
+            """;
 
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
@@ -4276,38 +4284,38 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54347")]
     public async Task ActiveStatements_EncSessionFollowedByHotReload()
     {
-        var markedSource1 = @"
-class C
-{
-    int F()
-    {
-        try
-        {
-            return 0;
-        }
-        catch
-        {
-            <AS:0>return 1;</AS:0>
-        }
-    }
-}
-";
-        var markedSource2 = @"
-class C
-{
-    int F()
-    {
-        try
-        {
-            return 0;
-        }
-        catch
-        {
-            <AS:0>return 2;</AS:0>
-        }
-    }
-}
-";
+        var markedSource1 = """
+            class C
+            {
+                int F()
+                {
+                    try
+                    {
+                        return 0;
+                    }
+                    catch
+                    {
+                        <AS:0>return 1;</AS:0>
+                    }
+                }
+            }
+            """;
+        var markedSource2 = """
+            class C
+            {
+                int F()
+                {
+                    try
+                    {
+                        return 0;
+                    }
+                    catch
+                    {
+                        <AS:0>return 2;</AS:0>
+                    }
+                }
+            }
+            """;
         var source1 = SourceMarkers.Clear(markedSource1);
         var source2 = SourceMarkers.Clear(markedSource2);
 
@@ -4379,18 +4387,20 @@ class C
     public async Task BreakStateRemappingFollowedUpByRunStateUpdate()
     {
         var markedSourceV1 =
-@"class Test
-{
-    static bool B() => true;
+            """
+            class Test
+            {
+                static bool B() => true;
 
-    static void G() { while (B()); <AS:0>}</AS:0>
+                static void G() { while (B()); <AS:0>}</AS:0>
 
-    static void F()
-    {
-        /*insert1[1]*/B();/*insert2[5]*/B();/*insert3[10]*/B();
-        <AS:1>G();</AS:1>
-    }
-}";
+                static void F()
+                {
+                    /*insert1[1]*/B();/*insert2[5]*/B();/*insert3[10]*/B();
+                    <AS:1>G();</AS:1>
+                }
+            }
+            """;
         var markedSourceV2 = Update(markedSourceV1, marker: "1");
         var markedSourceV3 = Update(markedSourceV2, marker: "2");
         var markedSourceV4 = Update(markedSourceV3, marker: "3");
@@ -4502,16 +4512,18 @@ class C
     public async Task BreakInPresenceOfUnappliedChanges()
     {
         var markedSource1 =
-@"class Test
-{
-    static bool B() => true;
-    static void G() { while (B()); <AS:0>}</AS:0>
+            """
+            class Test
+            {
+                static bool B() => true;
+                static void G() { while (B()); <AS:0>}</AS:0>
 
-    static void F()
-    {
-        <AS:1>G();</AS:1>
-    }
-}";
+                static void F()
+                {
+                    <AS:1>G();</AS:1>
+                }
+            }
+            """;
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSource1));
         var documentId = document.Id;
@@ -4522,17 +4534,19 @@ class C
 
         // Update to snapshot 2, but don't apply
 
-        solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(@"class Test
-{
-    static bool B() => true;
-    static void G() { while (B()); <AS:0>}</AS:0>
+        solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear("""
+            class Test
+            {
+                static bool B() => true;
+                static void G() { while (B()); <AS:0>}</AS:0>
 
-    static void F()
-    {
-        B();
-        <AS:1>G();</AS:1>
-    }
-}")));
+                static void F()
+                {
+                    B();
+                    <AS:1>G();</AS:1>
+                }
+            }
+            """)));
 
         // EnC update F v2 -> v3
 
@@ -4558,18 +4572,20 @@ class C
             new ActiveStatementSpan(new ActiveStatementId(1), expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
         ], spans);
 
-        solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(@"class Test
-{
-    static bool B() => true;
-    static void G() { while (B()); <AS:0>}</AS:0>
+        solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear("""
+            class Test
+            {
+                static bool B() => true;
+                static void G() { while (B()); <AS:0>}</AS:0>
 
-    static void F()
-    {
-        B();
-        B();
-        <AS:1>G();</AS:1>
-    }
-}")));
+                static void F()
+                {
+                    B();
+                    B();
+                    <AS:1>G();</AS:1>
+                }
+            }
+            """)));
 
         // check that the active statement is mapped correctly to snapshot v3:
         var expectedSpanG2 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
@@ -4615,16 +4631,18 @@ class C
     public async Task BreakAfterRunModeChangeDeletesNonLeafActiveStatement()
     {
         var markedSource1 =
-@"class Test
-{
-    static bool B() => true;
-    static void G() { while (B()); <AS:0>}</AS:0>
+            """
+            class Test
+            {
+                static bool B() => true;
+                static void G() { while (B()); <AS:0>}</AS:0>
 
-    static void F()
-    {
-        <AS:1>G();</AS:1>
-    }
-}";
+                static void F()
+                {
+                    <AS:1>G();</AS:1>
+                }
+            }
+            """;
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, SourceMarkers.Clear(markedSource1));
         var documentId = document.Id;
@@ -4635,15 +4653,17 @@ class C
 
         // Apply update: F v1 -> v2.
 
-        solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(@"class Test
-{
-    static bool B() => true;
-    static void G() { while (B()); <AS:0>}</AS:0>
+        solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear("""
+            class Test
+            {
+                static bool B() => true;
+                static void G() { while (B()); <AS:0>}</AS:0>
 
-    static void F()
-    {
-    }
-}")));
+                static void F()
+                {
+                }
+            }
+            """)));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Empty(emitDiagnostics);

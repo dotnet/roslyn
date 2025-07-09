@@ -24,64 +24,68 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     [IdeFact]
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+        await SetUpEditorAsync("""
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
 
-$$
-End Class", HangMitigatingCancellationToken);
+            $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate Equals(object)...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickCancelAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+        Assert.Contains("""
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
 
 
-End Class", actualText);
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
     public async Task VerifyCodeRefactoringOfferedAndAccepted()
     {
-        await SetUpEditorAsync(@"
-Imports TestProj
+        await SetUpEditorAsync("""
+            Imports TestProj
 
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
 
-$$
-End Class", HangMitigatingCancellationToken);
+            $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate Equals(object)...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickOKAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"
-Imports TestProj
+        Assert.Contains("""
+            Imports TestProj
 
-Class C
-    Dim i as Integer
-    Dim j as String
-    Dim k as Boolean
+            Class C
+                Dim i as Integer
+                Dim j as String
+                Dim k as Boolean
 
-    Public Overrides Function Equals(obj As Object) As Boolean
-        Dim c = TryCast(obj, C)
-        Return c IsNot Nothing AndAlso
-               i = c.i AndAlso
-               j = c.j AndAlso
-               k = c.k
-    End Function
-End Class", actualText);
+                Public Overrides Function Equals(obj As Object) As Boolean
+                    Dim c = TryCast(obj, C)
+                    Return c IsNot Nothing AndAlso
+                           i = c.i AndAlso
+                           j = c.j AndAlso
+                           k = c.k
+                End Function
+            End Class
+            """, actualText);
     }
 }

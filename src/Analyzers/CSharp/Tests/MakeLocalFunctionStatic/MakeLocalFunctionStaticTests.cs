@@ -272,22 +272,24 @@ options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptio
     [InlineData("\r\n\r\n")]
     public Task TestLeadingTriviaAfterLocalFunction(string leadingTrivia)
         => TestInRegularAndScriptAsync(
-$@"using System;
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{
-        bool otherFunction()
-        {{
-            return true;
-        }}{leadingTrivia}
-        int [||]fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-}}",
+            class C
+            {
+                void M()
+                {
+                    bool otherFunction()
+                    {
+                        return true;
+                    }{{leadingTrivia}}
+                    int [||]fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
 $$"""
 using System;
 
@@ -314,16 +316,18 @@ parseOptions: CSharp8ParseOptions);
     [InlineData("\r\n\r\n")]
     public Task TestLeadingTriviaAfterExpressionBodyLocalFunction(string leadingTrivia)
         => TestInRegularAndScriptAsync(
-$@"using System;
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{
-        bool otherFunction() => true;{leadingTrivia}
-        int [||]fibonacci(int n) => n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-    }}
-}}",
+            class C
+            {
+                void M()
+                {
+                    bool otherFunction() => true;{{leadingTrivia}}
+                    int [||]fibonacci(int n) => n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                }
+            }
+            """,
 $$"""
 using System;
 
@@ -344,32 +348,36 @@ parseOptions: CSharp8ParseOptions);
     [InlineData("\r\n\r\n")]
     public Task TestLeadingTriviaAfterComment(string leadingTrivia)
         => TestInRegularAndScriptAsync(
-$@"using System;
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{
-        //Local function comment{leadingTrivia}
-        int [||]fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-}}",
-$@"using System;
+            class C
+            {
+                void M()
+                {
+                    //Local function comment{{leadingTrivia}}
+                    int [||]fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{
-        //Local function comment{leadingTrivia}
-        static int fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-}}",
+            class C
+            {
+                void M()
+                {
+                    //Local function comment{{leadingTrivia}}
+                    static int fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
 parseOptions: CSharp8ParseOptions);
 
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
@@ -377,32 +385,36 @@ parseOptions: CSharp8ParseOptions);
     [InlineData("\r\n\r\n")]
     public Task TestLeadingTriviaBeforeComment(string leadingTrivia)
         => TestInRegularAndScriptAsync(
-$@"using System;
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{{leadingTrivia}
-        //Local function comment
-        int [||]fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-}}",
-$@"using System;
+            class C
+            {
+                void M()
+                {{{leadingTrivia}}
+                    //Local function comment
+                    int [||]fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
+            $$"""
+            using System;
 
-class C
-{{
-    void M()
-    {{{leadingTrivia}
-        //Local function comment
-        static int fibonacci(int n)
-        {{
-            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
-        }}
-    }}
-}}",
+            class C
+            {
+                void M()
+                {{{leadingTrivia}}
+                    //Local function comment
+                    static int fibonacci(int n)
+                    {
+                        return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                }
+            }
+            """,
 parseOptions: CSharp8ParseOptions);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]

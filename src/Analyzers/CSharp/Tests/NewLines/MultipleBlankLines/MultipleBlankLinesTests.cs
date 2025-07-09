@@ -21,8 +21,9 @@ public sealed class MultipleBlankLinesTests
     public Task TestOneBlankLineAtTopOfFile()
         => new Verify.Test
         {
-            TestCode = @"
-// comment",
+            TestCode = """
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -30,11 +31,14 @@ public sealed class MultipleBlankLinesTests
     public Task TestTwoBlankLineAtTopOfFile()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
 
-// comment",
-            FixedCode = @"
-// comment",
+            // comment
+            """,
+            FixedCode = """
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -42,9 +46,9 @@ public sealed class MultipleBlankLinesTests
     public Task TestTwoBlankLineAtTopOfFile_NotWithOptionOff()
         => new Verify.Test
         {
-            TestCode = @"
-
-// comment",
+            TestCode = """
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.TrueWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -52,12 +56,15 @@ public sealed class MultipleBlankLinesTests
     public Task TestThreeBlankLineAtTopOfFile()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
 
 
-// comment",
-            FixedCode = @"
-// comment",
+            // comment
+            """,
+            FixedCode = """
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -65,13 +72,16 @@ public sealed class MultipleBlankLinesTests
     public Task TestFourBlankLineAtTopOfFile()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
 
 
 
-// comment",
-            FixedCode = @"
-// comment",
+            // comment
+            """,
+            FixedCode = """
+            // comment
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -79,8 +89,9 @@ public sealed class MultipleBlankLinesTests
     public Task TestOneBlankLineAtTopOfEmptyFile()
         => new Verify.Test
         {
-            TestCode = @"
-",
+            TestCode = """
+
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -88,11 +99,12 @@ public sealed class MultipleBlankLinesTests
     public Task TestTwoBlankLinesAtTopOfEmptyFile()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
+            """,
+            FixedCode = """
 
-",
-            FixedCode = @"
-",
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -100,12 +112,12 @@ public sealed class MultipleBlankLinesTests
     public Task TestThreeBlankLinesAtTopOfEmptyFile()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
+            """,
+            FixedCode = """
 
-
-",
-            FixedCode = @"
-",
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -113,13 +125,12 @@ public sealed class MultipleBlankLinesTests
     public Task TestFourBlankLinesAtTopOfEmptyFile()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
+            """,
+            FixedCode = """
 
-
-
-",
-            FixedCode = @"
-",
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -127,9 +138,11 @@ public sealed class MultipleBlankLinesTests
     public Task TestNoBlankLineAtEndOfFile_1()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-}",
+            TestCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -137,10 +150,11 @@ public sealed class MultipleBlankLinesTests
     public Task TestNoBlankLineAtEndOfFile_2()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-}
-",
+            TestCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -148,11 +162,11 @@ public sealed class MultipleBlankLinesTests
     public Task TestOneBlankLineAtEndOfFile()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-}
-
-",
+            TestCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -160,17 +174,17 @@ public sealed class MultipleBlankLinesTests
     public Task TestTwoBlankLineAtEndOfFile()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-}
-[||]
-
-",
-            FixedCode = @"class C
-{
-}
-
-",
+            TestCode = """
+            class C
+            {
+            }
+            [||]
+            """,
+            FixedCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -178,18 +192,17 @@ public sealed class MultipleBlankLinesTests
     public Task TestThreeBlankLineAtEndOfFile()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-}
-[||]
-
-
-",
-            FixedCode = @"class C
-{
-}
-
-",
+            TestCode = """
+            class C
+            {
+            }
+            [||]
+            """,
+            FixedCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -197,19 +210,17 @@ public sealed class MultipleBlankLinesTests
     public Task TestFourBlankLineAtEndOfFile()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-}
-[||]
-
-
-
-",
-            FixedCode = @"class C
-{
-}
-
-",
+            TestCode = """
+            class C
+            {
+            }
+            [||]
+            """,
+            FixedCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -217,9 +228,11 @@ public sealed class MultipleBlankLinesTests
     public Task TestNoBlankLineBetweenTokens()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-}",
+            TestCode = """
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -227,10 +240,12 @@ public sealed class MultipleBlankLinesTests
     public Task TestOneBlankLineBetweenTokens()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
+            TestCode = """
+            class C
+            {
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -238,15 +253,19 @@ public sealed class MultipleBlankLinesTests
     public Task TestTwoBlankLineBetweenTokens()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-[||]
+            TestCode = """
+            class C
+            {
+            [||]
 
-}",
-            FixedCode = @"class C
-{
+            }
+            """,
+            FixedCode = """
+            class C
+            {
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -254,16 +273,20 @@ public sealed class MultipleBlankLinesTests
     public Task TestThreeBlankLineBetweenTokens()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-[||]
+            TestCode = """
+            class C
+            {
+            [||]
 
 
-}",
-            FixedCode = @"class C
-{
+            }
+            """,
+            FixedCode = """
+            class C
+            {
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -271,17 +294,21 @@ public sealed class MultipleBlankLinesTests
     public Task TestFourBlankLineBetweenTokens()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-[||]
+            TestCode = """
+            class C
+            {
+            [||]
 
 
 
-}",
-            FixedCode = @"class C
-{
+            }
+            """,
+            FixedCode = """
+            class C
+            {
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -289,10 +316,12 @@ public sealed class MultipleBlankLinesTests
     public Task TestNoBlankLineAfterComment()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    // comment
-}",
+            TestCode = """
+            class C
+            {
+                // comment
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -300,11 +329,13 @@ public sealed class MultipleBlankLinesTests
     public Task TestOneBlankLineAfterComment()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    // comment
+            TestCode = """
+            class C
+            {
+                // comment
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -312,17 +343,21 @@ public sealed class MultipleBlankLinesTests
     public Task TestTwoBlankLineAfterComment()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    // comment
-[||]
+            TestCode = """
+            class C
+            {
+                // comment
+            [||]
 
-}",
-            FixedCode = @"class C
-{
-    // comment
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                // comment
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -330,18 +365,22 @@ public sealed class MultipleBlankLinesTests
     public Task TestThreeBlankLineAfterComment()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    // comment
-[||]
+            TestCode = """
+            class C
+            {
+                // comment
+            [||]
 
 
-}",
-            FixedCode = @"class C
-{
-    // comment
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                // comment
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -349,18 +388,22 @@ public sealed class MultipleBlankLinesTests
     public Task TestFourBlankLineAfterComment()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    // comment
-[||]
+            TestCode = """
+            class C
+            {
+                // comment
+            [||]
 
 
-}",
-            FixedCode = @"class C
-{
-    // comment
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                // comment
 
-}",
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -368,10 +411,12 @@ public sealed class MultipleBlankLinesTests
     public Task TestNoBlankLineAfterDirective()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    #nullable enable
-}",
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -380,11 +425,13 @@ public sealed class MultipleBlankLinesTests
     public Task TestOneBlankLineAfterDirective()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    #nullable enable
+            TestCode = """
+            class C
+            {
+                #nullable enable
 
-}",
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -393,17 +440,21 @@ public sealed class MultipleBlankLinesTests
     public Task TestTwoBlankLineAfterDirective()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    #nullable enable
-[||]
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            [||]
 
-}",
-            FixedCode = @"class C
-{
-    #nullable enable
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                #nullable enable
 
-}",
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -412,18 +463,22 @@ public sealed class MultipleBlankLinesTests
     public Task TestThreeBlankLineAfterDirective()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    #nullable enable
-[||]
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            [||]
 
 
-}",
-            FixedCode = @"class C
-{
-    #nullable enable
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                #nullable enable
 
-}",
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -432,18 +487,22 @@ public sealed class MultipleBlankLinesTests
     public Task TestFourBlankLineAfterDirective()
         => new Verify.Test
         {
-            TestCode = @"class C
-{
-    #nullable enable
-[||]
+            TestCode = """
+            class C
+            {
+                #nullable enable
+            [||]
 
 
-}",
-            FixedCode = @"class C
-{
-    #nullable enable
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                #nullable enable
 
-}",
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -452,11 +511,12 @@ public sealed class MultipleBlankLinesTests
     public Task TestNoBlankLineAfterDocComment()
         => new Verify.Test
         {
-            TestCode = @"
-/// <summary/>
-class C
-{
-}",
+            TestCode = """
+            /// <summary/>
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -464,12 +524,13 @@ class C
     public Task TestOneBlankLineAfterDocComment()
         => new Verify.Test
         {
-            TestCode = @"
-/// <summary/>
+            TestCode = """
+            /// <summary/>
 
-class C
-{
-}",
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -477,19 +538,21 @@ class C
     public Task TestTwoBlankLineAfterDocComment()
         => new Verify.Test
         {
-            TestCode = @"
-/// <summary/>
-[||]
+            TestCode = """
+            /// <summary/>
+            [||]
 
-class C
-{
-}",
-            FixedCode = @"
-/// <summary/>
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+            /// <summary/>
 
-class C
-{
-}",
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -497,20 +560,22 @@ class C
     public Task TestThreeBlankLineAfterDocComment()
         => new Verify.Test
         {
-            TestCode = @"
-/// <summary/>
-[||]
+            TestCode = """
+            /// <summary/>
+            [||]
 
 
-class C
-{
-}",
-            FixedCode = @"
-/// <summary/>
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+            /// <summary/>
 
-class C
-{
-}",
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -518,21 +583,23 @@ class C
     public Task TestFourBlankLineAfterDocComment()
         => new Verify.Test
         {
-            TestCode = @"
-/// <summary/>
-[||]
+            TestCode = """
+            /// <summary/>
+            [||]
 
 
 
-class C
-{
-}",
-            FixedCode = @"
-/// <summary/>
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+            /// <summary/>
 
-class C
-{
-}",
+            class C
+            {
+            }
+            """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
 
@@ -540,12 +607,14 @@ class C
     public Task TestNoBlankLineAllConstructs()
         => new Verify.Test
         {
-            TestCode = @"/// <summary/>
-//
-#nullable enable
-class C
-{
-}",
+            TestCode = """
+            /// <summary/>
+            //
+            #nullable enable
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -554,16 +623,17 @@ class C
     public Task TestOneBlankLineAllConstructs()
         => new Verify.Test
         {
-            TestCode = @"
-/// <summary/>
+            TestCode = """
+            /// <summary/>
 
-//
+            //
 
-#nullable enable
+            #nullable enable
 
-class C
-{
-}",
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -572,30 +642,33 @@ class C
     public Task TestTwoBlankLineAllConstructs()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
 
-/// <summary/>
-
-
-//
+            /// <summary/>
 
 
-#nullable enable
+            //
 
 
-class C
-{
-}",
-            FixedCode = @"
-/// <summary/>
+            #nullable enable
 
-//
 
-#nullable enable
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+            /// <summary/>
 
-class C
-{
-}",
+            //
+
+            #nullable enable
+
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -604,34 +677,37 @@ class C
     public Task TestThreeBlankLineAllConstructs()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
 
 
-/// <summary/>
-
-
-
-//
+            /// <summary/>
 
 
 
-#nullable enable
+            //
 
 
 
-class C
-{
-}",
-            FixedCode = @"
-/// <summary/>
+            #nullable enable
 
-//
 
-#nullable enable
 
-class C
-{
-}",
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+            /// <summary/>
+
+            //
+
+            #nullable enable
+
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -640,38 +716,41 @@ class C
     public Task TestFourBlankLineAllConstructs()
         => new Verify.Test
         {
-            TestCode = @"[||]
+            TestCode = """
+            [||]
 
 
 
-/// <summary/>
-
-
-
-
-//
+            /// <summary/>
 
 
 
 
-#nullable enable
+            //
 
 
 
 
-class C
-{
-}",
-            FixedCode = @"
-/// <summary/>
+            #nullable enable
 
-//
 
-#nullable enable
 
-class C
-{
-}",
+
+            class C
+            {
+            }
+            """,
+            FixedCode = """
+            /// <summary/>
+
+            //
+
+            #nullable enable
+
+            class C
+            {
+            }
+            """,
             LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();

@@ -30,21 +30,22 @@ public class CSharpOutlining : AbstractEditorTest
     [IdeFact]
     public async Task Outlining()
     {
-        MarkupTestFile.GetSpans(@"
-using [|System;
-using System.Collections.Generic;
-using System.Text;|]
+        MarkupTestFile.GetSpans("""
+            using [|System;
+            using System.Collections.Generic;
+            using System.Text;|]
 
-namespace ConsoleApplication1[|
-{
-    public class Program[|
-    {
-        public static void Main(string[] args)[|
-        {
-            Console.WriteLine(""Hello World"");
-        }|]
-    }|]
-}|]", out var text, out var spans);
+            namespace ConsoleApplication1[|
+            {
+                public class Program[|
+                {
+                    public static void Main(string[] args)[|
+                    {
+                        Console.WriteLine("Hello World");
+                    }|]
+                }|]
+            }|]
+            """, out var text, out var spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
         var actualSpansWithState = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
         var actualSpans = actualSpansWithState.Select(span => span.Span);
@@ -54,30 +55,31 @@ namespace ConsoleApplication1[|
     [IdeFact]
     public async Task OutliningConfigChange()
     {
-        MarkupTestFile.GetSpans(@"
-namespace ClassLibrary1[|
-{
-    public class Class1[|
-    {
-#if DEBUG
-{|Debug:{|Release:
-        void Goo(){|Debug:
-        {
-        }|}
-        
-        void Goo2(){|Debug:
-        {
-        }|}
-|}|}
-#else
-{|Release:{|Debug:
-        void Bar(){|Release:
-        {
-        }|}
-|}|}
-#endif
-    }|]
-}|]", out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+        MarkupTestFile.GetSpans("""
+            namespace ClassLibrary1[|
+            {
+                public class Class1[|
+                {
+            #if DEBUG
+            {|Debug:{|Release:
+                    void Goo(){|Debug:
+                    {
+                    }|}
+
+                    void Goo2(){|Debug:
+                    {
+                    }|}
+            |}|}
+            #else
+            {|Release:{|Debug:
+                    void Bar(){|Release:
+                    {
+                    }|}
+            |}|}
+            #endif
+                }|]
+            }|]
+            """, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 
         await VerifySpansInConfigurationAsync(spans, "Release", HangMitigatingCancellationToken);

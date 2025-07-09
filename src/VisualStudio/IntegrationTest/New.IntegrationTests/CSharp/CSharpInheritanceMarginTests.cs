@@ -32,14 +32,15 @@ public sealed class CSharpInheritanceMarginTests : AbstractEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Test.cs", HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
-@"
-interface IBar
-{
-}
+            """
+            interface IBar
+            {
+            }
 
-class Implementation : IBar
-{
-}", expectedGlyphsNumberInMargin: 2, HangMitigatingCancellationToken);
+            class Implementation : IBar
+            {
+            }
+            """, expectedGlyphsNumberInMargin: 2, HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.ClickTheGlyphOnLine(2, HangMitigatingCancellationToken);
 
@@ -60,17 +61,18 @@ class Implementation : IBar
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Test.cs", HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
-@"
-using System;
-interface IBar
-{
-    event EventHandler e1, e2;
-}
+            """
+            using System;
+            interface IBar
+            {
+                event EventHandler e1, e2;
+            }
 
-class Implementation : IBar
-{
-    public event EventHandler e1, e2;
-}", expectedGlyphsNumberInMargin: 4, HangMitigatingCancellationToken);
+            class Implementation : IBar
+            {
+                public event EventHandler e1, e2;
+            }
+            """, expectedGlyphsNumberInMargin: 4, HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.ClickTheGlyphOnLine(5, HangMitigatingCancellationToken);
 
@@ -94,16 +96,17 @@ class Implementation : IBar
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Test.cs", HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
-@"
-using System.Collections;
+            """
+            using System.Collections;
 
-class Implementation : IEnumerable
-{
-    public IEnumerator GetEnumerator()
-    {
-        throw new NotImplementedException();
-    }
-}", expectedGlyphsNumberInMargin: 2, HangMitigatingCancellationToken);
+            class Implementation : IEnumerable
+            {
+                public IEnumerator GetEnumerator()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """, expectedGlyphsNumberInMargin: 2, HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
 
@@ -129,23 +132,25 @@ class Implementation : IEnumerable
         var vbProjectName = "TestVBProject";
         await TestServices.SolutionExplorer.AddProjectAsync(
             vbProjectName, WellKnownProjectTemplates.VisualBasicNetStandardClassLibrary, LanguageNames.VisualBasic, cancellationToken: HangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddFileAsync(vbProjectName, "Test.vb", @"
-Namespace MyNs
-    Public Interface IBar
-    End Interface
-End Namespace");
+        await TestServices.SolutionExplorer.AddFileAsync(vbProjectName, "Test.vb", """
+            Namespace MyNs
+                Public Interface IBar
+                End Interface
+            End Namespace
+            """);
 
         await TestServices.SolutionExplorer.AddFileAsync(csharpProjectName, "Test.cs", cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.AddProjectReferenceAsync(csharpProjectName, vbProjectName, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(csharpProjectName, "Test.cs", HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.SetTextAndEnsureGlyphsAppearAsync(
-@"
-using TestVBProject.MyNs;
+            """
+            using TestVBProject.MyNs;
 
-class Implementation : IBar
-{
-}", expectedGlyphsNumberInMargin: 1, HangMitigatingCancellationToken);
+            class Implementation : IBar
+            {
+            }
+            """, expectedGlyphsNumberInMargin: 1, HangMitigatingCancellationToken);
 
         await TestServices.InheritanceMargin.ClickTheGlyphOnLine(4, HangMitigatingCancellationToken);
 

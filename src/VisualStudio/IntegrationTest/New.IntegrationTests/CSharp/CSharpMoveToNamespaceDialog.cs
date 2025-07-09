@@ -25,14 +25,14 @@ public class CSharpMoveToNamespaceDialog : AbstractEditorTest
     public async Task VerifyCancellation()
     {
         await SetUpEditorAsync(
-@"
-namespace A
-{
-    class C$$
-    {
-    }
-}
-", HangMitigatingCancellationToken);
+            """
+            namespace A
+            {
+                class C$$
+                {
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
             applyFix: true,
@@ -44,28 +44,28 @@ namespace A
         await TestServices.MoveToNamespaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync(
-@"
-namespace A
-{
-    class C
-    {
-    }
-}
-", cancellationToken: HangMitigatingCancellationToken);
+            """
+            namespace A
+            {
+                class C
+                {
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task VerifyCancellationWithChange()
     {
         await SetUpEditorAsync(
-@"
-namespace A
-{
-    class C$$
-    {
-    }
-}
-", HangMitigatingCancellationToken);
+            """
+            namespace A
+            {
+                class C$$
+                {
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
             applyFix: true,
@@ -78,28 +78,28 @@ namespace A
         await TestServices.MoveToNamespaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync(
-@"
-namespace A
-{
-    class C
-    {
-    }
-}
-", cancellationToken: HangMitigatingCancellationToken);
+            """
+            namespace A
+            {
+                class C
+                {
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task VerifyOkNoChange()
     {
         await SetUpEditorAsync(
-@"
-namespace A
-{
-    class C$$
-    {
-    }
-}
-", HangMitigatingCancellationToken);
+            """
+            namespace A
+            {
+                class C$$
+                {
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
             applyFix: true,
@@ -111,27 +111,28 @@ namespace A
         await TestServices.MoveToNamespaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync(
-@"
-namespace A
-{
-    class C
-    {
-    }
-}
-", cancellationToken: HangMitigatingCancellationToken);
+            """
+            namespace A
+            {
+                class C
+                {
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task VerifyOkWithChange()
     {
         await SetUpEditorAsync(
-@"namespace A
-{
-    class C$$
-    {
-    }
-}
-", HangMitigatingCancellationToken);
+            """
+            namespace A
+            {
+                class C$$
+                {
+                }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Move to namespace...",
             applyFix: true,
@@ -144,12 +145,13 @@ namespace A
         await TestServices.MoveToNamespaceDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.TextContainsAsync(
-@"namespace B
-{
-    class C
-    {
-    }
-}
-", cancellationToken: HangMitigatingCancellationToken);
+            """
+            namespace B
+            {
+                class C
+                {
+                }
+            }
+            """, cancellationToken: HangMitigatingCancellationToken);
     }
 }

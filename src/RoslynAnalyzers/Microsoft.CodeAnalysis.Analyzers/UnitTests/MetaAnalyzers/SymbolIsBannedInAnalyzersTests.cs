@@ -25,34 +25,35 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
             => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
-                TestCode = @"
-using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+                TestCode = """
+                using System.IO;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer
-{
-}
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer
+                {
+                }
 
-class C
-{
-    void M()
-    {
-        _ = File.Exists(""something"");
-    }
-}
-",
+                class C
+                {
+                    void M()
+                    {
+                        _ = File.Exists("something");
+                    }
+                }
+                """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(15,13): error RS1035: The symbol 'File' is banned for use by analyzers: Do not do file IO in analyzers
                     VerifyCS.Diagnostic("RS1035").WithSpan(15, 13, 15, 37).WithArguments("File", ": Do not do file IO in analyzers"),
                 },
                 TestState = {
-                    AnalyzerConfigFiles = { ("/.editorconfig", $@"root = true
+                    AnalyzerConfigFiles = { ("/.editorconfig", $"""
+                        root = true
 
-[*]
-build_property.EnforceExtendedAnalyzerRules = true
-"), },
+                        [*]
+                        build_property.EnforceExtendedAnalyzerRules = true
+                        """), },
                 }
             }.RunAsync();
 
@@ -61,38 +62,39 @@ build_property.EnforceExtendedAnalyzerRules = true
             => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
-                TestCode = @"
-using System.IO;
-using Microsoft.CodeAnalysis;
+                TestCode = """
+                using System.IO;
+                using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
-{
-    public class GeneratorAttribute : System.Attribute { }
-}
+                namespace Microsoft.CodeAnalysis
+                {
+                    public class GeneratorAttribute : System.Attribute { }
+                }
 
-[Generator]
-class MyAnalyzer
-{
-}
+                [Generator]
+                class MyAnalyzer
+                {
+                }
 
-class C
-{
-    void M()
-    {
-        _ = File.Exists(""something"");
-    }
-}
-",
+                class C
+                {
+                    void M()
+                    {
+                        _ = File.Exists("something");
+                    }
+                }
+                """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(19,13): error RS1035: The symbol 'File' is banned for use by analyzers: Do not do file IO in analyzers
                     VerifyCS.Diagnostic("RS1035").WithSpan(19, 13, 19, 37).WithArguments("File", ": Do not do file IO in analyzers"),
                 },
                 TestState = {
-                    AnalyzerConfigFiles = { ("/.editorconfig", $@"root = true
+                    AnalyzerConfigFiles = { ("/.editorconfig", $"""
+                        root = true
 
-[*]
-build_property.EnforceExtendedAnalyzerRules = true
-"), },
+                        [*]
+                        build_property.EnforceExtendedAnalyzerRules = true
+                        """), },
                 }
             }.RunAsync();
 
@@ -101,24 +103,24 @@ build_property.EnforceExtendedAnalyzerRules = true
             => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
-                TestCode = @"
-using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+                TestCode = """
+                using System.IO;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer
-{
-}
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer
+                {
+                }
 
-class C
-{
-    void M()
-    {
-        _ = File.Exists(""something"");
-    }
-}
-",
+                class C
+                {
+                    void M()
+                    {
+                        _ = File.Exists("something");
+                    }
+                }
+                """,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(7,7): warning RS1036: 'MyAnalyzer': A project containing analyzers or source generators should specify the property '<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>'
                     VerifyCS.Diagnostic("RS1036").WithSpan(7, 7, 7, 17).WithArguments("MyAnalyzer"),
@@ -130,30 +132,31 @@ class C
             => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
-                TestCode = @"
-using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+                TestCode = """
+                using System.IO;
+                using Microsoft.CodeAnalysis;
+                using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-class MyAnalyzer
-{
-}
+                [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                class MyAnalyzer
+                {
+                }
 
-class C
-{
-    void M()
-    {
-        _ = File.Exists(""something"");
-    }
-}
-",
+                class C
+                {
+                    void M()
+                    {
+                        _ = File.Exists("something");
+                    }
+                }
+                """,
                 TestState = {
-                    AnalyzerConfigFiles = { ("/.editorconfig", $@"root = true
+                    AnalyzerConfigFiles = { ("/.editorconfig", $"""
+                        root = true
 
-[*]
-build_property.EnforceExtendedAnalyzerRules = false
-"),
+                        [*]
+                        build_property.EnforceExtendedAnalyzerRules = false
+                        """),
                     },
                 }
             }.RunAsync();
@@ -163,32 +166,33 @@ build_property.EnforceExtendedAnalyzerRules = false
             => new VerifyVB.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest,
-                TestCode = @"
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+                TestCode = """
+                Imports System.IO
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyDiagnosticAnalyzer
-End Class
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyDiagnosticAnalyzer
+                End Class
 
-Class C
-    Function M()
-        File.Exists(""something"")
-    End Function
-End Class
-",
+                Class C
+                    Function M()
+                        File.Exists("something")
+                    End Function
+                End Class
+                """,
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.vb(12,9,12,33): error RS1035: The symbol 'File' is banned for use by analyzers: Do not do file IO in analyzers
                     VerifyVB.Diagnostic("RS1035").WithSpan(12, 9, 12, 33).WithArguments("File", ": Do not do file IO in analyzers"),
                 },
                 TestState = {
-                    AnalyzerConfigFiles = { ("/.editorconfig", $@"root = true
+                    AnalyzerConfigFiles = { ("/.editorconfig", $"""
+                        root = true
 
-[*]
-build_property.EnforceExtendedAnalyzerRules = true
-"),
+                        [*]
+                        build_property.EnforceExtendedAnalyzerRules = true
+                        """),
                     },
                 }
             }.RunAsync();
@@ -198,21 +202,21 @@ build_property.EnforceExtendedAnalyzerRules = true
             => new VerifyVB.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest,
-                TestCode = @"
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+                TestCode = """
+                Imports System.IO
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyDiagnosticAnalyzer
-End Class
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyDiagnosticAnalyzer
+                End Class
 
-Class C
-    Function M()
-        File.Exists(""something"")
-    End Function
-End Class
-",
+                Class C
+                    Function M()
+                        File.Exists("something")
+                    End Function
+                End Class
+                """,
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.vb(7,7): warning RS1036: 'MyDiagnosticAnalyzer': A project containing analyzers or source generators should specify the  property '<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>'
@@ -225,27 +229,28 @@ End Class
             => new VerifyVB.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest,
-                TestCode = @"
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
+                TestCode = """
+                Imports System.IO
+                Imports Microsoft.CodeAnalysis
+                Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-Class MyDiagnosticAnalyzer
-End Class
+                <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+                Class MyDiagnosticAnalyzer
+                End Class
 
-Class C
-    Function M()
-        File.Exists(""something"")
-    End Function
-End Class
-",
+                Class C
+                    Function M()
+                        File.Exists("something")
+                    End Function
+                End Class
+                """,
                 TestState = {
-                    AnalyzerConfigFiles = { ("/.editorconfig", $@"root = true
+                    AnalyzerConfigFiles = { ("/.editorconfig", $"""
+                        root = true
 
-[*]
-build_property.EnforceExtendedAnalyzerRules = false
-"),
+                        [*]
+                        build_property.EnforceExtendedAnalyzerRules = false
+                        """),
                     },
                 }
             }.RunAsync();

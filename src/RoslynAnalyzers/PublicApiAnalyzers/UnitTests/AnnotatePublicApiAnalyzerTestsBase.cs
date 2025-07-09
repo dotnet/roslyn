@@ -80,10 +80,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {{EnabledModifier}} class C<T> where T : class
                 {
                 }
-                """, @"", @"#nullable enable
-C<T>.C() -> void
-C<T>
-");
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public Task NoObliviousWhenAnnotatedClassConstraintAsync()
@@ -92,10 +93,11 @@ C<T>
                 {{EnabledModifier}} class C<T> where T : class?
                 {
                 }
-                """, @"", @"#nullable enable
-C<T>.C() -> void
-C<T>
-");
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                """);
 
         [Fact]
         public async Task NoObliviousWhenAnnotatedClassConstraintMultipleFiles()
@@ -108,12 +110,14 @@ C<T>
                 """;
 
             var shippedText = @"#nullable enable";
-            var unshippedText1 = @"#nullable enable
-C<T>.C() -> void
-";
-            var unshippedText2 = @"#nullable enable
-C<T>
-";
+            var unshippedText1 = """
+                #nullable enable
+                C<T>.C() -> void
+                """;
+            var unshippedText2 = """
+                #nullable enable
+                C<T>
+                """;
 
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, DefaultVerifier>
             {
@@ -141,10 +145,11 @@ C<T>
                     where T : class
                 {
                 }
-                """, @"", @"#nullable enable
-C<T>.C() -> void
-~C<T>
-");
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                ~C<T>
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public Task NoObliviousWhenUnannotatedReferenceTypeConstraintAsync()
@@ -154,12 +159,13 @@ C<T>.C() -> void
                 {{EnabledModifier}} class C<T> where T : D
                 {
                 }
-                """, @"", @"#nullable enable
-C<T>.C() -> void
-C<T>
-D
-D.D() -> void
-");
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                D
+                D.D() -> void
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public Task NoObliviousWhenAnnotatedReferenceTypeConstraintAsync()
@@ -169,12 +175,13 @@ D.D() -> void
                 {{EnabledModifier}} class C<T> where T : D?
                 {
                 }
-                """, @"", @"#nullable enable
-C<T>.C() -> void
-C<T>
-D
-D.D() -> void
-");
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                C<T>
+                D
+                D.D() -> void
+                """);
 
         [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
         public Task ObliviousWhenObliviousReferenceTypeConstraintAsync()
@@ -187,12 +194,13 @@ D.D() -> void
                     where T : D
                 {
                 }
-                """, @"", @"#nullable enable
-C<T>.C() -> void
-~C<T>
-D
-D.D() -> void
-");
+                """, @"", """
+                #nullable enable
+                C<T>.C() -> void
+                ~C<T>
+                D
+                D.D() -> void
+                """);
 
         [Fact]
         public Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NullableAsync()
@@ -202,9 +210,11 @@ D.D() -> void
                 {
                     {{EnabledModifier}} string? {|{{ShouldAnnotateApiFilesId}}:Field|};
                 }
-                """, @"", @"C
-C.C() -> void
-C.Field -> string");
+                """, @"", """
+                C
+                C.C() -> void
+                C.Field -> string
+                """);
 
         [Fact]
         public Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_NonNullableAsync()
@@ -214,9 +224,11 @@ C.Field -> string");
                 {
                     {{EnabledModifier}} string {|{{ShouldAnnotateApiFilesId}}:Field2|};
                 }
-                """, @"", @"C
-C.C() -> void
-C.Field2 -> string");
+                """, @"", """
+                C
+                C.C() -> void
+                C.Field2 -> string
+                """);
 
         [Fact]
         public Task DoNotAnnotateMemberInUnannotatedShippedAPIAsync()
@@ -227,10 +239,12 @@ C.Field2 -> string");
                     {{EnabledModifier}} string? {|{{ShouldAnnotateApiFilesId}}:Field|};
                     {{EnabledModifier}} string {|{{ShouldAnnotateApiFilesId}}:Field2|};
                 }
-                """, @"C
-C.C() -> void
-C.Field -> string
-C.Field2 -> string", @"");
+                """, """
+                C
+                C.C() -> void
+                C.Field -> string
+                C.Field2 -> string
+                """, @"");
 
         [Fact]
         public async Task AnnotatedMemberInAnnotatedShippedAPIAsync()
@@ -244,17 +258,21 @@ C.Field2 -> string", @"");
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string", unshippedText, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!", newUnshippedApiText: unshippedText);
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, unshippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
@@ -269,17 +287,21 @@ C.Field2 -> string!", newUnshippedApiText: unshippedText);
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """, shippedText, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string", shippedText, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!");
+                """, shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """);
         }
 
         [Fact]
@@ -300,21 +322,25 @@ C.Field2 -> string!");
 
             test.TestState.AdditionalFiles.Add((ShippedFileName, shippedText));
             test.TestState.AdditionalFiles.Add((UnshippedFileName, string.Empty));
-            test.TestState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string"));
+            test.TestState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """));
 
             test.FixedState.AdditionalFiles.Add((ShippedFileName, shippedText));
             test.FixedState.AdditionalFiles.Add((UnshippedFileName, string.Empty));
-            test.FixedState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!"));
+            test.FixedState.AdditionalFiles.Add((UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """));
 
             await test.RunAsync();
         }
@@ -331,15 +357,19 @@ C.Field2 -> string!"));
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """, shippedText, @"C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string", newShippedApiText: shippedText, @"C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!");
+                """, shippedText, """
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, newShippedApiText: shippedText, """
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """);
         }
 
         [Fact]
@@ -354,17 +384,21 @@ C.Field2 -> string!");
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field2|};
                 }
-                """, shippedText, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string
-C.Field2 -> string", newShippedApiText: shippedText, @"#nullable enable
-C
-C.C() -> void
-C.OldField -> string?
-C.Field -> string?
-C.Field2 -> string!");
+                """, shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string
+                C.Field2 -> string
+                """, newShippedApiText: shippedText, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.OldField -> string?
+                C.Field -> string?
+                C.Field2 -> string!
+                """);
         }
 
         [Fact]
@@ -377,11 +411,15 @@ C.Field2 -> string!");
                 {
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:ChangedField|};
                 }
-                """, shippedText, @"C
-C.C() -> void
-C.ChangedField -> string", newShippedApiText: shippedText, @"C
-C.C() -> void
-C.ChangedField -> string?");
+                """, shippedText, """
+                C
+                C.C() -> void
+                C.ChangedField -> string
+                """, newShippedApiText: shippedText, """
+                C
+                C.C() -> void
+                C.ChangedField -> string?
+                """);
         }
 
         [Fact]
@@ -393,11 +431,15 @@ C.ChangedField -> string?");
                 {
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:{|{{ObliviousApiId}}:Field|}|}; // oblivious
                 }
-                """, shippedText, @"C
-C.C() -> void
-C.Field -> string", newShippedApiText: shippedText, @"C
-C.C() -> void
-~C.Field -> string");
+                """, shippedText, """
+                C
+                C.C() -> void
+                C.Field -> string
+                """, newShippedApiText: shippedText, """
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """);
         }
 
         [Fact]
@@ -409,13 +451,17 @@ C.C() -> void
                 {
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:{|{{ObliviousApiId}}:Field|}|}; // oblivious
                 }
-                """, $@"#nullable enable
-C
-C.C() -> void
-C.Field -> string", unshippedText, $@"#nullable enable
-C
-C.C() -> void
-~C.Field -> string", newUnshippedApiText: unshippedText);
+                """, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string
+                """, unshippedText, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
@@ -428,13 +474,17 @@ C.C() -> void
                 {
                     {{EnabledModifier}} string? {|{{AnnotateApiId}}:Field|};
                 }
-                """, $@"#nullable enable
-C
-C.C() -> void
-~C.Field -> string", unshippedText, $@"#nullable enable
-C
-C.C() -> void
-C.Field -> string?", newUnshippedApiText: unshippedText);
+                """, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """, unshippedText, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string?
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
@@ -447,13 +497,17 @@ C.Field -> string?", newUnshippedApiText: unshippedText);
                 {
                     {{EnabledModifier}} string {|{{AnnotateApiId}}:Field|};
                 }
-                """, $@"#nullable enable
-C
-C.C() -> void
-~C.Field -> string", unshippedText, $@"#nullable enable
-C
-C.C() -> void
-C.Field -> string!", newUnshippedApiText: unshippedText);
+                """, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                ~C.Field -> string
+                """, unshippedText, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string!
+                """, newUnshippedApiText: unshippedText);
         }
 
         #endregion

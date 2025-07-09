@@ -634,10 +634,11 @@ public sealed class InKeywordRecommenderTests : KeywordRecommenderTests
     [InlineData("ref")]
     [InlineData("ref readonly")]
     public Task TestNotInFunctionPointerTypeExistingModifiers(string modifier)
-        => VerifyAbsenceAsync($@"
-class C
-{{
-    delegate*<{modifier} $$");
+        => VerifyAbsenceAsync($$"""
+            class C
+            {
+                delegate*<{{modifier}} $$
+            """);
 
     [Fact]
     public Task TestInParameterAfterScoped()

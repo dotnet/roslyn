@@ -18,20 +18,21 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 [Trait(Traits.Feature, Traits.Features.NavigationBar)]
 public class CSharpNavigationBar : AbstractEditorTest
 {
-    private const string TestSource = @"
-class C
-{
-    public void M(int i) { }
-    private C $$this[int index] { get { return null; } set { } }
-    public static bool operator ==(C c1, C c2) { return true; }
-    public static bool operator !=(C c1, C c2) { return false; }
-}
+    private const string TestSource = """
+        class C
+        {
+            public void M(int i) { }
+            private C $$this[int index] { get { return null; } set { } }
+            public static bool operator ==(C c1, C c2) { return true; }
+            public static bool operator !=(C c1, C c2) { return false; }
+        }
 
-struct S
-{
-    int Goo() { }
-    void Bar() { }
-}";
+        struct S
+        {
+            int Goo() { }
+            void Bar() { }
+        }
+        """;
 
     protected override string LanguageName => LanguageNames.CSharp;
 
@@ -80,12 +81,13 @@ struct S
     [IdeFact]
     public async Task VerifyNavBar3()
     {
-        await SetUpEditorAsync(@"
-struct S$$
-{
-    int Goo() { }
-    void Bar() { }
-}", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            struct S$$
+            {
+                int Goo() { }
+                void Bar() { }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Editor.ExpandNavigationBarAsync(NavigationBarDropdownKind.Member, HangMitigatingCancellationToken);
         var expectedItems = new[]
         {
@@ -103,18 +105,19 @@ struct S$$
     [IdeFact]
     public async Task TestSplitWindow()
     {
-        await TestServices.Editor.SetTextAsync(@"
-class C
-{
-    public void M(int i) { }
-    private C this[int index] { get { return null; } set { } }
-}
+        await TestServices.Editor.SetTextAsync("""
+            class C
+            {
+                public void M(int i) { }
+                private C this[int index] { get { return null; } set { } }
+            }
 
-struct S
-{
-    int Goo() { }
-    void Bar() { }
-}", HangMitigatingCancellationToken);
+            struct S
+            {
+                int Goo() { }
+                void Bar() { }
+            }
+            """, HangMitigatingCancellationToken);
         await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.Split, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("this", charsOffset: 1, HangMitigatingCancellationToken);
         Assert.Equal("C", await TestServices.Editor.GetNavigationBarSelectionAsync(NavigationBarDropdownKind.Type, HangMitigatingCancellationToken));

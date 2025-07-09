@@ -471,18 +471,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     {EnabledModifierVB} Property Property1 As Integer
                 End Class
 
-                """, @"
-C
-C.New() -> Void
-C.Property() -> Integer
-C.Property(AutoPropertyValue As Integer) -> Void
-C.Property1() -> Integer
-C.Property1(AutoPropertyValue As Integer) -> Void
-C.ReadOnlyProperty0() -> Integer
-C.ReadOnlyProperty1() -> Integer
-C.ReadOnlyProperty2() -> Integer
-C.WriteOnlyProperty0(Value As Integer) -> Void
-", @"");
+                """, """
+                C
+                C.New() -> Void
+                C.Property() -> Integer
+                C.Property(AutoPropertyValue As Integer) -> Void
+                C.Property1() -> Integer
+                C.Property1(AutoPropertyValue As Integer) -> Void
+                C.ReadOnlyProperty0() -> Integer
+                C.ReadOnlyProperty1() -> Integer
+                C.ReadOnlyProperty2() -> Integer
+                C.WriteOnlyProperty0(Value As Integer) -> Void
+                """, @"");
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
         public Task ShippedTextWithImplicitConstructorAsync()
@@ -492,9 +492,10 @@ C.WriteOnlyProperty0(Value As Integer) -> Void
                 {
                     private C() { }
                 }
-                """, @"
-C
-C -> void()", @"",
+                """, """
+                C
+                C -> void()
+                """, @"",
                 // PublicAPI.Shipped.txt(3,1): warning RS0017: Symbol 'C -> void()' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(3, 1, ShippedFileName, RemoveDeletedApiRule, "C -> void()"));
 
@@ -505,9 +506,10 @@ C -> void()", @"",
                 {{EnabledModifierCSharp}} class C
                 {
                 }
-                """, @"
-C
-C.C() -> void", @"");
+                """, """
+                C
+                C.C() -> void
+                """, @"");
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
         public Task UnshippedTextForImplicitConstructorAsync()
@@ -516,9 +518,11 @@ C.C() -> void", @"");
                 {{EnabledModifierCSharp}} class C
                 {
                 }
-                """, @"
-C", @"
-C.C() -> void");
+                """, """
+                C
+                """, """
+                C.C() -> void
+                """);
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
         public Task ShippedTextWithMissingImplicitConstructorAsync()
@@ -527,8 +531,9 @@ C.C() -> void");
                 {{EnabledModifierCSharp}} class C
                 {
                 }
-                """, @"
-C", @"",
+                """, """
+                C
+                """, @"",
                 // Test0.cs(2,14): warning RS0016: Symbol 'C.C() -> void' is not part of the declared API.
                 GetCSharpResultAt(2, 8 + EnabledModifierCSharp.Length, DeclareNewApiRule, "C.C() -> void"));
 
@@ -540,9 +545,10 @@ C", @"",
                 {
                     private C() { }
                 }
-                """, @"
-C
-C.C() -> void", @"",
+                """, """
+                C
+                C.C() -> void
+                """, @"",
                 // PublicAPI.Shipped.txt(3,1): warning RS0017: Symbol 'C.C() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(3, 1, ShippedFileName, RemoveDeletedApiRule, "C.C() -> void"));
 
@@ -557,14 +563,14 @@ C.C() -> void", @"",
                     {{EnabledModifierCSharp}} void Method() { } 
                 }
 
-                """, @"
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-C.Method() -> void
-", @"");
+                """, """
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                C.Method() -> void
+                """, @"");
 
         [Fact]
         public Task SplitBetweenShippedUnshippedAsync()
@@ -576,15 +582,15 @@ C.Method() -> void
                     {{EnabledModifierCSharp}} int Property { get; set; }
                     {{EnabledModifierCSharp}} void Method() { } 
                 }
-                """, @"
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-", @"
-C.Method() -> void
-");
+                """, """
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                """, """
+                C.Method() -> void
+                """);
 
         [Fact]
         public Task EnumSplitBetweenFilesAsync()
@@ -597,13 +603,13 @@ C.Method() -> void
                     V3 = 3,
                 }
 
-                """, @"
-E
-E.V1 = 1 -> E
-E.V2 = 2 -> E
-", @"
-E.V3 = 3 -> E
-");
+                """, """
+                E
+                E.V1 = 1 -> E
+                E.V2 = 2 -> E
+                """, """
+                E.V3 = 3 -> E
+                """);
 
         [Fact]
         public Task SimpleRemovedMemberAsync()
@@ -614,16 +620,16 @@ E.V3 = 3 -> E
                     public int Field;
                     public int Property { get; set; }
                 }
-                """, @"
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-C.Method() -> void
-", $@"
-{DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
-");
+                """, """
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                C.Method() -> void
+                """, $"""
+                {DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+                """);
 
         [Theory]
         [CombinatorialData]
@@ -640,23 +646,24 @@ C.Method() -> void
                 }
                 """;
 
-            var shippedText = @"
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-";
+            var shippedText = """
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                """;
 
             if (includeInShipped)
             {
-                shippedText += @"C.Method() -> void
-";
+                shippedText += """
+                    C.Method() -> void
+                    """;
             }
 
-            string unshippedText = $@"
-{DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
-";
+            string unshippedText = $"""
+                {DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+                """;
 
             var diagnostics = new[] {
                 // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
@@ -687,13 +694,13 @@ C.Property.set -> void
                     {{EnabledModifierCSharp}} int Field;
                     {{EnabledModifierCSharp}} int Property { get; set; }
                 }
-                """, $@"
-C
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-{DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
-", $@"", expected);
+                """, $"""
+                C
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                {DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+                """, $@"", expected);
         }
 
         [Fact]
@@ -716,13 +723,13 @@ C.Property.set -> void
                     {{EnabledModifierCSharp}} int Field;
                     {{EnabledModifierCSharp}} int Property { get; set; }
                 }
-                """, @"
-C
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-C.Property.get -> int
-", @"", expected);
+                """, """
+                C
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                C.Property.get -> int
+                """, @"", expected);
         }
 
         [Fact]
@@ -746,14 +753,15 @@ C.Property.get -> int
                     {{EnabledModifierCSharp}} int Property { get; set; }
                 }
 
-                """, @"
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-", @"
-C.Property.get -> int", expected);
+                """, """
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                """, """
+                C.Property.get -> int
+                """, expected);
         }
 
         [Fact]
@@ -807,13 +815,14 @@ C.Property.get -> int", expected);
                     {{EnabledModifierCSharp}} int Field;
                     {{EnabledModifierCSharp}} int Property { get; set; }
                 }
-                """, @"#nullable enable
-C
-C.C() -> void
-C.Field -> int
-~C.Property.get -> int
-C.Property.set -> void
-", $$"""
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> int
+                ~C.Property.get -> int
+                C.Property.set -> void
+                """, $$"""
                 #nullable enable
                 {|{{DuplicatedSymbolInApiFileId}}:C.Property.get -> int|}
                 """);
@@ -829,13 +838,14 @@ C.Property.set -> void
                     {{EnabledModifierCSharp}} int Property { get; set; }
                 }
 
-                """, @"#nullable enable
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-", $$"""
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                """, $$"""
                 #nullable enable
                 {|{{DuplicatedSymbolInApiFileId}}:~C.Property.get -> int|}
                 {|{{DuplicatedSymbolInApiFileId}}:C.Property.get -> int|}
@@ -853,14 +863,14 @@ C.Property.set -> void
                     private void Method() { }
                 }
 
-                """, $@"
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-C.Method() -> void
-", $@"",
+                """, $"""
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                C.Method() -> void
+                """, $@"",
                 // PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, ShippedFileName, RemoveDeletedApiRule, "C.Method() -> void"));
 
@@ -881,14 +891,14 @@ C.Method() -> void
                     {{EnabledModifierCSharp}} int Property { get; set; }
                     private void Method() { }
                 }
-                """, $@"
-C
-C.C() -> void
-C.Field -> int
-C.Property.get -> int
-C.Property.set -> void
-C.Method() -> void
-", $@"", shippedFilePath, unshippedFilePath,
+                """, $"""
+                C
+                C.C() -> void
+                C.Field -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                C.Method() -> void
+                """, $@"", shippedFilePath, unshippedFilePath,
                 // <%TEMP_PATH%>\PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, shippedFilePath, RemoveDeletedApiRule, "C.Method() -> void"));
         }
@@ -907,17 +917,17 @@ C.Method() -> void
 #else
 #endif
 
-            await VerifyCSharpAsync(@"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
-", $@"
-System.StringComparison (forwarded, contained in {containingAssembly})
-System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in {containingAssembly})
-System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in {containingAssembly})
-System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forwarded, contained in {containingAssembly})
-System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in {containingAssembly})
-System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in {containingAssembly})
-System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in {containingAssembly})
-", $@"");
+            await VerifyCSharpAsync("""
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
+                """, $"""
+                System.StringComparison (forwarded, contained in {containingAssembly})
+                System.StringComparison.CurrentCulture = 0 -> System.StringComparison (forwarded, contained in {containingAssembly})
+                System.StringComparison.CurrentCultureIgnoreCase = 1 -> System.StringComparison (forwarded, contained in {containingAssembly})
+                System.StringComparison.InvariantCulture = 2 -> System.StringComparison (forwarded, contained in {containingAssembly})
+                System.StringComparison.InvariantCultureIgnoreCase = 3 -> System.StringComparison (forwarded, contained in {containingAssembly})
+                System.StringComparison.Ordinal = 4 -> System.StringComparison (forwarded, contained in {containingAssembly})
+                System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwarded, contained in {containingAssembly})
+                """, $@"");
         }
 
         [Fact]
@@ -937,37 +947,37 @@ System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwar
             const string NonNullSuffix = "";
             const string NullableSuffix = "";
 #endif
-            string shippedText = $@"
-System.StringComparer (forwarded, contained in {containingAssembly})
-static System.StringComparer.InvariantCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-static System.StringComparer.CurrentCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-static System.StringComparer.Ordinal.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, bool ignoreCase) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-System.StringComparer.Compare(object{NullableSuffix} x, object{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
-System.StringComparer.Equals(object{NullableSuffix} x, object{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
-System.StringComparer.GetHashCode(object{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
-abstract System.StringComparer.Compare(string{NullableSuffix} x, string{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
-abstract System.StringComparer.Equals(string{NullableSuffix} x, string{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
-abstract System.StringComparer.GetHashCode(string{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
-System.StringComparer.StringComparer() -> void (forwarded, contained in {containingAssembly})
-";
+            string shippedText = $"""
+                System.StringComparer (forwarded, contained in {containingAssembly})
+                static System.StringComparer.InvariantCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                static System.StringComparer.InvariantCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                static System.StringComparer.CurrentCulture.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                static System.StringComparer.CurrentCultureIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                static System.StringComparer.Ordinal.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                static System.StringComparer.OrdinalIgnoreCase.get -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, bool ignoreCase) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                System.StringComparer.Compare(object{NullableSuffix} x, object{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
+                System.StringComparer.Equals(object{NullableSuffix} x, object{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
+                System.StringComparer.GetHashCode(object{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
+                abstract System.StringComparer.Compare(string{NullableSuffix} x, string{NullableSuffix} y) -> int (forwarded, contained in {containingAssembly})
+                abstract System.StringComparer.Equals(string{NullableSuffix} x, string{NullableSuffix} y) -> bool (forwarded, contained in {containingAssembly})
+                abstract System.StringComparer.GetHashCode(string{NonNullSuffix} obj) -> int (forwarded, contained in {containingAssembly})
+                System.StringComparer.StringComparer() -> void (forwarded, contained in {containingAssembly})
+                """;
 
 #if NETCOREAPP
-            shippedText = $@"
-#nullable enable
-{shippedText}
-static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, System.Globalization.CompareOptions options) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-static System.StringComparer.FromComparison(System.StringComparison comparisonType) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
-";
+            shippedText = $"""
+                #nullable enable
+                {shippedText}
+                static System.StringComparer.Create(System.Globalization.CultureInfo{NonNullSuffix} culture, System.Globalization.CompareOptions options) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                static System.StringComparer.FromComparison(System.StringComparison comparisonType) -> System.StringComparer{NonNullSuffix} (forwarded, contained in {containingAssembly})
+                """;
 
 #endif
 
-            await VerifyCSharpAsync(@"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
-", shippedText, $@"");
+            await VerifyCSharpAsync("""
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
+                """, shippedText, $@"");
         }
 
         [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
@@ -984,9 +994,9 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             var containingAssembly = "mscorlib";
 #endif
 
-            await VerifyCSharpAsync(@"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
-", "", "",
+            await VerifyCSharpAsync("""
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
+                """, "", "",
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<T> (forwarded, contained in System.Runtime)' is not part of the declared API
                 GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<T> (forwarded, contained in {containingAssembly})"),
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<T>.GetEnumerator() -> System.Collections.Generic.IEnumerator<T> (forwarded, contained in System.Runtime)' is not part of the declared API
@@ -1012,9 +1022,9 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
             var containingAssembly = "mscorlib";
 #endif
 
-            await VerifyCSharpAsync(@"
-[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<string>))]
-", "", "",
+            await VerifyCSharpAsync("""
+                [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<string>))]
+                """, "", "",
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<string> (forwarded, contained in System.Runtime)' is not part of the declared API
                 GetCSharpResultAt(2, 12, DeclareNewApiRule, $"System.Collections.Generic.IEnumerable<string> (forwarded, contained in {containingAssembly})"),
                 // /0/Test0.cs(2,12): warning RS0016: Symbol 'System.Collections.Generic.IEnumerable<string>.GetEnumerator() -> System.Collections.Generic.IEnumerator<string> (forwarded, contained in System.Runtime)' is not part of the declared API
@@ -1224,13 +1234,13 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
                     [Obsolete]
                     {{EnabledModifierCSharp}} void M(char p1, int p2) { }
                 }
-                """, shippedText, @"
-C
-C.C() -> void
+                """, shippedText, """
+                C
+                C.C() -> void
 
-C.M(char p1, int p2) -> void
-C.M(int p1 = 0) -> void
-");
+                C.M(char p1, int p2) -> void
+                C.M(int p1 = 0) -> void
+                """);
         }
 
         [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
@@ -1246,9 +1256,11 @@ C.M(int p1 = 0) -> void
                     [Obsolete]
                     {{EnabledModifierCSharp}} void M(char p1 = '0') { }
                 }
-                """, @"C
-C.C() -> void
-C.M(char p1 = '0') -> void", "C.M(int p1 = 0) -> void");
+                """, """
+                C
+                C.C() -> void
+                C.M(char p1 = '0') -> void
+                """, "C.M(int p1 = 0) -> void");
 
         [Fact]
         public Task ObliviousMember_SimpleAsync()
@@ -1261,14 +1273,16 @@ C.M(char p1 = '0') -> void", "C.M(int p1 = 0) -> void");
                     {{EnabledModifierCSharp}} string Method(string x) => throw null!;
                     {{EnabledModifierCSharp}} string ArrowExpressionProperty => throw null!;
                 }
-                """, @"#nullable enable
-C
-C.ArrowExpressionProperty.get -> string
-C.C() -> void
-C.Field -> string
-C.Method(string x) -> string
-C.Property.get -> string
-C.Property.set -> void", @"",
+                """, """
+                #nullable enable
+                C
+                C.ArrowExpressionProperty.get -> string
+                C.C() -> void
+                C.Field -> string
+                C.Method(string x) -> string
+                C.Property.get -> string
+                C.Property.set -> void
+                """, @"",
                 GetCSharpResultAt(4, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.Field -> string"),
                 GetCSharpResultAt(4, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "Field"),
                 GetCSharpResultAt(5, 24 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.Property.get -> string"),
@@ -1335,23 +1349,25 @@ C.Property.set -> void", @"",
                 }
                 {{EnabledModifierCSharp}} class D<T> { public class E<T> { } }
 
-                """, @"#nullable enable
-C
-~C.ArrowExpressionProperty.get -> string
-C.C() -> void
-~C.Field -> string
-~C.Field2 -> D<string>!
-~C.Method(string x) -> void
-~C.Method2() -> string
-~C.Property.get -> string
-~C.Property.set -> void
-~C.Method3() -> D<string!>.E<string>!
-~C.this[string x].set -> void
-~C.this[string x].get -> string
-D<T>
-D<T>.D() -> void
-D<T>.E<T>
-D<T>.E<T>.E() -> void", @"",
+                """, """
+                #nullable enable
+                C
+                ~C.ArrowExpressionProperty.get -> string
+                C.C() -> void
+                ~C.Field -> string
+                ~C.Field2 -> D<string>!
+                ~C.Method(string x) -> void
+                ~C.Method2() -> string
+                ~C.Property.get -> string
+                ~C.Property.set -> void
+                ~C.Method3() -> D<string!>.E<string>!
+                ~C.this[string x].set -> void
+                ~C.this[string x].get -> string
+                D<T>
+                D<T>.D() -> void
+                D<T>.E<T>
+                D<T>.E<T>.E() -> void
+                """, @"",
                 GetCSharpResultAt(4, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "Field"),
                 GetCSharpResultAt(7, 11, ObliviousApiRule, "Field2"),
                 GetCSharpResultAt(9, 24 + EnabledModifierCSharp.Length, ObliviousApiRule, "Property.get"),
@@ -1379,19 +1395,20 @@ D<T>.E<T>.E() -> void", @"",
                 }
                 {{EnabledModifierCSharp}} class D<T> where T : class { }
                 {{EnabledModifierCSharp}} class E { public class F<T> where T : class { } }
-                """, @"#nullable enable
-C
-C.C() -> void
-~C.M<T>(T t) -> void
-C.M2<T>(T! t) -> void
-C.M3<T>(T t) -> void
-~D<T>
-D<T>.D() -> void
-E
-E.E() -> void
-~E.F<T>
-E.F<T>.F() -> void
-", @"",
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                ~C.M<T>(T t) -> void
+                C.M2<T>(T! t) -> void
+                C.M3<T>(T t) -> void
+                ~D<T>
+                D<T>.D() -> void
+                E
+                E.E() -> void
+                ~E.F<T>
+                E.F<T>.F() -> void
+                """, @"",
                 GetCSharpResultAt(4, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M<T>"),
                 GetCSharpResultAt(11, 8 + EnabledModifierCSharp.Length, ObliviousApiRule, "D<T>"),
                 GetCSharpResultAt(12, 25 + EnabledModifierCSharp.Length, ObliviousApiRule, "F<T>")
@@ -1409,12 +1426,13 @@ E.F<T>.F() -> void
                     {{EnabledModifierCSharp}} void M2<T>(T t) where T : notnull { }
                 #nullable disable
                 }
-                """, @"#nullable enable
-C
-C.C() -> void
-C.M<T>(T t) -> void
-C.M2<T>(T t) -> void
-", @"");
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.M<T>(T t) -> void
+                C.M2<T>(T t) -> void
+                """, @"");
 
         [Fact]
         public Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraintsAsync()
@@ -1433,17 +1451,18 @@ C.M2<T>(T t) -> void
                     {{EnabledModifierCSharp}} void M3b<T, U>() where T : U where U : class { }
                 #nullable disable
                 }
-                """, @"#nullable enable
-I
-C
-C.C() -> void
-~C.M1<T>() -> void
-~C.M2<T>() -> void
-~C.M3<T, U>() -> void
-C.M1b<T>() -> void
-C.M2b<T>() -> void
-C.M3b<T, U>() -> void
-", @"",
+                """, """
+                #nullable enable
+                I
+                C
+                C.C() -> void
+                ~C.M1<T>() -> void
+                ~C.M2<T>() -> void
+                ~C.M3<T, U>() -> void
+                C.M1b<T>() -> void
+                C.M2b<T>() -> void
+                C.M3b<T, U>() -> void
+                """, @"",
                 GetCSharpResultAt(5, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M1<T>"),
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M2<T>"),
                 GetCSharpResultAt(7, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M3<T, U>")
@@ -1465,12 +1484,13 @@ C.M3b<T, U>() -> void
                 #nullable disable
                 }
 
-                """, @"#nullable enable
-I<T>
-C
-C.C() -> void
-~C.M1<T>() -> void
-", @"",
+                """, """
+                #nullable enable
+                I<T>
+                C
+                C.C() -> void
+                ~C.M1<T>() -> void
+                """, @"",
                 GetCSharpResultAt(6, 11 + EnabledModifierCSharp.Length, ObliviousApiRule, "M1<T>")
                 );
 
@@ -1486,12 +1506,14 @@ C.C() -> void
                         Some
                     }
                 }
-                """, @"#nullable enable
-C
-C.C() -> void
-C.E
-C.E.None = 0 -> C.E
-C.E.Some = 1 -> C.E", @"");
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.E
+                C.E.None = 0 -> C.E
+                C.E.Some = 1 -> C.E
+                """, @"");
 
         [Fact]
         public Task NestedEnumIsNotObliviousAsync()
@@ -1506,12 +1528,14 @@ C.E.Some = 1 -> C.E", @"");
                         Some
                     }
                 }
-                """, @"#nullable enable
-C
-C.C() -> void
-C.E
-C.E.None = 0 -> C.E
-C.E.Some = 1 -> C.E", @"");
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.E
+                C.E.None = 0 -> C.E
+                C.E.Some = 1 -> C.E
+                """, @"");
 
         [Fact]
         public Task ObliviousTypeArgumentInContainingTypeAsync()
@@ -1528,12 +1552,14 @@ C.E.Some = 1 -> C.E", @"");
                 #nullable enable
                             >.Nested field;
                 }
-                """, @"#nullable enable
-C<T>
-C<T>.C() -> void
-C<T>.Nested
-C<T>.Nested.Nested() -> void
-~C<T>.field -> C<string>.Nested", @"",
+                """, """
+                #nullable enable
+                C<T>
+                C<T>.C() -> void
+                C<T>.Nested
+                C<T>.Nested.Nested() -> void
+                ~C<T>.field -> C<string>.Nested
+                """, @"",
                 GetCSharpResultAt(11, 22, ObliviousApiRule, "field")
                 );
 
@@ -1550,13 +1576,15 @@ C<T>.Nested.Nested() -> void
                     {{EnabledModifierCSharp}} C<T>.Nested field2;
                 }
 
-                """, @"#nullable enable
-C<T>
-C<T>.C() -> void
-C<T>.Nested
-C<T>.Nested.Nested() -> void
-~C<T>.field -> C<T>.Nested
-C<T>.field2 -> C<T!>.Nested", @"",
+                """, """
+                #nullable enable
+                C<T>
+                C<T>.C() -> void
+                C<T>.Nested
+                C<T>.Nested.Nested() -> void
+                ~C<T>.field -> C<T>.Nested
+                C<T>.field2 -> C<T!>.Nested
+                """, @"",
                 // /0/Test0.cs(7,19): warning RS0041: Symbol 'field' uses some oblivious reference types.
                 GetCSharpResultAt(7, 13 + EnabledModifierCSharp.Length, ObliviousApiRule, "field")
                 );
@@ -1573,13 +1601,15 @@ C<T>.field2 -> C<T!>.Nested", @"",
                     {{EnabledModifierCSharp}} Nested field;
                     {{EnabledModifierCSharp}} Nested field2;
                 }
-                """, @"#nullable enable
-C<T>
-C<T>.C() -> void
-C<T>.Nested
-C<T>.Nested.Nested() -> void
-C<T>.field -> C<T>.Nested
-C<T>.field2 -> C<T>.Nested", @"");
+                """, """
+                #nullable enable
+                C<T>
+                C<T>.C() -> void
+                C<T>.Nested
+                C<T>.Nested.Nested() -> void
+                C<T>.field -> C<T>.Nested
+                C<T>.field2 -> C<T>.Nested
+                """, @"");
 
         [Fact]
         public async Task SkippedNamespace_ExactMatches()
@@ -1744,8 +1774,9 @@ C<T>.field2 -> C<T>.Nested", @"");
                 {{EnabledModifierCSharp}} struct {|{{AddNewApiId}}:C|}
                 {
                 }
-                """, @"
-C", unshippedText, "C.C() -> void");
+                """, """
+                C
+                """, unshippedText, "C.C() -> void");
         }
 
         [Fact]
@@ -1757,8 +1788,9 @@ C", unshippedText, "C.C() -> void");
                 {
                     private C(string x) {}
                 }
-                """, @"
-C", unshippedText, "C.C() -> void");
+                """, """
+                C
+                """, unshippedText, "C.C() -> void");
         }
 
         [Fact]
@@ -1772,9 +1804,10 @@ C", unshippedText, "C.C() -> void");
                     {
                     }
                 }
-                """, @"
-C
-C.C(int value) -> void", unshippedText, "C.C() -> void");
+                """, """
+                C
+                C.C(int value) -> void
+                """, unshippedText, "C.C() -> void");
         }
 
         [Fact]
@@ -1803,20 +1836,24 @@ C.C(int value) -> void", unshippedText, "C.C() -> void");
 
                     {{EnabledModifierCSharp}} int {|{{AddNewApiId}}:NewField|}; // Newly added field, not in current public API.
                 }
-                """, @"", @"C
-C.ArrowExpressionProperty.get -> int
-C.C() -> void
-C.Field -> int
-C.Method() -> void
-C.Property.get -> int
-C.Property.set -> void", @"C
-C.ArrowExpressionProperty.get -> int
-C.C() -> void
-C.Field -> int
-C.Method() -> void
-C.NewField -> int
-C.Property.get -> int
-C.Property.set -> void");
+                """, @"", """
+                C
+                C.ArrowExpressionProperty.get -> int
+                C.C() -> void
+                C.Field -> int
+                C.Method() -> void
+                C.Property.get -> int
+                C.Property.set -> void
+                """, """
+                C
+                C.ArrowExpressionProperty.get -> int
+                C.C() -> void
+                C.Field -> int
+                C.Method() -> void
+                C.NewField -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                """);
 
         [Theory]
         [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
@@ -1852,10 +1889,14 @@ C.Property.set -> void");
                 {
                     {{EnabledModifierCSharp}} string? {|{{ShouldAnnotateApiFilesId}}:{|{{AddNewApiId}}:NewField|}|}; // Newly added field, not in current public API.
                 }
-                """, @"", @"C
-C.C() -> void", @"C
-C.C() -> void
-C.NewField -> string");
+                """, @"", """
+                C
+                C.C() -> void
+                """, """
+                C
+                C.C() -> void
+                C.NewField -> string
+                """);
 
         [InlineData(0)]
         [InlineData(1)]
@@ -1863,8 +1904,10 @@ C.NewField -> string");
         public async Task TestSimpleMissingMember_Fix_WithoutNullability_MultipleFilesAsync(int index)
         {
             var shippedText = @"";
-            var unshippedText1 = @"C
-C.C() -> void";
+            var unshippedText1 = """
+                C
+                C.C() -> void
+                """;
             var unshippedText2 = @"";
             var unshippedTextName2 = UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension;
 
@@ -1886,9 +1929,11 @@ C.C() -> void";
 
             if (index == 0)
             {
-                test.FixedState.AdditionalFiles.Add((UnshippedFileName, @"C
-C.C() -> void
-C.NewField -> string"));
+                test.FixedState.AdditionalFiles.Add((UnshippedFileName, """
+                    C
+                    C.C() -> void
+                    C.NewField -> string
+                    """));
                 test.FixedState.AdditionalFiles.Add((unshippedTextName2, unshippedText2));
             }
             else if (index == 1)
@@ -1912,10 +1957,14 @@ C.NewField -> string"));
                 {
                     {{EnabledModifierCSharp}} string? {|{{AddNewApiId}}:NewField|}; // Newly added field, not in current public API.
                 }
-                """, $@"#nullable enable", @"C
-C.C() -> void", @"C
-C.C() -> void
-C.NewField -> string?");
+                """, $@"#nullable enable", """
+                C
+                C.C() -> void
+                """, """
+                C
+                C.C() -> void
+                C.NewField -> string?
+                """);
 
         [Fact]
         public Task TestSimpleMissingMember_Fix_WithNullability2Async()
@@ -1926,12 +1975,16 @@ C.NewField -> string?");
                     {{EnabledModifierCSharp}} string? OldField;
                     {{EnabledModifierCSharp}} string? {|{{AddNewApiId}}:NewField|}; // Newly added field, not in current public API.
                 }
-                """, $@"#nullable enable", @"C
-C.C() -> void
-C.OldField -> string?", @"C
-C.C() -> void
-C.NewField -> string?
-C.OldField -> string?");
+                """, $@"#nullable enable", """
+                C
+                C.C() -> void
+                C.OldField -> string?
+                """, """
+                C
+                C.C() -> void
+                C.NewField -> string?
+                C.OldField -> string?
+                """);
 
         [Fact]
         public Task TestSimpleMissingMember_Fix_WithNullability3Async()
@@ -1942,11 +1995,13 @@ C.OldField -> string?");
                     {{EnabledModifierCSharp}} string? OldField;
                     {{EnabledModifierCSharp}} string? NewField;
                 }
-                """, $@"#nullable enable
-C
-C.C() -> void
-C.NewField -> string?
-C.OldField -> string?", "");
+                """, $"""
+                #nullable enable
+                C
+                C.C() -> void
+                C.NewField -> string?
+                C.OldField -> string?
+                """, "");
 
         [Fact]
         public Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullabilityAsync()
@@ -1959,9 +2014,11 @@ C.OldField -> string?", "");
                 C
                 C.C() -> void
                 {|{{RemoveApiId}}:C.ChangedField -> string?|}
-                """, @"C
-C.C() -> void
-~C.ChangedField -> string");
+                """, """
+                C
+                C.C() -> void
+                ~C.ChangedField -> string
+                """);
 
         [Fact, WorkItem(3793, "https://github.com/dotnet/roslyn-analyzers/issues/3793")]
         public Task ObliviousApiDiagnosticInGeneratedFileStillWarnAsync()
@@ -1972,9 +2029,11 @@ C.C() -> void
                 {
                     {{EnabledModifierCSharp}} string ObliviousField;
                 }
-                """, "#nullable enable", @"C
-C.C() -> void
-C.ObliviousField -> string",
+                """, "#nullable enable", """
+                C
+                C.C() -> void
+                C.ObliviousField -> string
+                """,
                 // /0/Test0.cs(5,19): warning RS0036: Symbol 'C.ObliviousField -> string' is missing nullability annotations in the declared API.
                 GetCSharpResultAt(5, 13 + EnabledModifierCSharp.Length, AnnotateApiRule, "C.ObliviousField -> string"),
                 // /0/Test0.cs(5,19): warning RS0041: Symbol 'ObliviousField' uses some oblivious reference types.
@@ -2067,10 +2126,10 @@ C.ObliviousField -> string",
                 {
                 }
 
-                """, $@"
-#nullable enable
-#nullable enable
-", $@"", expected);
+                """, $"""
+                #nullable enable
+                #nullable enable
+                """, $@"", expected);
         }
 
         [Fact]
@@ -2083,10 +2142,10 @@ C.ObliviousField -> string",
                 {{EnabledModifierCSharp}} class C
                 {
                 }
-                """, $@"", $@"
-#nullable enable
-#nullable enable
-", expected);
+                """, $@"", $"""
+                #nullable enable
+                #nullable enable
+                """, expected);
         }
 
         [Fact]
@@ -2095,8 +2154,10 @@ C.ObliviousField -> string",
                 {{EnabledModifierCSharp}} class C
                 {
                 }
-                """, $@"C
-C.C() -> void", $@"", System.Array.Empty<DiagnosticResult>());
+                """, $"""
+                C
+                C.C() -> void
+                """, $@"", System.Array.Empty<DiagnosticResult>());
 
         [Fact]
         public Task TestAddAndRemoveMembers_CSharp_FixAsync()
@@ -2119,14 +2180,16 @@ C.C() -> void", $@"", System.Array.Empty<DiagnosticResult>());
                 {|{{RemoveApiId}}:C.ObsoleteField -> int|}
                 C.Property.get -> int
                 C.Property.set -> void
-                """, @"C
-C.ArrowExpressionProperty.get -> int
-C.C() -> void
-C.Field -> int
-C.Method() -> void
-C.NewField -> int
-C.Property.get -> int
-C.Property.set -> void");
+                """, """
+                C
+                C.ArrowExpressionProperty.get -> int
+                C.C() -> void
+                C.Field -> int
+                C.Method() -> void
+                C.NewField -> int
+                C.Property.get -> int
+                C.Property.set -> void
+                """);
 
         [Fact]
         public Task TestSimpleMissingType_FixAsync()
@@ -2147,10 +2210,12 @@ C.Property.set -> void");
                 }
 
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C2|}|} { }
-                """, @"", @"", @"C
-C.Field -> int
-C2
-C2.C2() -> void");
+                """, @"", @"", """
+                C
+                C.Field -> int
+                C2
+                C2.C2() -> void
+                """);
 
         [Fact]
         public Task TestMultipleMissingTypeAndMember_CaseSensitiveFixAsync()
@@ -2165,13 +2230,15 @@ C2.C2() -> void");
                 }
 
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C2|}|} { }
-                """, @"", @"", @"C
-C.Field_A -> int
-C.Field_b -> int
-C.Field_C -> int
-C.Field_d -> int
-C2
-C2.C2() -> void");
+                """, @"", @"", """
+                C
+                C.Field_A -> int
+                C.Field_b -> int
+                C.Field_C -> int
+                C.Field_d -> int
+                C2
+                C2.C2() -> void
+                """);
 
         [Fact]
         public Task TestChangingMethodSignatureForAnUnshippedMethod_FixAsync()
@@ -2191,8 +2258,10 @@ C2.C2() -> void");
                     private C() { }
                     {{EnabledModifierCSharp}} void {|{{AddNewApiId}}:Method|}(object? p1){ }
                 }
-                """, $@"#nullable enable
-C", $$"""{|{{RemoveApiId}}:C.Method(string p1) -> void|}""", @"C.Method(object? p1) -> void");
+                """, $"""
+                #nullable enable
+                C
+                """, $$"""{|{{RemoveApiId}}:C.Method(string p1) -> void|}""", @"C.Method(object? p1) -> void");
 
         [Fact]
         public Task TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_FixAsync()
@@ -2204,9 +2273,11 @@ C", $$"""{|{{RemoveApiId}}:C.Method(string p1) -> void|}""", @"C.Method(object? 
                     {{EnabledModifierCSharp}} void Method(int p1, int p2){ }
                     {{EnabledModifierCSharp}} void {|{{AddNewApiId}}:Method|}(char p1){ }
                 }
-                """, @"C
-C.Method(int p1) -> void
-C.Method(int p1, int p2) -> void", $$"""{|{{RemoveApiId}}:C.Method() -> void|}""", @"C.Method(char p1) -> void");
+                """, """
+                C
+                C.Method(int p1) -> void
+                C.Method(int p1, int p2) -> void
+                """, $$"""{|{{RemoveApiId}}:C.Method() -> void|}""", @"C.Method(char p1) -> void");
 
         [Fact]
         public async Task TestAddingNewPublicOverload_FixAsync()
@@ -2257,12 +2328,16 @@ C.Method(int p1, int p2) -> void", $$"""{|{{RemoveApiId}}:C.Method() -> void|}""
                 }
 
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C2|}|} { }
-                """, @"C.CC
-C.CC.CC() -> void", @"", @"C
-C.CC.Field -> int
-C.Field -> int
-C2
-C2.C2() -> void");
+                """, """
+                C.CC
+                C.CC.CC() -> void
+                """, @"", """
+                C
+                C.CC.Field -> int
+                C.Field -> int
+                C2
+                C2.C2() -> void
+                """);
 
         [Fact]
         public Task TestMissingNestedGenericMembersAndStaleMembers_FixAsync()
@@ -2326,15 +2401,19 @@ C2.C2() -> void");
                 }
 
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C2|}|} { }
-                """, @"", @"C.CC
-C.CC.CC() -> void
-C.CC.Field -> int", @"C
-C.CC
-C.CC.CC() -> void
-C.CC.Field -> int
-C.Field -> int
-C2
-C2.C2() -> void");
+                """, @"", """
+                C.CC
+                C.CC.CC() -> void
+                C.CC.Field -> int
+                """, """
+                C
+                C.CC
+                C.CC.CC() -> void
+                C.CC.Field -> int
+                C.Field -> int
+                C2
+                C2.C2() -> void
+                """);
 
         [Fact]
         public Task TestWithExistingUnshippedNestedGenericMembers_FixAsync()
@@ -2353,16 +2432,20 @@ C2.C2() -> void");
                         {{EnabledModifierCSharp}} int Field;
                     }
                 }
-                """, @"", @"C
-C.CC
-C.CC.Field -> int
-C.CC<T>
-C.CC<T>.Field -> int", @"C
-C.CC
-C.CC.CC() -> void
-C.CC.Field -> int
-C.CC<T>
-C.CC<T>.Field -> int");
+                """, @"", """
+                C
+                C.CC
+                C.CC.Field -> int
+                C.CC<T>
+                C.CC<T>.Field -> int
+                """, """
+                C
+                C.CC
+                C.CC.CC() -> void
+                C.CC.Field -> int
+                C.CC<T>
+                C.CC<T>.Field -> int
+                """);
 
         [Fact]
         public Task TestWithExistingShippedNestedMembers_FixAsync()
@@ -2379,12 +2462,16 @@ C.CC<T>.Field -> int");
                 }
 
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C2|}|} { }
-                """, @"C.CC
-C.CC.CC() -> void
-C.CC.Field -> int", @"", @"C
-C.Field -> int
-C2
-C2.C2() -> void");
+                """, """
+                C.CC
+                C.CC.CC() -> void
+                C.CC.Field -> int
+                """, @"", """
+                C
+                C.Field -> int
+                C2
+                C2.C2() -> void
+                """);
 
         [Fact]
         public Task TestOnlyRemoveStaleSiblingEntries_FixAsync()
@@ -2430,13 +2517,17 @@ C2.C2() -> void");
                     {{EnabledModifierCSharp}} int {|{{AddNewApiId}}:NewField|}; // Newly added field, not in current public API.
                 }
                 """;
-            var unshippedText = $@"C
-C.C() -> void
-C.Property.get -> int{originalEndOfFile}";
-            var fixedUnshippedText = $@"C
-C.C() -> void
-C.NewField -> int
-C.Property.get -> int{expectedEndOfFile}";
+            var unshippedText = $"""
+                C
+                C.C() -> void
+                C.Property.get -> int{originalEndOfFile}
+                """;
+            var fixedUnshippedText = $"""
+                C
+                C.C() -> void
+                C.NewField -> int
+                C.Property.get -> int{expectedEndOfFile}
+                """;
 
             await VerifyCSharpAdditionalFileFixAsync(
                 source.ReplaceLineEndings("\r\n"),
@@ -2451,15 +2542,19 @@ C.Property.get -> int{expectedEndOfFile}";
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:A|}|} { }
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
-                """, shippedApiText: "", oldUnshippedApiText: @"B
-B.B() -> void
-D
-D.D() -> void", newUnshippedApiText: @"A
-A.A() -> void
-B
-B.B() -> void
-D
-D.D() -> void");
+                """, shippedApiText: "", oldUnshippedApiText: """
+                B
+                B.B() -> void
+                D
+                D.D() -> void
+                """, newUnshippedApiText: """
+                A
+                A.A() -> void
+                B
+                B.B() -> void
+                D
+                D.D() -> void
+                """);
 
         [Fact]
         public Task MissingType_CAsync()
@@ -2467,15 +2562,19 @@ D.D() -> void");
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|} { }
                 {{EnabledModifierCSharp}} class D { }
-                """, shippedApiText: "", oldUnshippedApiText: @"B
-B.B() -> void
-D
-D.D() -> void", newUnshippedApiText: @"B
-B.B() -> void
-C
-C.C() -> void
-D
-D.D() -> void");
+                """, shippedApiText: "", oldUnshippedApiText: """
+                B
+                B.B() -> void
+                D
+                D.D() -> void
+                """, newUnshippedApiText: """
+                B
+                B.B() -> void
+                C
+                C.C() -> void
+                D
+                D.D() -> void
+                """);
 
         [Fact]
         public Task MissingType_EAsync()
@@ -2483,15 +2582,19 @@ D.D() -> void");
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:E|}|} { }
-                """, shippedApiText: "", oldUnshippedApiText: @"B
-B.B() -> void
-D
-D.D() -> void", newUnshippedApiText: @"B
-B.B() -> void
-D
-D.D() -> void
-E
-E.E() -> void");
+                """, shippedApiText: "", oldUnshippedApiText: """
+                B
+                B.B() -> void
+                D
+                D.D() -> void
+                """, newUnshippedApiText: """
+                B
+                B.B() -> void
+                D
+                D.D() -> void
+                E
+                E.E() -> void
+                """);
 
         [Fact]
         public Task MissingType_Unordered_AAsync()
@@ -2499,15 +2602,19 @@ E.E() -> void");
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:A|}|} { }
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
-                """, shippedApiText: "", oldUnshippedApiText: @"D
-D.D() -> void
-B
-B.B() -> void", newUnshippedApiText: @"A
-A.A() -> void
-D
-D.D() -> void
-B
-B.B() -> void");
+                """, shippedApiText: "", oldUnshippedApiText: """
+                D
+                D.D() -> void
+                B
+                B.B() -> void
+                """, newUnshippedApiText: """
+                A
+                A.A() -> void
+                D
+                D.D() -> void
+                B
+                B.B() -> void
+                """);
 
         [Fact]
         public Task MissingType_Unordered_CAsync()
@@ -2515,15 +2622,19 @@ B.B() -> void");
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|} { }
                 {{EnabledModifierCSharp}} class D { }
-                """, shippedApiText: "", oldUnshippedApiText: @"D
-D.D() -> void
-B
-B.B() -> void", newUnshippedApiText: @"C
-C.C() -> void
-D
-D.D() -> void
-B
-B.B() -> void");
+                """, shippedApiText: "", oldUnshippedApiText: """
+                D
+                D.D() -> void
+                B
+                B.B() -> void
+                """, newUnshippedApiText: """
+                C
+                C.C() -> void
+                D
+                D.D() -> void
+                B
+                B.B() -> void
+                """);
 
         [Fact]
         public Task MissingType_Unordered_EAsync()
@@ -2531,15 +2642,19 @@ B.B() -> void");
                 {{EnabledModifierCSharp}} class B { }
                 {{EnabledModifierCSharp}} class D { }
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:E|}|} { }
-                """, shippedApiText: "", oldUnshippedApiText: @"D
-D.D() -> void
-B
-B.B() -> void", newUnshippedApiText: @"D
-D.D() -> void
-B
-B.B() -> void
-E
-E.E() -> void");
+                """, shippedApiText: "", oldUnshippedApiText: """
+                D
+                D.D() -> void
+                B
+                B.B() -> void
+                """, newUnshippedApiText: """
+                D
+                D.D() -> void
+                B
+                B.B() -> void
+                E
+                E.E() -> void
+                """);
 
         [Fact, WorkItem(2195, "https://github.com/dotnet/roslyn-analyzers/issues/2195")]
         public Task TestPartialTypeAsync()
@@ -2551,8 +2666,10 @@ E.E() -> void");
                 {{EnabledModifierCSharp}} partial class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
                 {
                 }
-                """, @"", @"", @"C
-C.C() -> void");
+                """, @"", @"", """
+                C
+                C.C() -> void
+                """);
 
         [Fact, WorkItem(4133, "https://github.com/dotnet/roslyn-analyzers/issues/4133")]
         public Task Record_ImplicitProperty_FixAsync()
@@ -2594,8 +2711,10 @@ C.C() -> void");
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
                 {
                 }
-                """, @"", @"", @"[ID1]C
-[ID1]C.C() -> void");
+                """, @"", @"", """
+                [ID1]C
+                [ID1]C.C() -> void
+                """);
 
         [Theory]
         [InlineData("")]
@@ -2616,8 +2735,10 @@ C.C() -> void");
 
             var shippedText = @"";
             var unshippedText = @"";
-            var fixedUnshippedText = @"[???]C
-[???]C.C() -> void";
+            var fixedUnshippedText = """
+                [???]C
+                [???]C.C() -> void
+                """;
 
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, DefaultVerifier>()
             {

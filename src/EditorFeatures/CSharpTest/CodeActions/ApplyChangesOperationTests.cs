@@ -57,20 +57,22 @@ public sealed class ApplyChangesOperationTests : AbstractCSharpCodeActionTest
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
     public Task TestMakeTextChangeWithInterveningEditToDifferentFile()
         => TestSuccessfulApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -85,20 +87,22 @@ class Program2
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
     public Task TestMakeTextChangeWithInterveningRemovalToDifferentFile()
         => TestSuccessfulApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -113,20 +117,22 @@ class Program2
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
     public Task TestMakeTextChangeWithInterveningEditToSameFile()
         => TestFailureApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -141,20 +147,22 @@ class Program2
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
     public Task TestMakeTextChangeWithInterveningRemovalOfThatFile()
         => TestFailureApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));
@@ -169,20 +177,22 @@ class Program2
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1419139")]
     public Task TestMakeProjectChangeWithInterveningTextEdit()
         => TestFailureApplicationAsync(
-@"<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""Program1.cs"">
-class Program1
-{
-}
-        </Document>
-        <Document FilePath=""Program2.cs"">
-class Program2
-{
-}
-        </Document>
-    </Project>
-</Workspace>",
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="Program1.cs">
+            class Program1
+            {
+            }
+                    </Document>
+                    <Document FilePath="Program2.cs">
+            class Program2
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
             codeActionTransform: solution =>
             {
                 var document1 = solution.Projects.Single().Documents.Single(d => d.FilePath!.Contains("Program1"));

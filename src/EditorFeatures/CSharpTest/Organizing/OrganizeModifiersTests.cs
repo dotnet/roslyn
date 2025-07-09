@@ -17,39 +17,59 @@ public sealed class OrganizeModifiersTests : AbstractOrganizerTests
     [InlineData("class")]
     [InlineData("record")]
     public Task TestTypes1(string typeKind)
-        => CheckAsync($@"static public {typeKind} C {{
-}}", $@"public static {typeKind} C {{
-}}");
+        => CheckAsync($$"""
+            static public {{typeKind}} C {
+            }
+            """, $$"""
+            public static {{typeKind}} C {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
     public Task TestTypes2(string typeKind)
-        => CheckAsync($@"public static {typeKind} D {{
-}}", $@"public static {typeKind} D {{
-}}");
+        => CheckAsync($$"""
+            public static {{typeKind}} D {
+            }
+            """, $$"""
+            public static {{typeKind}} D {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
     public Task TestTypes3(string typeKind)
-        => CheckAsync($@"public static partial {typeKind} E {{
-}}", $@"public static partial {typeKind} E {{
-}}");
+        => CheckAsync($$"""
+            public static partial {{typeKind}} E {
+            }
+            """, $$"""
+            public static partial {{typeKind}} E {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
     public Task TestTypes4(string typeKind)
-        => CheckAsync($@"static public partial {typeKind} F {{
-}}", $@"public static partial {typeKind} F {{
-}}");
+        => CheckAsync($$"""
+            static public partial {{typeKind}} F {
+            }
+            """, $$"""
+            public static partial {{typeKind}} F {
+            }
+            """);
 
     [Theory]
     [InlineData("class")]
     [InlineData("record")]
     public Task TestTypes5(string typeKind)
-        => CheckAsync($@"unsafe public static {typeKind} F {{
-}}", $@"public static unsafe {typeKind} F {{
-}}");
+        => CheckAsync($$"""
+            unsafe public static {{typeKind}} F {
+            }
+            """, $$"""
+            public static unsafe {{typeKind}} F {
+            }
+            """);
 }

@@ -34,13 +34,15 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
     public async Task TestResolveCompletionItemFromListAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
 
         var clientCapabilities = new LSP.VSInternalClientCapabilities
         {
@@ -74,13 +76,15 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
     public async Task TestResolveCompletionItemAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
         var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "A").ConfigureAwait(false);
 
@@ -96,15 +100,17 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
     public async Task TestResolveOverridesCompletionItemAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"abstract class A
-{
-    public abstract void M();
-}
+            """
+            abstract class A
+            {
+                public abstract void M();
+            }
 
-class B : A
-{
-    override {|caret:|}
-}";
+            class B : A
+            {
+                override {|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
         var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "M()").ConfigureAwait(false);
         var results = (LSP.VSInternalCompletionItem)await RunResolveCompletionItemAsync(
@@ -112,25 +118,29 @@ class B : A
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal(@"public override void M()
-    {
-        throw new System.NotImplementedException();
-    }", results.TextEdit.Value.First.NewText);
+        Assert.Equal("""
+            public override void M()
+                {
+                    throw new System.NotImplementedException();
+                }
+            """, results.TextEdit.Value.First.NewText);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
     public async Task TestResolveOverridesCompletionItem_SnippetsEnabledAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"abstract class A
-{
-    public abstract void M();
-}
+            """
+            abstract class A
+            {
+                public abstract void M();
+            }
 
-class B : A
-{
-    override {|caret:|}
-}";
+            class B : A
+            {
+                override {|caret:|}
+            }
+            """;
 
         // Explicitly enable snippets. This allows us to set the cursor with $0. Currently only applies to C# in Razor docs.
         var clientCapabilities = new LSP.VSInternalClientCapabilities
@@ -157,25 +167,29 @@ class B : A
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal(@"public override void M()
-    {
-        throw new System.NotImplementedException();$0
-    }", results.TextEdit.Value.First.NewText);
+        Assert.Equal("""
+            public override void M()
+                {
+                    throw new System.NotImplementedException();$0
+                }
+            """, results.TextEdit.Value.First.NewText);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51125")]
     public async Task TestResolveOverridesCompletionItem_SnippetsEnabled_CaretOutOfSnippetScopeAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"abstract class A
-{
-    public abstract void M();
-}
+            """
+            abstract class A
+            {
+                public abstract void M();
+            }
 
-class B : A
-{
-    override {|caret:|}
-}";
+            class B : A
+            {
+                override {|caret:|}
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
@@ -184,48 +198,51 @@ class B : A
         var (textEdit, _, _) = await CompletionResultFactory.GenerateComplexTextEditAsync(
             document, new TestCaretOutOfScopeCompletionService(testLspServer.TestWorkspace.Services.SolutionServices), selectedItem, snippetsSupported: true, insertNewPositionPlaceholder: true, CancellationToken.None).ConfigureAwait(false);
 
-        Assert.Equal(@"public override void M()
-    {
-        throw new System.NotImplementedException();
-    }", textEdit.NewText);
+        Assert.Equal("""
+            public override void M()
+                {
+                    throw new System.NotImplementedException();
+                }
+            """, textEdit.NewText);
     }
 
     [Theory, CombinatorialData]
     public async Task TestResolveCompletionItemWithMarkupContentAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-class A
-{
-    /// <summary>
-    /// A cref <see cref=""AMethod""/>
-    /// <br/>
-    /// <strong>strong text</strong>
-    /// <br/>
-    /// <em>italic text</em>
-    /// <br/>
-    /// <u>underline text</u>
-    /// <para>
-    /// <list type='bullet'>
-    /// <item>
-    /// <description>Item 1.</description>
-    /// </item>
-    /// <item>
-    /// <description>Item 2.</description>
-    /// </item>
-    /// </list>
-    /// <a href = ""https://google.com"" > link text</a>
-    /// </para>
-    /// </summary>
-    void AMethod(int i)
-    {
-    }
+            """
+            class A
+            {
+                /// <summary>
+                /// A cref <see cref="AMethod"/>
+                /// <br/>
+                /// <strong>strong text</strong>
+                /// <br/>
+                /// <em>italic text</em>
+                /// <br/>
+                /// <u>underline text</u>
+                /// <para>
+                /// <list type='bullet'>
+                /// <item>
+                /// <description>Item 1.</description>
+                /// </item>
+                /// <item>
+                /// <description>Item 2.</description>
+                /// </item>
+                /// </list>
+                /// <a href = "https://google.com" > link text</a>
+                /// </para>
+                /// </summary>
+                void AMethod(int i)
+                {
+                }
 
-    void M()
-    {
-        AMet{|caret:|}
-    }
-}";
+                void M()
+                {
+                    AMet{|caret:|}
+                }
+            }
+            """;
         var clientCapabilities = new ClientCapabilities
         {
             TextDocument = new TextDocumentClientCapabilities
@@ -246,57 +263,60 @@ class A
         var results = await RunResolveCompletionItemAsync(
             testLspServer,
             clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal(@"```csharp
-void A.AMethod(int i)
-```
-  
-A cref&nbsp;A\.AMethod\(int\)  
-**strong text**  
-_italic text_  
-<u>underline text</u>  
-  
-•&nbsp;Item 1\.  
-•&nbsp;Item 2\.  
-  
-[link text](https://google.com)", results.Documentation.Value.Second.Value);
+        Assert.Equal("""
+            ```csharp
+            void A.AMethod(int i)
+            ```
+
+            A cref&nbsp;A\.AMethod\(int\)  
+            **strong text**  
+            _italic text_  
+            <u>underline text</u>  
+
+            •&nbsp;Item 1\.  
+            •&nbsp;Item 2\.  
+
+            [link text](https://google.com)
+            """, results.Documentation.Value.Second.Value);
     }
 
     [Theory, CombinatorialData]
     public async Task TestResolveCompletionItemWithPlainTextAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"
-class A
-{
-    /// <summary>
-    /// A cref <see cref=""AMethod""/>
-    /// <br/>
-    /// <strong>strong text</strong>
-    /// <br/>
-    /// <em>italic text</em>
-    /// <br/>
-    /// <u>underline text</u>
-    /// <para>
-    /// <list type='bullet'>
-    /// <item>
-    /// <description>Item 1.</description>
-    /// </item>
-    /// <item>
-    /// <description>Item 2.</description>
-    /// </item>
-    /// </list>
-    /// <a href = ""https://google.com"" > link text</a>
-    /// </para>
-    /// </summary>
-    void AMethod(int i)
-    {
-    }
+            """
+            class A
+            {
+                /// <summary>
+                /// A cref <see cref="AMethod"/>
+                /// <br/>
+                /// <strong>strong text</strong>
+                /// <br/>
+                /// <em>italic text</em>
+                /// <br/>
+                /// <u>underline text</u>
+                /// <para>
+                /// <list type='bullet'>
+                /// <item>
+                /// <description>Item 1.</description>
+                /// </item>
+                /// <item>
+                /// <description>Item 2.</description>
+                /// </item>
+                /// </list>
+                /// <a href = "https://google.com" > link text</a>
+                /// </para>
+                /// </summary>
+                void AMethod(int i)
+                {
+                }
 
-    void M()
-    {
-        AMet{|caret:|}
-    }
-}";
+                void M()
+                {
+                    AMet{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
             testLspServer,
@@ -304,30 +324,34 @@ class A
         var results = await RunResolveCompletionItemAsync(
             testLspServer,
             clientCompletionItem).ConfigureAwait(false);
-        Assert.Equal(@"void A.AMethod(int i)
-A cref A.AMethod(int)
-strong text
-italic text
-underline text
+        Assert.Equal("""
+            void A.AMethod(int i)
+            A cref A.AMethod(int)
+            strong text
+            italic text
+            underline text
 
-• Item 1.
-• Item 2.
+            • Item 1.
+            • Item 2.
 
-link text", results.Documentation.Value.Second.Value);
+            link text
+            """, results.Documentation.Value.Second.Value);
     }
 
     [Theory, CombinatorialData]
     public async Task TestResolveCompletionItemWithPrefixSuffixAsync(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    void M()
-    {
-        var a = 10;
-        a.{|caret:|}
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    var a = 10;
+                    a.{|caret:|}
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
         var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.VSInternalCompletionItem>(testLspServer, label: "(byte)").ConfigureAwait(false);
 
@@ -493,10 +517,12 @@ link text", results.Documentation.Value.Second.Value);
             char? commitCharacter = null,
             CancellationToken cancellationToken = default)
         {
-            var textChange = new TextChange(span: new TextSpan(start: 77, length: 9), newText: @"public override void M()
-    {
-        throw new System.NotImplementedException();
-    }");
+            var textChange = new TextChange(span: new TextSpan(start: 77, length: 9), newText: """
+                public override void M()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                """);
 
             return Task.FromResult(CompletionChange.Create(textChange, newPosition: 0));
         }

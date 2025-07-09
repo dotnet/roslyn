@@ -68,14 +68,16 @@ public sealed class AddAttributesTests
     public Task TestAddAssemblyAttributeListToEmptyDocument()
         => TestAsync(
 string.Empty,
-@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-");
+"""
+[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+""");
 
     [Fact]
     public Task TestAddAssemblyAttributeListToDocumentWithOtherAssemblyAttribute()
         => TestAsync(
 @"[assembly: System.Reflection.AssemblyName(""Test"")]",
-@"[assembly: System.Reflection.AssemblyName(""Test"")]
-[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
-");
+"""
+[assembly: System.Reflection.AssemblyName("Test")]
+[assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+""");
 }

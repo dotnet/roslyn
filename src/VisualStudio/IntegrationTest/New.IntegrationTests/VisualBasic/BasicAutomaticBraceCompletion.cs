@@ -32,12 +32,13 @@ public class BasicAutomaticBraceCompletion : AbstractEditorTest
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, argumentCompletion);
 
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim x = {", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim x = {$$}", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -70,12 +71,13 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Braces_Overtyping()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim x = {", HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync('}', HangMitigatingCancellationToken);
@@ -85,12 +87,13 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task ParenthesesTypeoverAfterStringLiterals()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Console.Write(", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Console.Write($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -108,23 +111,25 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim x = {", HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("            $$}", assertCaretPosition: true, HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.TextContainsAsync(@"
-Class C
-    Sub Goo()
-        Dim x = {
-            $$}
-    End Sub
-End Class",
+        await TestServices.EditorVerifier.TextContainsAsync("""
+            Class C
+                Sub Goo()
+                    Dim x = {
+                        $$}
+                End Sub
+            End Class
+            """,
 assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
@@ -132,10 +137,11 @@ HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Paren_InsertionAndTabCompleting()
     {
-        await SetUpEditorAsync(@"
-Class C
-    $$
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Sub Goo(", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("    Sub Goo($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -149,10 +155,11 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Paren_Overtyping()
     {
-        await SetUpEditorAsync(@"
-Class C
-    $$
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                $$
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Sub Goo(", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("    Sub Goo($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -165,12 +172,13 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Bracket_Insertion()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim [Dim", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim [Dim$$]", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -179,12 +187,13 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Bracket_Overtyping()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim [Dim", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim [Dim$$]", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -196,15 +205,20 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task DoubleQuote_InsertionAndTabCompletion()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
-        await TestServices.Input.SendWithoutActivateAsync("Dim str = \"", HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim str = \"$$\"", assertCaretPosition: true, HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync("""
+            Dim str = "
+            """, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("""
+            Dim str = "$$"
+            """, assertCaretPosition: true, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim str = \"\"$$", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -213,15 +227,16 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Nested_AllKinds_1()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub New([dim] As String)
-    End Sub
+        await SetUpEditorAsync("""
+            Class C
+                Sub New([dim] As String)
+                End Sub
 
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync(
             [
@@ -238,15 +253,16 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Nested_AllKinds_2()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub New([dim] As String)
-    End Sub
+        await SetUpEditorAsync("""
+            Class C
+                Sub New([dim] As String)
+                End Sub
 
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync(
             [
@@ -267,38 +283,45 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Negative_NoCompletionInComments()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        ' $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    ' $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
-        await TestServices.Input.SendWithoutActivateAsync("{([\"", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync("""
+            {(["
+            """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        ' {([\"$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task Negative_NoCompletionInStringLiterals()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim s = \"{([", HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim s = \"{([$$\"", assertCaretPosition: true, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("""
+            Dim s = "{([$$"
+            """, assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
     [IdeFact]
     public async Task Negative_NoCompletionInXmlDocComment()
     {
-        await SetUpEditorAsync(@"
-$$
-Class C
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            $$
+            Class C
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("'''", HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync('{', HangMitigatingCancellationToken);
@@ -311,14 +334,15 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task Negative_NoCompletionInXmlDocCommentAtEndOfTag()
     {
-        await SetUpEditorAsync(@"
-Class C
-    ''' <summary>
-    ''' <see></see>$$
-    ''' </summary>
-    Sub Goo()
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                ''' <summary>
+                ''' <see></see>$$
+                ''' </summary>
+                Sub Goo()
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("(", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("    ''' <see></see>($$", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -328,12 +352,13 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task LineCommittingIssue()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Dim x=\"\" '", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim x=\"\" '$$", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -343,11 +368,12 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task VirtualWhitespaceIssue()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()$$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()$$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.RETURN, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync('(', HangMitigatingCancellationToken);
@@ -360,14 +386,15 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task CompletionWithIntelliSenseWindowUp()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Goo()
-    End Sub
-    Sub Test()
-        $$
-    End Sub
-End Class", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Goo()
+                End Sub
+                Sub Test()
+                    $$
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Goo(", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Goo($$)", assertCaretPosition: true, HangMitigatingCancellationToken);
@@ -377,9 +404,10 @@ End Class", HangMitigatingCancellationToken);
     [IdeFact]
     public async Task CompletionAtTheEndOfFile()
     {
-        await SetUpEditorAsync(@"
-Class C
-    $$", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                $$
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendWithoutActivateAsync("Sub Goo(", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("    Sub Goo($$)", assertCaretPosition: true, HangMitigatingCancellationToken);

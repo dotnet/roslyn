@@ -25,11 +25,12 @@ public sealed class InfrastructureTests : AbstractEditorTest
     public async Task CanCloseSaveDialog()
     {
         await SetUpEditorAsync(
-            @"
-namespace MyNamespace
-{
-$$
-}",
+            """
+            namespace MyNamespace
+            {
+            $$
+            }
+            """,
             HangMitigatingCancellationToken);
 
         // Trigger a call to File.Close to ensure we can recover from it

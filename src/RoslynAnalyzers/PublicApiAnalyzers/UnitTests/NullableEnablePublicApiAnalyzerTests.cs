@@ -63,99 +63,113 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         [Fact]
         public async Task NullableEnableShippedAPI_NullableMemberAsync()
         {
-            var unshippedText = @"C
-C.C() -> void
-C.Field -> string";
-            await VerifyCSharpAdditionalFileFixAsync(@"
-#nullable enable
-public class C
-{
-    public string? {|RS0037:Field|};
-}
-", @"", unshippedText, @"
-#nullable enable
-public class C
-{
-    public string? {|RS0036:Field|};
-}
-", @"#nullable enable
-", newUnshippedApiText: unshippedText);
+            var unshippedText = """
+                C
+                C.C() -> void
+                C.Field -> string
+                """;
+            await VerifyCSharpAdditionalFileFixAsync("""
+                #nullable enable
+                public class C
+                {
+                    public string? {|RS0037:Field|};
+                }
+                """, @"", unshippedText, """
+                #nullable enable
+                public class C
+                {
+                    public string? {|RS0036:Field|};
+                }
+                """, """
+                #nullable enable
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
         public async Task NullableEnableShippedAPI_NonNullableMemberAsync()
         {
-            var unshippedText = @"C
-C.C() -> void
-C.Field2 -> string";
-            await VerifyCSharpAdditionalFileFixAsync(@"
-#nullable enable
-public class C
-{
-    public string {|RS0037:Field2|};
-}
-", @"", unshippedText, @"
-#nullable enable
-public class C
-{
-    public string {|RS0036:Field2|};
-}
-", @"#nullable enable
-", newUnshippedApiText: unshippedText);
+            var unshippedText = """
+                C
+                C.C() -> void
+                C.Field2 -> string
+                """;
+            await VerifyCSharpAdditionalFileFixAsync("""
+                #nullable enable
+                public class C
+                {
+                    public string {|RS0037:Field2|};
+                }
+                """, @"", unshippedText, """
+                #nullable enable
+                public class C
+                {
+                    public string {|RS0036:Field2|};
+                }
+                """, """
+                #nullable enable
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
         public async Task NullableEnableShippedAPI_NonEmptyFileAsync()
         {
             var unshippedText = @"";
-            await VerifyCSharpAdditionalFileFixAsync(@"
-#nullable enable
-public class C
-{
-    public string? {|RS0037:Field|};
-}
-", @"C
-C.C() -> void
-C.Field -> string", unshippedText, @"
-#nullable enable
-public class C
-{
-    public string? {|RS0036:Field|};
-}
-", @"#nullable enable
-C
-C.C() -> void
-C.Field -> string", newUnshippedApiText: unshippedText);
+            await VerifyCSharpAdditionalFileFixAsync("""
+                #nullable enable
+                public class C
+                {
+                    public string? {|RS0037:Field|};
+                }
+                """, """
+                C
+                C.C() -> void
+                C.Field -> string
+                """, unshippedText, """
+                #nullable enable
+                public class C
+                {
+                    public string? {|RS0036:Field|};
+                }
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string
+                """, newUnshippedApiText: unshippedText);
         }
 
         [Fact]
         public Task DoNotWarnIfAlreadyEnabled_ViaUnshippedFileAsync()
-            => VerifyCSharpAsync(@"
-#nullable enable
-public class C
-{
-    public string? {|RS0036:Field|};
-    public string {|RS0036:Field2|};
-}
-", @"C
-C.C() -> void
-C.Field -> string
-C.Field2 -> string", @"#nullable enable");
+            => VerifyCSharpAsync("""
+                #nullable enable
+                public class C
+                {
+                    public string? {|RS0036:Field|};
+                    public string {|RS0036:Field2|};
+                }
+                """, """
+                C
+                C.C() -> void
+                C.Field -> string
+                C.Field2 -> string
+                """, @"#nullable enable");
 
         [Fact]
         public Task DoNotWarnIfAlreadyEnabled_ViaShippedFileAsync()
-            => VerifyCSharpAsync(@"
-#nullable enable
-public class C
-{
-    public string? {|RS0036:Field|};
-    public string {|RS0036:Field2|};
-}
-", @"#nullable enable
-C
-C.C() -> void
-C.Field -> string
-C.Field2 -> string", @"");
+            => VerifyCSharpAsync("""
+                #nullable enable
+                public class C
+                {
+                    public string? {|RS0036:Field|};
+                    public string {|RS0036:Field2|};
+                }
+                """, """
+                #nullable enable
+                C
+                C.C() -> void
+                C.Field -> string
+                C.Field2 -> string
+                """, @"");
 
         #endregion
     }

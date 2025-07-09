@@ -25,48 +25,49 @@ public class CSharpF1Help : AbstractEditorTest
     [IdeFact]
     private async Task F1Help()
     {
-        await SetUpEditorAsync(@"
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
+        await SetUpEditorAsync("""
+            using System;
+            using System.IO;
+            using System.Linq;
+            using System.Collections.Generic;
 
-namespace F1TestNamespace
-{
-    #region TaoRegion
-    abstract class ShapesClass { }
+            namespace F1TestNamespace
+            {
+                #region TaoRegion
+                abstract class ShapesClass { }
 
-    class Program$$
-    {
-        public static void Main()
-        {
-        }
+                class Program$$
+                {
+                    public static void Main()
+                    {
+                    }
 
-        public IEnumerable<int> Linq1()
-        {
-            int[] numbers = { 5, 4, 1, 3, 9, 8, 6, 7, 2, 0 };
-            int i = numbers.First();
-            int j = Array.IndexOf(numbers, 1);
+                    public IEnumerable<int> Linq1()
+                    {
+                        int[] numbers = { 5, 4, 1, 3, 9, 8, 6, 7, 2, 0 };
+                        int i = numbers.First();
+                        int j = Array.IndexOf(numbers, 1);
 
-            var lowNums1 =
-                from n in numbers
-                orderby n ascending
-                where n < 5
-                select n;
+                        var lowNums1 =
+                            from n in numbers
+                            orderby n ascending
+                            where n < 5
+                            select n;
 
-            var numberGroups =
-              from n in numbers
-              let m = 1
-              join p in numbers on i equals p
-              group n by n % 5 into g
-              select new { Remainder = g.Key, Numbers = g };
+                        var numberGroups =
+                          from n in numbers
+                          let m = 1
+                          join p in numbers on i equals p
+                          group n by n % 5 into g
+                          select new { Remainder = g.Key, Numbers = g };
 
-            foreach (int element in numbers) yield return i;
-        }
+                        foreach (int element in numbers) yield return i;
+                    }
 
-    }
-    #endregion TaoRegion
-}", HangMitigatingCancellationToken);
+                }
+                #endregion TaoRegion
+            }
+            """, HangMitigatingCancellationToken);
         await VerifyAsync("abstract", "abstract_CSharpKeyword", HangMitigatingCancellationToken);
         await VerifyAsync("ascending", "ascending_CSharpKeyword", HangMitigatingCancellationToken);
         await VerifyAsync("from", "from_CSharpKeyword", HangMitigatingCancellationToken);

@@ -385,11 +385,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
             var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.M"), buildReferenceAssembly: true);
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
 
@@ -425,11 +426,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
             var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C"), buildReferenceAssembly: true);
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var implProject = workspace.CurrentSolution.Projects.First();
 
@@ -824,11 +826,12 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var sourceText1 = SourceText.From(source1, Encoding.UTF8);
             var sourceText2 = SourceText.From(source2, Encoding.UTF8);
 
-            var workspace = EditorTestWorkspace.Create(@$"
-<Workspace>
-    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
-    </Project>
-</Workspace>", composition: GetTestComposition());
+            var workspace = EditorTestWorkspace.Create($"""
+                <Workspace>
+                    <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true">
+                    </Project>
+                </Workspace>
+                """, composition: GetTestComposition());
 
             var project = workspace.CurrentSolution.Projects.First();
 

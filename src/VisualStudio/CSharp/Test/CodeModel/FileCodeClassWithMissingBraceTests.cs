@@ -15,34 +15,34 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel;
 public sealed class FileCodeClassWithMissingBraceTests : AbstractFileCodeElementTests
 {
     public FileCodeClassWithMissingBraceTests()
-        : base(@"using System;
+        : base("""
+            using System;
 
 
-public abstract class Goo : IDisposable, ICloneable
-{
+            public abstract class Goo : IDisposable, ICloneable
+            {
 
 
-[Serializable]
-public class Bar
-{
-    int a;
+            [Serializable]
+            public class Bar
+            {
+                int a;
 
-    public int A
-    {
-        get
-        {
-            return a;
-        }
-    }
+                public int A
+                {
+                    get
+                    {
+                        return a;
+                    }
+                }
 
-namespace N
-{
-}
+            namespace N
+            {
+            }
 
-class Baz
-{
-
-")
+            class Baz
+            {
+            """)
     {
     }
 

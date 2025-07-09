@@ -189,16 +189,18 @@ public sealed class EnumAndCompletionListTagCompletionProviderTests : AbstractCS
     public async Task InYieldReturnInMethod(string typeName)
     {
         var markup =
-$@"using System;
-using System.Collections.Generic;
+            $$"""
+            using System;
+            using System.Collections.Generic;
 
-class Program
-{{
-    IEnumerable<{typeName}> M()
-    {{
-        yield return $$
-    }}
-}}";
+            class Program
+            {
+                IEnumerable<{{typeName}}> M()
+                {
+                    yield return $$
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, typeName);
@@ -212,19 +214,21 @@ class Program
     public async Task InYieldReturnInLocalFunction(string typeName)
     {
         var markup =
-$@"using System;
-using System.Collections.Generic;
+            $$"""
+            using System;
+            using System.Collections.Generic;
 
-class Program
-{{
-    void M()
-    {{
-        IEnumerable<{typeName}> F()
-        {{
-            yield return $$
-        }}
-    }}
-}}";
+            class Program
+            {
+                void M()
+                {
+                    IEnumerable<{{typeName}}> F()
+                    {
+                        yield return $$
+                    }
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, typeName);
@@ -238,17 +242,19 @@ class Program
     public async Task InAsyncMethodReturnStatement(string typeName)
     {
         var markup =
-$@"using System;
-using System.Threading.Tasks;
+            $$"""
+            using System;
+            using System.Threading.Tasks;
 
-class Program
-{{
-    async Task<{typeName}> M()
-    {{
-        await Task.Delay(1);
-        return $$
-    }}
-}}";
+            class Program
+            {
+                async Task<{{typeName}}> M()
+                {
+                    await Task.Delay(1);
+                    return $$
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, typeName);
@@ -262,15 +268,17 @@ class Program
     public async Task InSimpleLambdaAfterArrow(string typeName)
     {
         var markup =
-$@"using System;
+            $$"""
+            using System;
 
-class Program
-{{
-    Func<bool, {typeName}> M()
-    {{
-        return _ => $$
-    }}
-}}";
+            class Program
+            {
+                Func<bool, {{typeName}}> M()
+                {
+                    return _ => $$
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, typeName);
@@ -284,15 +292,17 @@ class Program
     public async Task InParenthesizedLambdaAfterArrow(string typeName)
     {
         var markup =
-$@"using System;
+            $$"""
+            using System;
 
-class Program
-{{
-    Func<{typeName}> M()
-    {{
-        return () => $$
-    }}
-}}";
+            class Program
+            {
+                Func<{{typeName}}> M()
+                {
+                    return () => $$
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, typeName);
@@ -304,99 +314,113 @@ class Program
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task NotInAnonymousMethodAfterParameterList(string typeName)
-        => VerifyItemIsAbsentAsync($@"using System;
+        => VerifyItemIsAbsentAsync($$"""
+            using System;
 
-class Program
-{{
-    Func<{typeName}> M()
-    {{
-        return delegate () $$
-    }}
-}}", typeName);
+            class Program
+            {
+                Func<{{typeName}}> M()
+                {
+                    return delegate () $$
+                }
+            }
+            """, typeName);
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task NotInSimpleLambdaAfterAsync(string typeName)
-        => VerifyItemIsAbsentAsync($@"using System;
+        => VerifyItemIsAbsentAsync($$"""
+            using System;
 
-class Program
-{{
-    Func<bool, {typeName}> M()
-    {{
-        return async $$ _ =>
-    }}
-}}", typeName);
+            class Program
+            {
+                Func<bool, {{typeName}}> M()
+                {
+                    return async $$ _ =>
+                }
+            }
+            """, typeName);
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task NotInParenthesizedLambdaAfterAsync(string typeName)
-        => VerifyItemIsAbsentAsync($@"using System;
+        => VerifyItemIsAbsentAsync($$"""
+            using System;
 
-class Program
-{{
-    Func<{typeName}> M()
-    {{
-        return async $$ () =>
-    }}
-}}", typeName);
+            class Program
+            {
+                Func<{{typeName}}> M()
+                {
+                    return async $$ () =>
+                }
+            }
+            """, typeName);
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task NotInAnonymousMethodAfterAsync(string typeName)
-        => VerifyItemIsAbsentAsync($@"using System;
+        => VerifyItemIsAbsentAsync($$"""
+            using System;
 
-class Program
-{{
-    Func<{typeName}> M()
-    {{
-        return async $$ delegate ()
-    }}
-}}", typeName);
+            class Program
+            {
+                Func<{{typeName}}> M()
+                {
+                    return async $$ delegate ()
+                }
+            }
+            """, typeName);
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task NotInSimpleLambdaBlock(string typeName)
-        => VerifyItemIsAbsentAsync($@"using System;
+        => VerifyItemIsAbsentAsync($$"""
+            using System;
 
-class Program
-{{
-    Func<bool, {typeName}> M()
-    {{
-        return _ => {{ $$ }}
-    }}
-}}", typeName);
+            class Program
+            {
+                Func<bool, {{typeName}}> M()
+                {
+                    return _ => { $$ }
+                }
+            }
+            """, typeName);
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task NotInParenthesizedLambdaBlock(string typeName)
-        => VerifyItemIsAbsentAsync($@"using System;
+        => VerifyItemIsAbsentAsync($$"""
+            using System;
 
-class Program
-{{
-    Func<{typeName}> M()
-    {{
-        return () => {{ $$ }}
-    }}
-}}", typeName);
+            class Program
+            {
+                Func<{{typeName}}> M()
+                {
+                    return () => { $$ }
+                }
+            }
+            """, typeName);
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task NotInAnonymousMethodBlock(string typeName)
-        => VerifyItemIsAbsentAsync($@"using System;
+        => VerifyItemIsAbsentAsync($$"""
+            using System;
 
-class Program
-{{
-    Func<{typeName}> M()
-    {{
-        return delegate () {{ $$ }}
-    }}
-}}", typeName);
+            class Program
+            {
+                Func<{{typeName}}> M()
+                {
+                    return delegate () { $$ }
+                }
+            }
+            """, typeName);
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
@@ -404,16 +428,18 @@ class Program
     public async Task InExpressionTreeSimpleLambdaAfterArrow(string typeName)
     {
         var markup =
-$@"using System;
-using System.Linq.Expressions;
+            $$"""
+            using System;
+            using System.Linq.Expressions;
 
-class Program
-{{
-    Expression<Func<bool, {typeName}>> M()
-    {{
-        return _ => $$
-    }}
-}}";
+            class Program
+            {
+                Expression<Func<bool, {{typeName}}>> M()
+                {
+                    return _ => $$
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, typeName);
@@ -427,16 +453,18 @@ class Program
     public async Task InExpressionTreeParenthesizedLambdaAfterArrow(string typeName)
     {
         var markup =
-$@"using System;
-using System.Linq.Expressions;
+            $$"""
+            using System;
+            using System.Linq.Expressions;
 
-class Program
-{{
-    Expression<Func<{typeName}>> M()
-    {{
-        return () => $$
-    }}
-}}";
+            class Program
+            {
+                Expression<Func<{{typeName}}>> M()
+                {
+                    return () => $$
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, typeName);
@@ -606,15 +634,16 @@ class Program
     [InlineData("System.DateTime")]
     public async Task SuggestAlias(string fullTypeName)
     {
-        var markup = $@"
-using D = {fullTypeName}; 
-class Program
-{{
-    static void Main(string[] args)
-    {{
-        D d=  $$
-    }}
-}}";
+        var markup = $$"""
+            using D = {{fullTypeName}}; 
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    D d=  $$
+                }
+            }
+            """;
 
         if (fullTypeName == "System.Globalization.DigitShapes")
             await VerifyItemExistsAsync(markup, "D");
@@ -627,20 +656,20 @@ class Program
     [InlineData("System.DateTime")]
     public async Task SuggestAlias2(string fullTypeName)
     {
-        var markup = $@"
-namespace N
-{{
-using D = {fullTypeName}; 
+        var markup = $$"""
+            namespace N
+            {
+            using D = {{fullTypeName}}; 
 
-class Program
-{{
-    static void Main(string[] args)
-    {{
-        D d=  $$
-    }}
-}}
-}}
-";
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    D d=  $$
+                }
+            }
+            }
+            """;
 
         if (fullTypeName == "System.Globalization.DigitShapes")
             await VerifyItemExistsAsync(markup, "D");
@@ -653,24 +682,24 @@ class Program
     [InlineData("System.DateTime")]
     public async Task SuggestAlias3(string fullTypeName)
     {
-        var markup = $@"
-namespace N
-{{
-using D = {fullTypeName}; 
+        var markup = $$"""
+            namespace N
+            {
+            using D = {{fullTypeName}}; 
 
-class Program
-{{
-    private void Goo({fullTypeName} shape)
-    {{
-    }}
+            class Program
+            {
+                private void Goo({{fullTypeName}} shape)
+                {
+                }
 
-    static void Main(string[] args)
-    {{
-        Goo($$
-    }}
-}}
-}}
-";
+                static void Main(string[] args)
+                {
+                    Goo($$
+                }
+            }
+            }
+            """;
 
         if (fullTypeName == "System.Globalization.DigitShapes")
             await VerifyItemExistsAsync(markup, "D");
@@ -1360,115 +1389,115 @@ class Program
     [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public Task TestInYieldReturn(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-using System;
-using System.Collections.Generic;
+        => VerifyItemExistsAsync($$"""
+            using System;
+            using System.Collections.Generic;
 
-class C
-{{
-    public IEnumerable<{typeName}> M()
-    {{
-        yield return $$;
-    }}
-}}
-", $"{typeName}.{memberName}");
+            class C
+            {
+                public IEnumerable<{{typeName}}> M()
+                {
+                    yield return $$;
+                }
+            }
+            """, $"{typeName}.{memberName}");
 
     [Theory]
     [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public Task TestInAsyncMethodReturnStatement(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-using System;
-using System.Threading.Tasks;
+        => VerifyItemExistsAsync($$"""
+            using System;
+            using System.Threading.Tasks;
 
-class C
-{{
-    public async Task<{typeName}> M()
-    {{
-        await Task.Delay(1);
-        return $$;
-    }}
-}}
-", $"{typeName}.{memberName}");
+            class C
+            {
+                public async Task<{{typeName}}> M()
+                {
+                    await Task.Delay(1);
+                    return $$;
+                }
+            }
+            """, $"{typeName}.{memberName}");
 
     [Theory]
     [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public Task TestInIndexedProperty(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-using System;
-static class Module1
-{{
-    public class MyClass1
-    {{
-        public bool this[{typeName} index]
-        {{
-            set
-            {{
-            }}
-        }}
-    }}
+        => VerifyItemExistsAsync($$"""
+            using System;
+            static class Module1
+            {
+                public class MyClass1
+                {
+                    public bool this[{{typeName}} index]
+                    {
+                        set
+                        {
+                        }
+                    }
+                }
 
-    public static void Main()
-    {{
-        var c = new MyClass1();
-        c[$${typeName}.{memberName}] = true;
-    }}
-}}
-", $"{typeName}.{memberName}");
+                public static void Main()
+                {
+                    var c = new MyClass1();
+                    c[$${{typeName}}.{{memberName}}] = true;
+                }
+            }
+            """, $"{typeName}.{memberName}");
 
     [Theory]
     [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public Task TestFullyQualified(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-class C
-{{
-    public void M(System.{typeName} day)
-    {{
-        M($$);
-    }}
+        => VerifyItemExistsAsync($$"""
+            class C
+            {
+                public void M(System.{{typeName}} day)
+                {
+                    M($$);
+                }
 
-    enum DayOfWeek
-    {{
-        A,
-        B
-    }}
+                enum DayOfWeek
+                {
+                    A,
+                    B
+                }
 
-    struct DateTime
-    {{
-        public static readonly DateTime A;
-        public static readonly DateTime B;
-    }}
-}}
-", $"System.{typeName}.{memberName}");
+                struct DateTime
+                {
+                    public static readonly DateTime A;
+                    public static readonly DateTime B;
+                }
+            }
+            """, $"System.{typeName}.{memberName}");
 
     [Theory]
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public async Task TestTriggeredForNamedArgument(string typeName)
     {
-        var markup = $@"
-class C
-{{
-    public void M({typeName} day)
-    {{
-        M(day: $$);
-    }}
+        var markup = $$"""
+            class C
+            {
+                public void M({{typeName}} day)
+                {
+                    M(day: $$);
+                }
 
-    enum DayOfWeek
-    {{
-        A,
-        B
-    }}
+                enum DayOfWeek
+                {
+                    A,
+                    B
+                }
 
-    struct DateTime
-    {{
-        public static readonly DateTime A;
-        public static readonly DateTime B;
-    }}
-}}
-";
+                struct DateTime
+                {
+                    public static readonly DateTime A;
+                    public static readonly DateTime B;
+                }
+            }
+            """;
 
         if (typeName == nameof(DayOfWeek))
             await VerifyItemExistsAsync(markup, $"{typeName}.A", usePreviousCharAsTrigger: true);
@@ -1482,27 +1511,27 @@ class C
     [InlineData(nameof(DayOfWeek))]
     [InlineData(nameof(DateTime))]
     public Task TestNotTriggeredAfterAssignmentEquals(string typeName)
-        => VerifyItemIsAbsentAsync($@"
-class C
-{{
-    public void M({typeName} day)
-    {{
-        var x = $$;
-    }}
+        => VerifyItemIsAbsentAsync($$"""
+            class C
+            {
+                public void M({{typeName}} day)
+                {
+                    var x = $$;
+                }
 
-    enum DayOfWeek
-    {{
-        A,
-        B
-    }}
+                enum DayOfWeek
+                {
+                    A,
+                    B
+                }
 
-    struct DateTime
-    {{
-        public static readonly DateTime A;
-        public static readonly DateTime B;
-    }}
-}}
-", $"{typeName}.A", usePreviousCharAsTrigger: true);
+                struct DateTime
+                {
+                    public static readonly DateTime A;
+                    public static readonly DateTime B;
+                }
+            }
+            """, $"{typeName}.A", usePreviousCharAsTrigger: true);
 
     [Fact]
     public async Task TestCaseStatementWithInt32InferredType()
@@ -1630,58 +1659,58 @@ class C
     [InlineData(nameof(ConsoleKey))]
     [InlineData(nameof(DateTime))]
     public Task EnumMember_NotAfterDot(string typeName)
-        => VerifyNoItemsExistAsync($@"
-static class Module1
-{{
-    public static void Main({typeName} x)
-    {{
-        while (x == System.{typeName}.$$
-        {{
-        }}
-    }}
-}}
-");
+        => VerifyNoItemsExistAsync($$"""
+            static class Module1
+            {
+                public static void Main({{typeName}} x)
+                {
+                    while (x == System.{{typeName}}.$$
+                    {
+                    }
+                }
+            }
+            """);
 
     [Theory]
     [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Monday))]
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public Task TestInCollectionInitializer1(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-using System;
-using System.Collections.Generic;
+        => VerifyItemExistsAsync($$"""
+            using System;
+            using System.Collections.Generic;
 
-class C
-{{
-    public void Main()
-    {{
-        var y = new List<{typeName}>()
-        {{
-            $$
-        }};
-    }}
-}}
-", $"{typeName}.{memberName}");
+            class C
+            {
+                public void Main()
+                {
+                    var y = new List<{{typeName}}>()
+                    {
+                        $$
+                    };
+                }
+            }
+            """, $"{typeName}.{memberName}");
 
     [Theory]
     [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Monday))]
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     public Task TestInCollectionInitializer2(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-using System;
-using System.Collections.Generic;
+        => VerifyItemExistsAsync($$"""
+            using System;
+            using System.Collections.Generic;
 
-class C
-{{
-    public void Main()
-    {{
-        var y = new List<{typeName}>()
-        {{
-            {typeName}.{memberName},
-            $$
-        }};
-    }}
-}}
-", $"{typeName}.{memberName}");
+            class C
+            {
+                public void Main()
+                {
+                    var y = new List<{{typeName}}>()
+                    {
+                        {{typeName}}.{{memberName}},
+                        $$
+                    };
+                }
+            }
+            """, $"{typeName}.{memberName}");
 
     [Fact]
     public Task EnumMember_TestInEnumHasFlag()
@@ -1752,38 +1781,39 @@ class C
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
     public Task TestNullableEnum(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-#nullable enable
-using System;
-class C
-{{
-    public void SetValue({typeName}? value) {{ }}
+        => VerifyItemExistsAsync($$"""
+            #nullable enable
+            using System;
+            class C
+            {
+                public void SetValue({{typeName}}? value) { }
 
-    public void Main()
-    {{
-        SetValue($$
-    }}
-}}
-", $"{typeName}.{memberName}");
+                public void Main()
+                {
+                    SetValue($$
+                }
+            }
+            """, $"{typeName}.{memberName}");
 
     [Theory]
     [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
     [InlineData(nameof(DateTime), nameof(DateTime.Now))]
     [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
     public Task TestTypeAlias(string typeName, string memberName)
-        => VerifyItemExistsAsync($@"
-#nullable enable
-using AT = System.{typeName};
+        => VerifyItemExistsAsync($$"""
+            #nullable enable
+            using AT = System.{{typeName}};
 
-public class Program
-{{
-    static void M(AT attributeTargets) {{ }}
-    
-    public static void Main()
-    {{
-        M($$
-    }}
-}}", $"AT.{memberName}");
+            public class Program
+            {
+                static void M(AT attributeTargets) { }
+
+                public static void Main()
+                {
+                    M($$
+                }
+            }
+            """, $"AT.{memberName}");
 
     [Theory]
     [InlineData("")]
@@ -1799,21 +1829,21 @@ public class Program
     [InlineData("not Re")]
     public async Task TestPatterns_Is_ConstUnaryAndBinaryPattern(string isPattern, bool shouldOfferRed = true)
     {
-        var markup = @$"
-class C
-{{
-    public enum Color
-    {{
-        Red,
-        Green,
-    }}
+        var markup = $$"""
+            class C
+            {
+                public enum Color
+                {
+                    Red,
+                    Green,
+                }
 
-    public void M(Color c)
-    {{
-        var isRed = c is {isPattern}$$;
-    }}
-}}
-";
+                public void M(Color c)
+                {
+                    var isRed = c is {{isPattern}}$$;
+                }
+            }
+            """;
         if (shouldOfferRed)
         {
             await VerifyItemExistsAsync(markup, "Color.Red");
@@ -1833,43 +1863,43 @@ class C
     [InlineData("not ")]
     [InlineData("not Re")]
     public Task TestPatterns_Is_PropertyPattern(string partialWritten)
-        => VerifyItemExistsAsync(@$"
-public enum Color
-{{
-    Red,
-    Green,
-}}
+        => VerifyItemExistsAsync($$"""
+            public enum Color
+            {
+                Red,
+                Green,
+            }
 
-class C
-{{
-    public Color Color {{ get; }}
+            class C
+            {
+                public Color Color { get; }
 
-    public void M()
-    {{
-        var isRed = this is {{ Color: {partialWritten}$$
-    }}
-}}
-", "Color.Red");
+                public void M()
+                {
+                    var isRed = this is { Color: {{partialWritten}}$$
+                }
+            }
+            """, "Color.Red");
 
     [Fact]
     public Task TestPatterns_Is_PropertyPattern_NotAfterEnumDot()
-        => VerifyItemIsAbsentAsync(@$"
-public enum Color
-{{
-    Red,
-    Green,
-}}
+        => VerifyItemIsAbsentAsync($$"""
+            public enum Color
+            {
+                Red,
+                Green,
+            }
 
-class C
-{{
-    public Color Color {{ get; }}
+            class C
+            {
+                public Color Color { get; }
 
-    public void M()
-    {{
-        var isRed = this is {{ Color: Color.R$$
-    }}
-}}
-", "Color.Red");
+                public void M()
+                {
+                    var isRed = this is { Color: Color.R$$
+                }
+            }
+            """, "Color.Red");
 
     [Fact]
     public Task TestPatterns_SwitchStatement_PropertyPattern()
@@ -1970,20 +2000,20 @@ class C
     [InlineData("private")]
     public async Task TestAccessibilityDifferentType(string modifier)
     {
-        var markup = $@"
-public class Color
-{{
-    {modifier} static readonly Color Red;
-}}
+        var markup = $$"""
+            public class Color
+            {
+                {{modifier}} static readonly Color Red;
+            }
 
-class C
-{{
-    public void M(Color color)
-    {{
-        M($$
-    }}
-}}
-";
+            class C
+            {
+                public void M(Color color)
+                {
+                    M($$
+                }
+            }
+            """;
 
         var expected = modifier switch
         {
@@ -2007,37 +2037,37 @@ class C
     [InlineData("private protected")]
     [InlineData("private")]
     public Task TestAccessibilitySameType(string modifier)
-        => VerifyItemExistsAsync($@"
-public class Color
-{{
-    {modifier} static readonly Color Red;
+        => VerifyItemExistsAsync($$"""
+            public class Color
+            {
+                {{modifier}} static readonly Color Red;
 
-    public void M(Color color)
-    {{
-        M($$
-    }}
-}}
-", "Color.Red");
+                public void M(Color color)
+                {
+                    M($$
+                }
+            }
+            """, "Color.Red");
 
     [Theory]
     [InlineData("class")]
     [InlineData("struct")]
     [InlineData("record")]
     public Task TestEnumLikeTypeKinds(string typeKeyword)
-        => VerifyItemExistsAsync($@"
-public {typeKeyword} Color
-{{
-    public static readonly Color Red;
-}}
+        => VerifyItemExistsAsync($$"""
+            public {{typeKeyword}} Color
+            {
+                public static readonly Color Red;
+            }
 
-class C
-{{
-    public void M(Color color)
-    {{
-        M($$
-    }}
-}}
-", "Color.Red");
+            class C
+            {
+                public void M(Color color)
+                {
+                    M($$
+                }
+            }
+            """, "Color.Red");
 
     #endregion
 }

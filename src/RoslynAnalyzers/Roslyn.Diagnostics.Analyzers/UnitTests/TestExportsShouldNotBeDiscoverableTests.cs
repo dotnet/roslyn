@@ -21,19 +21,19 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("System.ComponentModel.Composition")]
         public async Task Discoverable_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using {mefNamespace};
+            var source = $$"""
+                using {{mefNamespace}};
 
-[Export]
-class C {{ }}
-";
-            var fixedSource = $@"
-using {mefNamespace};
+                [Export]
+                class C { }
+                """;
+            var fixedSource = $$"""
+                using {{mefNamespace}};
 
-[Export]
-[PartNotDiscoverable]
-class C {{ }}
-";
+                [Export]
+                [PartNotDiscoverable]
+                class C { }
+                """;
 
             await new VerifyCS.Test
             {
@@ -55,17 +55,17 @@ class C {{ }}
         [InlineData("System.ComponentModel.Composition")]
         public async Task DiscoverableAddImport_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-[{mefNamespace}.Export]
-class C {{ }}
-";
-            var fixedSource = $@"
-using {mefNamespace};
+            var source = $$"""
+                [{{mefNamespace}}.Export]
+                class C { }
+                """;
+            var fixedSource = $$"""
+                using {{mefNamespace}};
 
-[{mefNamespace}.Export]
-[PartNotDiscoverable]
-class C {{ }}
-";
+                [{{mefNamespace}}.Export]
+                [PartNotDiscoverable]
+                class C { }
+                """;
 
             await new VerifyCS.Test
             {
@@ -87,13 +87,13 @@ class C {{ }}
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotDiscoverable_CSharpAsync(string mefNamespace)
         {
-            var source = $@"
-using {mefNamespace};
+            var source = $$"""
+                using {{mefNamespace}};
 
-[Export]
-[PartNotDiscoverable]
-class C {{ }}
-";
+                [Export]
+                [PartNotDiscoverable]
+                class C { }
+                """;
 
             await new VerifyCS.Test
             {
@@ -110,21 +110,21 @@ class C {{ }}
         [InlineData("System.ComponentModel.Composition")]
         public async Task Discoverable_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports {mefNamespace}
+            var source = $"""
+                Imports {mefNamespace}
 
-<Export>
-Class C
-End Class
-";
-            var fixedSource = $@"
-Imports {mefNamespace}
+                <Export>
+                Class C
+                End Class
+                """;
+            var fixedSource = $"""
+                Imports {mefNamespace}
 
-<Export>
-<PartNotDiscoverable>
-Class C
-End Class
-";
+                <Export>
+                <PartNotDiscoverable>
+                Class C
+                End Class
+                """;
 
             await new VerifyVB.Test
             {
@@ -146,19 +146,19 @@ End Class
         [InlineData("System.ComponentModel.Composition")]
         public async Task DiscoverableAddImport_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-<{mefNamespace}.Export>
-Class C
-End Class
-";
-            var fixedSource = $@"
-Imports {mefNamespace}
+            var source = $"""
+                <{mefNamespace}.Export>
+                Class C
+                End Class
+                """;
+            var fixedSource = $"""
+                Imports {mefNamespace}
 
-<{mefNamespace}.Export>
-<PartNotDiscoverable>
-Class C
-End Class
-";
+                <{mefNamespace}.Export>
+                <PartNotDiscoverable>
+                Class C
+                End Class
+                """;
 
             await new VerifyVB.Test
             {
@@ -180,14 +180,14 @@ End Class
         [InlineData("System.ComponentModel.Composition")]
         public async Task NotDiscoverable_VisualBasicAsync(string mefNamespace)
         {
-            var source = $@"
-Imports {mefNamespace}
+            var source = $"""
+                Imports {mefNamespace}
 
-<Export>
-<PartNotDiscoverable>
-Class C
-End Class
-";
+                <Export>
+                <PartNotDiscoverable>
+                Class C
+                End Class
+                """;
 
             await new VerifyVB.Test
             {

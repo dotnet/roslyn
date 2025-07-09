@@ -64,14 +64,22 @@ namespace Roslyn.Diagnostics.Analyzers
 
             static string? getPrefix(string text)
             {
-                if (text.StartsWith("@\"", StringComparison.OrdinalIgnoreCase))
+                if (text.StartsWith("""
+                    @"
+                    """, StringComparison.OrdinalIgnoreCase))
                 {
-                    return "@\"";
+                    return """
+                        @"
+                        """;
                 }
 
-                if (text.StartsWith("\"", StringComparison.OrdinalIgnoreCase))
+                if (text.StartsWith("""
+                    "
+                    """, StringComparison.OrdinalIgnoreCase))
                 {
-                    return "\"";
+                    return """
+                        "
+                        """;
                 }
 
                 return null;

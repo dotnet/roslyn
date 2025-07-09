@@ -27,13 +27,15 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     public async Task TestCodeActionResolveHandlerAsync(bool mutatingLspWorkspace)
     {
         var initialMarkup =
-@"class A
-{
-    void M()
-    {
-        {|caret:|}int i = 1;
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}int i = 1;
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(initialMarkup, mutatingLspWorkspace);
         var titlePath = new string[] { CSharpAnalyzersResources.Use_implicit_type };
         var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
@@ -78,13 +80,15 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     public async Task TestCodeActionResolveHandlerAsync_NestedAction(bool mutatingLspWorkspace)
     {
         var initialMarkup =
-@"class A
-{
-    void M()
-    {
-        int {|caret:|}i = 1;
-    }
-}";
+            """
+            class A
+            {
+                void M()
+                {
+                    int {|caret:|}i = 1;
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(initialMarkup, mutatingLspWorkspace);
         var titlePath = new string[] { FeaturesResources.Introduce_constant, string.Format(FeaturesResources.Introduce_constant_for_0, "1") };
         var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
@@ -111,9 +115,9 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         //     }
         var expectedTextEdits = new SumType<TextEdit, AnnotatedTextEdit>[]
         {
-            GenerateTextEdit(@"private const int V = 1;
-
-", new LSP.Range { Start = new Position(2, 4), End = new Position(2, 4) }),
+            GenerateTextEdit("""
+                private const int V = 1;
+                """, new LSP.Range { Start = new Position(2, 4), End = new Position(2, 4) }),
             GenerateTextEdit("V", new LSP.Range { Start = new Position(4, 16), End = new Position(4, 17) })
         };
 
@@ -138,10 +142,11 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestRename(bool mutatingLspWorkspace)
     {
-        var markUp = @"
-class {|caret:ABC|}
-{
-}";
+        var markUp = """
+            class {|caret:ABC|}
+            {
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace, new InitializationOptions
         {
@@ -250,13 +255,14 @@ class {|caret:ABC|}
     [Theory, CombinatorialData]
     public async Task TestMoveTypeToDifferentFile(bool mutatingLspWorkspace)
     {
-        var markUp = @"
-class {|caret:ABC|}
-{
-}
-class BCD 
-{
-}";
+        var markUp = """
+            class {|caret:ABC|}
+            {
+            }
+            class BCD 
+            {
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace, new InitializationOptions
         {
@@ -318,10 +324,11 @@ class BCD
                                     Character = 0
                                 }
                             },
-                            NewText = @"class ABC
-{
-}
-"
+                            NewText = """
+                            class ABC
+                            {
+                            }
+                            """
                         }
                     ]
                 },
@@ -373,12 +380,14 @@ class BCD
     public async Task TestMoveTypeToDifferentFileInDirectory(bool mutatingLspWorkspace)
     {
         var markup =
-@"class ABC
-{
-}
-class {|caret:BCD|} 
-{
-}";
+            """
+            class ABC
+            {
+            }
+            class {|caret:BCD|} 
+            {
+            }
+            """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
@@ -445,9 +454,11 @@ class {|caret:BCD|}
                                     Character = 0
                                 }
                             },
-                            NewText = @"class BCD
-{
-}"
+                            NewText = """
+                            class BCD
+                            {
+                            }
+                            """
                         }
                     ]
                 },

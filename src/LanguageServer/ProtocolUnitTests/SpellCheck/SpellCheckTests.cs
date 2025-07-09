@@ -29,9 +29,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         public async Task TestNoDocumentResultsForClosedFiles(bool mutatingLspWorkspace)
         {
             var markup =
-@"class A
-{
-}";
+                """
+                class A
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -44,9 +46,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         public async Task TestDocumentResultsForOpenFiles(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var testDocument = testLspServer.TestWorkspace.Documents.Single();
@@ -106,9 +110,11 @@ class {|Identifier:A{{v}}|}
         public async Task TestDocumentResultsForRemovedDocument(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var workspace = testLspServer.TestWorkspace;
 
@@ -143,9 +149,11 @@ class {|Identifier:A{{v}}|}
         public async Task TestNoChangeIfDocumentResultsCalledTwice(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -174,11 +182,11 @@ class {|Identifier:A{{v}}|}
         public async Task TestDocumentResultChangedAfterEntityAdded(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}
-
-";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -202,11 +210,13 @@ class {|Identifier:A{{v}}|}
             results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), results.Single().ResultId);
 
             MarkupTestFile.GetSpans(
-@"class {|Identifier:A|}
-{
-}
+                """
+                class {|Identifier:A|}
+                {
+                }
 
-{|Comment:// comment|}", out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
+                {|Comment:// comment|}
+                """, out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
 
             sourceText = await document.GetTextAsync();
             Assert.Single(results);
@@ -221,9 +231,11 @@ class {|Identifier:A{{v}}|}
         public async Task TestDocumentResultIdSameAfterIrrelevantEdit(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -257,10 +269,12 @@ class {|Identifier:A{{v}}|}
         public async Task TestDocumentResultsAreNotMapped(bool mutatingLspWorkspace)
         {
             var markup =
-@"#line 4 ""test.txt""
-class {|Identifier:A|}
-{
-}";
+                """
+                #line 4 "test.txt"
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -282,9 +296,11 @@ class {|Identifier:A|}
         public async Task TestStreamingDocumentDiagnostics(bool mutatingLspWorkspace)
         {
             var markup =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
@@ -310,9 +326,11 @@ class {|Identifier:A|}
         public async Task TestWorkspaceResultsForClosedFiles(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -339,14 +357,16 @@ class {|Identifier:A|}
             var typeScriptMarkup = "???";
 
             var workspaceXml =
-@$"<Workspace>
-            <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-                <Document FilePath=""C:\C.cs"">{csharpMarkup}</Document>
-            </Project>
-            <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-                <Document FilePath=""C:\T.ts"">{typeScriptMarkup}</Document>
-            </Project>
-        </Workspace>";
+                $"""
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                        <Document FilePath="C:\C.cs">{csharpMarkup}</Document>
+                    </Project>
+                    <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                        <Document FilePath="C:\T.ts">{typeScriptMarkup}</Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
 
@@ -383,9 +403,11 @@ class {|Identifier:A|}
         public async Task TestWorkspaceResultsForRemovedDocument(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -421,9 +443,11 @@ class {|Identifier:A|}
         public async Task TestNoChangeIfWorkspaceResultsCalledTwice(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -455,11 +479,11 @@ class {|Identifier:A|}
         public async Task TestWorkspaceResultUpdatedAfterEdit(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}
-
-";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
@@ -487,11 +511,13 @@ class {|Identifier:A|}
             sourceText = await document.GetTextAsync();
 
             MarkupTestFile.GetSpans(
-@"class {|Identifier:A|}
-{
-}
+                """
+                class {|Identifier:A|}
+                {
+                }
 
-{|Comment:// comment|}", out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
+                {|Comment:// comment|}
+                """, out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
 
             AssertJsonEquals(results2[0], new VSInternalWorkspaceSpellCheckableReport
             {
@@ -509,9 +535,11 @@ class {|Identifier:A|}
         public async Task TestStreamingWorkspaceResults(bool mutatingLspWorkspace)
         {
             var markup1 =
-@"class {|Identifier:A|}
-{
-}";
+                """
+                class {|Identifier:A|}
+                {
+                }
+                """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 

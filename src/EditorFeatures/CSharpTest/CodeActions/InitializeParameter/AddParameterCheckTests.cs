@@ -3488,7 +3488,11 @@ public sealed class AddParameterCheckTests
                     {
                         if (num < 0)
                         {
-                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(num)}").Replace("""
+                                                   "
+                                                   """, """
+                                                   \"
+                                                   """)}}");
                         }
                     }
                 }
@@ -3509,7 +3513,11 @@ public sealed class AddParameterCheckTests
                     {
                         if (num <= 0)
                         {
-                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative_or_zero, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative_or_zero, "{nameof(num)}").Replace("""
+                                                   "
+                                                   """, """
+                                                   \"
+                                                   """)}}");
                         }
                     }
                 }
@@ -3724,7 +3732,11 @@ public sealed class AddParameterCheckTests
 
                         if (i < 0)
                         {
-                            throw new ArgumentOutOfRangeException(nameof(i), i, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(i)}").Replace("\"", "\\\"")}}");
+                            throw new ArgumentOutOfRangeException(nameof(i), i, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(i)}").Replace("""
+    "
+    """, """
+    \"
+    """)}}");
                         }
 
                         if (string.IsNullOrEmpty(s))

@@ -31,13 +31,13 @@ public class BasicGenerateTypeDialog : AbstractEditorTest
         var project = ProjectName;
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"
-Class C
-    Sub Method()
-        $$Dim _A As A
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Method()
+                    $$Dim _A As A
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,
             blockUntilComplete: false,
@@ -51,35 +51,38 @@ End Class
         await TestServices.GenerateTypeDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.GenerateTypeDialog.VerifyClosedAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Imports CSProj
+        Assert.Contains("""
+            Imports CSProj
 
-Class C
-    Sub Method()
-        Dim _A As A
-    End Sub
-End Class
-", actualText);
+            Class C
+                Sub Method()
+                    Dim _A As A
+                End Sub
+            End Class
+            """, actualText);
 
         await TestServices.SolutionExplorer.OpenFileAsync(csProj, "GenerateTypeTest.cs", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"namespace CSProj
-{
-    public struct A
-    {
-    }
-}", actualText);
+        Assert.Contains("""
+            namespace CSProj
+            {
+                public struct A
+                {
+                }
+            }
+            """, actualText);
     }
 
     [IdeFact]
     public async Task SameProject()
     {
-        await SetUpEditorAsync(@"
-Class C
-    Sub Method()
-        $$Dim _A As A
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Method()
+                    $$Dim _A As A
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
 
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,
@@ -96,18 +99,20 @@ End Class
 
         await TestServices.SolutionExplorer.OpenFileAsync(project, "GenerateTypeTest.vb", HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Public Structure A
-End Structure
-", actualText);
+        Assert.Contains("""
+            Public Structure A
+            End Structure
+            """, actualText);
 
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Class1.vb", HangMitigatingCancellationToken);
         actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"Class C
-    Sub Method()
-        Dim _A As A
-    End Sub
-End Class
-", actualText);
+        Assert.Contains("""
+            Class C
+                Sub Method()
+                    Dim _A As A
+                End Sub
+            End Class
+            """, actualText);
     }
 
     [IdeFact]
@@ -116,12 +121,13 @@ End Class
         var project = ProjectName;
         await TestServices.SolutionExplorer.AddFileAsync(project, @"folder1\folder2\GenerateTypeTests.vb", open: true, cancellationToken: HangMitigatingCancellationToken);
 
-        await SetUpEditorAsync(@"Class C
-    Sub Method() 
-        $$Dim _A As A
-    End Sub
-End Class
-", HangMitigatingCancellationToken);
+        await SetUpEditorAsync("""
+            Class C
+                Sub Method() 
+                    $$Dim _A As A
+                End Sub
+            End Class
+            """, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Generate new type...",
             applyFix: true,
             blockUntilComplete: false,

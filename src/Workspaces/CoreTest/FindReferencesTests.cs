@@ -88,16 +88,16 @@ public sealed class FindReferencesTests : TestBase
     [Fact]
     public async Task FindFieldReferencesInSingleDocumentProject()
     {
-        var text = @"
-public class C {
-   public int X;
-   public int Y = X * X;
-   public void M() {
-     int x = 10;
-     int y = x + X;
-   }
-}
-";
+        var text = """
+            public class C {
+               public int X;
+               public int Y = X * X;
+               public void M() {
+                 int x = 10;
+                 int y = x + X;
+               }
+            }
+            """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text);
         var project = solution.Projects.First();
@@ -111,11 +111,11 @@ public class C {
     [Fact]
     public async Task FindTypeReference_DuplicateMetadataReferences()
     {
-        var text = @"
-public class C {
-   public string X;
-}
-";
+        var text = """
+            public class C {
+               public string X;
+            }
+            """;
         using var workspace = CreateWorkspace();
         var pid = ProjectId.CreateNewId();
         var did = DocumentId.CreateNewId(pid);
@@ -139,32 +139,32 @@ public class C {
     public async Task PinvokeMethodReferences_VB()
     {
         var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
-            @"
-Module Module1
-        Declare Function CreateDirectory Lib ""kernel32"" Alias ""CreateDirectoryA"" (ByVal lpPathName As String) As Integer
- 
-        Private prop As Integer
-        Property Prop1 As Integer
-            Get
-                Return prop
-            End Get
-            Set(value As Integer)
-                CreateDirectory(""T"")  ' Method Call 1
-                prop = value
-                prop = Nothing
-            End Set
-        End Property
+            """
+            Module Module1
+                    Declare Function CreateDirectory Lib "kernel32" Alias "CreateDirectoryA" (ByVal lpPathName As String) As Integer
 
-        Sub Main()
-          CreateDirectory(""T"") 'Method Call 2            
-          NormalMethod() ' Method Call 1
-          NormalMethod() ' Method Call 2
-       End Sub
+                    Private prop As Integer
+                    Property Prop1 As Integer
+                        Get
+                            Return prop
+                        End Get
+                        Set(value As Integer)
+                            CreateDirectory("T")  ' Method Call 1
+                            prop = value
+                            prop = Nothing
+                        End Set
+                    End Property
 
-       Sub NormalMethod()
-       End Sub
- End Module
-            ");
+                    Sub Main()
+                      CreateDirectory("T") 'Method Call 2            
+                      NormalMethod() ' Method Call 1
+                      NormalMethod() ' Method Call 2
+                   End Sub
+
+                   Sub NormalMethod()
+                   End Sub
+             End Module
+            """);
 
         var prj1Id = ProjectId.CreateNewId();
         var docId = DocumentId.CreateNewId(prj1Id);
@@ -198,12 +198,12 @@ Module Module1
     public async Task TestSymbolWithEmptyIdentifier()
     {
         var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
-            @"
-Imports System
-Public Class C
-    private readonly property
-End Class
-            ");
+            """
+            Imports System
+            Public Class C
+                private readonly property
+            End Class
+            """);
 
         var prj1Id = ProjectId.CreateNewId();
         var docId = DocumentId.CreateNewId(prj1Id);
@@ -230,44 +230,43 @@ End Class
     public async Task PinvokeMethodReferences_CS()
     {
         var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
-            @"
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-static class Module1
-{
-	[DllImport(""kernel32"", EntryPoint = ""CreateDirectoryA"", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-    public static extern int CreateDirectory(string lpPathName);
-
-        private static int prop;
-        public static int Prop1
-        {
-            get { return prop; }
-            set
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Data;
+            using System.Diagnostics;
+            using System.Runtime.InteropServices;
+            static class Module1
             {
-                CreateDirectory(""T"");
-                // Method Call 1
-                prop = value;
-                prop = null;
-            }
-        }
+            	[DllImport("kernel32", EntryPoint = "CreateDirectoryA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+                public static extern int CreateDirectory(string lpPathName);
 
-        public static void Main()
-        {
-            CreateDirectory(""T""); // Method Call 2            
-            NormalMethod(); // Method Call 1
-            NormalMethod(); // Method Call 2
-        }
+                    private static int prop;
+                    public static int Prop1
+                    {
+                        get { return prop; }
+                        set
+                        {
+                            CreateDirectory("T");
+                            // Method Call 1
+                            prop = value;
+                            prop = null;
+                        }
+                    }
 
-        public static void NormalMethod()
-        {
-        }
-    }
-                ");
+                    public static void Main()
+                    {
+                        CreateDirectory("T"); // Method Call 2            
+                        NormalMethod(); // Method Call 1
+                        NormalMethod(); // Method Call 2
+                    }
+
+                    public static void NormalMethod()
+                    {
+                    }
+                }
+            """);
 
         var prj1Id = ProjectId.CreateNewId();
         var docId = DocumentId.CreateNewId(prj1Id);
@@ -301,23 +300,23 @@ static class Module1
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537936")]
     public async Task FindReferences_InterfaceMapping()
     {
-        var text = @"
-abstract class C
-{
-    public abstract void Boo(); // Line 3
-}
-interface A
-{
-    void Boo(); // Line 7
-}
- 
-class B : C, A
-{
-   void A.Boo() { } // Line 12
-   public override void Boo() { } // Line 13
-   public void Bar() { Boo(); } // Line 14
-}
-";
+        var text = """
+            abstract class C
+            {
+                public abstract void Boo(); // Line 3
+            }
+            interface A
+            {
+                void Boo(); // Line 7
+            }
+
+            class B : C, A
+            {
+               void A.Boo() { } // Line 12
+               public override void Boo() { } // Line 13
+               public void Bar() { Boo(); } // Line 14
+            }
+            """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text);
         var project = solution.Projects.First();
@@ -362,28 +361,30 @@ class B : C, A
     {
         var solution = CreateWorkspace().CurrentSolution;
 
-        solution = AddProjectWithMetadataReferences(solution, "NetStandardProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public interface I
-    {
-        System.Uri Get();
-    }
-}", NetStandard20.References.All);
+        solution = AddProjectWithMetadataReferences(solution, "NetStandardProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public interface I
+                {
+                    System.Uri Get();
+                }
+            }
+            """, NetStandard20.References.All);
 
-        solution = AddProjectWithMetadataReferences(solution, "NetCoreProject", LanguageNames.CSharp, @"
-using N;
+        solution = AddProjectWithMetadataReferences(solution, "NetCoreProject", LanguageNames.CSharp, """
+            using N;
 
-namespace N2 
-{
-    public class Impl : I
-    {
-        public System.Uri Get()
-        {
-            return null;
-        }
-    }
-}", NetCoreApp.References, solution.Projects.Single(pid => pid.Name == "NetStandardProject").Id);
+            namespace N2 
+            {
+                public class Impl : I
+                {
+                    public System.Uri Get()
+                    {
+                        return null;
+                    }
+                }
+            }
+            """, NetCoreApp.References, solution.Projects.Single(pid => pid.Name == "NetStandardProject").Id);
 
         var netCoreProject = solution.Projects.First(p => p.Name == "NetCoreProject");
         var netStandardProject = solution.Projects.First(p => p.Name == "NetStandardProject");
@@ -403,30 +404,36 @@ namespace N2
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35786")]
     public async Task FindReferences_MultipleInterfaceInheritence()
     {
-        var implText = @"namespace A
-{
-    class C : ITest
-    {
-        public string Name { get; }
-        public System.Uri Uri { get; }
-    }
-}";
+        var implText = """
+            namespace A
+            {
+                class C : ITest
+                {
+                    public string Name { get; }
+                    public System.Uri Uri { get; }
+                }
+            }
+            """;
 
-        var interface1Text = @"namespace A
-{
-    interface ITest : ITestBase
-    {
-        string Name { get; }
-    }
-}";
+        var interface1Text = """
+            namespace A
+            {
+                interface ITest : ITestBase
+                {
+                    string Name { get; }
+                }
+            }
+            """;
 
-        var interface2Text = @"namespace A
-{
-    interface ITestBase
-    {
-        System.Uri Uri { get; }
-    }
-}";
+        var interface2Text = """
+            namespace A
+            {
+                interface ITestBase
+                {
+                    System.Uri Uri { get; }
+                }
+            }
+            """;
 
         using var workspace = CreateWorkspace();
         var solution = GetMultipleDocumentSolution(workspace, [implText, interface1Text, interface2Text]);
@@ -453,27 +460,27 @@ namespace N2
         var solution = CreateWorkspace().CurrentSolution;
 
         // create portable assembly with a virtual method
-        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
-namespace N
-{
-    public class BaseClass
-    {
-        public virtual void SomeMethod() { }
-    }
-}
-", MscorlibPP7Ref);
+        solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+            namespace N
+            {
+                public class BaseClass
+                {
+                    public virtual void SomeMethod() { }
+                }
+            }
+            """, MscorlibPP7Ref);
 
         // create a normal assembly with a type derived from the portable base and overriding the method
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
-using N;
-namespace M
-{
-    public class DerivedClass : BaseClass
-    {
-        public override void SomeMethod() { }
-    }
-}
-", Net40.References.mscorlib, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+            using N;
+            namespace M
+            {
+                public class DerivedClass : BaseClass
+                {
+                    public override void SomeMethod() { }
+                }
+            }
+            """, Net40.References.mscorlib, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
 
         // get symbols for methods
         var portableCompilation = await solution.Projects.Single(p => p.Name == "PortableProject").GetCompilationAsync();
@@ -501,13 +508,14 @@ namespace M
     [Fact]
     public async Task FindRefereceToUnmanagedConstraint_Type()
     {
-        var text = @"
-interface unmanaged                             // Line 1
-{
-}
-abstract class C<T> where T : unmanaged         // Line 4
-{
-}";
+        var text = """
+            interface unmanaged                             // Line 1
+            {
+            }
+            abstract class C<T> where T : unmanaged         // Line 4
+            {
+            }
+            """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text);
         var project = solution.Projects.First();
@@ -522,19 +530,19 @@ abstract class C<T> where T : unmanaged         // Line 4
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
     public async Task DoNotIncludeConstructorReferenceInTypeList_CSharp()
     {
-        var text = @"
-class C
-{
-}
+        var text = """
+            class C
+            {
+            }
 
-class Test
-{
-    void M()
-    {
-        C c = new C();
-    }
-}
-";
+            class Test
+            {
+                void M()
+                {
+                    C c = new C();
+                }
+            }
+            """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text);
         var project = solution.Projects.First();
@@ -558,16 +566,16 @@ class Test
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1177764")]
     public async Task DoNotIncludeConstructorReferenceInTypeList_VisualBasic()
     {
-        var text = @"
-class C
-end class
+        var text = """
+            class C
+            end class
 
-class Test
-    sub M()
-        dim c as C = new C()
-    end sub
-end class
-";
+            class Test
+                sub M()
+                    dim c as C = new C()
+                end sub
+            end class
+            """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.VisualBasic);
         var project = solution.Projects.First();
@@ -591,25 +599,25 @@ end class
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49624")]
     public async Task DoNotIncludeSameNamedAlias()
     {
-        var text = @"
-using NestedDummy = Test.Dummy.NestedDummy;
+        var text = """
+            using NestedDummy = Test.Dummy.NestedDummy;
 
-namespace Test
-{
-    public class DummyFactory
-    {
-        public NestedDummy Create() => new NestedDummy();
-    }
-}
+            namespace Test
+            {
+                public class DummyFactory
+                {
+                    public NestedDummy Create() => new NestedDummy();
+                }
+            }
 
-namespace Test
-{
-	public class Dummy
-	{
-		public class NestedDummy { }
-	}
-}
-";
+            namespace Test
+            {
+            	public class Dummy
+            	{
+            		public class NestedDummy { }
+            	}
+            }
+            """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.CSharp);
         var project = solution.Projects.First();

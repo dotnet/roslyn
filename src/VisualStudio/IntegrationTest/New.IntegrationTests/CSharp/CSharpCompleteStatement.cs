@@ -22,17 +22,17 @@ public class CSharpCompleteStatement : AbstractEditorTest
     [IdeFact]
     public async Task UndoRestoresCaretPosition1()
     {
-        await SetUpEditorAsync(@"
-public class Test
-{
-    private object f;
+        await SetUpEditorAsync("""
+            public class Test
+            {
+                private object f;
 
-    public void Method()
-    {
-        f.ToString($$)
-    }
-}
-", HangMitigatingCancellationToken);
+                public void Method()
+                {
+                    f.ToString($$)
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString();$$", assertCaretPosition: true);
@@ -44,17 +44,17 @@ public class Test
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/43400")]
     public async Task UndoRestoresCaretPosition2()
     {
-        await SetUpEditorAsync(@"
-public class Test
-{
-    private object f;
+        await SetUpEditorAsync("""
+            public class Test
+            {
+                private object f;
 
-    public void Method()
-    {
-        Method(condition ? whenTrue $$)
-    }
-}
-", HangMitigatingCancellationToken);
+                public void Method()
+                {
+                    Method(condition ? whenTrue $$)
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        Method(condition ? whenTrue );$$", assertCaretPosition: true);
@@ -66,17 +66,17 @@ public class Test
     [IdeFact]
     public async Task UndoRestoresFormatBeforeRestoringCaretPosition()
     {
-        await SetUpEditorAsync(@"
-public class Test
-{
-    private object f;
+        await SetUpEditorAsync("""
+            public class Test
+            {
+                private object f;
 
-    public void Method()
-    {
-        f.ToString($$ )
-    }
-}
-", HangMitigatingCancellationToken);
+                public void Method()
+                {
+                    f.ToString($$ )
+                }
+            }
+            """, HangMitigatingCancellationToken);
 
         await TestServices.Input.SendAsync(';', HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        f.ToString();$$", assertCaretPosition: true);
