@@ -78,7 +78,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
 
         if (ShowNewSnippetExperience.HasValue)
-            options = options with { ShowNewSnippetExperienceUserOption = ShowNewSnippetExperience.Value };
+            options = options with { ShowNewSnippetExperience = ShowNewSnippetExperience.Value };
 
         if (TriggerOnDeletion.HasValue)
             options = options with { TriggerOnDeletion = TriggerOnDeletion.Value };
