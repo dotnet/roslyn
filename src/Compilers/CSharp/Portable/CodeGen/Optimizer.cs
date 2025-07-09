@@ -991,9 +991,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Special Case: If the RHS is a pointer conversion, then the assignment functions as
                 // a conversion (because the RHS will actually be typed as a native u/int in IL), so
                 // we should not optimize away the local (i.e. schedule it on the stack).
-                if (CanScheduleToStack(localSymbol) &&
+                else if (CanScheduleToStack(localSymbol) &&
                     assignmentLocal.Type.IsPointerOrFunctionPointer() && right.Kind == BoundKind.Conversion &&
                     ((BoundConversion)right).ConversionKind.IsPointerConversion())
+                {
+                    ShouldNotSchedule(localSymbol);
+                }
+
+                // If this is a pointer-to-ref assignment, keep the local so GC knows to re-track it.
+                else if (localSymbol.RefKind != RefKind.None && right.Kind == BoundKind.PointerIndirectionOperator)
                 {
                     ShouldNotSchedule(localSymbol);
                 }
