@@ -31,9 +31,8 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
         };
 
     [Fact]
-    public async Task FixAllInDocument()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllInDocument()
+        => TestInRegularAndScript1Async(
 @"class C
 {
     void M1()
@@ -52,12 +51,10 @@ public sealed class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_
 
     void M2() => Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task FixAllInProject()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllInProject()
+        => TestInRegularAndScript1Async(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -127,12 +124,10 @@ class C3
         </Document>
     </Project>
 </Workspace>", parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task FixAllInSolution()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllInSolution()
+        => TestInRegularAndScript1Async(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -199,12 +194,10 @@ class C3
         </Document>
     </Project>
 </Workspace>", parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task FixAllInContainingMember()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllInContainingMember()
+        => TestInRegularAndScript1Async(
 @"class C
 {
     void M1()
@@ -242,12 +235,10 @@ class C2
         Bar();
     }
 }", parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Fact]
-    public async Task FixAllInContainingType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task FixAllInContainingType()
+        => TestInRegularAndScript1Async(
 @"class C
 {
     void M1()
@@ -282,42 +273,12 @@ class C2
         Bar();
     }
 }", parameters: new TestParameters(options: UseBlockBody));
-    }
 
     [Theory, CombinatorialData]
     public async Task FixAllDoesNotFixDifferentSymbolKinds(bool forMethods)
     {
         var fixAllAnnotationForMethods = forMethods ? "{|FixAllInDocument:|}" : string.Empty;
         var fixAllAnnotationForProperties = forMethods ? string.Empty : "{|FixAllInDocument:|}";
-
-        var source = @$"class C
-{{
-    void M1()
-    {{
-        {fixAllAnnotationForMethods}Bar();
-    }}
-
-    void M2()
-    {{
-        Bar();
-    }}
-
-    int P1
-    {{
-        get
-        {{
-            {fixAllAnnotationForProperties}return 0;
-        }}
-    }}
-
-    int P2
-    {{
-        get
-        {{
-            return 0;
-        }}
-    }}
-}}";
         var fixedCodeForMethods = @"class C
 {
     void M1() => Bar();
@@ -358,7 +319,34 @@ class C2
 }";
         var fixedCode = forMethods ? fixedCodeForMethods : fixedCodeForProperties;
 
-        await TestInRegularAndScript1Async(source, fixedCode,
+        await TestInRegularAndScript1Async(@$"class C
+{{
+    void M1()
+    {{
+        {fixAllAnnotationForMethods}Bar();
+    }}
+
+    void M2()
+    {{
+        Bar();
+    }}
+
+    int P1
+    {{
+        get
+        {{
+            {fixAllAnnotationForProperties}return 0;
+        }}
+    }}
+
+    int P2
+    {{
+        get
+        {{
+            return 0;
+        }}
+    }}
+}}", fixedCode,
             parameters: new TestParameters(options: UseBlockBodyForMethodsAndAccessorsAndProperties));
     }
 }

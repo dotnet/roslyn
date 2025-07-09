@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class ConvertSwitchStatementToExpressionFixAllTests
 {
     [Fact]
-    public async Task TestNested_01()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestNested_01()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -166,12 +165,10 @@ public sealed class ConvertSwitchStatementToExpressionFixAllTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNested_02()
-    {
-        await new VerifyCS.Test
+    public Task TestNested_02()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -218,12 +215,10 @@ public sealed class ConvertSwitchStatementToExpressionFixAllTests
             """,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37907")]
-    public async Task TestNested_03()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestNested_03()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -281,11 +276,9 @@ public sealed class ConvertSwitchStatementToExpressionFixAllTests
                 }
             }
             """);
-    }
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44572")]
-    public async Task TestImplicitConversion()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestImplicitConversion()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -326,5 +319,4 @@ public sealed class ConvertSwitchStatementToExpressionFixAllTests
                 }
             }
             """);
-    }
 }

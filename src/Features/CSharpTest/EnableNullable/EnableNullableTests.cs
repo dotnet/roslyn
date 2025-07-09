@@ -535,9 +535,8 @@ class Example
     [InlineData(NullableContextOptions.Annotations)]
     [InlineData(NullableContextOptions.Warnings)]
     [InlineData(NullableContextOptions.Enable)]
-    public async Task DisabledIfSetInProject(NullableContextOptions nullableContextOptions)
-    {
-        await new VerifyCS.Test
+    public Task DisabledIfSetInProject(NullableContextOptions nullableContextOptions)
+        => new VerifyCS.Test
         {
             TestCode = @"
 #nullable enable$$
@@ -551,7 +550,6 @@ class Example
                 },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(LanguageVersion.CSharp1)]

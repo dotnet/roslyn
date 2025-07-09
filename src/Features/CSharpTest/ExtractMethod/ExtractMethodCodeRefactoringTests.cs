@@ -84,9 +84,8 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
         };
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
-    public async Task LocalFuncExtract()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task LocalFuncExtract()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 int Testing;
@@ -133,12 +132,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
-    public async Task TestPartialSelection()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPartialSelection()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -164,12 +161,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestSelectionOfSwitchExpressionArm()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSelectionOfSwitchExpressionArm()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -192,12 +187,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestSelectionOfSwitchExpressionArmContainingVariables()
+        => TestInRegularAndScript1Async(
             """
             using System;
             using System.Collections.Generic;
@@ -234,12 +227,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionBodyWhenPossible()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionBodyWhenPossible()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -263,12 +254,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -292,12 +281,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndIsOnSingleLine2()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -327,12 +314,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -361,12 +346,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine2()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -395,12 +378,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestExtractMethodInCtorInit()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractMethodInCtorInit()
+        => TestInRegularAndScript1Async(
             """
             class Goo
             {
@@ -420,12 +401,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestExtractMethodInCtorInitWithOutVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractMethodInCtorInitWithOutVar()
+        => TestInRegularAndScript1Async(
             """
             class Goo
             {
@@ -445,12 +424,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestExtractMethodInCtorInitWithByRefVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractMethodInCtorInitWithByRefVar()
+        => TestInRegularAndScript1Async(
             """
             using System;
             using System.Collections.Generic;
@@ -556,12 +533,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact]
-    public async Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseExpressionWhenOnSingleLine_AndNotIsOnSingleLine3()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -590,12 +565,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """,
             new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540796")]
-    public async Task TestReadOfDataThatDoesNotFlowIn()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestReadOfDataThatDoesNotFlowIn()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -633,12 +606,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-    public async Task TestOnGoto()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestOnGoto()
+        => TestInRegularAndScriptAsync(
             """
             delegate int del(int i);
 
@@ -677,12 +648,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540819")]
-    public async Task TestOnStatementAfterUnconditionalGoto()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnStatementAfterUnconditionalGoto()
+        => TestInRegularAndScript1Async(
             """
             delegate int del(int i);
 
@@ -721,12 +690,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnNamespace()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMissingOnNamespace()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -750,12 +717,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMissingOnType()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -779,12 +744,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingOnBase()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestMissingOnBase()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -808,12 +771,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545623")]
-    public async Task TestOnActionInvocation()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOnActionInvocation()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -851,12 +812,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
-    public async Task DisambiguateCallSiteIfNecessary1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DisambiguateCallSiteIfNecessary1()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -893,12 +852,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529841"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/714632")]
-    public async Task DisambiguateCallSiteIfNecessary2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task DisambiguateCallSiteIfNecessary2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -935,13 +892,11 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
                 static void Goo(Func<byte, byte> p, Func<byte, byte> q, int r, int s) { Console.WriteLine(2); }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530709")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-    public async Task DoNotOverparenthesize()
-    {
-        await TestAsync(
+    public Task DoNotOverparenthesize()
+        => TestAsync(
             """
             using System;
 
@@ -1038,12 +993,10 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             """,
 
 parseOptions: TestOptions.Regular);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632182")]
-    public async Task DoNotOverparenthesizeGenerics()
-    {
-        await TestAsync(
+    public Task DoNotOverparenthesizeGenerics()
+        => TestAsync(
             """
             using System;
 
@@ -1140,12 +1093,10 @@ parseOptions: TestOptions.Regular);
             """,
 
 parseOptions: TestOptions.Regular);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-    public async Task PreserveCommentsBeforeDeclaration_1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PreserveCommentsBeforeDeclaration_1()
+        => TestInRegularAndScript1Async(
             """
             class Construct
             {
@@ -1185,12 +1136,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-    public async Task PreserveCommentsBeforeDeclaration_2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PreserveCommentsBeforeDeclaration_2()
+        => TestInRegularAndScript1Async(
             """
             class Construct
             {
@@ -1238,12 +1187,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/984831")]
-    public async Task PreserveCommentsBeforeDeclaration_3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task PreserveCommentsBeforeDeclaration_3()
+        => TestInRegularAndScript1Async(
             """
             class Construct
             {
@@ -1288,13 +1235,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTuple()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTuple()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1320,13 +1265,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleDeclarationWithNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleDeclarationWithNames()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1352,13 +1295,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleDeclarationWithSomeNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleDeclarationWithSomeNames()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1384,13 +1325,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/18311")]
-    public async Task TestTupleWith1Arity()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleWith1Arity()
+        => TestInRegularAndScript1Async(
             """
             using System;
             class Program
@@ -1418,13 +1357,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleLiteralWithNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleLiteralWithNames()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1450,13 +1387,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleDeclarationAndLiteralWithNames()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleDeclarationAndLiteralWithNames()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1482,13 +1417,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleIntoVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestTupleIntoVar()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1514,13 +1447,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task RefactorWithoutSystemValueTuple()
-    {
-        await TestInRegularAndScript1Async(
+    public Task RefactorWithoutSystemValueTuple()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1546,14 +1477,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/11196")]
-    public async Task TestTupleWithNestedNamedTuple()
-    {
-        // This is not the best refactoring, but this is an edge case
-        await TestInRegularAndScript1Async(
+    public Task TestTupleWithNestedNamedTuple()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1579,12 +1507,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
-    public async Task TestDeconstruction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDeconstruction()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1610,12 +1536,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
-    public async Task TestDeconstruction2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDeconstruction2()
+        => TestInRegularAndScript1Async(
             """
             class Program
             {
@@ -1643,13 +1567,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.OutVar)]
-    public async Task TestOutVar()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOutVar()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1678,13 +1600,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task TestIsPattern()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestIsPattern()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1713,13 +1633,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task TestOutVarAndIsPattern()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestOutVarAndIsPattern()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1748,13 +1666,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task ConflictingOutVarLocals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConflictingOutVarLocals()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1793,13 +1709,11 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
     [CompilerTrait(CompilerFeature.Patterns)]
-    public async Task ConflictingPatternLocals()
-    {
-        await TestInRegularAndScript1Async(
+    public Task ConflictingPatternLocals()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -1838,12 +1752,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15218")]
-    public async Task TestCancellationTokenGoesLast()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestCancellationTokenGoesLast()
+        => TestInRegularAndScript1Async(
             """
             using System;
             using System.Threading;
@@ -1884,12 +1796,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
-    public async Task TestUseVar1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseVar1()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1935,12 +1845,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOption2.TrueWithSuggestionEnforcement)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15219")]
-    public async Task TestUseVar2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestUseVar2()
+        => TestInRegularAndScript1Async(
             """
             using System;
 
@@ -1986,12 +1894,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, new TestParameters(options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOption2.TrueWithSuggestionEnforcement)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionCall()
-    {
-        var code = """
+    public Task ExtractLocalFunctionCall()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main()
@@ -2000,14 +1906,11 @@ parseOptions: TestOptions.Regular);
                     [|Local();|]
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-    }
+            """, [FeaturesResources.Extract_local_function]);
 
     [Fact]
-    public async Task ExtractLocalFunctionCall_2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task ExtractLocalFunctionCall_2()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 public static void Main()
@@ -2031,12 +1934,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionCallWithCapture()
-    {
-        var code = """
+    public Task ExtractLocalFunctionCallWithCapture()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 public static void Main(string[] args)
@@ -2045,14 +1946,11 @@ parseOptions: TestOptions.Regular);
                     [|Local();|]
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-    }
+            """, [FeaturesResources.Extract_local_function]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task ExtractLocalFunctionDeclaration()
+        => TestMissingInRegularAndScriptAsync("""
             class C
             {
                 public static void Main()
@@ -2062,12 +1960,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15532")]
-    public async Task ExtractLocalFunctionInterior()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task ExtractLocalFunctionInterior()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 public static void Main()
@@ -2099,12 +1995,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-    public async Task Bug3790()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task Bug3790()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void method()
@@ -2141,12 +2035,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-    public async Task Bug3790_1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task Bug3790_1()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void method()
@@ -2182,12 +2074,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538229")]
-    public async Task Bug3790_2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task Bug3790_2()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void method()
@@ -2223,12 +2113,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyProperty()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyProperty()
+        => TestInRegularAndScript1Async("""
             class Program
             {
                 int field;
@@ -2249,12 +2137,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyIndexer()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyIndexer()
+        => TestInRegularAndScript1Async("""
             class Program
             {
                 int field;
@@ -2275,12 +2161,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyPropertyGetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyPropertyGetAccessor()
+        => TestInRegularAndScript1Async("""
             class Program
             {
                 int field;
@@ -2309,12 +2193,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyPropertySetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyPropertySetAccessor()
+        => TestInRegularAndScript1Async("""
             class Program
             {
                 int field;
@@ -2343,12 +2225,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyIndexerGetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyIndexerGetAccessor()
+        => TestInRegularAndScript1Async("""
             class Program
             {
                 int field;
@@ -2377,12 +2257,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=392560")]
-    public async Task TestExpressionBodyIndexerSetAccessor()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestExpressionBodyIndexerSetAccessor()
+        => TestInRegularAndScript1Async("""
             class Program
             {
                 int field;
@@ -2411,12 +2289,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTupleWithInferredNames()
-    {
-        await TestAsync("""
+    public Task TestTupleWithInferredNames()
+        => TestAsync("""
             class Program
             {
                 void M()
@@ -2443,12 +2319,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, TestOptions.Regular7_1);
-    }
 
     [Fact]
-    public async Task TestDeconstruction4()
-    {
-        await TestAsync("""
+    public Task TestDeconstruction4()
+        => TestAsync("""
             class Program
             {
                 void M()
@@ -2474,12 +2348,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, TestOptions.Regular7_1);
-    }
 
     [Fact]
-    public async Task TestDeconstruction5()
-    {
-        await TestAsync("""
+    public Task TestDeconstruction5()
+        => TestAsync("""
             class Program
             {
                 void M()
@@ -2505,12 +2377,10 @@ parseOptions: TestOptions.Regular);
                 }
             }
             """, TestOptions.Regular7_1);
-    }
 
     [Fact]
-    public async Task TestIndexExpression()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + """
+    public Task TestIndexExpression()
+        => TestInRegularAndScript1Async(TestSources.Index + """
             class Program
             {
                 static void Main(string[] args)
@@ -2534,12 +2404,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Empty()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Empty()
+        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2563,12 +2431,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Left()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Left()
+        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2592,12 +2458,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Right()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Right()
+        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2621,12 +2485,10 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
-    public async Task TestRangeExpression_Both()
-    {
-        await TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
+    public Task TestRangeExpression_Both()
+        => TestInRegularAndScript1Async(TestSources.Index + TestSources.Range + """
             class Program
             {
                 static void Main(string[] args)
@@ -2650,7 +2512,6 @@ class Program
     }
 }
 """);
-    }
 
     [Fact]
     public Task TestAnnotatedNullableReturn()
@@ -3329,9 +3190,8 @@ class Program
             """);
 
     [Fact]
-    public async Task TestExtractReadOnlyMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractReadOnlyMethod()
+        => TestInRegularAndScript1Async(
             """
             struct S1
             {
@@ -3357,12 +3217,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtractReadOnlyMethodInReadOnlyStruct()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractReadOnlyMethodInReadOnlyStruct()
+        => TestInRegularAndScript1Async(
             """
             readonly struct S1
             {
@@ -3388,12 +3246,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractNonReadOnlyMethodInReadOnlyMethod()
+        => TestInRegularAndScript1Async(
             """
             struct S1
             {
@@ -3419,7 +3275,6 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
     public Task TestExtractNullableObjectWithExplicitCast()
@@ -3806,9 +3661,8 @@ class Program
             """);
 
     [Fact]
-    public async Task EnsureStaticLocalFunctionOptionHasNoEffect()
-    {
-        await TestInRegularAndScript1Async(
+    public Task EnsureStaticLocalFunctionOptionHasNoEffect()
+        => TestInRegularAndScript1Async(
 """
 class Program
 {
@@ -3834,12 +3688,10 @@ class Program
     }
 }
 """, new TestParameters(options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOption2.FalseWithSuggestionEnforcement)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39946")]
-    public async Task ExtractLocalFunctionCallAndDeclaration()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task ExtractLocalFunctionCallAndDeclaration()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 public static void Main()
@@ -3869,12 +3721,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingWhenOnlyLocalFunctionCallSelected()
-    {
-        var code = """
+    public Task TestMissingWhenOnlyLocalFunctionCallSelected()
+        => TestExactActionSetOfferedAsync("""
             class Program
             {
                 static void Main(string[] args)
@@ -3885,14 +3735,11 @@ class Program
                     }
                 }
             }
-            """;
-        await TestExactActionSetOfferedAsync(code, [FeaturesResources.Extract_local_function]);
-    }
+            """, [FeaturesResources.Extract_local_function]);
 
     [Fact]
-    public async Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestOfferedWhenBothLocalFunctionCallAndDeclarationSelected()
+        => TestInRegularAndScript1Async("""
             class Program
             {
                 static void Main(string[] args)
@@ -3922,12 +3769,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractNonAsyncMethodWithAsyncLocalFunction()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -3953,12 +3798,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalse()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalse()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -3982,12 +3825,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseNamedParameter()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -4011,12 +3852,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseOnNonTask()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks
 
@@ -4044,12 +3883,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitTrue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitTrue()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -4073,12 +3910,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitNonLiteral()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -4102,12 +3937,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithNoConfigureAwait()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithNoConfigureAwait()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -4131,12 +3964,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseInLambda()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -4160,12 +3991,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseInLocalMethod(bool includeUsing)
+        => TestInRegularAndScript1Async(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4195,12 +4024,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture1(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitMixture1(bool includeUsing)
+        => TestInRegularAndScript1Async(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4230,12 +4057,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture2(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitMixture2(bool includeUsing)
+        => TestInRegularAndScript1Async(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4265,12 +4090,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitMixture3(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitMixture3(bool includeUsing)
+        => TestInRegularAndScript1Async(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4300,12 +4123,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/38529")]
-    public async Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection(bool includeUsing)
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExtractAsyncMethodWithConfigureAwaitFalseOutsideSelection(bool includeUsing)
+        => TestInRegularAndScript1Async(
             $$"""
             {{(includeUsing ? SystemThreadingTasksUsing : "")}}
 
@@ -4335,12 +4156,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
-    {
-        var input = """
+    public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_True()
+        => TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4358,9 +4177,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4380,15 +4197,11 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40188")]
-    public async Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
-    {
-        var input = """
+    public Task TestEditorconfigSetting_ExpressionBodiedLocalFunction_False()
+        => TestInRegularAndScript1Async("""
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
                     <Document FilePath = "z:\\file.cs">
@@ -4406,9 +4219,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        var expected = """
+            """, """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
                      <Document FilePath="z:\\file.cs">
@@ -4431,10 +4242,7 @@ class Program
             </AnalyzerConfigDocument>
                 </Project>
             </Workspace>
-            """;
-
-        await TestInRegularAndScript1Async(input, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40209")]
     public async Task TestNaming_CamelCase_VerifyLocalFunctionSettingsDoNotApply()
@@ -4537,9 +4345,8 @@ class Program
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
-    public async Task TestOnInvalidUsingStatement_MultipleStatements()
-    {
-        var input = """
+    public Task TestOnInvalidUsingStatement_MultipleStatements()
+        => TestInRegularAndScript1Async("""
             class C
             {
                 void M()
@@ -4548,8 +4355,7 @@ class Program
                     using System;|]
                 }
             }
-            """;
-        var expected = """
+            """, """
             class C
             {
                 void M()
@@ -4563,14 +4369,11 @@ class Program
                     using System;
                 }
             }
-            """;
-        await TestInRegularAndScript1Async(input, expected);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40654")]
-    public async Task TestMissingOnInvalidUsingStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestMissingOnInvalidUsingStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -4580,12 +4383,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19461")]
-    public async Task TestLocalFunction()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestLocalFunction()
+        => TestInRegularAndScript1Async("""
             using System;
 
             class Program
@@ -4623,12 +4424,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43834")]
-    public async Task TestRecursivePatternRewrite()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestRecursivePatternRewrite()
+        => TestInRegularAndScript1Async("""
             using System;
             namespace N
             {
@@ -4684,12 +4483,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess1()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess1()
+        => TestInRegularAndScript1Async("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4719,12 +4516,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess2()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess2()
+        => TestInRegularAndScript1Async("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4754,12 +4549,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess3()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess3()
+        => TestInRegularAndScript1Async("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4789,12 +4582,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess4()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess4()
+        => TestInRegularAndScript1Async("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4824,12 +4615,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess5()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess5()
+        => TestInRegularAndScript1Async("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4859,12 +4648,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess6()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess6()
+        => TestInRegularAndScript1Async("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4894,12 +4681,10 @@ class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41895")]
-    public async Task TestConditionalAccess7()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestConditionalAccess7()
+        => TestInRegularAndScript1Async("""
             using System;
             using System.Collections.Generic;
             class C
@@ -4929,14 +4714,12 @@ class Program
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48453")]
     [InlineData("record")]
     [InlineData("record class")]
-    public async Task TestInRecord(string record)
-    {
-        await TestInRegularAndScript1Async($@"
+    public Task TestInRecord(string record)
+        => TestInRegularAndScript1Async($@"
 {record} Program
 {{
     int field;
@@ -4955,12 +4738,10 @@ $@"
         return this.field;
     }}
 }}");
-    }
 
     [Fact]
-    public async Task TestInRecordStruct()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestInRecordStruct()
+        => TestInRegularAndScript1Async("""
             record struct Program
             {
                 int field;
@@ -4981,23 +4762,19 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-    public async Task TestMethodInNamespace()
-    {
-        await TestMissingInRegularAndScriptAsync("""
+    public Task TestMethodInNamespace()
+        => TestMissingInRegularAndScriptAsync("""
             namespace TestNamespace
             {
                 private bool TestMethod() => [|false|];
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-    public async Task TestMethodInInterface()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestMethodInInterface()
+        => TestInRegularAndScript1Async("""
             interface TestInterface
             {
                 bool TestMethod() => [|false|];
@@ -5014,12 +4791,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53031")]
-    public async Task TestStaticMethodInInterface()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestStaticMethodInInterface()
+        => TestInRegularAndScript1Async("""
             interface TestInterface
             {
                 static bool TestMethod() => [|false|];
@@ -5036,7 +4811,6 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/56969")]
@@ -5200,9 +4974,8 @@ $@"
     }
 
     [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
-    public async Task TopLevelMethod_StaticMethod()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TopLevelMethod_StaticMethod()
+        => TestInRegularAndScript1Async("""
             static void X(string s)
             {
                 [|s = s.Trim();|]
@@ -5220,12 +4993,10 @@ $@"
                 return s;
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
 
     [Fact, WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
-    public async Task StaticMethod_ExtractStatementContainingParameter()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task StaticMethod_ExtractStatementContainingParameter()
+        => TestInRegularAndScript1Async("""
             public class Class
             {
                 static void X(string s)
@@ -5249,12 +5020,10 @@ $@"
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57428")]
-    public async Task AttributeArgumentWithLambdaBody()
-    {
-        await TestInRegularAndScript1Async(
+    public Task AttributeArgumentWithLambdaBody()
+        => TestInRegularAndScript1Async(
             """
             using System.Runtime.InteropServices;
             class Program
@@ -5278,7 +5047,6 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
     public Task ExtractMethod_InsideBaseInitializer()
@@ -6056,9 +5824,8 @@ $@"
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38087")]
-    public async Task TestPartialSelectionOfArithmeticExpression()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestPartialSelectionOfArithmeticExpression()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6084,12 +5851,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndBreak()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndBreak()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6134,12 +5899,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinue()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6191,12 +5954,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndReturn()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndReturn()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6248,12 +6009,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndFallThrough()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndFallThrough()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6299,12 +6058,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndBreak()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndBreak()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6356,12 +6113,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndContinue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndContinue()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6406,12 +6161,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndReturn()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndReturn()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6460,12 +6213,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndFallThrough()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndFallThrough()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6511,12 +6262,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndBreak()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndBreak()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6568,12 +6317,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndContinue()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndContinue()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6622,12 +6369,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndReturn()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndReturn()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6671,12 +6416,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndFallThrough()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndFallThrough()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6722,12 +6465,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndReturn()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinueAndReturn()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6793,12 +6534,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndFallThrough()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinueAndFallThrough()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6858,12 +6597,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndReturnAndFallThrough()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndReturnAndFallThrough()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -6920,12 +6657,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough()
+        => TestInRegularAndScript1Async(
             """
         class C
         {
@@ -6999,12 +6734,10 @@ $@"
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndBreak_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndBreak_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7050,12 +6783,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinue_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndContinue_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7108,12 +6839,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndReturn_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7166,12 +6895,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndFallThrough_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7218,12 +6945,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndBreak_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ContinueAndBreak_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7276,12 +7001,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndContinue_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ContinueAndContinue_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7327,12 +7050,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndReturn_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ContinueAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7382,12 +7103,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndFallThrough_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ContinueAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7434,12 +7153,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndBreak_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ReturnAndBreak_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7492,12 +7209,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndContinue_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ReturnAndContinue_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7547,12 +7262,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndReturn_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ReturnAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7597,12 +7310,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndFallThrough_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ReturnAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7649,12 +7360,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndReturn_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndContinueAndReturn_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7721,12 +7430,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndFallThrough_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndContinueAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7787,12 +7494,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndReturnAndFallThrough_AllowVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_ContinueAndReturnAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7850,12 +7555,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_AllowVar()
-    {
-        await TestInRegularAndScriptAsync("""
+    public Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_AllowVar()
+        => TestInRegularAndScriptAsync("""
             class C
             {
                 private string Repro(int[] x)
@@ -7929,12 +7632,10 @@ $@"
             }
             """,
             options: ImplicitTypeEverywhere());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndBreak_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndBreak_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -7981,12 +7682,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinue_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinue_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8040,12 +7739,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndReturn_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndReturn_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8099,12 +7796,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndFallThrough_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndFallThrough_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8153,12 +7848,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndBreak_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndBreak_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8212,12 +7905,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndContinue_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndContinue_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8264,12 +7955,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndReturn_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndReturn_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8320,12 +8009,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndFallThrough_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndFallThrough_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8374,12 +8061,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndBreak_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndBreak_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8433,12 +8118,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndContinue_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndContinue_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8489,12 +8172,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndReturn_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndReturn_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8540,12 +8221,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ReturnAndFallThrough_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ReturnAndFallThrough_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8594,12 +8273,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndReturn_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinueAndReturn_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8667,12 +8344,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndFallThrough_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinueAndFallThrough_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8735,12 +8410,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_ContinueAndReturnAndFallThrough_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_ContinueAndReturnAndFallThrough_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8800,12 +8473,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_Async()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFlowControl_BreakAndContinueAndReturnAndFallThrough_Async()
+        => TestInRegularAndScript1Async(
             """
             using System.Threading.Tasks;
             class C
@@ -8882,12 +8553,10 @@ $@"
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndBreak_NoBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndBreak_NoBraces()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8933,12 +8602,10 @@ $@"
             }
             """,
             options: NoBraces());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndContinue_NoBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndContinue_NoBraces()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8987,12 +8654,10 @@ $@"
             }
             """,
             options: NoBraces());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndReturn_NoBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndReturn_NoBraces()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -9041,12 +8706,10 @@ $@"
             }
             """,
             options: NoBraces());
-    }
 
     [Fact]
-    public async Task TestFlowControl_BreakAndFallThrough_NoBraces()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFlowControl_BreakAndFallThrough_NoBraces()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -9091,12 +8754,10 @@ $@"
             }
             """,
             options: NoBraces());
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22597")]
-    public async Task TestFullyExtractedTypeParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFullyExtractedTypeParameter()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -9122,5 +8783,4 @@ $@"
                 }
             }
             """);
-    }
 }

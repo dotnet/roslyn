@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpResolveCon
 public sealed class ConflictMarkerResolutionTests
 {
     [Fact]
-    public async Task TestTakeTop1()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -67,12 +66,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeBottom1()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBottom1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -119,12 +116,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeBoth1()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBoth1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -179,12 +174,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 2,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyTop_TakeTop()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyTop_TakeTop()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -214,12 +207,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyTop_TakeBottom()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyTop_TakeBottom()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -258,12 +249,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyBottom_TakeTop()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyBottom_TakeTop()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -301,12 +290,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyBottom_TakeBottom()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyBottom_TakeBottom()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -337,12 +324,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeTop_WhitespaceInSection()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_WhitespaceInSection()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -392,12 +377,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeBottom1_WhitespaceInSection()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBottom1_WhitespaceInSection()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -448,12 +431,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeBoth_WhitespaceInSection()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBoth_WhitespaceInSection()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -516,12 +497,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 2,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
-    public async Task TestTakeTop_TopCommentedOut()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_TopCommentedOut()
+        => new VerifyCS.Test
         {
             TestCode = """
             public class Class1
@@ -555,12 +534,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
-    public async Task TestTakeTop_SecondMiddleAndBottomCommentedOut()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_SecondMiddleAndBottomCommentedOut()
+        => new VerifyCS.Test
         {
             TestCode = """
             public class Class1
@@ -592,12 +569,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
-    public async Task TestTakeTop_TopInString()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_TopInString()
+        => new VerifyCS.Test
         {
             TestCode = """
             class X {
@@ -622,12 +597,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
-    public async Task TestTakeBottom_TopInString()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBottom_TopInString()
+        => new VerifyCS.Test
         {
             TestCode = """
             class X {
@@ -653,12 +626,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
-    public async Task TestMissingWithMiddleMarkerAtTopOfFile()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithMiddleMarkerAtTopOfFile()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|CS8300:=======|}
@@ -667,12 +638,10 @@ public sealed class ConflictMarkerResolutionTests
             {|CS8300:>>>>>>>|} merge rev
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23847")]
-    public async Task TestMissingWithMiddleMarkerAtBottomOfFile()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithMiddleMarkerAtBottomOfFile()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|CS8300:<<<<<<<|} working copy
@@ -681,12 +650,10 @@ public sealed class ConflictMarkerResolutionTests
             {|CS8300:=======|}
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingWithFirstMiddleMarkerAtBottomOfFile()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithFirstMiddleMarkerAtBottomOfFile()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|CS8300:<<<<<<<|} working copy
@@ -695,12 +662,10 @@ public sealed class ConflictMarkerResolutionTests
             {|CS8300:||||||||}
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21107")]
-    public async Task TestFixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -745,12 +710,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 2,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21107")]
-    public async Task TestFixAll2()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -796,12 +759,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21107")]
-    public async Task TestFixAll3()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll3()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -853,12 +814,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 2,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeTop_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -906,12 +865,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeBottom1_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBottom1_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -960,12 +917,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeBoth1_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBoth1_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1022,12 +977,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 2,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyTop_TakeTop_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyTop_TakeTop_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1059,12 +1012,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyTop_TakeBottom_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyTop_TakeBottom_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1105,12 +1056,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyBottom_TakeTop_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyBottom_TakeTop_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1150,12 +1099,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEmptyBottom_TakeBottom_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestEmptyBottom_TakeBottom_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1188,12 +1135,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeTop_TopCommentedOut_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_TopCommentedOut_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             public class Class1
@@ -1230,12 +1175,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeTop_FirstMiddleAndSecondMiddleAndBottomCommentedOut()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_FirstMiddleAndSecondMiddleAndBottomCommentedOut()
+        => new VerifyCS.Test
         {
             TestCode = """
             public class Class1
@@ -1269,12 +1212,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeTop_TopInString_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeTop_TopInString_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             class X {
@@ -1301,12 +1242,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTakeBottom_TopInString_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestTakeBottom_TopInString_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             class X {
@@ -1334,12 +1273,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingWithFirstMiddleMarkerAtTopOfFile()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithFirstMiddleMarkerAtTopOfFile()
+        => new VerifyCS.Test
         {
             TestCode = """
             {|CS8300:||||||||} baseline
@@ -1349,12 +1286,10 @@ public sealed class ConflictMarkerResolutionTests
             {|CS8300:>>>>>>>|} merge rev
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll1_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll1_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1403,12 +1338,10 @@ public sealed class ConflictMarkerResolutionTests
             NumberOfIncrementalIterations = 2,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll2_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll2_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1458,12 +1391,10 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBottomEquivalenceKey,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll3_WithBaseline()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll3_WithBaseline()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -1519,5 +1450,4 @@ public sealed class ConflictMarkerResolutionTests
             CodeActionIndex = 2,
             CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeBothEquivalenceKey,
         }.RunAsync();
-    }
 }

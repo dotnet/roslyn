@@ -32,15 +32,6 @@ public sealed class RunCodeActionsTests : AbstractLanguageServerProtocolTests
     {
     }
 }";
-
-        var expectedTextForB =
-@"partial class A
-{
-    class B
-    {
-    }
-}";
-
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var caretLocation = testLspServer.GetLocations("caret").Single();
         var documentId = new LSP.TextDocumentIdentifier
@@ -55,7 +46,12 @@ public sealed class RunCodeActionsTests : AbstractLanguageServerProtocolTests
 
         var documentForB = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single(doc => doc.Name.Equals("B.cs", StringComparison.OrdinalIgnoreCase));
         var textForB = await documentForB.GetTextAsync();
-        Assert.Equal(expectedTextForB, textForB.ToString());
+        Assert.Equal(@"partial class A
+{
+    class B
+    {
+    }
+}", textForB.ToString());
     }
 
     private static async Task<bool> ExecuteRunCodeActionCommandAsync(

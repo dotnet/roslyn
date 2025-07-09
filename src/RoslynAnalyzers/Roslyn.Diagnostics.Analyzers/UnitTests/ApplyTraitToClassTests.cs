@@ -18,9 +18,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesSecond_CSharpAsync(string name, string value)
-        {
-            await new VerifyCS.Test
+        public Task MoveTraitToType_MovesSecond_CSharpAsync(string name, string value)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestCode = $@"
@@ -48,15 +47,13 @@ class C
 }}
 ",
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesSecond_VisualBasicAsync(string name, string value)
-        {
-            await new VerifyVB.Test
+        public Task MoveTraitToType_MovesSecond_VisualBasicAsync(string name, string value)
+            => new VerifyVB.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestCode = $@"
@@ -86,15 +83,13 @@ Class C
 End Class
 ",
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesOnlyFirst_CSharpAsync(string name, string value)
-        {
-            await new VerifyCS.Test
+        public Task MoveTraitToType_MovesOnlyFirst_CSharpAsync(string name, string value)
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestCode = $@"
@@ -122,15 +117,13 @@ class C
 }}
 ",
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesOnlyFirst_VisualBasicAsync(string name, string value)
-        {
-            await new VerifyVB.Test
+        public Task MoveTraitToType_MovesOnlyFirst_VisualBasicAsync(string name, string value)
+            => new VerifyVB.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithXUnit,
                 TestCode = $@"
@@ -160,6 +153,5 @@ Class C
 End Class
 ",
             }.RunAsync();
-        }
     }
 }

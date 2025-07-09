@@ -54,9 +54,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545137"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870550")]
-    public async Task ParenthesizeToKeepParseTheSame1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizeToKeepParseTheSame1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -83,12 +82,10 @@ public sealed class RemoveUnnecessaryCastTests
                 static void Goo(bool a, bool b) { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545146")]
-    public async Task ParenthesizeToKeepParseTheSame2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizeToKeepParseTheSame2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -113,12 +110,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545160")]
-    public async Task ParenthesizeToKeepParseTheSame3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task ParenthesizeToKeepParseTheSame3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -141,7 +136,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
     public async Task DoNotRemoveTypeParameterCastToObject()
@@ -206,9 +200,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545142")]
-    public async Task DoRemoveCastNotNeededForUserDefinedOperator()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastNotNeededForUserDefinedOperator()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class A
             {
@@ -242,7 +235,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545143")]
     public async Task DoNotRemovePointerCast1()
@@ -286,9 +278,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545145")]
-    public async Task DoNotRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoNotRemoveCastToAnonymousMethodWhenOnLeftOfAsCast()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -315,7 +306,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545147")]
     public async Task DoNotRemoveCastInFloatingPointOperation()
@@ -466,9 +456,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545287"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
-    public async Task RemoveUnneededCastInParameterDefaultValue()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInParameterDefaultValue()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -485,12 +474,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545289")]
-    public async Task RemoveUnneededCastInReturnStatement()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInReturnStatement()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -509,12 +496,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
-    public async Task RemoveUnneededCastInLambda1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInLambda1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             class Program
@@ -535,12 +520,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
-    public async Task RemoveUnneededCastInLambda2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInLambda2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             class Program
@@ -561,7 +544,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545288")]
     public async Task RemoveUnneededCastInLambda3()
@@ -683,9 +665,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-    public async Task DoNotRemoveUnneededCastInConditionalExpression3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoNotRemoveUnneededCastInConditionalExpression3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Test
             {
@@ -708,7 +689,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
     public async Task DoNotRemoveNeededCastInConditionalExpression()
@@ -729,9 +709,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545291")]
-    public async Task RemoveUnneededCastInConditionalExpression4()
-    {
-        await new VerifyCS.Test
+    public Task RemoveUnneededCastInConditionalExpression4()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Test
@@ -769,13 +748,11 @@ public sealed class RemoveUnnecessaryCastTests
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             DiagnosticSelector = diagnostics => diagnostics[1],
         }.RunAsync();
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545459")]
-    public async Task RemoveUnneededCastInsideADelegateConstructor()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInsideADelegateConstructor()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             class Test
@@ -804,12 +781,10 @@ public sealed class RemoveUnnecessaryCastTests
                 public static void M1(int i) { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545419")]
-    public async Task DoNotRemoveTriviaWhenRemovingCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoNotRemoveTriviaWhenRemovingCast()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             class Test
@@ -836,12 +811,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545422")]
-    public async Task RemoveUnneededCastInsideCaseLabel()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInsideCaseLabel()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Test
             {
@@ -868,13 +841,11 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545578")]
-    public async Task RemoveUnneededCastInsideGotoCaseStatement()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInsideGotoCaseStatement()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Test
             {
@@ -903,13 +874,11 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545595")]
     [Fact(Skip = "529787")]
-    public async Task RemoveUnneededCastInCollectionInitializer()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInCollectionInitializer()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Collections.Generic;
 
@@ -932,7 +901,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
     [Fact(Skip = "529787")]
@@ -997,9 +965,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545607")]
-    public async Task RemoveUnneededCastInArrayInitializer()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastInArrayInitializer()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class X
             {
@@ -1020,12 +987,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545616")]
-    public async Task RemoveUnneededCastWithOverloadedBinaryOperator()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnneededCastWithOverloadedBinaryOperator()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             class MyAction
@@ -1058,7 +1023,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545616")]
     public async Task DoNotRemoveCastFromLambdaToDelegateWithVar1()
@@ -1078,9 +1042,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545616")]
-    public async Task DoRemoveCastFromLambdaToDelegateWithTypedVariable()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastFromLambdaToDelegateWithTypedVariable()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             class MyAction
@@ -1101,12 +1064,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545822")]
-    public async Task RemoveUnnecessaryCastShouldInsertWhitespaceWhereNeededToKeepCorrectParsing()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastShouldInsertWhitespaceWhereNeededToKeepCorrectParsing()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -1131,7 +1092,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545560")]
     public async Task DoNotRemoveNecessaryCastWithExplicitUserDefinedConversion()
@@ -1250,9 +1210,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545941")]
-    public async Task RemoveUnnecessaryCastInThrow()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastInThrow()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -1275,7 +1234,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545945")]
     public async Task DoNotRemoveNecessaryDowncast()
@@ -1380,9 +1338,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545750")]
-    public async Task RemoveUnnecessaryCastToBaseType()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastToBaseType()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class X
             {
@@ -1411,12 +1368,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545855")]
-    public async Task RemoveUnnecessaryLambdaToDelegateCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryLambdaToDelegateCast()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -1465,12 +1420,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
-    public async Task RemoveUnnecessaryCastInQueryExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastInQueryExpression()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -1497,7 +1450,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529816")]
     public async Task DoNotRemoveNecessaryCastInQueryExpression()
@@ -1571,9 +1523,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")]
-    public async Task DoNotRemoveNecessaryCastFromTypeParameterToInterface()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoNotRemoveNecessaryCastFromTypeParameterToInterface()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -1672,12 +1623,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529831")]
-    public async Task RemoveUnnecessaryCastFromTypeParameterToInterface()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastFromTypeParameterToInterface()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -1758,7 +1707,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545877")]
     public async Task DoNotCrashOnIncompleteMethodDeclaration()
@@ -1786,9 +1734,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46423")]
-    public async Task RemoveUnneededTargetTypedCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task RemoveUnneededTargetTypedCast()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Other
             {
                 public short GetScopeIdForTelemetry(FixAllScope scope)
@@ -1831,12 +1778,10 @@ public sealed class RemoveUnnecessaryCastTests
             }
             """
 );
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545777")]
-    public async Task DoNotRemoveImportantTrailingTrivia()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoNotRemoveImportantTrailingTrivia()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -1863,12 +1808,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529791")]
-    public async Task RemoveUnnecessaryCastToNullable1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastToNullable1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class X
             {
@@ -1889,12 +1832,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545842")]
-    public async Task RemoveUnnecessaryCastToNullable2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastToNullable2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             static class C
             {
@@ -1917,12 +1858,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545850")]
-    public async Task RemoveSurroundingParentheses()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveSurroundingParentheses()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -1943,7 +1882,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529846")]
     public async Task DoNotRemoveNecessaryCastFromTypeParameterToObject()
@@ -2063,9 +2001,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545882"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
-    public async Task RemoveCastInConstructorInitializer1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastInConstructorInitializer1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -2080,12 +2017,10 @@ public sealed class RemoveUnnecessaryCastTests
                 C() : this(1) { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545958"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/880752")]
-    public async Task RemoveCastInConstructorInitializer2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastInConstructorInitializer2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System.Collections;
 
@@ -2106,7 +2041,6 @@ public sealed class RemoveUnnecessaryCastTests
                 C() : this("") { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545957")]
     public async Task DoNotRemoveCastInConstructorInitializer3()
@@ -2133,9 +2067,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545842")]
-    public async Task RemoveCastToNullableInArithmeticExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToNullableInArithmeticExpression()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             static class C
             {
@@ -2158,7 +2091,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545942")]
     public async Task DoNotRemoveCastFromValueTypeToObjectInReferenceEquality()
@@ -2389,9 +2321,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26640")]
-    public async Task RemoveCastToDoubleFromIntWithTwoInConditionalExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToDoubleFromIntWithTwoInConditionalExpression()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -2410,7 +2341,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26640")]
     public async Task DoNotRemoveCastToDoubleFromIntInConditionalExpression()
@@ -2447,9 +2377,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26640")]
-    public async Task RemoveUnnecessaryNumericCastToSameTypeInConditionalExpression()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryNumericCastToSameTypeInConditionalExpression()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -2468,7 +2397,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
     public async Task DoNotRemoveNecessaryCastInAttribute()
@@ -2490,9 +2418,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
-    public async Task DoRemoveUnnecessaryCastInAttribute()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveUnnecessaryCastInAttribute()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -2515,7 +2442,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
     public async Task DoNotRemoveImplicitConstantConversionToDifferentType()
@@ -2537,9 +2463,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
-    public async Task DoRemoveImplicitConstantConversionToSameType()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveImplicitConstantConversionToSameType()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -2562,7 +2487,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
     public async Task DoNotRemoveNumericConversionBoxed()
@@ -2584,9 +2508,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
-    public async Task DoRemoveNumericConversionNotBoxed()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveNumericConversionNotBoxed()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -2609,12 +2532,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545894")]
-    public async Task DoRemoveNonConstantCastInAttribute()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveNonConstantCastInAttribute()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -2637,7 +2558,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39042")]
     public async Task DoNotRemoveNecessaryCastForImplicitNumericCastsThatLoseInformation()
@@ -2697,9 +2617,8 @@ public sealed class RemoveUnnecessaryCastTests
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34326")]
-    public async Task DoRemoveCastToInterfaceForSealedType1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task DoRemoveCastToInterfaceForSealedType1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             interface I
@@ -2741,13 +2660,11 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34326")]
-    public async Task DoRemoveCastToInterfaceForSealedType2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastToInterfaceForSealedType2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -2796,13 +2713,11 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34326")]
-    public async Task DoRemoveCastToInterfaceForSealedType3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastToInterfaceForSealedType3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -2855,7 +2770,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
     public async Task DoNotRemoveCastToInterfaceForSealedType4()
@@ -2888,9 +2802,8 @@ public sealed class RemoveUnnecessaryCastTests
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545890")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34326")]
-    public async Task DoRemoveCastToInterfaceForSealedTypeWhenParameterValuesDifferButExplicitValueIsProvided()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastToInterfaceForSealedTypeWhenParameterValuesDifferButExplicitValueIsProvided()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -2933,7 +2846,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
     public async Task DoNotRemoveCastToInterfaceForSealedType6()
@@ -2969,9 +2881,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-    public async Task DoRemoveCastToInterfaceWhenNoDefaultArgsPassedAndValuesAreTheSame()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastToInterfaceWhenNoDefaultArgsPassedAndValuesAreTheSame()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3014,12 +2925,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-    public async Task DoRemoveCastToInterfaceWhenDefaultArgPassedAndValuesAreDifferent()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastToInterfaceWhenDefaultArgPassedAndValuesAreDifferent()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3062,7 +2971,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
     public async Task DoNotRemoveCastToInterfaceWhenNoDefaultArgsPassedAndValuesAreDifferent()
@@ -3093,9 +3001,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-    public async Task DoRemoveCastToInterfaceWhenNamesAreTheSameAndNoNameProvided()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastToInterfaceWhenNamesAreTheSameAndNoNameProvided()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3138,12 +3045,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
-    public async Task DoRemoveCastToInterfaceWhenNamesAreDifferentAndNoNameProvided()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastToInterfaceWhenNamesAreDifferentAndNoNameProvided()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3186,7 +3091,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545888")]
     public async Task DoNotRemoveCastToInterfaceWhenNamesAreDifferentAndNameProvided()
@@ -3385,9 +3289,8 @@ public sealed class RemoveUnnecessaryCastTests
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545834")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/34326")]
-    public async Task RemoveCastToInterfaceForStruct2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToInterfaceForStruct2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -3424,15 +3327,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544655")]
-    public async Task RemoveCastToICloneableForDelegate()
-    {
-        // Note: The cast below can be removed because delegates are implicitly
-        // sealed.
-
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToICloneableForDelegate()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3457,15 +3355,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545926")]
-    public async Task RemoveCastToICloneableForArray()
-    {
-        // Note: The cast below can be removed because arrays are implicitly
-        // sealed.
-
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToICloneableForArray()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3490,12 +3383,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RemoveCastToInterfaceForString()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToInterfaceForString()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -3520,15 +3411,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
-    public async Task RemoveCastToIConvertibleForEnum()
-    {
-        // Note: The cast below can be removed because enums are implicitly
-        // sealed.
-
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToIConvertibleForEnum()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3553,7 +3439,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
     public async Task KeepCastToIConvertibleOnNonCopiedStruct()
@@ -3573,9 +3458,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
-    public async Task RemoveCastToIConvertibleOnCopiedStruct1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToIConvertibleOnCopiedStruct1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3597,7 +3481,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
     public async Task KeepCastToIConvertibleOnByRefIndexer()
@@ -3619,9 +3502,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
-    public async Task RemoveCastToIConvertibleOnIndexer()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToIConvertibleOnIndexer()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3648,7 +3530,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
     public async Task KeepCastToIConvertibleOnByRefProperty()
@@ -3670,9 +3551,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
-    public async Task RemoveCastToIConvertibleOnProperty()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToIConvertibleOnProperty()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3699,7 +3579,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
     public async Task KeepCastToIConvertibleOnByRefMethod()
@@ -3721,9 +3600,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529897")]
-    public async Task RemoveCastToIConvertibleOnMethod()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToIConvertibleOnMethod()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -3750,7 +3628,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     #endregion
 
@@ -3829,9 +3706,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToObjectArrayInParamArrayArg1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToObjectArrayInParamArrayArg1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -3854,12 +3730,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToStringArrayInParamArrayArg2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToStringArrayInParamArrayArg2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -3882,12 +3756,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToIntArrayInParamArrayArg3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToIntArrayInParamArrayArg3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -3910,12 +3782,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToObjectArrayInParamArrayArg4()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToObjectArrayInParamArrayArg4()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -3938,12 +3808,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529911")]
-    public async Task RemoveCastToObjectInParamArrayArg5()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToObjectInParamArrayArg5()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -3966,12 +3834,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RemoveCastToObjectArrayInParamArrayWithNamedArgument()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastToObjectArrayInParamArrayWithNamedArgument()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -3994,7 +3860,6 @@ public sealed class RemoveUnnecessaryCastTests
                 static void Goo(params object[] x) { }
             }
             """);
-    }
 
     #endregion
 
@@ -4230,12 +4095,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545925")]
-    public async Task RemoveCastIfOverriddenMethodHaveCompatibleParameterList()
-    {
-        // Note: The cast below can be removed because the parameter list
-        // of Goo and its override have the same default values.
-
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastIfOverriddenMethodHaveCompatibleParameterList()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -4278,15 +4139,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529916")]
-    public async Task RemoveCastInReceiverForMethodGroup()
-    {
-        // Note: The cast below can be removed because the it results in
-        // the same method group.
-
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastInReceiverForMethodGroup()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -4313,7 +4169,6 @@ public sealed class RemoveUnnecessaryCastTests
                 static void Goo(this string x) { }
             }
             """);
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609497")]
     public async Task Bugfix_609497()
@@ -4959,9 +4814,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8111")]
-    public async Task RemoveCastThatDoesntChangeShapeOfAnonymousTypeObject()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastThatDoesntChangeShapeOfAnonymousTypeObject()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -4996,12 +4850,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task Tuple()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task Tuple()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -5020,12 +4872,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TupleWithDifferentNames()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TupleWithDifferentNames()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -5044,12 +4894,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24791")]
-    public async Task SimpleBoolCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task SimpleBoolCast()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -5070,7 +4918,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12572")]
     public async Task DoNotRemoveCastThatUnboxes()
@@ -5188,9 +5035,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task DoRemoveCastOnCallToMethodWithInvalidParamsArgs()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastOnCallToMethodWithInvalidParamsArgs()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -5217,12 +5063,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18978")]
-    public async Task RemoveCastOnCallToMethodWithParamsArgsIfImplicitConversionExists()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastOnCallToMethodWithParamsArgsIfImplicitConversionExists()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -5253,7 +5097,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
     public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgs()
@@ -5314,9 +5157,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29264")]
-    public async Task RemoveCastOnDictionaryIndexer()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastOnDictionaryIndexer()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             using System.Reflection;
@@ -5359,7 +5201,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
     public async Task DoNotRemoveCastOnCallToAttributeWithParamsArgsAndProperty()
@@ -5431,9 +5272,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveCastOnCallToAttributeWithInvalidParamsArgs()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute
@@ -5464,7 +5304,6 @@ public sealed class RemoveUnnecessaryCastTests
             {
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
     public async Task RemoveCastOnCallToAttributeWithParamsArgsWithImplicitCast()
@@ -5526,9 +5365,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20630")]
-    public async Task RemoveCastOnCallToAttributeWithCastInPropertySetter()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveCastOnCallToAttributeWithCastInPropertySetter()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             sealed class MarkAttribute : Attribute
@@ -5559,7 +5397,6 @@ public sealed class RemoveUnnecessaryCastTests
             {
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/18510")]
     [InlineData("-")]
@@ -5662,9 +5499,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18510")]
-    public async Task RemoveCastOnValidUnaryOperatorEnumValue_Nullable()
-    {
-        await new VerifyCS.Test
+    public Task RemoveCastOnValidUnaryOperatorEnumValue_Nullable()
+        => new VerifyCS.Test
         {
             TestCode = """
             enum Sign
@@ -5699,12 +5535,10 @@ public sealed class RemoveUnnecessaryCastTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18510")]
-    public async Task DoNotRemoveEnumCastToDifferentRepresentation()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveEnumCastToDifferentRepresentation()
+        => new VerifyCS.Test
         {
             TestCode = """
             enum Sign
@@ -5723,12 +5557,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25456#issuecomment-373549735")]
-    public async Task DoNotIntroduceDefaultLiteralInSwitchCase()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInSwitchCase()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5745,12 +5577,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInSwitchCase_CastInsideParentheses()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5767,12 +5597,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInSwitchCase_DefaultInsideParentheses()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5789,12 +5617,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInSwitchCase_RemoveDoubleCast()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInSwitchCase_RemoveDoubleCast()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5824,12 +5650,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/12631")]
-    public async Task RemoveRedundantBoolCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveRedundantBoolCast()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -5850,12 +5674,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternSwitchCase()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5872,12 +5694,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_CastInsideParentheses()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_CastInsideParentheses()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5894,12 +5714,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_DefaultInsideParentheses()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_DefaultInsideParentheses()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5916,12 +5734,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_RemoveDoubleCast()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_RemoveDoubleCast()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5951,12 +5767,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_RemoveInsideWhenClause()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternSwitchCase_RemoveInsideWhenClause()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -5986,12 +5800,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternIs()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternIs()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -6004,12 +5816,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternIs_CastInsideParentheses()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternIs_CastInsideParentheses()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -6022,12 +5832,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternIs_DefaultInsideParentheses()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternIs_DefaultInsideParentheses()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -6040,12 +5848,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPatternIs_RemoveDoubleCast()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPatternIs_RemoveDoubleCast()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -6067,12 +5873,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPropertyPattern1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPropertyPattern1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -6087,12 +5891,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task DoNotIntroduceDefaultLiteralInPropertyPattern2()
-    {
-        await new VerifyCS.Test
+    public Task DoNotIntroduceDefaultLiteralInPropertyPattern2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -6107,7 +5909,6 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/27239")]
     public async Task DoNotOfferToRemoveCastWhereNoConversionExists()
@@ -6355,9 +6156,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38347")]
-    public async Task TestArgToLocalFunction1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestArgToLocalFunction1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -6390,12 +6190,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38347")]
-    public async Task TestArgToLocalFunction2()
-    {
-        await new VerifyCS.Test
+    public Task TestArgToLocalFunction2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -6448,7 +6246,6 @@ public sealed class RemoveUnnecessaryCastTests
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             DiagnosticSelector = diagnostics => diagnostics[1],
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
     public async Task TestFormattableString1()
@@ -6470,9 +6267,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
-    public async Task TestFormattableString1_1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFormattableString1_1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6495,7 +6291,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
     public async Task TestFormattableString2()
@@ -6517,9 +6312,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
-    public async Task TestFormattableString2_2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFormattableString2_2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6542,7 +6336,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
     public async Task TestFormattableString3()
@@ -6567,9 +6360,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
-    public async Task TestFormattableString4()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFormattableString4()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6596,12 +6388,10 @@ public sealed class RemoveUnnecessaryCastTests
                 private void bar(FormattableString s) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
-    public async Task TestFormattableString5()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFormattableString5()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6624,12 +6414,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
-    public async Task TestFormattableString6()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestFormattableString6()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6656,7 +6444,6 @@ public sealed class RemoveUnnecessaryCastTests
                 private void bar(IFormattable s) { }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36631")]
     public async Task TestFormattableString7()
@@ -6784,9 +6571,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34326")]
-    public async Task TestOnInterfaceCallOnSealedClass()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestOnInterfaceCallOnSealedClass()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6829,7 +6615,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29726")]
     public async Task TestDefaultLiteralWithNullableCastInCoalesce()
@@ -6909,9 +6694,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityOnFieldRead()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityOnFieldRead()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6938,12 +6722,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityOnFieldWrite()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityOnFieldWrite()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6970,12 +6752,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityInFieldInitializer()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityInFieldInitializer()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -6994,12 +6774,10 @@ public sealed class RemoveUnnecessaryCastTests
                 static float f2 = f1;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityOnArrayRead()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityOnArrayRead()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7026,12 +6804,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityOnArrayWrite()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityOnArrayWrite()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7058,12 +6834,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityOnArrayInitializer1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityOnArrayInitializer1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7086,12 +6860,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityOnArrayInitializer2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityOnArrayInitializer2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7114,12 +6886,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPIdentityOnImplicitArrayInitializer()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPIdentityOnImplicitArrayInitializer()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7142,12 +6912,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPWithBoxing1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPWithBoxing1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7172,12 +6940,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34873")]
-    public async Task TestCanRemoveFPWithBoxing2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFPWithBoxing2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7202,12 +6968,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37953")]
-    public async Task TestCanRemoveFromUnnecessarySwitchExpressionCast1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestCanRemoveFromUnnecessarySwitchExpressionCast1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -7238,7 +7002,6 @@ public sealed class RemoveUnnecessaryCastTests
                     };
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37953")]
     public async Task TestLeaveNecessarySwitchExpressionCast1()
@@ -7333,10 +7096,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithAndAssignment1()
-    {
-
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSignExtensionWithAndAssignment1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -7366,13 +7127,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithAndBinary1()
-    {
-
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSignExtensionWithAndBinary1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -7402,13 +7160,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithAndBinary2()
-    {
-
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSignExtensionWithAndBinary2()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -7438,7 +7193,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
     public async Task TestSignExtensionWithOrCompilerCase1()
@@ -7464,10 +7218,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithOrCompilerCase2()
-    {
-        // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestSignExtensionWithOrCompilerCase2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             public class sign
             {
@@ -7498,7 +7250,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
     public async Task TestSignExtensionWithOrCompilerCase3()
@@ -7524,10 +7275,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithOrCompilerCase4()
-    {
-        // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task TestSignExtensionWithOrCompilerCase4()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             public class sign
             {
@@ -7558,13 +7307,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithOrCompilerCase5()
-    {
-
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSignExtensionWithOrCompilerCase5()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class sign
             {
                 public static void Main()
@@ -7594,7 +7340,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
     public async Task TestSignExtensionWithOrCompilerCase6()
@@ -7712,10 +7457,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithOrCompilerCaseNullable2()
-    {
-        // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSignExtensionWithOrCompilerCaseNullable2()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class sign
             {
                 public static void Main()
@@ -7744,7 +7487,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
     public async Task TestSignExtensionWithOrCompilerCaseNullable3()
@@ -7770,10 +7512,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithOrCompilerCaseNullable4()
-    {
-        // there is a sign extension warning both before and after.  so this is not worse to remove the cast.
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSignExtensionWithOrCompilerCaseNullable4()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class sign
             {
                 public static void Main()
@@ -7802,13 +7542,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
-    public async Task TestSignExtensionWithOrCompilerCaseNullable5()
-    {
-
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task TestSignExtensionWithOrCompilerCaseNullable5()
+        => VerifyCS.VerifyCodeFixAsync("""
             public class sign
             {
                 public static void Main()
@@ -7838,7 +7575,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40414")]
     public async Task TestSignExtensionWithOrCompilerCaseNullable6()
@@ -8122,11 +7858,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20211")]
-    public async Task DoNotRemoveDoubleNullCastInSwitch1()
-    {
-        // Removing the 'object' cast would make `case object:` unreachable.
-
-        await new VerifyCS.Test
+    public Task DoNotRemoveDoubleNullCastInSwitch1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -8147,7 +7880,6 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
     public async Task DoNotRemoveNecessaryCastInConditional1()
@@ -8201,9 +7933,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoNotRemoveNecessaryCastInConditional4_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastInConditional4_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8216,12 +7947,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoRemoveUnnecessaryCastInConditional4()
-    {
-        await new VerifyCS.Test
+    public Task DoRemoveUnnecessaryCastInConditional4()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8243,12 +7972,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoNotRemoveNecessaryCastInConditional5_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastInConditional5_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8261,12 +7988,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoRemoveUnnecessaryCastInConditional5()
-    {
-        await new VerifyCS.Test
+    public Task DoRemoveUnnecessaryCastInConditional5()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8288,12 +8013,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoNotRemoveNecessaryCastInConditional6_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastInConditional6_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8306,12 +8029,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoRemoveUnnecessaryCastInConditional6_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task DoRemoveUnnecessaryCastInConditional6_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8333,7 +8054,6 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
     public async Task DoNotRemoveNecessaryCastInConditional7()
@@ -8387,9 +8107,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoNotRemoveNecessaryCastInConditional10_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastInConditional10_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8402,12 +8121,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoRemoveUnnecessaryCastInConditional10()
-    {
-        await new VerifyCS.Test
+    public Task DoRemoveUnnecessaryCastInConditional10()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8429,12 +8146,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoNotRemoveNecessaryCastInConditional11_CSharp()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastInConditional11_CSharp()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8447,12 +8162,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoRemoveUnnecessaryCastInConditional11()
-    {
-        await new VerifyCS.Test
+    public Task DoRemoveUnnecessaryCastInConditional11()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8474,12 +8187,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoNotRemoveNecessaryCastInConditional12_CSharp8()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastInConditional12_CSharp8()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8492,12 +8203,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task DoRemoveUnnecessaryCastInConditional12()
-    {
-        await new VerifyCS.Test
+    public Task DoRemoveUnnecessaryCastInConditional12()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8519,7 +8228,6 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
     public async Task DoNotRemoveNecessaryCastInConditional13()
@@ -8556,10 +8264,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional1()
-    {
-        var source =
-            """
+    public Task RemoveUnecessaryCastInConditional1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x)
@@ -8567,10 +8273,7 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? [|(int)|]1 : default;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 void M(bool x)
@@ -8578,16 +8281,11 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? 1 : default;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional2()
-    {
-        var source =
-            """
+    public Task RemoveUnecessaryCastInConditional2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x)
@@ -8595,10 +8293,7 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? [|(int)|]1 : 0;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 void M(bool x)
@@ -8606,16 +8301,11 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? 1 : 0;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional3()
-    {
-        var source =
-            """
+    public Task RemoveUnecessaryCastInConditional3()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8623,10 +8313,7 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? [|(int)|]1 : z;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 void M(bool x, int? z)
@@ -8634,16 +8321,11 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? 1 : z;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional4()
-    {
-        var source =
-            """
+    public Task RemoveUnecessaryCastInConditional4()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8651,10 +8333,7 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? [|(int?)|]1 : z;
                 }
             }
-            """;
-
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 void M(bool x, int? z)
@@ -8662,15 +8341,11 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? 1 : z;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnecessaryCastInConditional5()
-    {
-        await new VerifyCS.Test
+    public Task RemoveUnecessaryCastInConditional5()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -8692,13 +8367,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnnecessaryCastInConditional6()
-    {
-        var source =
-            """
+    public Task RemoveUnnecessaryCastInConditional6()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8706,9 +8378,7 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? [|(int?)|]z : null;
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 void M(bool x, int? z)
@@ -8716,16 +8386,11 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? z : null;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem(20211, "https://github.com/dotnet/roslyn/issues/21613")]
-    public async Task RemoveUnnecessaryCastInConditional7()
-    {
-        var source =
-            """
+    public Task RemoveUnnecessaryCastInConditional7()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 void M(bool x, int? z)
@@ -8733,9 +8398,7 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? [|(int?)|]z : default;
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class C
             {
                 void M(bool x, int? z)
@@ -8743,10 +8406,7 @@ public sealed class RemoveUnnecessaryCastTests
                     int? y = x ? z : default;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20742")]
     public async Task DoNotRemoveNamedArgToParamsParameter1()
@@ -8771,10 +8431,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20742")]
-    public async Task DoRemoveNamedArgToParamsParameter1()
-    {
-        var source =
-            """
+    public Task DoRemoveNamedArgToParamsParameter1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M()
@@ -8787,9 +8445,7 @@ public sealed class RemoveUnnecessaryCastTests
                 {
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class Program
             {
                 public void M()
@@ -8802,16 +8458,11 @@ public sealed class RemoveUnnecessaryCastTests
                 {
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20742")]
-    public async Task DoRemoveNamedArgToParamsParameter2()
-    {
-        var source =
-            """
+    public Task DoRemoveNamedArgToParamsParameter2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M()
@@ -8824,9 +8475,7 @@ public sealed class RemoveUnnecessaryCastTests
                 {
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class Program
             {
                 public void M()
@@ -8839,16 +8488,11 @@ public sealed class RemoveUnnecessaryCastTests
                 {
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task ObjectCastInInterpolation1()
-    {
-        var source =
-            """
+    public Task ObjectCastInInterpolation1()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M(int x, int z)
@@ -8856,9 +8500,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"x {[|(object)|]1} z";
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class Program
             {
                 public void M(int x, int z)
@@ -8866,16 +8508,11 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"x {1} z";
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task ObjectCastInInterpolation2()
-    {
-        var source =
-            """
+    public Task ObjectCastInInterpolation2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M(int x, int z)
@@ -8883,9 +8520,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"x {([|(object)|]1)} z";
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class Program
             {
                 public void M(int x, int z)
@@ -8893,16 +8528,11 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"x {1} z";
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact]
-    public async Task TestIdentityDoubleCast()
-    {
-        var source =
-            """
+    public Task TestIdentityDoubleCast()
+        => VerifyCS.VerifyCodeFixAsync("""
             class Program
             {
                 public void M(object x)
@@ -8910,9 +8540,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = [|(int)|](int)x;
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             class Program
             {
                 public void M(object x)
@@ -8920,10 +8548,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = (int)x;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact]
     public async Task TestUnintendedReferenceComparison1()
@@ -9466,9 +9091,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45695")]
-    public async Task DoRemoveObjectCastInsideInterpolation()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveObjectCastInsideInterpolation()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Other
             {
@@ -9489,7 +9113,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47800")]
     public async Task RemoveNativeIntCastsAsIdentity()
@@ -9596,10 +9219,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47800")]
-    public async Task RemoveIntPtrCastsAsIdentity()
-    {
-        var source =
-            """
+    public Task RemoveIntPtrCastsAsIdentity()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -9609,9 +9230,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = [|(IntPtr)|]x;
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             using System;
 
             class C
@@ -9621,16 +9240,11 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = x;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47800")]
-    public async Task RemoveUIntPtrCastsAsIdentity()
-    {
-        var source =
-            """
+    public Task RemoveUIntPtrCastsAsIdentity()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class C
@@ -9640,9 +9254,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = [|(UIntPtr)|]x;
                 }
             }
-            """;
-        var fixedCode =
-            """
+            """, """
             using System;
 
             class C
@@ -9652,10 +9264,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = x;
                 }
             }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(source, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49140")]
     public async Task DoNotRemoveBitwiseNotOfUnsignedExtendedValue1()
@@ -9777,9 +9386,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50000")]
-    public async Task KeepNecessaryCastIfRemovalWouldCreateIllegalConditionalExpression()
-    {
-        await new VerifyCS.Test
+    public Task KeepNecessaryCastIfRemovalWouldCreateIllegalConditionalExpression()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9790,12 +9398,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50000")]
-    public async Task RemoveUnnecessaryCastWhenConditionalExpressionIsLegal()
-    {
-        await new VerifyCS.Test
+    public Task RemoveUnnecessaryCastWhenConditionalExpressionIsLegal()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9813,12 +9419,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52524")]
-    public async Task DoNotRemoveForValueTaskConstrutor()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveForValueTaskConstrutor()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -9846,12 +9450,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53698")]
-    public async Task DoNotRemoveForConditional()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveForConditional()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -9871,12 +9473,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55621")]
-    public async Task DoNotRemoveForNullWithMultipleMatchingParameterTypes()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveForNullWithMultipleMatchingParameterTypes()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -9891,12 +9491,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56207")]
-    public async Task DoNotRemoveForNintPointerToVoidPointer()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveForNintPointerToVoidPointer()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -9910,12 +9508,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task RemoveUnnecessaryCastInPattern1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryCastInPattern1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -9934,12 +9530,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
-    public async Task RemoveUnnecessaryNullableCastInPattern1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task RemoveUnnecessaryNullableCastInPattern1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class Program
             {
@@ -9958,7 +9552,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task DoNotRemoveBoxingEnumCast()
@@ -9978,9 +9571,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task DoRemoveFPCastFromNonFPTypeToWidenedType1()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task DoRemoveFPCastFromNonFPTypeToWidenedType1()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
 
             class Program
@@ -10013,7 +9605,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task DoNotRemoveFPCastToWidenedType2()
@@ -10134,9 +9725,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task CanRemoveExplicitCastToReferenceTypeWhenPassedToDynamic1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveExplicitCastToReferenceTypeWhenPassedToDynamic1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -10163,12 +9753,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task CanRemoveExplicitCastToReferenceTypeWhenPassedToDynamic2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveExplicitCastToReferenceTypeWhenPassedToDynamic2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -10195,7 +9783,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task NotOnWidenedNumericStoredInObject1()
@@ -10237,9 +9824,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task OnNonWidenedNumericStoredInObject1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task OnNonWidenedNumericStoredInObject1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -10264,12 +9850,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task OnNonWidenedNumericConstantStoredInObject2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task OnNonWidenedNumericConstantStoredInObject2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -10292,7 +9876,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task DisallowNarrowingNullableNumericAsCast()
@@ -10316,9 +9899,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task AllowNonNarrowingNullableNumericAsCast()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task AllowNonNarrowingNullableNumericAsCast()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -10345,7 +9927,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task CanNotRemoveStackallocToVarOutsideOfUnsafeRegion()
@@ -10372,9 +9953,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task CanRemoveStackallocToSpanOutsideOfUnsafeRegion()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveStackallocToSpanOutsideOfUnsafeRegion()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             namespace System
@@ -10409,7 +9989,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task CanNotRemoveStackallocToVarInsideOfUnsafeRegion1()
@@ -10463,9 +10042,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task CanRemoveStackallocToSpanInsideOfUnsafeRegion1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveStackallocToSpanInsideOfUnsafeRegion1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             namespace System
@@ -10506,12 +10084,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task CanRemoveStackallocToSpanInsideOfUnsafeRegion2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveStackallocToSpanInsideOfUnsafeRegion2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             namespace System
@@ -10546,7 +10122,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task CanRemoveStackallocToVarInsideOfUnsafeRegion1()
@@ -10573,9 +10148,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact]
-    public async Task CanRemoveParenthesizedStackallocToVarInsideOfUnsafeRegion1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveParenthesizedStackallocToVarInsideOfUnsafeRegion1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
             namespace System
@@ -10610,7 +10184,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact]
     public async Task CanRemoveStackallocToPointerInsideOfUnsafeRegion1()
@@ -10638,9 +10211,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57062")]
-    public async Task DoRemoveIdentityCastInConstantPattern1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveIdentityCastInConstantPattern1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -10667,12 +10239,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57062")]
-    public async Task DoRemoveIdentityCastInConstantPattern2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveIdentityCastInConstantPattern2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -10699,7 +10269,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57062")]
     public async Task DoNotRemoveNonIdentityCastInConstantPattern1()
@@ -10723,9 +10292,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57062")]
-    public async Task DoNotRemoveNonIdentityCastInConstantPattern2()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNonIdentityCastInConstantPattern2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -10742,12 +10310,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57062")]
-    public async Task DoNotRemoveNonIdentityCastInConstantPattern3()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNonIdentityCastInConstantPattern3()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -10781,7 +10347,6 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57062")]
     public async Task DoNotRemoveNonIdentityCastInConstantPattern4()
@@ -10917,9 +10482,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoNotRemoveEqualityWarningSilencingCast5()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoNotRemoveEqualityWarningSilencingCast5()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -10959,7 +10523,6 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == [|(object)|]a2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
     public async Task DoNotRemoveEqualityWarningSilencingCast6()
@@ -11074,9 +10637,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoNotRemoveEqualityWarningSilencingCast10()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoNotRemoveEqualityWarningSilencingCast10()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -11116,7 +10678,6 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == a2 as object;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
     public async Task DoNotRemoveObjectCastToCauseReferenceEqualityWhenUserDefinedComparisonExists1()
@@ -11231,9 +10792,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -11256,12 +10816,10 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == a2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -11284,12 +10842,10 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == a2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -11312,12 +10868,10 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == a2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface4()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface4()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -11340,12 +10894,10 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == a2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface5()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface5()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -11368,12 +10920,10 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == a2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57065")]
-    public async Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface6()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveObjectCastToCauseReferenceEqualityOnInterface6()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             interface IAssembly
             {
@@ -11396,7 +10946,6 @@ public sealed class RemoveUnnecessaryCastTests
                     => a1 == a2;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57063")]
     public async Task DoNotRemoveNullableIntToNullableEnumCast()
@@ -11446,9 +10995,8 @@ public sealed class RemoveUnnecessaryCastTests
 
     [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveNRTCastInConditional1()
-    {
-        await new VerifyCS.Test
+    public Task DoRemoveNRTCastInConditional1()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -11481,12 +11029,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveNRTCastInConditional2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveNRTCastInConditional2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             #nullable enable
 
@@ -11515,12 +11061,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveUnnecessaryWideningConstantCastInConditional1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveUnnecessaryWideningConstantCastInConditional1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -11539,7 +11083,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
     public async Task DoNotRemoveNnecessaryWideningConstantCastInConditional1()
@@ -11558,9 +11101,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveUnnecessaryWideningCastInConditional2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveUnnecessaryWideningCastInConditional2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -11579,7 +11121,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
     public async Task DoNotRemoveNecessaryWideningCastInConditional2()
@@ -11597,9 +11138,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveUnnecessaryWideningNullableConstantCastInConditional3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveUnnecessaryWideningNullableConstantCastInConditional3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -11618,7 +11158,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
     public async Task DoNotRemoveNecessaryWideningNullableConstantCastInConditional3()
@@ -11637,9 +11176,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveUnnecessaryWideningNullableCastInConditional3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveUnnecessaryWideningNullableCastInConditional3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -11658,7 +11196,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
     public async Task DoNotRemoveNecessaryWideningNullableCastInConditional3()
@@ -11677,9 +11214,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault3()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault3()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -11698,7 +11234,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
     public async Task DoNotRemoveNnecessaryWideningConstantCastInConditionalWithDefault3()
@@ -11716,9 +11251,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
-    public async Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault4()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task DoRemoveUnnecessaryWideningConstantCastInConditionalWithDefault4()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             class C
             {
@@ -11737,7 +11271,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
     public async Task DoNotRemoveNecessaryWideningConstantCastInConditionalWithDefault4()
@@ -11785,9 +11318,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56938")]
-    public async Task CanRemoveDoubleNullableNumericCast1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveDoubleNullableNumericCast1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -11810,12 +11342,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56938")]
-    public async Task CanRemoveTripleNullableNumericCast1()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task CanRemoveTripleNullableNumericCast1()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -11838,7 +11368,6 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57064")]
     public async Task DoNotRemoveMultipleNullableCastsThroughUserDefinedConversions1()
@@ -11917,9 +11446,8 @@ public sealed class RemoveUnnecessaryCastTests
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58171")]
     [CombinatorialData]
-    public async Task DoNotRemoveMethodGroupToSpecificDelegateType(LanguageVersion version)
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveMethodGroupToSpecificDelegateType(LanguageVersion version)
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -11944,12 +11472,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = version,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58095")]
-    public async Task DoNotRemoveNullableCastsInTuples()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNullableCastsInTuples()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Diagnostics;
@@ -11973,12 +11499,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49954")]
-    public async Task DoNotRemoveNullableDefaultCast1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNullableDefaultCast1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -11990,12 +11514,10 @@ public sealed class RemoveUnnecessaryCastTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34509")]
-    public async Task DoNotRemoveNullableDefaultCast2()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNullableDefaultCast2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12007,12 +11529,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49690")]
-    public async Task DoNotRemoveNullableGenericCast()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNullableGenericCast()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -12030,12 +11550,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45925")]
-    public async Task DoNotRemoveNecesssaryPatternCasts1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecesssaryPatternCasts1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12051,12 +11569,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37473")]
-    public async Task DoNotRemoveNecesssaryCastInTupleWrappedInObject1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecesssaryCastInTupleWrappedInObject1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -12071,12 +11587,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33143")]
-    public async Task DoNotRemoveNecesssaryCastInTupleWrappedInObject2()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecesssaryCastInTupleWrappedInObject2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -12091,12 +11605,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33043")]
-    public async Task DoNotRemoveNecesssaryCastInIsNullCheck1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecesssaryCastInIsNullCheck1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -12113,12 +11625,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20617")]
-    public async Task DoNotRemoveNecesssaryBitwiseNotOnUnsignedValue1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecesssaryBitwiseNotOnUnsignedValue1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12134,12 +11644,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11008")]
-    public async Task DoNotRemoveCastThatPreventsOverflowInChecked1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveCastThatPreventsOverflowInChecked1()
+        => new VerifyCS.Test
         {
             TestCode = """
             static class Program
@@ -12149,12 +11657,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34553")]
-    public async Task DoNotRemoveCastThatPreventsOverflowInChecked2()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveCastThatPreventsOverflowInChecked2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12170,12 +11676,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11008")]
-    public async Task DoNotRemoveCastFromIntToNullableEnum1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveCastFromIntToNullableEnum1()
+        => new VerifyCS.Test
         {
             TestCode = """
             enum E
@@ -12193,12 +11697,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11008")]
-    public async Task DoNotRemoveWideningCastInBitwiseOr1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveWideningCastInBitwiseOr1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -12211,12 +11713,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32773")]
-    public async Task DoNotRemoveWideningCastInBitwiseOr2()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveWideningCastInBitwiseOr2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -12229,12 +11729,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25165")]
-    public async Task DoNotRemoveCastInIllegalDelegateCast()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveCastInIllegalDelegateCast()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12252,12 +11750,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31303")]
-    public async Task DoNotRemoveUnsignedCastInBitwiseNot1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveUnsignedCastInBitwiseNot1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12274,12 +11770,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36755")]
-    public async Task DoNotRemoveNecessaryCastInSwitchExpressionArm1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastInSwitchExpressionArm1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Program
@@ -12304,12 +11798,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36782")]
-    public async Task DoNotRemoveNecessaryCastWithOverloadedNegationAndImplicitConversion1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryCastWithOverloadedNegationAndImplicitConversion1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12353,12 +11845,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37041")]
-    public async Task DoNotRemoveNecessaryMethodGroupToDelegateCast1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNecessaryMethodGroupToDelegateCast1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12393,12 +11883,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/54388")]
-    public async Task DoNotRemoveCastFromIntToDecimal()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveCastFromIntToDecimal()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12419,12 +11907,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33285")]
-    public async Task DoNotRemoveNullableToStructCast1()
-    {
-        await new VerifyCS.Test
+    public Task DoNotRemoveNullableToStructCast1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12465,12 +11951,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58718")]
-    public async Task FunctionPointerWithImplicitOperator()
-    {
-        await new VerifyCS.Test
+    public Task FunctionPointerWithImplicitOperator()
+        => new VerifyCS.Test
         {
             TestState =
             {
@@ -12509,12 +11993,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58709")]
-    public async Task NotOnNarrowingIntCastInTernary()
-    {
-        await new VerifyCS.Test
+    public Task NotOnNarrowingIntCastInTernary()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -12527,12 +12009,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
-    public async Task SameNullableTypeOnBothSidesOfConditional1()
-    {
-        await new VerifyCS.Test
+    public Task SameNullableTypeOnBothSidesOfConditional1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12558,12 +12038,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
-    public async Task SameNullableTypeOnBothSidesOfConditional2()
-    {
-        await new VerifyCS.Test
+    public Task SameNullableTypeOnBothSidesOfConditional2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12589,12 +12067,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
-    public async Task SameNullableTypeOnBothSidesOfConditional3()
-    {
-        await new VerifyCS.Test
+    public Task SameNullableTypeOnBothSidesOfConditional3()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12620,12 +12096,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
-    public async Task SameNullableTypeOnBothSidesOfConditional4()
-    {
-        await new VerifyCS.Test
+    public Task SameNullableTypeOnBothSidesOfConditional4()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12651,12 +12125,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
-    public async Task SameNullableTypeOnBothSidesOfConditional5()
-    {
-        await new VerifyCS.Test
+    public Task SameNullableTypeOnBothSidesOfConditional5()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12682,12 +12154,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58898")]
-    public async Task SameNullableTypeOnBothSidesOfConditional6()
-    {
-        await new VerifyCS.Test
+    public Task SameNullableTypeOnBothSidesOfConditional6()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12713,12 +12183,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58804")]
-    public async Task ConvertingMethodGroupToObject_CastIsNecessary()
-    {
-        await new VerifyCS.Test
+    public Task ConvertingMethodGroupToObject_CastIsNecessary()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -12731,12 +12199,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58804")]
-    public async Task ConvertingMethodGroupToObject_CastIsNecessary2()
-    {
-        await new VerifyCS.Test
+    public Task ConvertingMethodGroupToObject_CastIsNecessary2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12756,15 +12222,13 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58804")]
     [InlineData("Delegate")]
     [InlineData("MulticastDelegate")]
     [InlineData("Func<string>")]
-    public async Task ConvertingMethodGroupToObject_CastIsUnnecessary(string type)
-    {
-        await new VerifyCS.Test
+    public Task ConvertingMethodGroupToObject_CastIsUnnecessary(string type)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             using System;
@@ -12792,12 +12256,10 @@ public sealed class RemoveUnnecessaryCastTests
             NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58804")]
-    public async Task ConvertingMethodGroupToObject_CastIsUnnecessary2()
-    {
-        await new VerifyCS.Test
+    public Task ConvertingMethodGroupToObject_CastIsUnnecessary2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12825,7 +12287,6 @@ public sealed class RemoveUnnecessaryCastTests
             NumberOfIncrementalIterations = 2,
             NumberOfFixAllIterations = 2,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60248")]
     public async Task RemoveCastInTopLevelPrograms()
@@ -12851,9 +12312,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60292")]
-    public async Task KeepNecessaryExplicitNullableCast()
-    {
-        await new VerifyCS.Test
+    public Task KeepNecessaryExplicitNullableCast()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -12896,12 +12356,10 @@ public sealed class RemoveUnnecessaryCastTests
             """,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact, WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task CanRemoveCastToObjectInStringInterpolation_NullableDisable()
-    {
-        var code = """
+    public Task CanRemoveCastToObjectInStringInterpolation_NullableDisable()
+        => VerifyCS.VerifyCodeFixAsync("""
             #nullable disable
 
             class C
@@ -12911,8 +12369,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"{[|(object)|]0}";
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             #nullable disable
 
             class C
@@ -12922,14 +12379,11 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"{0}";
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task CanRemoveCastToObjectInStringInterpolation_NullableEnable()
-    {
-        var code = """
+    public Task CanRemoveCastToObjectInStringInterpolation_NullableEnable()
+        => VerifyCS.VerifyCodeFixAsync("""
             #nullable enable
 
             class C
@@ -12939,8 +12393,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"{[|(object)|]0}";
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             #nullable enable
 
             class C
@@ -12950,14 +12403,11 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"{0}";
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem(64346, "https://github.com/dotnet/roslyn/issues/61346")]
-    public async Task CanRemoveCastToNullableObjectInStringInterpolation()
-    {
-        var code = """
+    public Task CanRemoveCastToNullableObjectInStringInterpolation()
+        => VerifyCS.VerifyCodeFixAsync("""
             #nullable enable
 
             class C
@@ -12967,8 +12417,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"{[|(object?)|]0}";
                 }
             }
-            """;
-        var fixedCode = """
+            """, """
             #nullable enable
 
             class C
@@ -12978,9 +12427,7 @@ public sealed class RemoveUnnecessaryCastTests
                     var v = $"{0}";
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28867")]
     public async Task DoNotRemoveNullableCastInConditional()
@@ -13087,9 +12534,8 @@ public sealed class RemoveUnnecessaryCastTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast2()
-    {
-        await VerifyCS.VerifyCodeFixAsync(
+    public Task IdentityStructCast2()
+        => VerifyCS.VerifyCodeFixAsync(
             """
             using System;
 
@@ -13114,12 +12560,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task IdentityStructCast3()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             public class S {
                 public int Field;
@@ -13150,12 +12594,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast4()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task IdentityStructCast4()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             public readonly struct S
             {
@@ -13188,12 +12630,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast5()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task IdentityStructCast5()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             public struct S
             {
@@ -13230,12 +12670,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast6()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task IdentityStructCast6()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             public struct S
             {
@@ -13268,12 +12706,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast7()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task IdentityStructCast7()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             public struct S
             {
@@ -13306,12 +12742,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast8()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task IdentityStructCast8()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             public struct S {
                 public int Field;
@@ -13344,12 +12778,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61922")]
-    public async Task IdentityStructCast9()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task IdentityStructCast9()
+        => VerifyCS.VerifyCodeFixAsync("""
             using System;
             public struct S {
                 public int Field;
@@ -13382,12 +12814,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
-    public async Task KeepRequiredCastOnCollectionExpression1()
-    {
-        await new VerifyCS.Test
+    public Task KeepRequiredCastOnCollectionExpression1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -13399,13 +12829,11 @@ public sealed class RemoveUnnecessaryCastTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
-    public async Task KeepRequiredCastOnCollectionExpression2(
+    public Task KeepRequiredCastOnCollectionExpression2(
         [CombinatorialValues("IEnumerable<int>", "IReadOnlyCollection<int>", "IReadOnlyList<int>")] string type)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Generic;
@@ -13417,12 +12845,10 @@ public sealed class RemoveUnnecessaryCastTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
-    public async Task RemoveUnnecessaryCastOnCollectionExpression1()
-    {
-        await new VerifyCS.Test
+    public Task RemoveUnnecessaryCastOnCollectionExpression1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -13442,14 +12868,12 @@ public sealed class RemoveUnnecessaryCastTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
-    public async Task RemoveUnnecessaryCastOnCollectionExpression2(
+    public Task RemoveUnnecessaryCastOnCollectionExpression2(
         [CombinatorialValues("ICollection<int>", "IList<int>")] string type,
         [CombinatorialValues("List<int>", "IList<int>")] string castType)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System.Collections.Generic;
@@ -13469,12 +12893,10 @@ public sealed class RemoveUnnecessaryCastTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71511")]
-    public async Task RemoveUnnecessaryCastOnCollectionExpression3()
-    {
-        await new VerifyCS.Test
+    public Task RemoveUnnecessaryCastOnCollectionExpression3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -13503,12 +12925,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71926")]
-    public async Task NecessaryDelegateCast1()
-    {
-        await new VerifyCS.Test
+    public Task NecessaryDelegateCast1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -13526,12 +12946,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72134")]
-    public async Task NecessaryDelegateCast2()
-    {
-        await new VerifyCS.Test
+    public Task NecessaryDelegateCast2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -13556,12 +12974,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72933")]
-    public async Task RemoveCollectionExpressionCastToArray()
-    {
-        await new VerifyCS.Test
+    public Task RemoveCollectionExpressionCastToArray()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -13599,12 +13015,10 @@ public sealed class RemoveUnnecessaryCastTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
-    public async Task UnnecessaryInterpolationCast1()
-    {
-        await new VerifyCS.Test
+    public Task UnnecessaryInterpolationCast1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -13637,12 +13051,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
-    public async Task UnnecessaryInterpolationCast2()
-    {
-        await new VerifyCS.Test
+    public Task UnnecessaryInterpolationCast2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -13715,12 +13127,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
-    public async Task NecessaryInterpolationCast()
-    {
-        await new VerifyCS.Test
+    public Task NecessaryInterpolationCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -13755,12 +13165,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75424")]
-    public async Task KeepNecessaryObjectOverrideCast()
-    {
-        await new VerifyCS.Test
+    public Task KeepNecessaryObjectOverrideCast()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -13776,12 +13184,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
-    public async Task TestObjectToDynamic1()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectToDynamic1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -13797,12 +13203,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
-    public async Task TestObjectToDynamic2()
-    {
-        await new VerifyCS.Test
+    public Task TestObjectToDynamic2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -13816,12 +13220,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
-    public async Task TestNumericThroughDynamic()
-    {
-        await new VerifyCS.Test
+    public Task TestNumericThroughDynamic()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -13835,12 +13237,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
-    public async Task TestNullableThroughDynamic()
-    {
-        await new VerifyCS.Test
+    public Task TestNullableThroughDynamic()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -13854,12 +13254,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
-    public async Task TestEnumThroughDynamic1()
-    {
-        await new VerifyCS.Test
+    public Task TestEnumThroughDynamic1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -13875,12 +13273,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
-    public async Task TestEnumThroughDynamic2()
-    {
-        await new VerifyCS.Test
+    public Task TestEnumThroughDynamic2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -13896,12 +13292,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71695")]
-    public async Task TestConstantThroughDynamic()
-    {
-        await new VerifyCS.Test
+    public Task TestConstantThroughDynamic()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -13917,14 +13311,12 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/68307")]
     [InlineData(nameof(Delegate))]
     [InlineData(nameof(MulticastDelegate))]
-    public async Task KeepNecessaryCastToDelegateAssignedToObject(string typeName)
-    {
-        await new VerifyCS.Test
+    public Task KeepNecessaryCastToDelegateAssignedToObject(string typeName)
+        => new VerifyCS.Test
         {
             TestCode = $$"""
                 using System;
@@ -13940,12 +13332,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
-    public async Task UnnecessaryWithinConditionalBranch1()
-    {
-        await new VerifyCS.Test
+    public Task UnnecessaryWithinConditionalBranch1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class IssueClass
@@ -13972,12 +13362,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
-    public async Task UnnecessaryWithinConditionalBranch2()
-    {
-        await new VerifyCS.Test
+    public Task UnnecessaryWithinConditionalBranch2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 public class IssueClass
@@ -14004,12 +13392,10 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
-    public async Task ImplicitNumericConversionCastInTernary1()
-    {
-        await VerifyCS.VerifyAnalyzerAsync("""
+    public Task ImplicitNumericConversionCastInTernary1()
+        => VerifyCS.VerifyAnalyzerAsync("""
             class C
             {
                 private const int ConstInt = 1;
@@ -14020,12 +13406,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
-    public async Task ImplicitNumericConversionCastInTernary2()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task ImplicitNumericConversionCastInTernary2()
+        => VerifyCS.VerifyCodeFixAsync("""
             class C
             {
                 private const int ConstInt = 1;
@@ -14046,12 +13430,10 @@ public sealed class RemoveUnnecessaryCastTests
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
-    public async Task ImplicitNumericConversionCastInTernary3()
-    {
-        await VerifyCS.VerifyCodeFixAsync("""
+    public Task ImplicitNumericConversionCastInTernary3()
+        => VerifyCS.VerifyCodeFixAsync("""
                 class C
                 {
                     private const int ConstInt = 1;
@@ -14072,12 +13454,10 @@ public sealed class RemoveUnnecessaryCastTests
                     }
                 }
                 """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79180")]
-    public async Task ImplicitNumericConversionCastInTernary4()
-    {
-        await new VerifyCS.Test
+    public Task ImplicitNumericConversionCastInTernary4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -14104,5 +13484,4 @@ public sealed class RemoveUnnecessaryCastTests
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllCheck,
             DiagnosticSelector = d => d[1],
         }.RunAsync();
-    }
 }

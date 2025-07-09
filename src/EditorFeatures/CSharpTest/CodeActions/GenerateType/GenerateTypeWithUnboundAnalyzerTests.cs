@@ -33,9 +33,8 @@ public sealed partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCShar
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/13211")]
-    public async Task TestGenerateOffOfIncompleteMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateOffOfIncompleteMember()
+        => TestInRegularAndScriptAsync(
 @"class Class
 {
     public [|Goo|]
@@ -49,5 +48,4 @@ internal class Goo
 {
 }",
 index: 1);
-    }
 }

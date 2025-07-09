@@ -27,9 +27,8 @@ public sealed class ReduceTokenTests
 #endif
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_LessThan8Digits()
-    {
-        var code = @"[|
+    public Task ReduceSingleLiterals_LessThan8Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 8 significant digits
@@ -66,9 +65,7 @@ Module Program
         Console.WriteLine(f_7_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 8 significant digits
@@ -105,14 +102,11 @@ Module Program
         Console.WriteLine(f_7_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
-    {
-        var code = @"[|
+    public Task ReduceSingleLiterals_LessThan8Digits_WithTypeCharacterSingle()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 8 significant digits
@@ -149,9 +143,7 @@ Module Program
         Console.WriteLine(f_7_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 8 significant digits
@@ -188,14 +180,11 @@ Module Program
         Console.WriteLine(f_7_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_8Digits()
-    {
-        var code = @"[|
+    public Task ReduceSingleLiterals_8Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
@@ -225,9 +214,7 @@ Module Program
         Console.WriteLine(f_8_8)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
@@ -257,14 +244,11 @@ Module Program
         Console.WriteLine(f_8_8)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
-    {
-        var code = @"[|
+    public Task ReduceSingleLiterals_8Digits_WithTypeCharacterSingle()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
@@ -294,9 +278,7 @@ Module Program
         Console.WriteLine(f_8_8)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 8 significant digits
@@ -326,14 +308,11 @@ Module Program
         Console.WriteLine(f_8_8)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_GreaterThan8Digits()
-    {
-        var code = @"[|
+    public Task ReduceSingleLiterals_GreaterThan8Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
@@ -375,9 +354,7 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
@@ -419,14 +396,11 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
-    {
-        var code = @"[|
+    public Task ReduceSingleLiterals_GreaterThan8Digits_WithTypeCharacterSingle()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
@@ -468,9 +442,7 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 8 significant digits
@@ -512,14 +484,11 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_LessThan16Digits()
-    {
-        var code = @"[|
+    public Task ReduceDoubleLiterals_LessThan16Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 16 significant digits precision,
@@ -556,9 +525,7 @@ Module Program
         Console.WriteLine(f_15_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 16 significant digits precision,
@@ -595,14 +562,11 @@ Module Program
         Console.WriteLine(f_15_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
-    {
-        var code = @"[|
+    public Task ReduceDoubleLiterals_LessThan16Digits_WithTypeCharacter()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 16 significant digits precision,
@@ -639,9 +603,7 @@ Module Program
         Console.WriteLine(f_15_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 16 significant digits precision,
@@ -678,14 +640,11 @@ Module Program
         Console.WriteLine(f_15_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_16Digits()
-    {
-        var code = @"[|
+    public Task ReduceDoubleLiterals_16Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
@@ -719,9 +678,7 @@ Module Program
         Console.WriteLine(f_16_10)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
@@ -755,14 +712,11 @@ Module Program
         Console.WriteLine(f_16_10)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_16Digits_WithTypeCharacter()
-    {
-        var code = @"[|
+    public Task ReduceDoubleLiterals_16Digits_WithTypeCharacter()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
@@ -796,9 +750,7 @@ Module Program
         Console.WriteLine(f_16_10)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 16 significant digits
@@ -832,14 +784,11 @@ Module Program
         Console.WriteLine(f_16_10)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_GreaterThan16Digits()
-    {
-        var code = @"[|
+    public Task ReduceDoubleLiterals_GreaterThan16Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -899,9 +848,7 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -961,14 +908,11 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
-    {
-        var code = @"[|
+    public Task ReduceDoubleLiterals_GreaterThan16Digits_WithTypeCharacter()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -1028,9 +972,7 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 16 significant digits
@@ -1090,14 +1032,11 @@ Module Program
         Console.WriteLine(f_underflow_2)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_LessThan30Digits()
-    {
-        var code = @"[|
+    public Task ReduceDecimalLiterals_LessThan30Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 30 significant digits
@@ -1134,9 +1073,7 @@ Module Program
         Console.WriteLine(d_29_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 30 significant digits
@@ -1173,14 +1110,11 @@ Module Program
         Console.WriteLine(d_29_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
-    {
-        var code = @"[|
+    public Task ReduceDecimalLiterals_LessThan30Digits_WithTypeCharacterDecimal()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 30 significant digits
@@ -1217,9 +1151,7 @@ Module Program
         Console.WriteLine(d_29_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 1: Less than 30 significant digits
@@ -1256,14 +1188,11 @@ Module Program
         Console.WriteLine(d_29_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_30Digits()
-    {
-        var code = @"[|
+    public Task ReduceDecimalLiterals_30Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 30 significant digits
@@ -1286,9 +1215,7 @@ Module Program
         Console.WriteLine(d_30_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 30 significant digits
@@ -1311,14 +1238,11 @@ Module Program
         Console.WriteLine(d_30_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
-    {
-        var code = @"[|
+    public Task ReduceDecimalLiterals_30Digits_WithTypeCharacterDecimal()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 30 significant digits
@@ -1341,9 +1265,7 @@ Module Program
         Console.WriteLine(d_30_6)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 2: 30 significant digits
@@ -1366,14 +1288,11 @@ Module Program
         Console.WriteLine(d_30_6)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiterals_GreaterThan30Digits()
-    {
-        var code = @"[|
+    public Task ReduceDecimalLiterals_GreaterThan30Digits()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 30 significant digits
@@ -1396,9 +1315,7 @@ Module Program
         Console.WriteLine(d_35_1)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         ' CATEGORY 3: > 30 significant digits
@@ -1421,14 +1338,11 @@ Module Program
         Console.WriteLine(d_35_1)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceFloatLiteralsWithNegativeExponents()
-    {
-        var code = @"[|
+    public Task ReduceFloatLiteralsWithNegativeExponents()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
 
@@ -1472,9 +1386,7 @@ Module Program
         Const d_8 As Double = 0.00000000000000000001234567890123456
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
 
@@ -1518,14 +1430,11 @@ Module Program
         Const d_8 As Double = 1.234567890123456E-20
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceSingleLiteralsWithTrailingZeros()
-    {
-        var code = @"[|
+    public Task ReduceSingleLiteralsWithTrailingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const f1 As Single = 3.011000F                      ' Dev11 & Roslyn: 3.011F
@@ -1553,9 +1462,7 @@ Module Program
         Console.WriteLine(f11)
     End Sub
 End Module
-|]";
-
-        var expected = $@"
+|]", $@"
 Module Program
     Sub Main(args As String())
         Const f1 As Single = 3.011F                      ' Dev11 & Roslyn: 3.011F
@@ -1583,14 +1490,11 @@ Module Program
         Console.WriteLine(f11)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDoubleLiteralsWithTrailingZeros()
-    {
-        var code = @"[|
+    public Task ReduceDoubleLiteralsWithTrailingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const d1 As Double = 3.011000                       ' Dev11 & Roslyn: 3.011
@@ -1618,9 +1522,7 @@ Module Program
         Console.WriteLine(d11)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         Const d1 As Double = 3.011                       ' Dev11 & Roslyn: 3.011
@@ -1648,14 +1550,11 @@ Module Program
         Console.WriteLine(d11)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5529, "DevDiv_Projects/Roslyn")]
-    public async Task ReduceDecimalLiteralsWithTrailingZeros()
-    {
-        var code = @"[|
+    public Task ReduceDecimalLiteralsWithTrailingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const d1 As Decimal = 3.011000D                     ' Dev11 & Roslyn: 3.011D
@@ -1683,9 +1582,7 @@ Module Program
         Console.WriteLine(d11)
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         Const d1 As Decimal = 3.011D                     ' Dev11 & Roslyn: 3.011D
@@ -1713,9 +1610,7 @@ Module Program
         Console.WriteLine(d11)
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623319")]
     public async Task ReduceFloatingAndDecimalLiteralsWithDifferentCulture()
@@ -1726,25 +1621,21 @@ End Module
         {
             System.Threading.Thread.CurrentThread.CurrentCulture =
                 System.Globalization.CultureInfo.CreateSpecificCulture("de-DE");
-
-            var code = @"[|
+            await VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Dim d = 1.0D
         Dim f = 1.0F
         Dim x = 1.0
     End Sub
-End Module|]";
-
-            var expected = @"
+End Module|]", @"
 Module Program
     Sub Main(args As String())
         Dim d = 1D
         Dim f = 1.0F
         Dim x = 1.0
     End Sub
-End Module";
-            await VerifyAsync(code, expected);
+End Module");
         }
         finally
         {
@@ -1760,25 +1651,21 @@ End Module";
         {
             Thread.CurrentThread.CurrentCulture = (CultureInfo)oldCulture.Clone();
             Thread.CurrentThread.CurrentCulture.NumberFormat.NegativeSign = "~";
-
-            var code = @"[|
+            await VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Dim d = -1.0E-11D
         Dim f = -1.0E-11F
         Dim x = -1.0E-11
     End Sub
-End Module|]";
-
-            var expected = @"
+End Module|]", @"
 Module Program
     Sub Main(args As String())
         Dim d = -0.00000000001D
         Dim f = -1.0E-11F
         Dim x = -0.00000000001
     End Sub
-End Module";
-            await VerifyAsync(code, expected);
+End Module");
         }
         finally
         {
@@ -1787,9 +1674,8 @@ End Module";
     }
 
     [Fact]
-    public async Task ReduceIntegerLiteralWithLeadingZeros()
-    {
-        var code = @"[|
+    public Task ReduceIntegerLiteralWithLeadingZeros()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const i0 As Integer = 0060
@@ -1811,9 +1697,7 @@ Module Program
         Const s2 As Short = &H0000FFFFS
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         Const i0 As Integer = 60
@@ -1835,14 +1719,11 @@ Module Program
         Const s2 As Short = &HFFFFS
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact]
-    public async Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
-    {
-        var code = @"[|
+    public Task ReduceIntegerLiteralWithNegativeHexOrOctalValue()
+        => VerifyAsync(@"[|
 Module Program
     Sub Main(args As String())
         Const s0 As Short = &HFFFFS
@@ -1859,9 +1740,7 @@ Module Program
         Const l2 As Long = &O1000000000000000000000L
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Program
     Sub Main(args As String())
         Const s0 As Short = &HFFFFS
@@ -1878,14 +1757,11 @@ Module Program
         Const l2 As Long = &O1000000000000000000000L
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact]
-    public async Task ReduceIntegerLiteralWithOverflow()
-    {
-        var code = @"[|
+    public Task ReduceIntegerLiteralWithOverflow()
+        => VerifyAsync(@"[|
 Module Module1
     Sub Main()
         Dim sMax As Short = 0032768S
@@ -1898,9 +1774,7 @@ Module Module1
         Dim x As Long = &HFFFFFFFFFFFFFFFFF
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Module1
     Sub Main()
         Dim sMax As Short = 0032768S
@@ -1913,14 +1787,11 @@ Module Module1
         Dim x As Long = &HFFFFFFFFFFFFFFFFF
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact]
-    public async Task ReduceBinaryIntegerLiteral()
-    {
-        var code = @"[|
+    public Task ReduceBinaryIntegerLiteral()
+        => VerifyAsync(@"[|
 Module Module1
     Sub Main()
         ' signed
@@ -1948,9 +1819,7 @@ Module Module1
         Dim p As Long = &B1000000000000000000000000000000000000000000000000000000000000001
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Module Module1
     Sub Main()
         ' signed
@@ -1978,9 +1847,7 @@ Module Module1
         Dim p As Long = &B1000000000000000000000000000000000000000000000000000000000000001
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14034")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/48492")]

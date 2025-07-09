@@ -20,9 +20,8 @@ using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToProgramMainCodeRefactori
 public sealed class ConvertToProgramMainRefactoringTests
 {
     [Fact]
-    public async Task TestNotOnFileWithNoGlobalStatements()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnFileWithNoGlobalStatements()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $$
@@ -38,12 +37,10 @@ class C
                 DiagnosticResult.CompilerError("CS5001"),
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnEmptyFile()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnEmptyFile()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $$
@@ -56,13 +53,10 @@ $$
                 DiagnosticResult.CompilerError("CS5001"),
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToProgramMainWithDefaultTopLevelStatementPreference()
-    {
-        // default preference is to prefer top level namespaces.  As such, we only offer to convert to the alternative as a refactoring.
-        await new VerifyCS.Test
+    public Task TestConvertToProgramMainWithDefaultTopLevelStatementPreference()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $$System.Console.WriteLine(0);
@@ -78,25 +72,20 @@ internal class Program
             LanguageVersion = LanguageVersion.CSharp10,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOfferedInLibrary()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOfferedInLibrary()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $${|CS8805:System.Console.WriteLine(0);|}
 ",
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToProgramMainWithTopLevelStatementPreferenceSuggestion()
-    {
-        // user actually prefers top level statements.  As such, we only offer to convert to the alternative as a refactoring.
-        await new VerifyCS.Test
+    public Task TestConvertToProgramMainWithTopLevelStatementPreferenceSuggestion()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $$System.Console.WriteLine(0);
@@ -116,12 +105,10 @@ internal class Program
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSuggestion()
-    {
-        await new VerifyCS.Test
+    public Task TestNoConvertToProgramMainWithProgramMainPreferenceSuggestion()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $$System.Console.WriteLine(0);
@@ -133,12 +120,10 @@ $$System.Console.WriteLine(0);
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSilent()
-    {
-        await new VerifyCS.Test
+    public Task TestNoConvertToProgramMainWithProgramMainPreferenceSilent()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $$System.Console.WriteLine(0);
@@ -150,13 +135,10 @@ $$System.Console.WriteLine(0);
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent },
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestConvertToProgramMainWithProgramMainPreferenceSuppress()
-    {
-        // if the user has the analyzer suppressed, then we want to supply teh refactoring.
-        await new VerifyCS.Test
+    public Task TestConvertToProgramMainWithProgramMainPreferenceSuppress()
+        => new VerifyCS.Test
         {
             TestCode = @"
 $$System.Console.WriteLine(0);
@@ -176,5 +158,4 @@ internal class Program
                 { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.None },
             }
         }.RunAsync();
-    }
 }

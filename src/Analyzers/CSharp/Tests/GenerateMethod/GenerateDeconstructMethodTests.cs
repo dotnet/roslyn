@@ -21,9 +21,8 @@ public sealed class GenerateDeconstructMethodTests(ITestOutputHelper logger)
         => (null, new GenerateDeconstructMethodCodeFixProvider());
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_Simple()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDeconstructionDeclaration_Simple()
+        => TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -45,12 +44,10 @@ class Class
         (int x, int y) = this;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_Simple_Record()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDeconstructionDeclaration_Simple_Record()
+        => TestInRegularAndScriptAsync(
 @"record R
 {
     void Method()
@@ -72,12 +69,10 @@ record R
         (int x, int y) = this;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_TypeParameters()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDeconstructionDeclaration_TypeParameters()
+        => TestInRegularAndScriptAsync(
 @"class Class<T>
 {
     void Method<U>()
@@ -99,12 +94,10 @@ class Class<T>
         (T x, U y) = this;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_OtherDeconstructMethods()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDeconstructionDeclaration_OtherDeconstructMethods()
+        => TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -130,12 +123,10 @@ class Class
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_AlreadySuccessfull()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDeconstructionDeclaration_AlreadySuccessfull()
+        => TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -144,12 +135,10 @@ class Class
     }
     void Deconstruct(out int x, out int y) => throw null;
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_UndeterminedType()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDeconstructionDeclaration_UndeterminedType()
+        => TestInRegularAndScript1Async(
 @"class Class
 {
     void Method()
@@ -171,12 +160,10 @@ class Class
         (var x, var y) = this;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_UndeterminedType2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestDeconstructionDeclaration_UndeterminedType2()
+        => TestInRegularAndScript1Async(
 @"class Class
 {
     void Method()
@@ -198,12 +185,10 @@ class Class
         var (x, y) = this;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionDeclaration_BuiltinType()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDeconstructionDeclaration_BuiltinType()
+        => TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -211,12 +196,10 @@ class Class
         (int x, int y) = [|1|];
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionAssignment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDeconstructionAssignment()
+        => TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -240,13 +223,10 @@ class Class
         (x, y) = this;
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionAssignment_Nested()
-    {
-        // We only offer a fix for non-nested deconstruction, at the moment
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDeconstructionAssignment_Nested()
+        => TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -255,12 +235,10 @@ class Class
         ((x, y), z) = ([|this|], 0);
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionAssignment_Array()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDeconstructionAssignment_Array()
+        => TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -269,12 +247,10 @@ class Class
         (x, y) = [|new[] { this }|];
     }
 }");
-    }
 
     [Fact]
-    public async Task TestSimpleDeconstructionForeach()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleDeconstructionForeach()
+        => TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method()
@@ -296,12 +272,10 @@ class Class
         foreach ((int x, int y) in new[] { this }) { }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestSimpleDeconstructionForeach_AnotherType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleDeconstructionForeach_AnotherType()
+        => TestInRegularAndScriptAsync(
 @"class Class
 {
     void Method(D d)
@@ -328,12 +302,10 @@ class D
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionPositionalPattern()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDeconstructionPositionalPattern()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void Method()
@@ -355,12 +327,10 @@ class C
         if(this is C(""""[||])) { }
     }
 }");
-    }
 
     [Fact]
-    public async Task TestDeconstructionPositionalPattern_NullExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestDeconstructionPositionalPattern_NullExpression()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void Method()
@@ -382,12 +352,10 @@ class C
         if(this is C(""""[||], ref 0)) { }
     }
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32510")]
-    public async Task TestDeconstructionAssignment_InvalidDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task TestDeconstructionAssignment_InvalidDeclaration()
+        => TestMissingInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 
@@ -401,5 +369,4 @@ class C
         }
     }
 }");
-    }
 }

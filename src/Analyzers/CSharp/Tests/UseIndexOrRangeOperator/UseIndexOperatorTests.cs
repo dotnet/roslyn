@@ -21,9 +21,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseIndexOperatorTests
 {
     [Fact]
-    public async Task TestNotInCSharp7()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInCSharp7()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -37,7 +36,6 @@ public sealed class UseIndexOperatorTests
             """,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
     public async Task TestWithMissingReference()
@@ -75,9 +73,8 @@ public sealed class UseIndexOperatorTests
     }
 
     [Fact]
-    public async Task TestSimple()
-    {
-        await new VerifyCS.Test
+    public Task TestSimple()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -99,7 +96,6 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestMultipleDefinitions()
@@ -147,9 +143,8 @@ public sealed class UseIndexOperatorTests
     }
 
     [Fact]
-    public async Task TestComplexSubtaction()
-    {
-        await new VerifyCS.Test
+    public Task TestComplexSubtaction()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -171,12 +166,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestComplexInstance()
-    {
-        await new VerifyCS.Test
+    public Task TestComplexInstance()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -202,12 +195,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithoutSubtraction1()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithoutSubtraction1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -220,12 +211,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithoutSubtraction2()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithoutSubtraction2()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -238,12 +227,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithMultipleArgs()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithMultipleArgs()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -257,12 +244,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUserDefinedTypeWithLength()
-    {
-        await new VerifyCS.Test
+    public Task TestUserDefinedTypeWithLength()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -286,12 +271,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUserDefinedTypeWithCount()
-    {
-        await new VerifyCS.Test
+    public Task TestUserDefinedTypeWithCount()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -315,12 +298,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUserDefinedTypeWithNoLengthOrCount()
-    {
-        await new VerifyCS.Test
+    public Task TestUserDefinedTypeWithNoLengthOrCount()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -334,12 +315,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUserDefinedTypeWithNoInt32Indexer()
-    {
-        await new VerifyCS.Test
+    public Task TestUserDefinedTypeWithNoInt32Indexer()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -353,12 +332,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestUserDefinedTypeWithNoIndexIndexer()
-    {
-        await new VerifyCS.Test
+    public Task TestUserDefinedTypeWithNoIndexIndexer()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -382,12 +359,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMethodToMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestMethodToMethod()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -411,12 +386,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMethodToMethodMissingIndexIndexer()
-    {
-        await new VerifyCS.Test
+    public Task TestMethodToMethodMissingIndexIndexer()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -430,12 +403,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMethodToMethodWithIntIndexer()
-    {
-        await new VerifyCS.Test
+    public Task TestMethodToMethodWithIntIndexer()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -449,12 +420,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36909")]
-    public async Task TestMissingWithNoSystemIndex()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithNoSystemIndex()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
             TestCode = """
@@ -468,7 +437,6 @@ public sealed class UseIndexOperatorTests
             """,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestMissingWithInaccessibleSystemIndex()
@@ -508,9 +476,8 @@ public sealed class UseIndexOperatorTests
     }
 
     [Fact]
-    public async Task TestArray()
-    {
-        await new VerifyCS.Test
+    public Task TestArray()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -532,12 +499,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestFixAll1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -561,12 +526,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedFixAll1()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedFixAll1()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -588,12 +551,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNestedFixAll2()
-    {
-        await new VerifyCS.Test
+    public Task TestNestedFixAll2()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -615,12 +576,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer()
-    {
-        await new VerifyCS.Test
+    public Task TestSimple_NoIndexIndexer_SupportsIntIndexer()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -644,12 +603,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimple_NoIndexIndexer_SupportsIntIndexer_Set()
-    {
-        await new VerifyCS.Test
+    public Task TestSimple_NoIndexIndexer_SupportsIntIndexer_Set()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -673,12 +630,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOnConstructedIndexer()
-    {
-        await new VerifyCS.Test
+    public Task NotOnConstructedIndexer()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -692,12 +647,10 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49347")]
-    public async Task TestNotInExpressionTree()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInExpressionTree()
+        => new VerifyCS.Test
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = """
@@ -713,5 +666,4 @@ public sealed class UseIndexOperatorTests
             }
             """,
         }.RunAsync();
-    }
 }

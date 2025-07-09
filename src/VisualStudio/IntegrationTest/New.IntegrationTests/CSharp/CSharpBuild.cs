@@ -30,7 +30,7 @@ public class CSharpBuild : AbstractIntegrationTest
     [IdeFact]
     public async Task BuildProject()
     {
-        var editorText = @"using System;
+        await TestServices.Editor.SetTextAsync(@"using System;
 
 class Program
 {
@@ -38,9 +38,7 @@ class Program
     {
         Console.WriteLine(""Hello, World!"");
     }
-}";
-
-        await TestServices.Editor.SetTextAsync(editorText, HangMitigatingCancellationToken);
+}", HangMitigatingCancellationToken);
 
         var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
         Assert.True(succeed);

@@ -29,18 +29,16 @@ public abstract class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBa
 
     private protected OptionsCollection SeparateGroups => Option(GenerationOptions.SeparateImportDirectiveGroups, true);
 
-    internal async Task TestAsync(
+    internal Task TestAsync(
         string initialMarkup,
         string expectedMarkup,
         TestHost testHost,
         int index = 0,
         CodeActionPriority? priority = null,
         OptionsCollection options = null)
-    {
-        await TestInRegularAndScript1Async(
+        => TestInRegularAndScript1Async(
             initialMarkup,
             expectedMarkup,
             index,
             parameters: new TestParameters(options: options, testHost: testHost, priority: priority));
-    }
 }

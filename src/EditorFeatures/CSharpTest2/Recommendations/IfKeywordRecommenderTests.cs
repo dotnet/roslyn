@@ -12,155 +12,120 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class IfKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAfterClass_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterClass_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalStatement()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterGlobalStatement()
+        => VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalVariableDeclaration_Interactive()
+        => VerifyKeywordAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInPreprocessor1()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInPreprocessor1()
+        => VerifyAbsenceAsync(AddInsideMethod(
 "#if $$"));
-    }
 
     [Fact]
-    public async Task TestEmptyStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestEmptyStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestAfterHash()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterHash()
+        => VerifyKeywordAsync(
 @"#$$");
-    }
 
     [Fact]
-    public async Task TestAfterHashFollowedBySkippedTokens()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterHashFollowedBySkippedTokens()
+        => VerifyKeywordAsync(
             """
             #$$
             aeu
             """);
-    }
 
     [Fact]
-    public async Task TestAfterHashAndSpace()
-    {
-        await VerifyKeywordAsync(
+    public Task TestAfterHashAndSpace()
+        => VerifyKeywordAsync(
 @"# $$");
-    }
 
     [Fact]
-    public async Task TestInsideMethod()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInsideMethod()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestBeforeStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestBeforeStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             $$
             return true;
             """));
-    }
 
     [Fact]
-    public async Task TestAfterStatement()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterStatement()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             return true;
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterBlock()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             if (true) {
             }
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterIf()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterIf()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"if $$"));
-    }
 
     [Fact]
-    public async Task TestInCase()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInCase()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (true) {
               case 0:
                 $$
             }
             """));
-    }
 
     [Fact]
-    public async Task TestInCaseBlock()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInCaseBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (true) {
               case 0: {
@@ -168,24 +133,20 @@ public sealed class IfKeywordRecommenderTests : KeywordRecommenderTests
               }
             }
             """));
-    }
 
     [Fact]
-    public async Task TestInDefaultCase()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInDefaultCase()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (true) {
               default:
                 $$
             }
             """));
-    }
 
     [Fact]
-    public async Task TestInDefaultCaseBlock()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInDefaultCaseBlock()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             switch (true) {
               default: {
@@ -193,92 +154,71 @@ public sealed class IfKeywordRecommenderTests : KeywordRecommenderTests
               }
             }
             """));
-    }
 
     [Fact]
-    public async Task TestAfterLabel()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterLabel()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             label:
               $$
             """));
-    }
 
     [Fact]
-    public async Task TestNotAfterDoBlock()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterDoBlock()
+        => VerifyAbsenceAsync(AddInsideMethod(
             """
             do {
             }
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestInActiveRegion1()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInActiveRegion1()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             #if true
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestInActiveRegion2()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestInActiveRegion2()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             #if true
 
             $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterElse()
-    {
-        await VerifyKeywordAsync(AddInsideMethod(
+    public Task TestAfterElse()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             if (goo) {
             } else $$
             """));
-    }
 
     [Fact]
-    public async Task TestAfterCatch()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterCatch()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch $$"));
-    }
 
     [Fact]
-    public async Task TestAfterCatchDeclaration1()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterCatchDeclaration1()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception) $$"));
-    }
 
     [Fact]
-    public async Task TestAfterCatchDeclaration2()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterCatchDeclaration2()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch (Exception e) $$"));
-    }
 
     [Fact]
-    public async Task TestAfterCatchDeclarationEmpty()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestAfterCatchDeclarationEmpty()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} catch () $$"));
-    }
 
     [Fact]
-    public async Task TestNotAfterTryBlock()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotAfterTryBlock()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"try {} $$"));
-    }
 }

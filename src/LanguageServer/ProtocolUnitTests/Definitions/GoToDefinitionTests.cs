@@ -72,18 +72,16 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestGotoDefinitionAsync_MappedFile(bool mutatingLspWorkspace)
     {
-        var markup =
-@"class A
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        AddMappedDocument(testLspServer.TestWorkspace, @"class A
 {
     string aString = 'hello';
     void M()
     {
         var len = aString.Length;
     }
-}";
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
-
-        AddMappedDocument(testLspServer.TestWorkspace, markup);
+}");
 
         var position = new LSP.Position { Line = 5, Character = 18 };
         var results = await RunGotoDefinitionAsync(testLspServer, new LSP.Location
@@ -285,18 +283,15 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
                 }
             }
             """;
-        var generated =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator("""
             namespace M
             {
                 class B
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+            """), testLspServer.TestWorkspace);
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         var result = Assert.Single(results);

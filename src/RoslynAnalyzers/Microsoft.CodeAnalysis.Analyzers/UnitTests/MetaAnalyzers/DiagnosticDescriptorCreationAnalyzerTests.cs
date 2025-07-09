@@ -23,9 +23,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
         #region RS1007 (UseLocalizableStringsInDescriptorRuleId) and RS1015 (ProvideHelpUriInDescriptorRuleId)
 
         [Fact]
-        public async Task RS1007_RS1015_CSharp_VerifyDiagnosticAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task RS1007_RS1015_CSharp_VerifyDiagnosticAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -52,12 +51,10 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1015ExpectedDiagnostic(0),
                 GetRS1028ResultAt(0));
-        }
 
         [Fact]
-        public async Task RS1007_RS1015_VisualBasic_VerifyDiagnosticAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task RS1007_RS1015_VisualBasic_VerifyDiagnosticAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -81,12 +78,10 @@ End Class
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1015ExpectedDiagnostic(1),
                 GetRS1028ResultAt(1));
-        }
 
         [Fact]
-        public async Task RS1007_RS1015_CSharp_VerifyDiagnostic_NamedArgumentCasesAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task RS1007_RS1015_CSharp_VerifyDiagnostic_NamedArgumentCasesAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -119,12 +114,10 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetRS1007ExpectedDiagnostic(3),
                 GetRS1015ExpectedDiagnostic(3),
                 GetRS1028ResultAt(3));
-        }
 
         [Fact]
-        public async Task RS1007_RS1015_VisualBasic_VerifyDiagnostic_NamedArgumentCasesAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task RS1007_RS1015_VisualBasic_VerifyDiagnostic_NamedArgumentCasesAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -152,12 +145,10 @@ End Class
                 GetRS1007ExpectedDiagnostic(3),
                 GetRS1015ExpectedDiagnostic(4),
                 GetRS1028ResultAt(4));
-        }
 
         [Fact]
-        public async Task RS1007_RS1015_CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task RS1007_RS1015_CSharp_NoDiagnosticCasesAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -193,12 +184,10 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
                 GetRS1028ResultAt(2));
-        }
 
         [Fact]
-        public async Task RS1007_RS1015_VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task RS1007_RS1015_VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -226,16 +215,14 @@ End Class
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
                 GetRS1028ResultAt(2));
-        }
 
         #endregion
 
         #region RS1017 (DiagnosticIdMustBeAConstantRuleId) and RS1019 (UseUniqueDiagnosticIdRuleId)
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_VerifyDiagnosticAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task RS1017_RS1019_CSharp_VerifyDiagnosticAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -292,12 +279,10 @@ class MyAnalyzer2 : DiagnosticAnalyzer
                 GetRS1028ResultAt(2),
                 GetRS1028ResultAt(3),
                 GetRS1019ExpectedDiagnostic(4, "DuplicateDiagnosticId", "MyAnalyzer"));
-        }
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_VerifyDiagnostic_CreateHelperAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task RS1017_RS1019_CSharp_VerifyDiagnostic_CreateHelperAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -351,12 +336,10 @@ class MyAnalyzer2 : DiagnosticAnalyzer
 }" + CSharpDiagnosticDescriptorCreationHelper,
                 GetRS1017ExpectedDiagnostic(0, "descriptor"),
                 GetRS1019ExpectedDiagnostic(1, "DuplicateDiagnosticId", "MyAnalyzer"));
-        }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_VerifyDiagnosticAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task RS1017_RS1019_VisualBasic_VerifyDiagnosticAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -401,12 +384,10 @@ End Class
                 GetRS1028ResultAt(2),
                 GetRS1028ResultAt(3),
                 GetRS1019ExpectedDiagnostic(4, "DuplicateDiagnosticId", "MyAnalyzer"));
-        }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_VerifyDiagnostic_CreateHelperAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task RS1017_RS1019_VisualBasic_VerifyDiagnostic_CreateHelperAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -448,12 +429,10 @@ End Class
 " + VisualBasicDiagnosticDescriptorCreationHelper,
                 GetRS1017ExpectedDiagnostic(0, "descriptor"),
                 GetRS1019ExpectedDiagnostic(1, "DuplicateDiagnosticId", "MyAnalyzer"));
-        }
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_NoDiagnosticCasesAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task RS1017_RS1019_CSharp_NoDiagnosticCasesAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -491,12 +470,10 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
                 GetRS1028ResultAt(2));
-        }
 
         [Fact]
-        public async Task RS1017_RS1019_CSharp_NoDiagnosticCases_CreateHelperAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task RS1017_RS1019_CSharp_NoDiagnosticCases_CreateHelperAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -531,12 +508,10 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 " + CSharpDiagnosticDescriptorCreationHelper);
-        }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCasesAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task RS1017_RS1019_VisualBasic_NoDiagnosticCasesAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -565,12 +540,10 @@ End Class
                 GetRS1028ResultAt(0),
                 GetRS1028ResultAt(1),
                 GetRS1028ResultAt(2));
-        }
 
         [Fact]
-        public async Task RS1017_RS1019_VisualBasic_NoDiagnosticCases_CreateHelperAsync()
-        {
-            await VerifyBasicAnalyzerAsync(@"
+        public Task RS1017_RS1019_VisualBasic_NoDiagnosticCases_CreateHelperAsync()
+            => VerifyBasicAnalyzerAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -596,7 +569,6 @@ Class MyAnalyzer
 	End Sub
 End Class
 " + VisualBasicDiagnosticDescriptorCreationHelper);
-        }
 
         #endregion
 
@@ -647,7 +619,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ";
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -656,14 +633,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -728,8 +698,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }" + CSharpDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -738,14 +712,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
@@ -791,7 +758,12 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -800,14 +772,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -859,8 +824,12 @@ Class MyAnalyzer
     End Sub
 End Class
 " + VisualBasicDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -869,14 +838,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1020ExpectedDiagnostic(0, "NotAllowedCategory", AdditionalFileName),
@@ -942,7 +904,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ";
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -951,13 +918,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -1024,8 +985,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }" + CSharpDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1034,13 +999,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) }
+") }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
@@ -1079,7 +1038,12 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1088,14 +1052,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1028ResultAt(0),
@@ -1145,8 +1102,12 @@ Class MyAnalyzer
     End Sub
 End Class
 " + VisualBasicDiagnosticDescriptorCreationHelper;
-
-            string additionalText = @"
+            await new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1155,14 +1116,7 @@ CategoryWithPrefix: Prefix
 CategoryWithRange: Prefix000-Prefix099
 CategoryWithId: Prefix100
 CategoryWithPrefixRangeAndId: MyFirstPrefix, MySecondPrefix000-MySecondPrefix099, MySecondPrefix300
-";
-
-            await new VerifyVB.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) }
+") }
                 },
                 SolutionTransforms = { WithoutEnableReleaseTrackingWarning }
             }.RunAsync();
@@ -1217,7 +1171,12 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }
 ";
-            string additionalText = @"
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles = { (AdditionalFileName, @"
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
@@ -1244,14 +1203,7 @@ DuplicateCategory2: Prefix100-Prefix199
 
 # Illegal: Different prefixes in ID range
 {|#15:CategoryWithBadId5: Prefix000-DifferentPrefix099|}
-";
-
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources = { source },
-                    AdditionalFiles = { (AdditionalFileName, additionalText) },
+") },
                     ExpectedDiagnostics =
                     {
                         GetRS1021ExpectedDiagnostic(6, "Category with spaces", AdditionalFileName),
@@ -1317,9 +1269,8 @@ End Class",
         }
 
         [Fact]
-        public async Task DoNotReportOnNamedCustomTagsAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task DoNotReportOnNamedCustomTagsAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 public class MyAnalyzer
 {
@@ -1334,9 +1285,6 @@ public class MyAnalyzer
                 GetRS1007ExpectedDiagnostic(0),
                 GetRS1015ExpectedDiagnostic(0),
                 GetRS1015ExpectedDiagnostic(1));
-
-            // Named arguments are incompatible with ParamArray in VB.NET
-        }
 
         [Fact]
         public async Task DoNotReportOnCustomTagsAsync()

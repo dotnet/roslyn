@@ -19,9 +19,8 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (a)[||]")]
     [InlineData("[|if|] (a)")]
     [InlineData("[|if (a)|]")]
-    public async Task MergedIntoNextStatementOnIfSpans(string ifLine)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoNextStatementOnIfSpans(string ifLine)
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -40,12 +39,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoNextStatementOnIfExtendedHeaderSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoNextStatementOnIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -64,12 +61,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoNextStatementOnIfFullSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoNextStatementOnIfFullSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -88,12 +83,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoNextStatementOnIfExtendedFullSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoNextStatementOnIfExtendedFullSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -112,7 +105,6 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Theory]
     [InlineData("if ([||]a)")]
@@ -122,9 +114,8 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (a[|)|]")]
     [InlineData("if ([|a|])")]
     [InlineData("if [|(a)|]")]
-    public async Task NotMergedIntoNextStatementOnIfSpans(string ifLine)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoNextStatementOnIfSpans(string ifLine)
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -135,12 +126,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoNextStatementOnIfOverreachingSelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoNextStatementOnIfOverreachingSelection()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -151,12 +140,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
           return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoNextStatementOnIfBodySelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoNextStatementOnIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -167,5 +154,4 @@ public sealed partial class MergeConsecutiveIfStatementsTests
             return;
     }
 }");
-    }
 }
