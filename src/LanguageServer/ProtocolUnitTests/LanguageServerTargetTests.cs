@@ -66,7 +66,7 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
     public async Task LanguageServerHasSeparateServiceInstances(bool mutatingLspWorkspace)
     {
         await using var serverOne = await CreateTestLspServerAsync("", mutatingLspWorkspace);
-        await using var serverTwo = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+        await using var serverTwo = await CreateTestLspServerAsync(serverOne.TestWorkspace, initializationOptions: default, LanguageNames.CSharp);
 
         // Get an LSP service and verify each server has its own instance per server.
         Assert.NotSame(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
