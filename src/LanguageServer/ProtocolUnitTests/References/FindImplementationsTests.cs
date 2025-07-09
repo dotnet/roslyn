@@ -72,8 +72,9 @@ class A : IA
     [Theory, CombinatorialData]
     public async Task TestFindImplementationAsync_MappedFile(bool mutatingLspWorkspace)
     {
-        var markup =
-@"interface IA
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        AddMappedDocument(testLspServer.TestWorkspace, @"interface IA
 {
     void M();
 }
@@ -82,10 +83,7 @@ class A : IA
     void IA.M()
     {
     }
-}";
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
-
-        AddMappedDocument(testLspServer.TestWorkspace, markup);
+}");
 
         var position = new LSP.Position { Line = 2, Character = 9 };
         var results = await RunFindImplementationAsync(testLspServer, new LSP.Location

@@ -20,7 +20,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
         [Fact]
         public async Task CSharpVerifyDiagnosticsAsync()
         {
-            var source = @"
+            DiagnosticResult documentExpected = GetCSharpExpectedDiagnostic(0, "Document", "WithText");
+            DiagnosticResult projectExpected = GetCSharpExpectedDiagnostic(1, "Project", "AddDocument");
+            DiagnosticResult solutionExpected = GetCSharpExpectedDiagnostic(2, "Solution", "AddProject");
+            DiagnosticResult compilationExpected = GetCSharpExpectedDiagnostic(3, "Compilation", "RemoveAllSyntaxTrees");
+
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -41,19 +46,18 @@ class TestSimple
         {|#3:compilation.RemoveAllSyntaxTrees()|};
     }
 }
-";
-            DiagnosticResult documentExpected = GetCSharpExpectedDiagnostic(0, "Document", "WithText");
-            DiagnosticResult projectExpected = GetCSharpExpectedDiagnostic(1, "Project", "AddDocument");
-            DiagnosticResult solutionExpected = GetCSharpExpectedDiagnostic(2, "Solution", "AddProject");
-            DiagnosticResult compilationExpected = GetCSharpExpectedDiagnostic(3, "Compilation", "RemoveAllSyntaxTrees");
-
-            await VerifyCS.VerifyAnalyzerAsync(source, documentExpected, projectExpected, solutionExpected, compilationExpected);
+", documentExpected, projectExpected, solutionExpected, compilationExpected);
         }
 
         [Fact]
         public async Task VisualBasicVerifyDiagnosticsAsync()
         {
-            var source = @"
+            DiagnosticResult documentExpected = GetVisualBasicExpectedDiagnostic(0, "Document", "WithText");
+            DiagnosticResult projectExpected = GetVisualBasicExpectedDiagnostic(1, "Project", "AddDocument");
+            DiagnosticResult solutionExpected = GetVisualBasicExpectedDiagnostic(2, "Solution", "AddProject");
+            DiagnosticResult compilationExpected = GetVisualBasicExpectedDiagnostic(3, "Compilation", "RemoveAllSyntaxTrees");
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 
@@ -72,19 +76,14 @@ Class TestSimple
         {|#3:compilation.RemoveAllSyntaxTrees()|}
     End Sub
 End Class
-";
-            DiagnosticResult documentExpected = GetVisualBasicExpectedDiagnostic(0, "Document", "WithText");
-            DiagnosticResult projectExpected = GetVisualBasicExpectedDiagnostic(1, "Project", "AddDocument");
-            DiagnosticResult solutionExpected = GetVisualBasicExpectedDiagnostic(2, "Solution", "AddProject");
-            DiagnosticResult compilationExpected = GetVisualBasicExpectedDiagnostic(3, "Compilation", "RemoveAllSyntaxTrees");
-
-            await VerifyVB.VerifyAnalyzerAsync(source, documentExpected, projectExpected, solutionExpected, compilationExpected);
+", documentExpected, projectExpected, solutionExpected, compilationExpected);
         }
 
         [Fact]
         public async Task CSharp_VerifyDiagnosticOnExtensionMethodAsync()
         {
-            var source = @"
+            DiagnosticResult expected = GetCSharpExpectedDiagnostic(0, "SyntaxNode", "WithLeadingTrivia");
+            await VerifyCS.VerifyAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -95,15 +94,14 @@ class TestExtensionMethodTrivia
         SyntaxNode node = default(SyntaxNode);
         {|#0:node.WithLeadingTrivia<SyntaxNode>()|};
     }
-}";
-            DiagnosticResult expected = GetCSharpExpectedDiagnostic(0, "SyntaxNode", "WithLeadingTrivia");
-            await VerifyCS.VerifyAnalyzerAsync(source, expected);
+}", expected);
         }
 
         [Fact]
         public async Task VisualBasic_VerifyDiagnosticOnExtensionMethodAsync()
         {
-            var source = @"
+            DiagnosticResult expected = GetVisualBasicExpectedDiagnostic(0, "SyntaxNode", "WithLeadingTrivia");
+            await VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 
@@ -112,15 +110,12 @@ Class TestExtensionMethodTrivia
         Dim node As SyntaxNode = Nothing
         {|#0:node.WithLeadingTrivia()|}
     End Sub
-End Class";
-            DiagnosticResult expected = GetVisualBasicExpectedDiagnostic(0, "SyntaxNode", "WithLeadingTrivia");
-            await VerifyVB.VerifyAnalyzerAsync(source, expected);
+End Class", expected);
         }
 
         [Fact]
-        public async Task CSharp_VerifyNoDiagnosticAsync()
-        {
-            var source = @"
+        public Task CSharp_VerifyNoDiagnosticAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -142,14 +137,11 @@ namespace ConsoleApplication1
         {
         }
     }
-}";
-            await VerifyCS.VerifyAnalyzerAsync(source);
-        }
+}");
 
         [Fact]
-        public async Task VisualBasic_VerifyNoDiagnosticAsync()
-        {
-            var source = @"
+        public Task VisualBasic_VerifyNoDiagnosticAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 
@@ -167,9 +159,7 @@ Namespace ConsoleApplication1
         Public Sub OtherMethod(document As Document)
         End Sub
     End Class
-End Namespace";
-            await VerifyVB.VerifyAnalyzerAsync(source);
-        }
+End Namespace");
 
         [Fact]
         public async Task CSharp_ReturnsVoid()

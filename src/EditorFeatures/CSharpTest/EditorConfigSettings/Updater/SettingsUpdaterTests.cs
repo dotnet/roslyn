@@ -79,22 +79,18 @@ public sealed partial class SettingsUpdaterTests : TestBase
     }
 
     [Fact]
-    public async Task TestAddNewWhitespaceOptionAsync()
-    {
-        await TestAsync(
+    public Task TestAddNewWhitespaceOptionAsync()
+        => TestAsync(
             string.Empty,
             "[*.cs]\r\ncsharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
-    public async Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
-    {
-        await TestAsync(
+    public Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
+        => TestAsync(
             string.Empty,
             "[*.cs]\r\ncsharp_style_throw_expression = true:suggestion",
             (CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.TrueWithSuggestionEnforcement));
-    }
 
     [Fact]
     public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
@@ -140,26 +136,23 @@ public sealed partial class SettingsUpdaterTests : TestBase
     }
 
     [Fact]
-    public async Task TestUpdateExistingWhitespaceOptionAsync()
-    {
-        await TestAsync(
+    public Task TestUpdateExistingWhitespaceOptionAsync()
+        => TestAsync(
             "[*.cs]\r\ncsharp_new_line_before_else = true",
             "[*.cs]\r\ncsharp_new_line_before_else = false",
             (CSharpFormattingOptions2.NewLineForElse, false));
-    }
 
     [Fact]
-    public async Task TestAddNewWhitespaceOptionToExistingFileAsync()
-    {
-        var initialEditorConfig = @"
+    public Task TestAddNewWhitespaceOptionToExistingFileAsync()
+        => TestAsync(
+            @"
 [*.{cs,vb}]
 
 # CA1000: Do not declare static members on generic types
 dotnet_diagnostic.CA1000.severity = false
 
-";
-
-        var updatedEditorConfig = @"
+",
+            @"
 [*.{cs,vb}]
 
 # CA1000: Do not declare static members on generic types
@@ -167,41 +160,32 @@ dotnet_diagnostic.CA1000.severity = false
 
 
 [*.cs]
-csharp_new_line_before_else = true";
-        await TestAsync(
-            initialEditorConfig,
-            updatedEditorConfig,
+csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
-    public async Task TestAddNewWhitespaceOptionToWithNonMathcingGroupsAsync()
-    {
-        var initialEditorConfig = @"
+    public Task TestAddNewWhitespaceOptionToWithNonMathcingGroupsAsync()
+        => TestAsync(
+            @"
 root = true
 
 # Xml files
 [*.xml]
-indent_size = 2";
-
-        var updatedEditorConfig = @"
+indent_size = 2",
+            @"
 root = true
 
 # Xml files
 [*.xml]
 indent_size = 2
 [*.cs]
-csharp_new_line_before_else = true";
-        await TestAsync(
-            initialEditorConfig,
-            updatedEditorConfig,
+csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
-    public async Task TestAddNewWhitespaceOptionWithStarGroup()
-    {
-        var initialEditorConfig = @"
+    public Task TestAddNewWhitespaceOptionWithStarGroup()
+        => TestAsync(
+            @"
 root = true
 
 # Xml files
@@ -212,9 +196,8 @@ indent_size = 2
 [*.{cs,vb}]
 
 # CSharp code style settings:
-[*.cs]";
-
-        var updatedEditorConfig = @"
+[*.cs]",
+            @"
 root = true
 
 # Xml files
@@ -226,29 +209,22 @@ indent_size = 2
 
 # CSharp code style settings:
 [*.cs]
-csharp_new_line_before_else = true";
-
-        await TestAsync(
-            initialEditorConfig,
-            updatedEditorConfig,
+csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
-    public async Task TestAddMultimpleNewWhitespaceOptions()
-    {
-        await TestAsync(
+    public Task TestAddMultimpleNewWhitespaceOptions()
+        => TestAsync(
             string.Empty,
             "[*.cs]\r\ncsharp_new_line_before_else = true\r\ncsharp_new_line_before_catch = true\r\ncsharp_new_line_before_finally = true",
             (CSharpFormattingOptions2.NewLineForElse, true),
             (CSharpFormattingOptions2.NewLineForCatch, true),
             (CSharpFormattingOptions2.NewLineForFinally, true));
-    }
 
     [Fact]
-    public async Task TestAddOptionThatAppliesToBothLanguages()
-    {
-        var initialEditorConfig = @"
+    public Task TestAddOptionThatAppliesToBothLanguages()
+        => TestAsync(
+            @"
 root = true
 
 # Xml files
@@ -259,9 +235,8 @@ indent_size = 2
 [*.{cs,vb}]
 
 # CSharp code style settings:
-[*.cs]";
-
-        var updatedEditorConfig = @"
+[*.cs]",
+            @"
 root = true
 
 # Xml files
@@ -273,18 +248,13 @@ indent_size = 2
 dotnet_sort_system_directives_first = true
 
 # CSharp code style settings:
-[*.cs]";
-
-        await TestAsync(
-            initialEditorConfig,
-            updatedEditorConfig,
+[*.cs]",
             (GenerationOptions.PlaceSystemNamespaceFirst, true));
-    }
 
     [Fact]
-    public async Task TestAddOptionWithRelativePathGroupingPresent()
-    {
-        var initialEditorConfig = @"
+    public Task TestAddOptionWithRelativePathGroupingPresent()
+        => TestAsync(
+            @"
 root = true
 
 # Xml files
@@ -298,9 +268,8 @@ indent_size = 2
 [*Test.cs]
 
 # CSharp code style settings:
-[*.cs]";
-
-        var updatedEditorConfig = @"
+[*.cs]",
+            @"
 root = true
 
 # Xml files
@@ -315,13 +284,8 @@ indent_size = 2
 
 # CSharp code style settings:
 [*.cs]
-csharp_new_line_before_else = true";
-
-        await TestAsync(
-            initialEditorConfig,
-            updatedEditorConfig,
+csharp_new_line_before_else = true",
             (CSharpFormattingOptions2.NewLineForElse, true));
-    }
 
     [Fact]
     public async Task TestAnalyzerSettingsUpdaterService()

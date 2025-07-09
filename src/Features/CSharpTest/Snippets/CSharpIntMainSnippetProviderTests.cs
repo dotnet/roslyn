@@ -14,34 +14,28 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
     protected override string SnippetIdentifier => "sim";
 
     [Fact]
-    public async Task TestMissingInBlockNamespace()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingInBlockNamespace()
+        => VerifySnippetIsAbsentAsync("""
             namespace Test
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInFileScopedNamespace()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingInFileScopedNamespace()
+        => VerifySnippetIsAbsentAsync("""
             namespace Test;
             
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInTopLevelContext()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingInTopLevelContext()
+        => VerifySnippetIsAbsentAsync("""
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Theory]
     [InlineData("class")]
@@ -50,9 +44,8 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
     [InlineData("record")]
     [InlineData("record class")]
     [InlineData("record struct")]
-    public async Task TestInsertSnippetInType(string type)
-    {
-        await VerifySnippetAsync($$"""
+    public Task TestInsertSnippetInType(string type)
+        => VerifySnippetAsync($$"""
             {{type}} Program
             {
                 $$
@@ -67,23 +60,19 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInEnum()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingInEnum()
+        => VerifySnippetIsAbsentAsync("""
             enum MyEnum
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInMethod()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingInMethod()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 void M()
@@ -92,12 +81,10 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingInConstructor()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingInConstructor()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public Program()
@@ -106,13 +93,11 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task TestInsertSnippetAfterAccessibilityModifier(string modifier)
-    {
-        await VerifySnippetAsync($$"""
+    public Task TestInsertSnippetAfterAccessibilityModifier(string modifier)
+        => VerifySnippetAsync($$"""
             class Program
             {
                 {{modifier}} $$
@@ -127,7 +112,6 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """);
-    }
 
     [Theory]
     [InlineData("static")]
@@ -135,20 +119,17 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
     [InlineData("abstract")]
     [InlineData("override")]
     [InlineData("file")]
-    public async Task TestMissingAfterIncorrectModifiers(string modifier)
-    {
-        await VerifySnippetIsAbsentAsync($$"""
+    public Task TestMissingAfterIncorrectModifiers(string modifier)
+        => VerifySnippetIsAbsentAsync($$"""
             class Program
             {
                 {{modifier}} $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingIfAnotherMemberWithNameMainExists()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingIfAnotherMemberWithNameMainExists()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public int Main => 0;
@@ -156,12 +137,10 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestMissingIfTopLevelStatementsArePresent()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task TestMissingIfTopLevelStatementsArePresent()
+        => VerifySnippetIsAbsentAsync("""
             System.Console.WriteLine();
             
             class Program
@@ -169,5 +148,4 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
                 $$
             }
             """);
-    }
 }

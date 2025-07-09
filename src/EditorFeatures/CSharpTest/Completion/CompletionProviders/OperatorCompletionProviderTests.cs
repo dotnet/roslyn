@@ -69,10 +69,8 @@ public sealed class OperatorCompletionProviderTests : AbstractCSharpCompletionPr
         => PostfixOperators().Union(PrefixOperators());
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorIsNotOfferedAfterNumberLiteral()
-    {
-        // User may want to type a floating point literal.
-        await VerifyNoItemsExistAsync("""
+    public Task OperatorIsNotOfferedAfterNumberLiteral()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static C operator +(C a, C b) => default;
@@ -86,12 +84,10 @@ public sealed class OperatorCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """, SourceCodeKind.Regular);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorIsSuggestedAfterDot()
-    {
-        await VerifyItemExistsAsync("""
+    public Task OperatorIsSuggestedAfterDot()
+        => VerifyItemExistsAsync("""
             public class C
             {
                 public static C operator +(C a, C b) => default;
@@ -106,7 +102,6 @@ public sealed class OperatorCompletionProviderTests : AbstractCSharpCompletionPr
                 }
             }
             """, "+", inlineDescription: "x + y", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("c.$$", true)]
@@ -142,9 +137,8 @@ public class Program
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorIsNotSuggestedOnStaticAccess()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task OperatorIsNotSuggestedOnStaticAccess()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static C operator +(C a, C b) => default;
@@ -158,12 +152,10 @@ public class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorIsNotSuggestedInNameoOfContext()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task OperatorIsNotSuggestedInNameoOfContext()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static C operator +(C a, C b) => default;
@@ -178,7 +170,6 @@ public class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public async Task OperatorsAreSortedByImporttanceAndGroupedByTopic()
@@ -354,9 +345,8 @@ public class Program
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorNoSuggestionForTrueAndFalse()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task OperatorNoSuggestionForTrueAndFalse()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static bool operator true(C _) => true;
@@ -372,13 +362,11 @@ public class Program
                 }
             }
             """);
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(BinaryOperators))]
-    public async Task OperatorBinaryIsCompleted(string binaryOperator)
-    {
-        await VerifyCustomCommitProviderAsync($@"
+    public Task OperatorBinaryIsCompleted(string binaryOperator)
+        => VerifyCustomCommitProviderAsync($@"
 public class C
 {{
     public static C operator {binaryOperator}(C a, C b) => default;
@@ -407,13 +395,11 @@ public class Program
     }}
 }}
 ");
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(PostfixOperators))]
-    public async Task OperatorPostfixIsCompleted(string postfixOperator)
-    {
-        await VerifyCustomCommitProviderAsync($@"
+    public Task OperatorPostfixIsCompleted(string postfixOperator)
+        => VerifyCustomCommitProviderAsync($@"
 public class C
 {{
     public static C operator {postfixOperator}(C _) => default;
@@ -442,13 +428,11 @@ public class Program
     }}
 }}
 ");
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(PrefixOperators))]
-    public async Task OperatorPrefixIsCompleted(string prefixOperator)
-    {
-        await VerifyCustomCommitProviderAsync($@"
+    public Task OperatorPrefixIsCompleted(string prefixOperator)
+        => VerifyCustomCommitProviderAsync($@"
 public class C
 {{
     public static C operator {prefixOperator}(C _) => default;
@@ -477,7 +461,6 @@ public class Program
     }}
 }}
 ");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public async Task OperatorDuplicateOperatorsAreListedBoth()
@@ -512,9 +495,8 @@ public class Program
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorDuplicateOperatorsAreCompleted()
-    {
-        await VerifyCustomCommitProviderAsync($@"
+    public Task OperatorDuplicateOperatorsAreCompleted()
+        => VerifyCustomCommitProviderAsync($@"
 public class C
 {{
     public static C operator +(C a, C b) => default;
@@ -545,7 +527,6 @@ public class Program
     }}
 }}
 ");
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("c.$$",
@@ -590,9 +571,8 @@ public class Program
                 "c?.CProp[0] + $$")]
     [InlineData("c.CProp[0].CProp?.$$",
                 "c.CProp[0].CProp + $$")]
-    public async Task OperatorInfixOfferingsAndCompletions(string expression, string completion)
-    {
-        await VerifyCustomCommitProviderAsync($@"
+    public Task OperatorInfixOfferingsAndCompletions(string expression, string completion)
+        => VerifyCustomCommitProviderAsync($@"
 public class C
 {{
     public static C operator +(C a, C b) => default;
@@ -625,7 +605,6 @@ public class Program
     }}
 }}
 ");
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [MemberData(nameof(UnaryOperators))]
@@ -708,9 +687,8 @@ public class Program
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorLiftingIsApplied()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task OperatorLiftingIsApplied()
+        => VerifyCustomCommitProviderAsync("""
             public struct S
             {
                 public static bool operator ==(S a, S b) => default;
@@ -739,12 +717,10 @@ public class Program
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorOfBaseTypeIsSuggested()
-    {
-        await VerifyItemExistsAsync("""
+    public Task OperatorOfBaseTypeIsSuggested()
+        => VerifyItemExistsAsync("""
             public class Base {
                 public static int operator +(Base b, int a)=>0;
             }
@@ -761,12 +737,10 @@ public class Program
                 }
             }
             """, "+", inlineDescription: "x + y", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorForRecordsAreSuggested()
-    {
-        await VerifyItemExistsAsync("""
+    public Task OperatorForRecordsAreSuggested()
+        => VerifyItemExistsAsync("""
             public record R {
             }
 
@@ -779,7 +753,6 @@ public class Program
                 }
             }
             """, "==", inlineDescription: "x == y", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public async Task TestEditorBrowsableOnOperatorIsRespected_EditorBrowsableStateNever()
@@ -873,9 +846,8 @@ public class Program
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task OperatorBinaryNullForgivingHandling()
-    {
-        await VerifyCustomCommitProviderAsync("""
+    public Task OperatorBinaryNullForgivingHandling()
+        => VerifyCustomCommitProviderAsync("""
             #nullable enable
 
             public class C
@@ -908,5 +880,4 @@ public class Program
                 }
             }
             """);
-    }
 }

@@ -74,6 +74,7 @@ internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
     protected abstract TExpressionSyntax? TryGetAppropriateParent(TBinaryLikeExpressionSyntax binaryLike);
     protected abstract bool IsBinaryLike(TExpressionSyntax node);
     protected abstract (TExpressionSyntax, SyntaxToken, TExpressionSyntax) GetPartsOfBinaryLike(TBinaryLikeExpressionSyntax binaryLike);
+    protected abstract bool IsAsExpression(TBinaryLikeExpressionSyntax node);
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -88,15 +89,11 @@ internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
         var binaryLike = (TBinaryLikeExpressionSyntax)context.Node;
         var parent = TryGetAppropriateParent(binaryLike);
         if (parent == null || !IsBinaryLike(parent))
-        {
             return;
-        }
 
         var parentBinaryLike = (TBinaryLikeExpressionSyntax)parent;
         if (GetPrecedence(binaryLike) == GetPrecedence(parentBinaryLike))
-        {
             return;
-        }
 
         var options = context.GetAnalyzerOptions();
         var childPrecedenceKind = _precedenceService.GetPrecedenceKind(binaryLike);
@@ -141,7 +138,7 @@ internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
             //      a + b ?? c
             //
             // Is this `(a + b) ?? c` or `a + (b ?? c)`.   It is not particularly clear, and both interpretations
-            // can often work due to the compability of the type domains.
+            // can often work due to the compatibility of the type domains.
 
             // If the expressions have the same precedence, then they definitely don't have a clear precedence
             // boundary between then.
@@ -150,8 +147,14 @@ internal abstract class AbstractAddRequiredParenthesesDiagnosticAnalyzer<
 
             // They are in different precedence classes, but 'coalesce' is itself quite confusing, so this should
             // still be parenthesized for clarity if the user has that option on.
-            if (collapsedParentPrecedenceKind is PrecedenceKind.Coalesce && collapsedChildPrecedenceKind < PrecedenceKind.Coalesce)
-                return false;
+            if (collapsedParentPrecedenceKind is PrecedenceKind.Coalesce)
+            {
+                // Note: we have an exception for `a as b ?? c`.  In this case, because `as` so clearly only accepts
+                // a type on the RHS, this is idiomatically understood to be `(a as b) ?? c`, not `a as (b ?? c).
+                // So we don't parenthesize this case.
+                if (collapsedChildPrecedenceKind < PrecedenceKind.Coalesce && !IsAsExpression(binaryLike))
+                    return false;
+            }
 
             // Otherwise, this is clear enough on its face, and we should do nothing
             return true;

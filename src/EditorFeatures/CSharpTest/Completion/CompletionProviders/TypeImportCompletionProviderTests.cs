@@ -61,28 +61,24 @@ class Bar
     [InlineData("enum", (int)Glyph.EnumPublic)]
     [InlineData("interface", (int)Glyph.InterfacePublic)]
     [Theory]
-    public async Task Show_TopLevel_NoImport_InProject(string typeKind, int glyph)
-    {
-        var file1 = $@"
-namespace Foo
-{{
-    public {typeKind} Bar
-    {{}}
-}}";
-        var file2 = @"
+    public Task Show_TopLevel_NoImport_InProject(string typeKind, int glyph)
+        => VerifyTypeImportItemExistsAsync(
+            CreateMarkupForSingleProject(@"
 namespace Baz
 {
     class Bat
     {
          $$
     }
-}";
-        await VerifyTypeImportItemExistsAsync(
-            CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp),
+}", $@"
+namespace Foo
+{{
+    public {typeKind} Bar
+    {{}}
+}}", LanguageNames.CSharp),
             "Bar",
             glyph: glyph,
             inlineDescription: "Foo");
-    }
 
     [InlineData("class", (int)Glyph.ClassPublic)]
     [InlineData("record", (int)Glyph.ClassPublic)]
@@ -90,23 +86,19 @@ namespace Baz
     [InlineData("enum", (int)Glyph.EnumPublic)]
     [InlineData("interface", (int)Glyph.InterfacePublic)]
     [Theory]
-    public async Task Show_TopLevelStatement_NoImport_InProject(string typeKind, int glyph)
-    {
-        var file1 = $@"
+    public Task Show_TopLevelStatement_NoImport_InProject(string typeKind, int glyph)
+        => VerifyTypeImportItemExistsAsync(
+            CreateMarkupForSingleProject(@"
+$$
+", $@"
 namespace Foo
 {{
     public {typeKind} Bar
     {{}}
-}}";
-        var file2 = @"
-$$
-";
-        await VerifyTypeImportItemExistsAsync(
-            CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp),
+}}", LanguageNames.CSharp),
             "Bar",
             glyph: glyph,
             inlineDescription: "Foo");
-    }
 
     [InlineData("class")]
     [InlineData("record")]
@@ -114,27 +106,23 @@ $$
     [InlineData("enum")]
     [InlineData("interface")]
     [Theory]
-    public async Task DoNotShow_TopLevel_SameNamespace_InProject(string typeKind)
-    {
-        var file1 = $@"
-namespace Foo
-{{
-    public {typeKind} Bar
-    {{}}
-}}";
-        var file2 = @"
+    public Task DoNotShow_TopLevel_SameNamespace_InProject(string typeKind)
+        => VerifyTypeImportItemIsAbsentAsync(
+            CreateMarkupForSingleProject(@"
 namespace Foo
 {
     class Bat
     {
          $$
     }
-}";
-        await VerifyTypeImportItemIsAbsentAsync(
-            CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp),
+}", $@"
+namespace Foo
+{{
+    public {typeKind} Bar
+    {{}}
+}}", LanguageNames.CSharp),
             "Bar",
             inlineDescription: "Foo");
-    }
 
     [InlineData("class", (int)Glyph.ClassPublic)]
     [InlineData("record", (int)Glyph.ClassPublic)]
@@ -822,7 +810,8 @@ namespace Baz
         $$
     }
 }";
-        var expectedCodeAfterCommit = @"
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "Bar", @"
 using Foo;
 
 namespace Baz
@@ -831,9 +820,7 @@ namespace Baz
     {
         Bar$$
     }
-}";
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+}", sourceCodeKind: kind);
     }
 
     [InlineData(SourceCodeKind.Regular)]
@@ -852,13 +839,12 @@ namespace Foo
         var file2 = @"
 $$
 ";
-        var expectedCodeAfterCommit = @"using Foo;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "Bar", @"using Foo;
 
 
 Bar$$
-";
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+", sourceCodeKind: kind);
     }
 
     [InlineData(SourceCodeKind.Regular)]
@@ -879,14 +865,13 @@ using System;
 
 $$
 ";
-        var expectedCodeAfterCommit = @"
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "Bar", @"
 using System;
 using Foo;
 
 Bar$$
-";
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
+", sourceCodeKind: kind);
     }
 
     [InlineData(SourceCodeKind.Regular)]
@@ -907,7 +892,8 @@ namespace Baz
         $$
     }
 }";
-        var expectedCodeAfterCommit = @"
+        var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Foo");
+        await VerifyCustomCommitProviderAsync(markup, "Barr", @"
 using Foo.Bar;
 
 namespace Baz
@@ -916,17 +902,14 @@ namespace Baz
     {
         Barr$$
     }
-}";
-        var markup = CreateMarkupForProjecWithVBProjectReference(file2, file1, sourceLanguage: LanguageNames.CSharp, rootNamespace: "Foo");
-        await VerifyCustomCommitProviderAsync(markup, "Barr", expectedCodeAfterCommit, sourceCodeKind: kind);
+}", sourceCodeKind: kind);
     }
 
     [InlineData(SourceCodeKind.Regular)]
     [InlineData(SourceCodeKind.Script)]
     [WpfTheory]
-    public async Task Commit_NoImport_InPEReference(SourceCodeKind kind)
-    {
-        var markup = $@"<Workspace>
+    public Task Commit_NoImport_InPEReference(SourceCodeKind kind)
+        => VerifyCustomCommitProviderAsync($@"<Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"">
         <Document FilePath=""CSharpDocument"">
 class Bar
@@ -934,17 +917,13 @@ class Bar
      $$
 }}</Document>
     </Project>    
-</Workspace>";
-        var expectedCodeAfterCommit = @"
+</Workspace>", "Console", @"
 using System;
 
 class Bar
 {
      Console$$
-}";
-
-        await VerifyCustomCommitProviderAsync(markup, "Console", expectedCodeAfterCommit, sourceCodeKind: kind);
-    }
+}", sourceCodeKind: kind);
 
     #endregion
 
@@ -1078,18 +1057,15 @@ namespace Test
     [$$
     class Program { }
 }";
-
-        var expectedCodeAfterCommit = @"
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "My", @"
 using Foo;
 
 namespace Test
 {
     [My$$
     class Program { }
-}";
-
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "My", expectedCodeAfterCommit, sourceCodeKind: kind);
+}", sourceCodeKind: kind);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
@@ -1139,8 +1115,8 @@ namespace Test
         $$
     }
 }";
-
-        var expectedCodeAfterCommit = @"
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "MyAttribute", @"
 using Foo;
 
 namespace Test
@@ -1149,9 +1125,7 @@ namespace Test
     {
         MyAttribute$$
     }
-}";
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "MyAttribute", expectedCodeAfterCommit, sourceCodeKind: kind);
+}", sourceCodeKind: kind);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
@@ -1197,18 +1171,15 @@ namespace Test
     [$$
     class Program { }
 }";
-
-        var expectedCodeAfterCommit = @"
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "Myattribute", @"
 using Foo;
 
 namespace Test
 {
     [Myattribute$$
     class Program { }
-}";
-
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
+}", sourceCodeKind: kind);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
@@ -1258,8 +1229,8 @@ namespace Test
         $$
     }
 }";
-
-        var expectedCodeAfterCommit = @"
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "Myattribute", @"
 using Foo;
 
 namespace Test
@@ -1268,9 +1239,7 @@ namespace Test
     {
         Myattribute$$
     }
-}";
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "Myattribute", expectedCodeAfterCommit, sourceCodeKind: kind);
+}", sourceCodeKind: kind);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35540")]
@@ -1315,12 +1284,9 @@ namespace Foo
 
         var file2 = @"
 using static $$";
-
-        var expectedCodeAfterCommit = @"
-using static Foo.MyClass$$";
-
         var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
+        await VerifyCustomCommitProviderAsync(markup, "MyClass", @"
+using static Foo.MyClass$$", sourceCodeKind: kind);
     }
 
     [InlineData(SourceCodeKind.Regular)]
@@ -1337,12 +1303,9 @@ namespace Foo
 
         var file2 = @"
 using CollectionOfStringBuilders = System.Collections.Generic.List<$$>";
-
-        var expectedCodeAfterCommit = @"
-using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.MyClass$$>";
-
         var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
+        await VerifyCustomCommitProviderAsync(markup, "MyClass", @"
+using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.MyClass$$>", sourceCodeKind: kind);
     }
 
     [InlineData(SourceCodeKind.Regular)]
@@ -1364,14 +1327,13 @@ namespace Foo
 }";
 
         // Completion is not fully qualified
-        var expectedCodeAfterCommit = @"
+
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyCustomCommitProviderAsync(markup, "MyClass", @"
 namespace Foo
 {
     using CollectionOfStringBuilders = System.Collections.Generic.List<Foo.Bar.MyClass$$>
-}";
-
-        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-        await VerifyCustomCommitProviderAsync(markup, "MyClass", expectedCodeAfterCommit, sourceCodeKind: kind);
+}", sourceCodeKind: kind);
     }
 
     [Fact]
@@ -1559,9 +1521,8 @@ namespace Foo
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task TestCommitWithCustomizedCommitCharForParameterlessConstructor(char commitChar)
-    {
-        var markup = @"
+    public Task TestCommitWithCustomizedCommitCharForParameterlessConstructor(char commitChar)
+        => VerifyProviderCommitAsync(@"
 namespace AA
 {
     public class C
@@ -1578,9 +1539,7 @@ namespace BB
             var c = new $$
         }
     }
-}";
-
-        var expected = $@"
+}", "C", $@"
 using AA;
 
 namespace AA
@@ -1599,16 +1558,13 @@ namespace BB
             var c = new C(){commitChar}
         }}
     }}
-}}";
-        await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
-    }
+}}", commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
 
     [Theory]
     [InlineData('.')]
     [InlineData(';')]
-    public async Task TestCommitWithCustomizedCommitCharUnderNonObjectCreationContext(char commitChar)
-    {
-        var markup = @"
+    public Task TestCommitWithCustomizedCommitCharUnderNonObjectCreationContext(char commitChar)
+        => VerifyProviderCommitAsync(@"
 namespace AA
 {
     public class C
@@ -1624,9 +1580,7 @@ namespace BB
             $$
         }
     }
-}";
-
-        var expected = $@"
+}", "C", $@"
 using AA;
 
 namespace AA
@@ -1644,17 +1598,14 @@ namespace BB
             C{commitChar}
         }}
     }}
-}}";
-        await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
-    }
+}}", commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
 
     [InlineData(SourceCodeKind.Regular)]
     [InlineData(SourceCodeKind.Script)]
     [WpfTheory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/54493")]
-    public async Task CommitInLocalFunctionContext(SourceCodeKind kind)
-    {
-        var markup = @"
+    public Task CommitInLocalFunctionContext(SourceCodeKind kind)
+        => VerifyProviderCommitAsync(@"
 namespace Foo
 {
     public class MyClass { }
@@ -1669,9 +1620,7 @@ namespace Test
             static $$
         }
     }
-}";
-
-        var expectedCodeAfterCommit = @"
+}", "MyClass", @"
 using Foo;
 
 namespace Foo
@@ -1688,10 +1637,7 @@ namespace Test
             static MyClass
         }
     }
-}";
-
-        await VerifyProviderCommitAsync(markup, "MyClass", expectedCodeAfterCommit, commitChar: null, sourceCodeKind: kind);
-    }
+}", commitChar: null, sourceCodeKind: kind);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58473")]
     public async Task TestGlobalUsingsInSdkAutoGeneratedFile()
@@ -1821,17 +1767,12 @@ namespace Foo
     }
 
     [Fact]
-    public async Task TestEnumBaseList2()
-    {
-        var source = """
+    public Task TestEnumBaseList2()
+        => VerifyNoItemsExistAsync("""
             using System;
 
             enum E : $$
-            """;
-
-        // Everything valid is already in the scope
-        await VerifyNoItemsExistAsync(source);
-    }
+            """);
 
     private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
         => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: (Glyph)glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, flags: flags);

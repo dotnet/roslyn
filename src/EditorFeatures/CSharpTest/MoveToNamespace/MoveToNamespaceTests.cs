@@ -1311,11 +1311,8 @@ expectedNamespaceName: "A.Complex.Namespace");
 
     [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
     [MemberData(nameof(SupportedKeywords))]
-    public async Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
-    {
-        // We will not get "" as target namespace in VS, but the refactoring should be able
-        // to handle it w/o crashing.
-        await TestMoveToNamespaceAsync(
+    public Task MoveToNamespace_MoveOnlyTypeToGlobalNamespace(string typeKeyword)
+        => TestMoveToNamespaceAsync(
             $$"""
             namespace A
             {
@@ -1333,7 +1330,6 @@ expectedNamespaceName: "A.Complex.Namespace");
             }
             """,
             targetNamespace: "");
-    }
 
     [Theory, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/980758")]
     [MemberData(nameof(SupportedKeywords))]
@@ -1422,23 +1418,6 @@ expectedNamespaceName: "A.Complex.Namespace");
                 </Project>
             </Workspace>
             """;
-
-        var expected =
-            """
-            namespace A
-            {
-                public class Class1
-                {
-                }
-            }
-
-            namespace B
-            {
-                public class Class2
-                {
-                }
-            }
-            """;
         using var workspace = EditorTestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), composition: s_composition, openDocuments: false);
 
         // Set the target namespace to "B"
@@ -1458,7 +1437,21 @@ expectedNamespaceName: "A.Complex.Namespace");
             var changedDocument = result.Item2.GetRequiredDocument(id);
             var changedRoot = await changedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var actualText = changedRoot.ToFullString();
-            AssertEx.Equal(expected, actualText);
+            AssertEx.Equal("""
+            namespace A
+            {
+                public class Class1
+                {
+                }
+            }
+
+            namespace B
+            {
+                public class Class2
+                {
+                }
+            }
+            """, actualText);
         }
     }
 

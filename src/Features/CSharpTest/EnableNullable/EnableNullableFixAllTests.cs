@@ -17,9 +17,8 @@ public sealed class EnableNullableFixAllTests : AbstractCSharpCodeActionTest_NoE
         => new EnableNullableCodeRefactoringProvider();
 
     [Fact]
-    public async Task EnableNullable_FixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(@"
+    public Task EnableNullable_FixAllInSolution()
+        => TestInRegularAndScriptAsync(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -97,16 +96,14 @@ class Example4
     </Project>
 </Workspace>
 ");
-    }
 
     [Theory]
     [InlineData("FixAllInDocument")]
     [InlineData("FixAllInProject")]
     [InlineData("FixAllInContainingMember")]
     [InlineData("FixAllInContainingType")]
-    public async Task EnableNullable_UnsupportedFixAllScopes(string fixAllScope)
-    {
-        await TestMissingInRegularAndScriptAsync($@"
+    public Task EnableNullable_UnsupportedFixAllScopes(string fixAllScope)
+        => TestMissingInRegularAndScriptAsync($@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -144,5 +141,4 @@ class Example4
     </Project>
 </Workspace>
 ");
-    }
 }

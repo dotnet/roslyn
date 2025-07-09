@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     public sealed partial class AnalyzerReleaseTrackingFix() : CodeFixProvider
     {
         private const string EntryFieldSeparator = "|";
-        private static readonly string[] s_entryFieldSeparators = new[] { EntryFieldSeparator };
+        private static readonly string[] s_entryFieldSeparators = [EntryFieldSeparator];
 
         internal const string ShippedAnalyzerReleaseTrackingFileDefaultContent = @"; Shipped analyzer releases
 " + CommonAnalyzerReleaseTrackingContent;

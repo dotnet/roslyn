@@ -1443,10 +1443,10 @@ public static class IntExt
                     extends [netstandard]System.Object
                 {
                     // Methods
-                    .method private hidebysig specialname static
+                    .method private hidebysig specialname static 
                         void '<Extension>$' (
                             int32 ''
-                        ) cil managed
+                        ) cil managed 
                     {
                         .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
@@ -1456,8 +1456,8 @@ public static class IntExt
                         .maxstack 8
                         IL_0000: ret
                     } // end of method '<>E__0'::'<Extension>$'
-                    .method public hidebysig static
-                        class [netstandard]System.Action DoSomething () cil managed
+                    .method public hidebysig static 
+                        class [netstandard]System.Action DoSomething () cil managed 
                     {
                         // Method begins at RVA 0x20bc
                         // Code size 2 (0x2)
@@ -1475,8 +1475,8 @@ public static class IntExt
                     // Fields
                     .field public int32 b
                     // Methods
-                    .method public hidebysig specialname rtspecialname
-                        instance void .ctor () cil managed
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
                     {
                         // Method begins at RVA 0x2073
                         // Code size 7 (0x7)
@@ -1485,8 +1485,8 @@ public static class IntExt
                         IL_0001: call instance void [netstandard]System.Object::.ctor()
                         IL_0006: ret
                     } // end of method '<>c__DisplayClass1_0'::.ctor
-                    .method assembly hidebysig
-                        instance void '<DoSomething>b__0' () cil managed
+                    .method assembly hidebysig 
+                        instance void '<DoSomething>g__Do|0' () cil managed 
                     {
                         // Method begins at RVA 0x20c0
                         // Code size 35 (0x23)
@@ -1508,11 +1508,11 @@ public static class IntExt
                         IL_0018: ldfld int32 IntExt/'<>c__DisplayClass1_0'::b
                         IL_001d: call void [netstandard]System.Console::WriteLine(int32)
                         IL_0022: ret
-                    } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
+                    } // end of method '<>c__DisplayClass1_0'::'<DoSomething>g__Do|0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
-                .method public hidebysig static
-                    class [netstandard]System.Action DoSomething () cil managed
+                .method public hidebysig static 
+                    class [netstandard]System.Action DoSomething () cil managed 
                 {
                     // Method begins at RVA 0x207c
                     // Code size 50 (0x32)
@@ -1534,7 +1534,7 @@ public static class IntExt
                     IL_001f: dup
                     IL_0020: ldloc.0
                     IL_0021: stfld int32 IntExt/'<>c__DisplayClass1_0'::b
-                    IL_0026: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>b__0'()
+                    IL_0026: ldftn instance void IntExt/'<>c__DisplayClass1_0'::'<DoSomething>g__Do|0'()
                     IL_002c: newobj instance void [netstandard]System.Action::.ctor(object, native int)
                     IL_0031: ret
                 } // end of method IntExt::DoSomething
@@ -2122,7 +2122,7 @@ public static class Extensions
 
         VerifyTypeIL(verifier, "Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
-extends [netstandard]System.Object
+    extends [netstandard]System.Object
 {
     .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
@@ -2132,10 +2132,10 @@ extends [netstandard]System.Object
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object ''
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -2145,8 +2145,8 @@ extends [netstandard]System.Object
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig specialname static
-            int32 get_Property () cil managed
+        .method private hidebysig specialname static 
+            int32 get_Property () cil managed 
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2154,10 +2154,10 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::get_Property
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void set_Property (
                 int32 'value'
-            ) cil managed
+            ) cil managed 
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2174,7 +2174,7 @@ extends [netstandard]System.Object
     } // end of class <>E__0
     // Methods
     .method private hidebysig static
-        int32 get_Property () cil managed
+        int32 get_Property () cil managed 
     {
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
@@ -2185,7 +2185,7 @@ extends [netstandard]System.Object
     .method private hidebysig static
         void set_Property (
             int32 'value'
-        ) cil managed
+        ) cil managed 
     {
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
@@ -5391,10 +5391,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -5404,10 +5404,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig
+        .method public hidebysig 
             instance string M (
                 string s
-            ) cil managed
+            ) cil managed 
         {
             // Method begins at RVA 0x20ad
             // Code size 2 (0x2)
@@ -5427,11 +5427,11 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         string M (
             object o,
             string s
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -5449,13 +5449,13 @@ public static class Extensions
         IL_000a: ldarg.1
         IL_000b: stfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0010: ldloca.s 0
-        IL_0012: call string Extensions::'<M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
+        IL_0012: call string Extensions::'<M>g__local|1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static
-        string '<M>b__1_0' (
+    .method assembly hidebysig static 
+        string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -5475,7 +5475,7 @@ public static class Extensions
         IL_0013: ldfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0018: call string [mscorlib]System.String::Concat(string, string)
         IL_001d: ret
-    } // end of method Extensions::'<M>b__1_0'
+    } // end of method Extensions::'<M>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -6701,10 +6701,10 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 class C`1<!T> o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -6714,11 +6714,11 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig
+        .method public hidebysig 
             instance class C`1<!!U> M<U> (
                 !T t1,
                 !!U u1
-            ) cil managed
+            ) cil managed 
         {
             // Method begins at RVA 0x216f
             // Code size 2 (0x2)
@@ -6739,12 +6739,12 @@ public class C<T>(string val)
         .field public !T t1
     } // end of class <>c__DisplayClass1_0`2
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         class C`1<!!U> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -6774,18 +6774,18 @@ public class C<T>(string val)
         IL_002b: ldloc.0
         IL_002c: ldfld !1 valuetype Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>::u1
         IL_0031: ldloca.s 0
-        IL_0033: call class C`1<!!1> Extensions::'<M>b__1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
+        IL_0033: call class C`1<!!1> Extensions::'<M>g__local|1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
         IL_0038: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static
-        class C`1<!!U> '<M>b__1_0'<T, U, X, Y, Z> (
+    .method assembly hidebysig static 
+        class C`1<!!U> '<M>g__local|1_0'<T, U, X, Y, Z> (
             !!T t2,
             !!U u2,
             !!X x2,
             !!Y y2,
             !!Z z2,
             valuetype Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>& ''
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -6848,7 +6848,7 @@ public class C<T>(string val)
         IL_008f: call string [mscorlib]System.String::Concat(string[])
         IL_0094: newobj instance void class C`1<!!U>::.ctor(string)
         IL_0099: ret
-    } // end of method Extensions::'<M>b__1_0'
+    } // end of method Extensions::'<M>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -8422,10 +8422,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object _
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -8435,11 +8435,11 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig static
+        .method public hidebysig static 
             string M (
                 object o,
                 string s
-            ) cil managed
+            ) cil managed 
         {
             // Method begins at RVA 0x20ad
             // Code size 2 (0x2)
@@ -8459,11 +8459,11 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         string M (
             object o,
             string s
-        ) cil managed
+        ) cil managed 
     {
         // Method begins at RVA 0x2068
         // Code size 24 (0x18)
@@ -8478,13 +8478,13 @@ public static class Extensions
         IL_000a: ldarg.1
         IL_000b: stfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0010: ldloca.s 0
-        IL_0012: call string Extensions::'<M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
+        IL_0012: call string Extensions::'<M>g__local|1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static
-        string '<M>b__1_0' (
+    .method assembly hidebysig static 
+        string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -8504,7 +8504,7 @@ public static class Extensions
         IL_0013: ldfld string Extensions/'<>c__DisplayClass1_0'::s
         IL_0018: call string [mscorlib]System.String::Concat(string, string)
         IL_001d: ret
-    } // end of method Extensions::'<M>b__1_0'
+    } // end of method Extensions::'<M>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -9941,10 +9941,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -9954,8 +9954,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig specialname
-            instance string get_P () cil managed
+        .method public hidebysig specialname 
+            instance string get_P () cil managed 
         {
             // Method begins at RVA 0x2071
             // Code size 2 (0x2)
@@ -9973,7 +9973,7 @@ public static class Extensions
     .method public hidebysig static
         string get_P (
             object o
-        ) cil managed
+        ) cil managed 
     {
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
@@ -10090,10 +10090,10 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10103,8 +10103,8 @@ class C1
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig
-            instance void M2<U> () cil managed
+        .method public hidebysig 
+            instance void M2<U> () cil managed 
         {
             // Method begins at RVA 0x20e9
             // Code size 2 (0x2)
@@ -10123,10 +10123,10 @@ class C1
         .field public static class [mscorlib]System.Func`1<!V> '<0>__M1'
     } // end of class <local>O__1_0`3
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M2<T, U> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10134,13 +10134,13 @@ class C1
         // Method begins at RVA 0x2078
         // Code size 12 (0xc)
         .maxstack 8
-        IL_0000: call class [mscorlib]System.Func`1<!!2> Extensions::'<M2>b__1_0'<!!T, !!U, int64>()
+        IL_0000: call class [mscorlib]System.Func`1<!!2> Extensions::'<M2>g__local|1_0'<!!T, !!U, int64>()
         IL_0005: callvirt instance !0 class [mscorlib]System.Func`1<int64>::Invoke()
         IL_000a: pop
         IL_000b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        class [mscorlib]System.Func`1<!!V> '<M2>b__1_0'<T, U, V> () cil managed
+    .method assembly hidebysig static 
+        class [mscorlib]System.Func`1<!!V> '<M2>g__local|1_0'<T, U, V> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10158,7 +10158,7 @@ class C1
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Func`1<!2> class Extensions/'<local>O__1_0`3'<!!T, !!U, !!V>::'<0>__M1'
         IL_001b: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -10241,10 +10241,10 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10254,8 +10254,8 @@ class C1
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig
-            instance void M2 () cil managed
+        .method public hidebysig 
+            instance void M2 () cil managed 
         {
             // Method begins at RVA 0x20b4
             // Code size 2 (0x2)
@@ -10274,10 +10274,10 @@ class C1
         .field public static class [mscorlib]System.Action '<0>__M1'
     } // end of class <>O__1_0`1
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M2<T> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10285,12 +10285,12 @@ class C1
         // Method begins at RVA 0x2078
         // Code size 11 (0xb)
         .maxstack 8
-        IL_0000: call class [mscorlib]System.Action Extensions::'<M2>b__1_0'<!!T>()
+        IL_0000: call class [mscorlib]System.Action Extensions::'<M2>g__local|1_0'<!!T>()
         IL_0005: callvirt instance void [mscorlib]System.Action::Invoke()
         IL_000a: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        class [mscorlib]System.Action '<M2>b__1_0'<T> () cil managed
+    .method assembly hidebysig static 
+        class [mscorlib]System.Action '<M2>g__local|1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10308,7 +10308,7 @@ class C1
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__M1'
         IL_001b: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -10388,10 +10388,10 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10401,8 +10401,8 @@ class C1
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig
-            instance void M2 () cil managed
+        .method private hidebysig 
+            instance void M2 () cil managed 
         {
             // Method begins at RVA 0x208e
             // Code size 2 (0x2)
@@ -10421,10 +10421,10 @@ class C1
         .field public static class [mscorlib]System.Action '<0>__M1'
     } // end of class <>O
     // Methods
-    .method private hidebysig static
+    .method private hidebysig static 
         void M2 (
             object o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10434,8 +10434,8 @@ class C1
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        class [mscorlib]System.Action '<M2>b__1_0' () cil managed
+    .method assembly hidebysig static 
+        class [mscorlib]System.Action '<M2>g__local|1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10453,7 +10453,7 @@ class C1
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__M1'
         IL_001b: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -10528,10 +10528,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10541,8 +10541,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method private hidebysig
-            instance class [mscorlib]System.Action M2 () cil managed
+        .method private hidebysig 
+            instance class [mscorlib]System.Action M2 () cil managed 
         {
             // Method begins at RVA 0x2098
             // Code size 2 (0x2)
@@ -10561,10 +10561,10 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O__1_0`1
     // Methods
-    .method private hidebysig static
+    .method private hidebysig static 
         class [mscorlib]System.Action M2<T> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10577,14 +10577,14 @@ public static class Extensions
         IL_0006: brtrue.s IL_001b
         IL_0008: pop
         IL_0009: ldnull
-        IL_000a: ldftn void Extensions::'<M2>b__1_0'<!!T>()
+        IL_000a: ldftn void Extensions::'<M2>g__local|1_0'<!!T>()
         IL_0010: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        void '<M2>b__1_0'<T> () cil managed
+    .method assembly hidebysig static 
+        void '<M2>g__local|1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10597,7 +10597,7 @@ public static class Extensions
         IL_000a: callvirt instance string [mscorlib]System.Object::ToString()
         IL_000f: pop
         IL_0010: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -10670,10 +10670,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10683,8 +10683,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig
-            instance class [mscorlib]System.Action M2 () cil managed
+        .method private hidebysig 
+            instance class [mscorlib]System.Action M2 () cil managed 
         {
             // Method begins at RVA 0x2098
             // Code size 2 (0x2)
@@ -10703,10 +10703,10 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O
     // Methods
-    .method private hidebysig static
+    .method private hidebysig static 
         class [mscorlib]System.Action M2 (
             object o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10719,14 +10719,14 @@ public static class Extensions
         IL_0006: brtrue.s IL_001b
         IL_0008: pop
         IL_0009: ldnull
-        IL_000a: ldftn void Extensions::'<M2>b__1_0'()
+        IL_000a: ldftn void Extensions::'<M2>g__local|1_0'()
         IL_0010: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
         IL_0015: dup
         IL_0016: stsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        void '<M2>b__1_0' () cil managed
+    .method assembly hidebysig static 
+        void '<M2>g__local|1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10739,7 +10739,7 @@ public static class Extensions
         IL_000a: callvirt instance string [mscorlib]System.Object::ToString()
         IL_000f: pop
         IL_0010: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
 
@@ -10819,10 +10819,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10832,8 +10832,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig
-            instance void M2<U> () cil managed
+        .method public hidebysig 
+            instance void M2<U> () cil managed 
         {
             // Method begins at RVA 0x2154
             // Code size 2 (0x2)
@@ -10852,10 +10852,10 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T, !U, !V>> '<>p__0'
     } // end of class <>o__0|1`3
     // Methods
-    .method public hidebysig static
+    .method public hidebysig static 
         void M2<T, U> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10876,16 +10876,16 @@ public static class Extensions
         IL_0016: ldloc.1
         IL_0017: ldc.i4.s 42
         IL_0019: conv.i8
-        IL_001a: call void Extensions::'<M2>b__1_0'<!!T, !!U, int64>(object, !!0, !!1, !!2)
+        IL_001a: call void Extensions::'<M2>g__local|1_0'<!!T, !!U, int64>(object, !!0, !!1, !!2)
         IL_001f: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        void '<M2>b__1_0'<T, U, V> (
+    .method assembly hidebysig static 
+        void '<M2>g__local|1_0'<T, U, V> (
             object d,
             !!T t,
             !!U u,
             !!V v
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10942,7 +10942,7 @@ public static class Extensions
         IL_006b: ldarg.3
         IL_006c: callvirt instance void class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !!T, !!U, !!V>::Invoke(!0, !1, !2, !3, !4)
         IL_0071: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]").
     Replace("[System.Core]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[System.Core]"));
@@ -11012,10 +11012,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 !T o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -11025,8 +11025,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method private hidebysig
-            instance void M2 () cil managed
+        .method private hidebysig 
+            instance void M2 () cil managed 
         {
             // Method begins at RVA 0x20d4
             // Code size 2 (0x2)
@@ -11045,10 +11045,10 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
     } // end of class <>o__1`1
     // Methods
-    .method private hidebysig static
+    .method private hidebysig static 
         void M2<T> (
             !!T o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -11058,11 +11058,11 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        void '<M2>b__1_0'<T> (
+    .method assembly hidebysig static 
+        void '<M2>g__local|1_0'<T> (
             object d,
             !!T t
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -11105,7 +11105,7 @@ public static class Extensions
         IL_0055: ldarg.1
         IL_0056: callvirt instance void class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !!T>::Invoke(!0, !1, !2)
         IL_005b: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]").
     Replace("[System.Core]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[System.Core]"));
@@ -11175,10 +11175,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static
+        .method private hidebysig specialname static 
             void '<Extension>$' (
                 object o
-            ) cil managed
+            ) cil managed 
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -11188,8 +11188,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig
-            instance void M2 () cil managed
+        .method private hidebysig 
+            instance void M2 () cil managed 
         {
             // Method begins at RVA 0x20c9
             // Code size 2 (0x2)
@@ -11208,10 +11208,10 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`2<class [System.Core]System.Runtime.CompilerServices.CallSite, object>> '<>p__0'
     } // end of class <>o__1
     // Methods
-    .method private hidebysig static
+    .method private hidebysig static 
         void M2 (
             object o
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -11221,10 +11221,10 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static
-        void '<M2>b__1_0' (
+    .method assembly hidebysig static 
+        void '<M2>g__local|1_0' (
             object d
-        ) cil managed
+        ) cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -11260,7 +11260,7 @@ public static class Extensions
         IL_004a: ldarg.0
         IL_004b: callvirt instance void class [mscorlib]System.Action`2<class [System.Core]System.Runtime.CompilerServices.CallSite, object>::Invoke(!0, !1)
         IL_0050: ret
-    } // end of method Extensions::'<M2>b__1_0'
+    } // end of method Extensions::'<M2>g__local|1_0'
 } // end of class Extensions
 """.Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]").
     Replace("[System.Core]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[System.Core]"));
@@ -13857,12 +13857,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -13900,12 +13899,11 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -19153,12 +19151,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -19199,9 +19196,11 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         _ = Color.P1;
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 13));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -19242,12 +19241,11 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
-            //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
-            ////         Color.M1(this);
-            //Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.M1(this);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9)
             );
 
         Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
@@ -19256,6 +19254,853 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.M1");
         Assert.Equal("void Color.M1(S1 x, [System.Int32 y = 0])", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_01()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color { }
+
+static class E1
+{
+    extension(Color c)
+    {
+        public System.Action Member => null;
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("System.Action E1.<>E__0.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_02()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+    public static int Member => 0;
+}
+
+static class E1
+{
+    public static void Member(this Color c) { }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void Color.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_03()
+    {
+        // Non-invocable candidate is out of the picture, so we're left with only the instance candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_04()
+    {
+        // Non-invocable candidate is out of the picture, so we're left with only the static candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_05()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static System.Action Member => null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9),
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_06()
+    {
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static void Member(int i) { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9),
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_07()
+    {
+        // instance extension method in inner scope, static extension method in outer scope
+        var source = """
+namespace N
+{
+    struct S1(Color Color)
+    {
+        public void Test()
+        {
+            Color.Member();
+            M(this);
+        }
+
+        public static void M<T>(T x) where T : unmanaged { }
+    }
+
+    static class E1
+    {
+        extension(Color c)
+        {
+            public void Member() { }
+        }
+    }
+}
+
+class Color
+{
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //             Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 13),
+            // (8,13): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //             M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("N.S1.M<T>(T)", "T", "N.S1").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void N.E1.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_08()
+    {
+        // static extension method in inner scope, instance extension method in outer scope
+        var source = """
+namespace N
+{
+    struct S1(Color Color)
+    {
+        public void Test()
+        {
+            Color.Member();
+            M(this);
+        }
+
+        public static void M<T>(T x) where T : unmanaged { }
+    }
+
+    static class E1
+    {
+        extension(Color)
+        {
+            public static void Member() { }
+        }
+    }
+}
+
+class Color
+{
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //             Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 13),
+            // (8,13): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //             M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("N.S1.M<T>(T)", "T", "N.S1").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_09()
+    {
+        // static extension property in inner scope, instance extension method in outer scope
+        var source = """
+namespace N
+{
+    struct S1(Color Color)
+    {
+        public void Test()
+        {
+            Color.Member();
+            M(this);
+        }
+
+        public static void M<T>(T x) where T : unmanaged { }
+    }
+
+    static class E1
+    {
+        extension(Color)
+        {
+            public static System.Action Member => throw null;
+        }
+    }
+}
+
+class Color
+{
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //             Color.Member();
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(7, 13),
+            // (8,13): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //             M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("N.S1.M<T>(T)", "T", "N.S1").WithLocation(8, 13));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_10()
+    {
+        // inapplicable candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension<T>(T t) where T : struct
+    {
+        public void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_11()
+    {
+        // inapplicable candidate
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E1
+{
+    extension<T>(T) where T : struct
+    {
+        public static void Member() { }
+    }
+}
+
+static class E2
+{
+    extension(Color c)
+    {
+        public void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E2.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_12()
+    {
+        // only static candidate method
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static void Member() { }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("void E.<>E__0.Member()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_13()
+    {
+        // only static candidate property, invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static System.Action Member => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("System.Action E.<>E__0.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_14()
+    {
+        // only static candidate property, non-invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17),
+            // (5,15): error CS1061: 'Color' does not contain a definition for 'Member' and no accessible extension method 'Member' accepting a first argument of type 'Color' could be found (are you missing a using directive or an assembly reference?)
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Member").WithArguments("Color", "Member").WithLocation(5, 15));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_15()
+    {
+        // only instance candidate property, invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public System.Action Member => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS8377: The type 'S1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'S1.M<T>(T)'
+            //         M(this);
+            Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M").WithArguments("S1.M<T>(T)", "T", "S1").WithLocation(6, 9));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Equal("System.Action E.<>E__0.Member { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_16()
+    {
+        // only instance candidate property, non-invocable
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member();
+        M(this);
+    }
+
+    public static void M<T>(T x) where T : unmanaged { }
+}
+
+class Color
+{
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public int Member => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (1,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(1, 17),
+            // (5,15): error CS1061: 'Color' does not contain a definition for 'Member' and no accessible extension method 'Member' accepting a first argument of type 'Color' could be found (are you missing a using directive or an assembly reference?)
+            //         Color.Member();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Member").WithArguments("Color", "Member").WithLocation(5, 15));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Color.Member");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_17()
+    {
+        // non-extension method not applicable due to arity
+        var source = """
+new S1(new Color()).Test();
+
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member<int>(0);
+    }
+}
+
+class Color
+{
+    public static void Member(int x) => throw null;
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public void Member<T>(T x) { System.Console.WriteLine("extension"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+
+        CompileAndVerify(comp, expectedOutput: "extension").VerifyDiagnostics();
+
+        Assert.NotEmpty(comp.GetTypeByMetadataName("S1").InstanceConstructors.OfType<SynthesizedPrimaryConstructor>().Single().GetCapturedParameters());
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_18()
+    {
+        // non-extension method not applicable due to arity, and non-extension method applicable, and instance extension method
+        var source = """
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member<int>(0);
+    }
+}
+
+class Color
+{
+    public static void Member(int x) => throw null;
+    public static void Member<T>(T x) => throw null;
+}
+
+static class E
+{
+    extension(Color c)
+    {
+        public void Member<T>(T x) { System.Console.WriteLine("extension"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
+            //         Color.Member<int>(0);
+            Diagnostic(ErrorCode.ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver, "Color").WithArguments("Color", "Color", "Color Color").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void PrimaryCtorParameterCapturing_19()
+    {
+        // non-extension method not applicable due to arity, and non-extension method applicable, and static extension method
+        var source = """
+new S1(new Color()).Test();
+
+struct S1(Color Color)
+{
+    public void Test()
+    {
+        Color.Member<int>(0);
+    }
+}
+
+class Color
+{
+    public static void Member(int x) => throw null;
+    public static void Member<T>(T x) => throw null;
+}
+
+static class E
+{
+    extension(Color)
+    {
+        public static void Member<T>(T x) { System.Console.WriteLine("extension"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (3,17): warning CS9113: Parameter 'Color' is unread.
+            // struct S1(Color Color)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "Color").WithArguments("Color").WithLocation(3, 17));
     }
 
     [Fact]
@@ -42180,6 +43025,81 @@ int.M();
     }
 
     [Fact]
+    public void SpecialName_04()
+    {
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        [System.Runtime.CompilerServices.SpecialName]
+        public void M() => throw null!;
+
+        public void M2() => throw null!;
+
+        [System.Runtime.CompilerServices.SpecialName]
+        public int P => throw null!;
+
+        public int P2 => throw null!;
+    }
+
+    [System.Runtime.CompilerServices.SpecialName]
+    public static void M3() => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.True(extension.GetMember<MethodSymbol>("M").HasSpecialName);
+        Assert.False(extension.GetMember<MethodSymbol>("M2").HasSpecialName);
+
+        Assert.True(extension.GetMember<PropertySymbol>("P").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("get_P").HasSpecialName);
+
+        Assert.False(extension.GetMember<PropertySymbol>("P2").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("get_P2").HasSpecialName);
+
+        Assert.True(comp.GetMember<MethodSymbol>("E.M").HasSpecialName);
+        Assert.False(comp.GetMember<MethodSymbol>("E.M2").HasSpecialName);
+        Assert.True(comp.GetMember<MethodSymbol>("E.M3").HasSpecialName);
+
+        Assert.False(comp.GetMember<MethodSymbol>("E.get_P").HasSpecialName);
+
+        Assert.False(comp.GetMember<MethodSymbol>("E.get_P2").HasSpecialName);
+    }
+
+    [Fact]
+    public void SpecialName_05()
+    {
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        public int P
+        {
+            [System.Runtime.CompilerServices.SpecialName]
+            get => 0;
+            [System.Runtime.CompilerServices.SpecialName]
+            set { }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.False(extension.GetMember<PropertySymbol>("P").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("get_P").HasSpecialName);
+        Assert.True(extension.GetMember<MethodSymbol>("set_P").HasSpecialName);
+
+        Assert.True(comp.GetMember<MethodSymbol>("E.get_P").HasSpecialName);
+        Assert.True(comp.GetMember<MethodSymbol>("E.set_P").HasSpecialName);
+    }
+
+    [Fact]
     public void WellKnownAttribute_SkipLocalsInit_01()
     {
         string source = """
@@ -42365,7 +43285,7 @@ static class E
         }
     }
 
-    private static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
+    internal static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
     {
         var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
         var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>());

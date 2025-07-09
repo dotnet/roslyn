@@ -53,8 +53,7 @@ End Module";
         await TestServices.Editor.PlaceCaretAsync("Hello VB!", charsOffset: 3, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
-
-        var expectedMarkup = @"
+        MarkupTestFile.GetSpans(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -76,9 +75,7 @@ Module Program
         Dim result = a * b
         Return result
     End Function
-End Module";
-
-        MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
+End Module", out var expectedText, out var spans);
         await TestServices.EditorVerifier.TextContainsAsync(expectedText, cancellationToken: HangMitigatingCancellationToken);
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
         AssertEx.SetEqual(spans, tags);
@@ -96,8 +93,7 @@ End Module";
         await TestServices.Editor.PlaceCaretAsync("a = 5", charsOffset: -1, HangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
-
-        var expectedMarkup = @"
+        MarkupTestFile.GetSpans(@"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -120,9 +116,7 @@ Module Program
         b = 5
         result = a * b
     End Sub
-End Module";
-
-        MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
+End Module", out var expectedText, out var spans);
         Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
         AssertEx.SetEqual(spans, tags);

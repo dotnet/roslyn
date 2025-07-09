@@ -49,10 +49,6 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
         var source2 = "class C { void M() { System.Console.WriteLine(2); /*2*/} }";
         var source3 = "class C { void M() { System.Console.WriteLine(2); /*3*/} }";
-        var source4 = "class C { void M<T>() { System.Console.WriteLine(2); } }";
-        var source5 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
-        var source6 = "class C { void M() { Unknown(); } static C() { int x = 1; } }";
-
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
 
@@ -114,7 +110,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         Assert.Equal(source3, updatedText.ToString());
 
         // Rude edit:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source4));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M<T>() { System.Console.WriteLine(2); } }"));
 
         var runningProjects = ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty
             .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true });
@@ -139,7 +135,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         Assert.Equal(source3, updatedText.ToString());
 
         // Syntax error:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source5));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }"));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
         AssertEx.Equal(
@@ -153,7 +149,7 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         Assert.Equal(source3, updatedText.ToString());
 
         // Semantic diagnostics and no-effect edit:
-        solution = solution.WithDocumentText(documentIdA, CreateText(source6));
+        solution = solution.WithDocumentText(documentIdA, CreateText("class C { void M() { Unknown(); } static C() { int x = 1; } }"));
 
         result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
         AssertEx.Equal(

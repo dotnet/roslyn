@@ -22,138 +22,103 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting;
 public sealed class FormattingEngineMultiSpanTests : CSharpFormattingTestBase
 {
     [Fact]
-    public async Task EndOfLine()
-    {
-        var content = @"namespace A{/*1*/}/*2*/";
-        var expected = @"namespace A{}";
-
-        await AssertFormatAsync(content, expected);
-    }
+    public Task EndOfLine()
+        => AssertFormatAsync(@"namespace A{/*1*/}/*2*/", @"namespace A{}");
 
     [Fact]
     public async Task Simple1()
         => await AssertFormatAsync("namespace A/*1*/{}/*2*/ class A {}", "namespace A{ } class A {}");
 
     [Fact]
-    public async Task DoNotFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
-    {
-        var content = @"namespace A
+    public Task DoNotFormatTriviaOutsideOfSpan_IncludingTrailingTriviaOnNewLine()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
         }/*2*/      
 
-class A /*1*/{}/*2*/";
-
-        var expected = @"namespace A
+class A /*1*/{}/*2*/", @"namespace A
 {
 }      
 
-class A { }";
-
-        await AssertFormatAsync(content, expected);
-    }
+class A { }");
 
     [Fact]
-    public async Task FormatIncludingTrivia()
-    {
-        var content = @"namespace A
+    public Task FormatIncludingTrivia()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
         }   /*2*/   
 
-class A /*1*/{}/*2*/";
-
-        var expected = @"namespace A
+class A /*1*/{}/*2*/", @"namespace A
 {
 }
 
-class A { }";
-
-        await AssertFormatAsync(content, expected);
-    }
+class A { }");
 
     [Fact]
-    public async Task MergeSpanAndFormat()
-    {
-        var content = @"namespace A
+    public Task MergeSpanAndFormat()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
         }   /*2*/   /*1*/
 
-class A{}/*2*/";
-
-        var expected = @"namespace A
+class A{}/*2*/", @"namespace A
 {
 }
 
-class A { }";
-
-        await AssertFormatAsync(content, expected);
-    }
+class A { }");
 
     [Fact]
-    public async Task OverlappedSpan()
-    {
-        var content = @"namespace A
+    public Task OverlappedSpan()
+        => AssertFormatAsync(@"namespace A
 /*1*/{
      /*1*/   }   /*2*/   
 
-class A{}/*2*/";
-
-        var expected = @"namespace A
+class A{}/*2*/", @"namespace A
 {
 }
 
-class A { }";
-
-        await AssertFormatAsync(content, expected);
-    }
+class A { }");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
     public async Task FormatSpanNullReference01()
     {
-        var code = @"/*1*/class C
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.IndentBlock, false }
+        };
+        await AssertFormatAsync(@"/*1*/class C
 {
     void F()
     {
         System.Console.WriteLine();
     }
-}/*2*/";
-
-        var expected = @"class C
+}/*2*/", @"class C
 {
     void F()
     {
     System.Console.WriteLine();
     }
-}";
-        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
-        {
-            { CSharpFormattingOptions2.IndentBlock, false }
-        };
-        await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
+}", changedOptionSet: changingOptions);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554160")]
     public async Task FormatSpanNullReference02()
     {
-        var code = @"class C/*1*/
-{
-    void F()
-    {
-        System.Console.WriteLine();
-    }
-}/*2*/";
-
-        var expected = @"class C
-{
-    void F()
-    {
-        System.Console.WriteLine();
-    }
-}";
         var changingOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.WrappingPreserveSingleLine, false }
         };
-        await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
+        await AssertFormatAsync(@"class C/*1*/
+{
+    void F()
+    {
+        System.Console.WriteLine();
+    }
+}/*2*/", @"class C
+{
+    void F()
+    {
+        System.Console.WriteLine();
+    }
+}", changedOptionSet: changingOptions);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539231")]

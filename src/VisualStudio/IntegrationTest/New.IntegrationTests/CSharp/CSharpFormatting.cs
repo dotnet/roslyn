@@ -281,18 +281,6 @@ class C
         }
     }
 }";
-        var expectedTextTwoSpaceIndent = @"
-class C
-{
-  public int X1
-  {
-    get
-    {
-      return 3;
-    }
-  }
-}";
-
         await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.cs", HangMitigatingCancellationToken);
 
         MarkupTestFile.GetSpans(markup, out var expectedTextFourSpaceIndent, out _);
@@ -338,7 +326,17 @@ indent_size = 2
             HangMitigatingCancellationToken);
         await TestServices.Editor.FormatDocumentAsync(HangMitigatingCancellationToken);
 
-        Assert.Equal(expectedTextTwoSpaceIndent, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        Assert.Equal(@"
+class C
+{
+  public int X1
+  {
+    get
+    {
+      return 3;
+    }
+  }
+}", await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
         /*
          * The third portion of this test modifies the existing .editorconfig file with a new indentation behavior,

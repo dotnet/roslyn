@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToExtensionCodeRefactoring
 public sealed class ConvertToExtensionTests
 {
     [Fact]
-    public async Task TestBaseCase()
-    {
-        await new VerifyCS.Test
+    public Task TestBaseCase()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -40,12 +39,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRefReceiver()
-    {
-        await new VerifyCS.Test
+    public Task TestRefReceiver()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -64,12 +61,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInReceiver()
-    {
-        await new VerifyCS.Test
+    public Task TestInReceiver()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -88,12 +83,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestRefReadonlyReceiver()
-    {
-        await new VerifyCS.Test
+    public Task TestRefReadonlyReceiver()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -112,12 +105,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotOnCSharp13()
-    {
-        await new VerifyCS.Test
+    public Task TestNotOnCSharp13()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -127,12 +118,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithMultipleParameters()
-    {
-        await new VerifyCS.Test
+    public Task TestWithMultipleParameters()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -151,12 +140,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInsideNamespace1()
-    {
-        await new VerifyCS.Test
+    public Task TestInsideNamespace1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -181,12 +168,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestInsideNamespace2()
-    {
-        await new VerifyCS.Test
+    public Task TestInsideNamespace2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N;
@@ -209,12 +194,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWithNoParameters()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWithNoParameters()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -224,12 +207,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInsideStruct()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInsideStruct()
+        => new VerifyCS.Test
         {
             TestCode = """
                 struct C
@@ -247,12 +228,10 @@ public sealed class ConvertToExtensionTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotInsideInstanceClass()
-    {
-        await new VerifyCS.Test
+    public Task TestNotInsideInstanceClass()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C
@@ -270,12 +249,10 @@ public sealed class ConvertToExtensionTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotForInstanceMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestNotForInstanceMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -295,12 +272,10 @@ public sealed class ConvertToExtensionTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotForNestedClass()
-    {
-        await new VerifyCS.Test
+    public Task TestNotForNestedClass()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class Outer
@@ -323,12 +298,10 @@ public sealed class ConvertToExtensionTests
                 }
             }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferencedTypeParameterInOrder1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferencedTypeParameterInOrder1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -351,12 +324,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferencedTypeParameterInOrder2()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferencedTypeParameterInOrder2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -379,12 +350,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferencedTypeParameterInOrder3()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferencedTypeParameterInOrder3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -407,12 +376,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferencedTypeParameterInOrder4()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferencedTypeParameterInOrder4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -435,12 +402,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithReferencedTypeParameterNotInOrder1()
-    {
-        await new VerifyCS.Test
+    public Task TestWithReferencedTypeParameterNotInOrder1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -452,12 +417,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping1()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -478,12 +441,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping1_A()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping1_A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -504,12 +465,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping2()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -530,12 +489,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping2_A()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping2_A()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -556,12 +513,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_MatchingAttributes1()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_MatchingAttributes1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -590,12 +545,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_MatchingAttributes2()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_MatchingAttributes2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -624,12 +577,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_MatchingAttributes3()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_MatchingAttributes3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -664,12 +615,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_MatchingAttributes4()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_MatchingAttributes4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -704,12 +653,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_NonMatchingAttributes1()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_NonMatchingAttributes1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -738,12 +685,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_NonMatchingAttributes2()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_NonMatchingAttributes2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -774,12 +719,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_NonMatchingAttributes3()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_NonMatchingAttributes3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -814,12 +757,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_NonMatchingAttributes4()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_NonMatchingAttributes4()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -854,12 +795,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_UnrelatedAttributes()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_UnrelatedAttributes()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -890,12 +829,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters1()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -928,12 +865,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_DifferentName()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_DifferentName()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -967,12 +902,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_SameAttributes()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_SameAttributes()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1005,12 +938,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_DifferentAttributes()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_DifferentAttributes()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1044,12 +975,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_SameConstructorConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_SameConstructorConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1076,12 +1005,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_DifferentConstructorConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_DifferentConstructorConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1109,12 +1036,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_SameClassConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_SameClassConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1141,12 +1066,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_DifferentClassConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_DifferentClassConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1174,12 +1097,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_SameTypeConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_SameTypeConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1206,12 +1127,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_TypeParameters_DifferentTypeConstraint()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_TypeParameters_DifferentTypeConstraint()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1239,12 +1158,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_SameParameterRef()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_SameParameterRef()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1271,12 +1188,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_DifferentParameterRef()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_DifferentParameterRef()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1304,12 +1219,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_SameParameterName()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_SameParameterName()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1336,12 +1249,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_DifferentParameterName()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_DifferentParameterName()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1369,12 +1280,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_SameParameterTupleNames()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_SameParameterTupleNames()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1401,12 +1310,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_DifferentParameterTupleNames()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_DifferentParameterTupleNames()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1434,12 +1341,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_SameParameterNullability()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_SameParameterNullability()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -1470,12 +1375,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_DifferentParameterNullability()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_DifferentParameterNullability()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -1507,12 +1410,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_SameParameterDynamic()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_SameParameterDynamic()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -1543,12 +1444,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSimpleGrouping_Parameters_DifferentDynamic()
-    {
-        await new VerifyCS.Test
+    public Task TestSimpleGrouping_Parameters_DifferentDynamic()
+        => new VerifyCS.Test
         {
             TestCode = """
                 #nullable enable
@@ -1580,12 +1479,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTriviaMove1()
-    {
-        await new VerifyCS.Test
+    public Task TestTriviaMove1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1614,12 +1511,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTriviaMove2()
-    {
-        await new VerifyCS.Test
+    public Task TestTriviaMove2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1650,12 +1545,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGroupingWithNonExtension1()
-    {
-        await new VerifyCS.Test
+    public Task TestGroupingWithNonExtension1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1688,12 +1581,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGroupingWithNonExtension2()
-    {
-        await new VerifyCS.Test
+    public Task TestGroupingWithNonExtension2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1726,12 +1617,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGroupingWithNonExtension3()
-    {
-        await new VerifyCS.Test
+    public Task TestGroupingWithNonExtension3()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1764,12 +1653,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixClass1()
-    {
-        await new VerifyCS.Test
+    public Task TestFixClass1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1809,12 +1696,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFixClass2()
-    {
-        await new VerifyCS.Test
+    public Task TestFixClass2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1854,12 +1739,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCodeBody1()
-    {
-        await new VerifyCS.Test
+    public Task TestCodeBody1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 static class C
@@ -1884,12 +1767,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCodeBody2()
-    {
-        await new VerifyCS.Test
+    public Task TestCodeBody2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -1922,12 +1803,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleConstraints1()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleConstraints1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -1952,12 +1831,10 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleConstraints2()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleConstraints2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Collections.Generic;
@@ -1980,5 +1857,4 @@ public sealed class ConvertToExtensionTests
                 """,
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
-    }
 }

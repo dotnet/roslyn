@@ -36,12 +36,10 @@ public sealed class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTe
         => await TestPragmaAsync(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
 
     [Fact]
-    public async Task TestSuppressionWithAttributeOnEveryNodes()
-    {
-        await TestSuppressionWithAttributeAsync(
+    public Task TestSuppressionWithAttributeOnEveryNodes()
+        => TestSuppressionWithAttributeAsync(
             TestResource.AllInOneCSharpCode,
             CSharpParseOptions.Default,
             digInto: n => n is not StatementSyntax or BlockSyntax,
             verifier: t => t.IndexOf("SuppressMessage", StringComparison.Ordinal) >= 0);
-    }
 }

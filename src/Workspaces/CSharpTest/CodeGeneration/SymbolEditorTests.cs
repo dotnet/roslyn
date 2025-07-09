@@ -66,15 +66,6 @@ public sealed class SymbolEditorTests
 @"class C
 {
 }";
-
-        var expected =
-@"class C
-{
-    void m()
-    {
-    }
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -84,7 +75,12 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C
+{
+    void m()
+    {
+    }
+}", actual);
     }
 
     [Fact]
@@ -94,19 +90,6 @@ public sealed class SymbolEditorTests
 @"class C
 {
 }";
-
-        var expected =
-@"class C
-{
-    void m()
-    {
-    }
-
-    void m2()
-    {
-    }
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -121,7 +104,16 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C
+{
+    void m()
+    {
+    }
+
+    void m2()
+    {
+    }
+}", actual);
     }
 
     [Fact]
@@ -131,19 +123,6 @@ public sealed class SymbolEditorTests
 @"class C
 {
 }";
-
-        var expected =
-@"class C
-{
-    void m()
-    {
-    }
-
-    void m2()
-    {
-    }
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -158,7 +137,16 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C
+{
+    void m()
+    {
+    }
+
+    void m2()
+    {
+    }
+}", actual);
     }
 
     [Fact]
@@ -172,22 +160,6 @@ public sealed class SymbolEditorTests
 class B
 {
 }";
-
-        var expected =
-@"class A
-{
-    void ma()
-    {
-    }
-}
-
-class B
-{
-    void mb()
-    {
-    }
-}";
-
         var solution = GetSolution(code);
         var comp = await solution.Projects.First().GetCompilationAsync();
         var symbolA = comp.GlobalNamespace.GetMembers("A").First();
@@ -202,7 +174,19 @@ class B
         Assert.Equal(1, newSymbolB.GetMembers("mb").Length);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class A
+{
+    void ma()
+    {
+    }
+}
+
+class B
+{
+    void mb()
+    {
+    }
+}", actual);
     }
 
     [Fact]
@@ -217,23 +201,6 @@ class B
 @"class B
 {
 }";
-
-        var expected1 =
-@"class A
-{
-    void ma()
-    {
-    }
-}";
-
-        var expected2 =
-@"class B
-{
-    void mb()
-    {
-    }
-}";
-
         var solution = GetSolution(code1, code2);
         var comp = await solution.Projects.First().GetCompilationAsync();
         var symbolA = comp.GlobalNamespace.GetMembers("A").First();
@@ -251,8 +218,18 @@ class B
         var actual1 = await GetActualAsync(docs[0]);
         var actual2 = await GetActualAsync(docs[1]);
 
-        Assert.Equal(expected1, actual1);
-        Assert.Equal(expected2, actual2);
+        Assert.Equal(@"class A
+{
+    void ma()
+    {
+    }
+}", actual1);
+        Assert.Equal(@"class B
+{
+    void mb()
+    {
+    }
+}", actual2);
     }
 
     [Fact]
@@ -266,16 +243,6 @@ class B
 public partial class C
 {
 }";
-
-        var expected =
-@"internal partial class C
-{
-}
-
-internal partial class C
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -284,7 +251,13 @@ internal partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"internal partial class C
+{
+}
+
+internal partial class C
+{
+}", actual);
     }
 
     [Fact]
@@ -300,18 +273,6 @@ internal partial class C
 {
     void M() {}
 }";
-
-        var expected1 =
-@"public class C
-{
-}";
-
-        var expected2 =
-@"public class C
-{
-    void M() {}
-}";
-
         var solution = GetSolution(code1, code2);
         var comp = await solution.Projects.First().GetCompilationAsync();
         var symbol = comp.GlobalNamespace.GetMembers("C").First();
@@ -323,8 +284,13 @@ internal partial class C
         var actual1 = await GetActualAsync(docs[0]);
         var actual2 = await GetActualAsync(docs[1]);
 
-        Assert.Equal(expected1, actual1);
-        Assert.Equal(expected2, actual2);
+        Assert.Equal(@"public class C
+{
+}", actual1);
+        Assert.Equal(@"public class C
+{
+    void M() {}
+}", actual2);
     }
 
     [Fact]
@@ -338,19 +304,6 @@ internal partial class C
 partial class C
 {
 }";
-
-        var expected =
-@"partial class C
-{
-}
-
-partial class C
-{
-    void m()
-    {
-    }
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var location = symbol.Locations.Last();
@@ -361,7 +314,16 @@ partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"partial class C
+{
+}
+
+partial class C
+{
+    void m()
+    {
+    }
+}", actual);
     }
 
     [Fact]
@@ -375,19 +337,6 @@ partial class C
 partial class C
 {
 }";
-
-        var expected =
-@"partial class C
-{
-    void m()
-    {
-    }
-}
-
-partial class C
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var location = symbol.Locations.First();
@@ -398,7 +347,16 @@ partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"partial class C
+{
+    void m()
+    {
+    }
+}
+
+partial class C
+{
+}", actual);
     }
 
     [Fact]
@@ -412,23 +370,6 @@ partial class C
 partial class C
 {
 }";
-
-        var expected =
-@"partial class C
-{
-}
-
-partial class C
-{
-    void m()
-    {
-    }
-
-    void m2()
-    {
-    }
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var location = symbol.Locations.Last();
@@ -444,7 +385,20 @@ partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"partial class C
+{
+}
+
+partial class C
+{
+    void m()
+    {
+    }
+
+    void m2()
+    {
+    }
+}", actual);
     }
 
     [Fact]
@@ -458,23 +412,6 @@ partial class C
 partial class C
 {
 }";
-
-        var expected =
-@"partial class C
-{
-}
-
-partial class C
-{
-    void m()
-    {
-    }
-
-    void m2()
-    {
-    }
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var location = symbol.Locations.Last();
@@ -491,7 +428,20 @@ partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"partial class C
+{
+}
+
+partial class C
+{
+    void m()
+    {
+    }
+
+    void m2()
+    {
+    }
+}", actual);
     }
 
     [Fact]
@@ -508,9 +458,17 @@ partial class C
     {
     }
 }";
+        var solution = GetSolution(code);
+        var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
+        var member = symbol.GetMembers("m").First();
+        var editor = SymbolEditor.Create(solution);
 
-        var expected =
-@"partial class C
+        var newSymbol = (INamedTypeSymbol)await editor.EditOneDeclarationAsync(symbol, member, (e, d) => e.AddMember(d, e.Generator.MethodDeclaration("m2")));
+        Assert.Equal(1, newSymbol.GetMembers("m").Length);
+
+        var actual = await GetActualAsync(editor.GetChangedDocuments().First());
+
+        Assert.Equal(@"partial class C
 {
 }
 
@@ -523,19 +481,7 @@ partial class C
     void m2()
     {
     }
-}";
-
-        var solution = GetSolution(code);
-        var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
-        var member = symbol.GetMembers("m").First();
-        var editor = SymbolEditor.Create(solution);
-
-        var newSymbol = (INamedTypeSymbol)await editor.EditOneDeclarationAsync(symbol, member, (e, d) => e.AddMember(d, e.Generator.MethodDeclaration("m2")));
-        Assert.Equal(1, newSymbol.GetMembers("m").Length);
-
-        var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-
-        Assert.Equal(expected, actual);
+}", actual);
     }
 
     [Fact]
@@ -546,12 +492,6 @@ partial class C
 @"class C
 {
 }";
-
-        var expected =
-@"class X
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -565,7 +505,9 @@ partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class X
+{
+}", actual);
     }
 
     [Fact]
@@ -578,15 +520,6 @@ partial class C
 }
 
 partial class C
-{
-}";
-
-        var expected =
-@"partial class X
-{
-}
-
-partial class X
 {
 }";
         var solution = GetSolution(code);
@@ -602,7 +535,13 @@ partial class X
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"partial class X
+{
+}
+
+partial class X
+{
+}", actual);
     }
 
     [Fact]
@@ -612,10 +551,6 @@ partial class X
 @"class C
 {
 }";
-
-        var expected =
-@"";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -625,7 +560,7 @@ partial class X
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"", actual);
     }
 
     [Fact]
@@ -639,13 +574,6 @@ partial class X
 partial class C
 {
 }";
-
-        var expected =
-@"
-partial class C
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -656,7 +584,10 @@ partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"
+partial class C
+{
+}", actual);
     }
 
     [Fact]
@@ -670,11 +601,6 @@ partial class C
 partial class C
 {
 }";
-
-        var expected =
-@"
-";
-
         var solution = GetSolution(code);
         var symbol = (await GetSymbolsAsync(solution, "C")).First();
         var editor = SymbolEditor.Create(solution);
@@ -684,7 +610,8 @@ partial class C
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"
+", actual);
     }
 
     [Fact]
@@ -695,18 +622,6 @@ partial class C
 {
     public int X, Y;
 }";
-
-        var expected =
-@"class C
-{
-    public int Y;
-}";
-
-        var expected2 =
-@"class C
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
         var symbolX = symbol.GetMembers("X").First();
@@ -719,14 +634,19 @@ partial class C
         Assert.Null(newSymbolX);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C
+{
+    public int Y;
+}", actual);
 
         // now remove Y -- should remove entire remaining field declaration
         var newSymbolY = (INamedTypeSymbol)await editor.EditOneDeclarationAsync(symbolY, (e, d) => e.RemoveNode(d));
         Assert.Null(newSymbolY);
 
         actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected2, actual);
+        Assert.Equal(@"class C
+{
+}", actual);
     }
 
     [Fact]
@@ -744,20 +664,6 @@ class A
 class B
 {
 }";
-
-        var expected =
-@"class C : A
-{
-}
-
-class A
-{
-}
-
-class B
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -767,7 +673,17 @@ class B
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C : A
+{
+}
+
+class A
+{
+}
+
+class B
+{
+}", actual);
     }
 
     [Fact]
@@ -785,20 +701,6 @@ class A
 interface I
 {
 }";
-
-        var expected =
-@"class C : A, I
-{
-}
-
-class A
-{
-}
-
-interface I
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -808,7 +710,17 @@ interface I
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C : A, I
+{
+}
+
+class A
+{
+}
+
+interface I
+{
+}", actual);
     }
 
     [Fact]
@@ -822,16 +734,6 @@ interface I
 class A
 {
 }";
-
-        var expected =
-@"class C : A
-{
-}
-
-class A
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -841,7 +743,13 @@ class A
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C : A
+{
+}
+
+class A
+{
+}", actual);
     }
 
     [Fact]
@@ -855,16 +763,6 @@ class A
 class A
 {
 }";
-
-        var expected =
-@"class C : A
-{
-}
-
-class A
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -874,7 +772,13 @@ class A
         var newSymbolC = editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C : A
+{
+}
+
+class A
+{
+}", actual);
     }
 
     [Fact]
@@ -888,16 +792,6 @@ class A
 class A
 {
 }";
-
-        var expected =
-@"class C
-{
-}
-
-class A
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -907,7 +801,13 @@ class A
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C
+{
+}
+
+class A
+{
+}", actual);
     }
 
     [Fact]
@@ -925,20 +825,6 @@ class A
 interface I
 {
 }";
-
-        var expected =
-@"class C : I
-{
-}
-
-class A
-{
-}
-
-interface I
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -948,7 +834,17 @@ interface I
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C : I
+{
+}
+
+class A
+{
+}
+
+interface I
+{
+}", actual);
     }
 
     [Fact]
@@ -962,16 +858,6 @@ interface I
 interface I
 {
 }";
-
-        var expected =
-@"class C : I
-{
-}
-
-interface I
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -981,7 +867,13 @@ interface I
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C : I
+{
+}
+
+interface I
+{
+}", actual);
     }
 
     [Fact]
@@ -991,12 +883,6 @@ interface I
 @"class C : X
 {
 }";
-
-        var expected =
-@"class C
-{
-}";
-
         var solution = GetSolution(code);
         var symbol = (INamedTypeSymbol)(await GetSymbolsAsync(solution, "C")).First();
 
@@ -1006,7 +892,9 @@ interface I
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal(expected, actual);
+        Assert.Equal(@"class C
+{
+}", actual);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2650")]

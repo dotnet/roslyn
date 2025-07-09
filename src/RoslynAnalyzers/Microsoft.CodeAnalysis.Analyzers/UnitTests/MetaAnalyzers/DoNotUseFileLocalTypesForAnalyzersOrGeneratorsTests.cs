@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
         private const string CompilerReferenceVersion = "4.6.0";
 
         [Fact]
-        public async Task FiresOnFileLocalType_CodeFixProvider()
-        {
-            var code = """
+        public Task FiresOnFileLocalType_CodeFixProvider()
+            => new VerifyCS.Test
+            {
+                TestCode = """
                 using System.Collections.Immutable;
                 using System.Threading.Tasks;
                 using Microsoft.CodeAnalysis;
@@ -29,10 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     public override FixAllProvider GetFixAllProvider() => throw null!;
                     public override Task RegisterCodeFixesAsync(CodeFixContext context) => throw null!;
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = code,
+                """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ExpectedDiagnostics =
                 {
@@ -40,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(5, 12, 5, 16).WithArguments("Type"),
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task FiresOnFileLocalType_DiagnosticAnalyzer()
-        {
-            var code = """
+        public Task FiresOnFileLocalType_DiagnosticAnalyzer()
+            => new VerifyCS.Test
+            {
+                TestCode = """
                 using System.Collections.Immutable;
                 using Microsoft.CodeAnalysis;
                 using Microsoft.CodeAnalysis.Diagnostics;
@@ -55,10 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     public override void Initialize(AnalysisContext context) => throw null!;
                    
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = code,
+                """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ExpectedDiagnostics =
                 {
@@ -66,22 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(4, 12, 4, 16).WithArguments("Type"),
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task FiresOnFileLocalType_ISourceGenerator()
-        {
-            var code = """
+        public Task FiresOnFileLocalType_ISourceGenerator()
+            => new VerifyCS.Test
+            {
+                TestCode = """
                 using Microsoft.CodeAnalysis;
                 file class Type : Microsoft.CodeAnalysis.ISourceGenerator
                 {
                     public void Initialize(GeneratorInitializationContext context) => throw null!;
                     public void Execute(GeneratorExecutionContext context) => throw null!;
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = code,
+                """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20.AddPackages([new PackageIdentity("Microsoft.CodeAnalysis.Common", CompilerReferenceVersion)]),
                 ExpectedDiagnostics =
@@ -90,21 +82,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(2, 12, 2, 16).WithArguments("Type"),
                 },
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task FiresOnFileLocalType_IIncrementalGenerator()
-        {
-            var code = """
+        public Task FiresOnFileLocalType_IIncrementalGenerator()
+            => new VerifyCS.Test
+            {
+                TestCode = """
                 using Microsoft.CodeAnalysis;
                 file class Type : Microsoft.CodeAnalysis.IIncrementalGenerator
                 {
                     public void Initialize(IncrementalGeneratorInitializationContext context) => throw null!;
                 }
-                """;
-            await new VerifyCS.Test
-            {
-                TestCode = code,
+                """,
                 LanguageVersion = LanguageVersion.CSharp11,
                 ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20.AddPackages([new PackageIdentity("Microsoft.CodeAnalysis.Common", CompilerReferenceVersion)]),
                 ExpectedDiagnostics =
@@ -113,6 +102,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.MetaAnalyzers
                     VerifyCS.Diagnostic().WithSpan(2, 12, 2, 16).WithArguments("Type"),
                 },
             }.RunAsync();
-        }
     }
 }

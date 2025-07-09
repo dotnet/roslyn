@@ -69,16 +69,6 @@ public sealed partial class DocumentChangesTests
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-
-        var updatedText =
-@"class A
-{
-    void M()
-    {
-        // hi there
-    }
-}";
-
         await DidOpen(testLspServer, caretLocation.DocumentUri);
 
         Assert.Equal(1, testLspServer.GetTrackedTexts().Length);
@@ -89,7 +79,13 @@ public sealed partial class DocumentChangesTests
 
         foreach (var document in solution.Projects.First().Documents)
         {
-            Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Equal(@"class A
+{
+    void M()
+    {
+        // hi there
+    }
+}", document.GetTextSynchronously(CancellationToken.None).ToString());
         }
 
         await DidClose(testLspServer, caretLocation.DocumentUri);

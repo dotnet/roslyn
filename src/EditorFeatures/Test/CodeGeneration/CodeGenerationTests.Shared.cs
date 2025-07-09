@@ -651,16 +651,13 @@ End Namespace";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task TestDocumentationComment()
-        {
-            var generationSource = @"
+        public Task TestDocumentationComment()
+            => TestGenerateFromSourceSymbolAsync(@"
 public class [|C|]
 {
     /// <summary>When in need, a documented method is a friend, indeed.</summary>
     public C() { }
-}";
-            var initial = "public class [|C|] { }";
-            var expected = @"public class C
+}", "public class [|C|] { }", @"public class C
 {
     /// 
     /// <member name=""M:C.#ctor"">
@@ -668,11 +665,9 @@ public class [|C|]
     /// </member>
     /// 
     public C();
-}";
-            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+}",
                 context: new CodeGenerationContext(generateMethodBodies: false, generateDocumentationComments: true),
                 onlyGenerateMembers: true);
-        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task TestModifiers()
@@ -695,9 +690,7 @@ namespace [|N|]
         public sealed override void Method1() {} 
     }
 }";
-
-            var initial = "namespace [|N|] { }";
-            var expected = @"namespace N {
+            await TestGenerateFromSourceSymbolAsync(generationSource, "namespace [|N|] { }", @"namespace N {
     namespace N
     {
         public class A
@@ -716,12 +709,9 @@ namespace [|N|]
             public sealed override void Method1();
         }
     }
-}";
-            await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
+}",
                 context: new CodeGenerationContext(generateMethodBodies: false));
-
-            var initialVB = "Namespace [|N|] End Namespace";
-            var expectedVB = @"Namespace N End NamespaceNamespace N
+            await TestGenerateFromSourceSymbolAsync(generationSource, "Namespace [|N|] End Namespace", @"Namespace N End NamespaceNamespace N
         Public Class A
             Public Shared ReadOnly Property Property1 As String
             Public Overridable ReadOnly Property [Property] As String
@@ -733,8 +723,7 @@ namespace [|N|]
             Public Overrides NotOverridable ReadOnly Property [Property] As String
             Public NotOverridable Overrides Sub Method1()
         End Class
-    End Namespace";
-            await TestGenerateFromSourceSymbolAsync(generationSource, initialVB, expectedVB,
+    End Namespace",
                 context: new CodeGenerationContext(generateMethodBodies: false));
         }
     }
