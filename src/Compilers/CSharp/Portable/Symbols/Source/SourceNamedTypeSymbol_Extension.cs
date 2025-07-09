@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -60,6 +61,316 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        /// <summary>
+        /// This name uses an IL-looking format to encode CLR-level information of an extension block (ie. arity, constraints, extended type).
+        /// It is meant be to hashed to produce the content-based name for the extension grouping type.
+        /// </summary>
+        internal string ComputeExtensionGroupingRawName()
+        {
+            Debug.Assert(this.IsExtension && this.IsDefinition);
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            builder.Append("extension");
+
+            if (this.Arity > 0)
+            {
+                builder.Append("<");
+
+                foreach (var typeParameter in this.TypeParameters)
+                {
+                    if (typeParameter.Ordinal > 0)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    appendTypeParameterDeclaration(typeParameter, builder);
+                }
+
+                builder.Append(">");
+            }
+
+            builder.Append("(");
+            if (this.ExtensionParameter is { } extensionParameter)
+            {
+                appendType(extensionParameter.Type, builder);
+            }
+
+            builder.Append(")");
+
+            return pooledBuilder.ToStringAndFree();
+
+            static void appendType(TypeSymbol type, StringBuilder builder)
+            {
+                if (type is NamedTypeSymbol namedType)
+                {
+                    appendNamedType(type, builder, namedType);
+                }
+                else if (type is TypeParameterSymbol typeParameter)
+                {
+                    appendTypeParameterReference(typeParameter, builder);
+                }
+                else if (type is ArrayTypeSymbol array)
+                {
+                    appendArrayType(array, builder);
+                }
+                else if (type is PointerTypeSymbol pointer)
+                {
+                    appendType(pointer.PointedAtType, builder);
+                    builder.Append('*');
+                }
+                else if (type is FunctionPointerTypeSymbol functionPointer)
+                {
+                    appendFunctionPointerType(functionPointer, builder);
+                }
+                else if (type is DynamicTypeSymbol)
+                {
+                    builder.Append("System.Object");
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(type);
+                }
+            }
+
+            static void appendNamedType(TypeSymbol type, StringBuilder builder, NamedTypeSymbol namedType)
+            {
+                Debug.Assert(type.CustomModifierCount() == 0);
+
+                if (namedType.SpecialType == SpecialType.System_Void)
+                {
+                    builder.Append("void");
+                    return;
+                }
+
+                if (namedType.Name == "void")
+                {
+                    builder.Append("'void'");
+                    return;
+                }
+
+                // Note: in valid IL, we need a "class" or "valuetype" keyword in many contexts
+                appendNamespace(namedType.ContainingNamespace, builder);
+                appendContainingType(namedType, builder);
+                builder.Append(namedType.MetadataName);
+                appendTypeArguments(namedType, builder);
+            }
+
+            static void appendNamespace(NamespaceSymbol ns, StringBuilder builder)
+            {
+                if (ns is not null && !ns.IsGlobalNamespace)
+                {
+                    appendNamespace(ns.ContainingNamespace, builder);
+                    builder.Append(ns.Name);
+                    builder.Append('.');
+                }
+            }
+
+            static void appendContainingType(NamedTypeSymbol namedType, StringBuilder builder)
+            {
+                // Note: using slash for nested type to match CIL: ECMA-335 I.10.7.2
+                if (namedType.ContainingType is { } containingType)
+                {
+                    appendContainingType(containingType, builder);
+                    builder.Append(containingType.MetadataName);
+                    builder.Append('/');
+                }
+            }
+
+            static void appendTypeArguments(NamedTypeSymbol namedType, StringBuilder builder)
+            {
+                var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                namedType.GetAllTypeArgumentsNoUseSiteDiagnostics(typeArguments);
+                if (typeArguments.Count > 0)
+                {
+                    builder.Append('<');
+                    for (int i = 0; i < typeArguments.Count; i++)
+                    {
+                        if (i > 0)
+                        {
+                            builder.Append(", ");
+                        }
+
+                        appendType(typeArguments[i].Type, builder);
+                        Debug.Assert(typeArguments[i].CustomModifiers.IsEmpty);
+                    }
+
+                    builder.Append('>');
+                }
+
+                typeArguments.Free();
+            }
+
+            static void appendTypeParameterDeclaration(TypeParameterSymbol typeParameter, StringBuilder builder)
+            {
+                if (typeParameter.HasReferenceTypeConstraint)
+                {
+                    builder.Append("class ");
+                }
+                else if (typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
+                {
+                    builder.Append("valuetype ");
+                }
+
+                if (typeParameter.AllowsRefLikeType)
+                {
+                    builder.Append("byreflike ");
+                }
+
+                if (typeParameter.HasConstructorConstraint || typeParameter.HasValueTypeConstraint || typeParameter.HasUnmanagedTypeConstraint)
+                {
+                    builder.Append(".ctor ");
+                }
+
+                appendTypeParameterTypeConstraints(typeParameter, builder);
+
+                // Note: skipping identifier and variance
+                if (builder[builder.Length - 1] == ' ')
+                {
+                    builder.Remove(startIndex: builder.Length - 1, length: 1);
+                }
+            }
+
+            static void appendTypeParameterReference(TypeParameterSymbol typeParameter, StringBuilder builder)
+            {
+                if (typeParameter.ContainingType.IsExtension)
+                {
+                    builder.Append("!");
+                    builder.Append(StringExtensions.GetNumeral(typeParameter.Ordinal));
+                }
+                else
+                {
+                    // error scenario
+                    builder.Append("!");
+                    builder.Append(typeParameter.Name);
+                }
+            }
+
+            static void appendTypeParameterTypeConstraints(TypeParameterSymbol typeParameter, StringBuilder builder)
+            {
+                ImmutableArray<TypeWithAnnotations> typeConstraints = typeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty);
+                if (typeConstraints.IsEmpty && !typeParameter.HasUnmanagedTypeConstraint && !typeParameter.HasValueTypeConstraint)
+                {
+                    return;
+                }
+
+                var typeConstraintStrings = ArrayBuilder<string>.GetInstance(typeConstraints.Length);
+                foreach (var typeConstraint in typeConstraints)
+                {
+                    var constraintBuilder = PooledStringBuilder.GetInstance();
+                    appendType(typeConstraint.Type, constraintBuilder.Builder);
+                    typeConstraintStrings.Add(constraintBuilder.ToStringAndFree());
+                }
+
+                if (typeParameter.HasUnmanagedTypeConstraint)
+                {
+                    typeConstraintStrings.Add("System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType)");
+                }
+                else if (typeParameter.HasValueTypeConstraint)
+                {
+                    typeConstraintStrings.Add("System.ValueType");
+                }
+
+                typeConstraintStrings.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
+
+                builder.Append('(');
+                for (int i = 0; i < typeConstraintStrings.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append(typeConstraintStrings[i]);
+                }
+
+                typeConstraintStrings.Free();
+                builder.Append(")");
+            }
+
+            static void appendArrayType(ArrayTypeSymbol array, StringBuilder builder)
+            {
+                Debug.Assert(array.Sizes.IsEmpty && array.LowerBounds.IsDefault); // We only deal with source array types
+
+                appendType(array.ElementType, builder);
+                builder.Append('[');
+                for (int i = 1; i < array.Rank; i++)
+                {
+                    builder.Append(',');
+                }
+
+                builder.Append(']');
+            }
+
+            static void appendFunctionPointerType(FunctionPointerTypeSymbol functionPointer, StringBuilder builder)
+            {
+                builder.Append("method ");
+
+                // When calling convention is a single one of the four special calling conventions, we just use flags
+                // Otherwise, we use "unmanaged" flag and also add return modifiers below
+                var callingConvention = functionPointer.Signature.CallingConvention switch
+                {
+                    Cci.CallingConvention.Default => null, // managed is the default
+                    Cci.CallingConvention.Unmanaged => "unmanaged ",
+                    Cci.CallingConvention.CDecl => "unmanaged cdecl ",
+                    Cci.CallingConvention.Standard => "unmanaged stdcall ",
+                    Cci.CallingConvention.ThisCall => "unmanaged thiscall ",
+                    Cci.CallingConvention.FastCall => "unmanaged fastcall ",
+                    _ => throw ExceptionUtilities.UnexpectedValue(functionPointer.Signature.CallingConvention)
+                };
+
+                builder.Append(callingConvention);
+
+                appendType(functionPointer.Signature.ReturnType, builder);
+                if (functionPointer.Signature.RefKind != RefKind.None)
+                {
+                    builder.Append('&');
+                    appendModifiers(functionPointer.Signature.RefCustomModifiers, builder);
+                    Debug.Assert(functionPointer.Signature.ReturnTypeWithAnnotations.CustomModifiers.IsEmpty); // We're only dealing with source function pointers
+                }
+                else
+                {
+                    appendModifiers(functionPointer.Signature.ReturnTypeWithAnnotations.CustomModifiers, builder);
+                }
+
+                builder.Append(" *(");
+                var parameters = functionPointer.Signature.Parameters;
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    ParameterSymbol parameter = parameters[i];
+                    appendType(parameter.Type, builder);
+                    Debug.Assert(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+                    if (parameter.RefKind != RefKind.None)
+                    {
+                        builder.Append('&');
+                        appendModifiers(parameter.RefCustomModifiers, builder);
+                    }
+                }
+
+                builder.Append(')');
+            }
+
+            static void appendModifiers(ImmutableArray<CustomModifier> customModifiers, StringBuilder builder)
+            {
+                // Order of modifiers is significant in metadata so we preserve the order.
+                foreach (CustomModifier modifier in customModifiers)
+                {
+                    var modifierBuilder = PooledStringBuilder.GetInstance();
+                    modifierBuilder.Builder.Append(modifier.IsOptional ? " modopt(" : " modreq(");
+
+                    appendType(((CSharpCustomModifier)modifier).ModifierSymbol, modifierBuilder.Builder);
+                    modifierBuilder.Builder.Append(')');
+
+                    builder.Append(modifierBuilder.ToStringAndFree());
+                }
             }
         }
 

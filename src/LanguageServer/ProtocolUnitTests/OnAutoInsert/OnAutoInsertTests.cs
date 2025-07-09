@@ -22,18 +22,14 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_CommentCharacter(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("/", @"class A
 {
     ///{|type:|}
     void M()
     {
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     /// <summary>
 /// $0
@@ -41,23 +37,17 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     void M()
     {
     }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter_WithComment(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_CommentCharacter_WithComment(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("/", @"class A
 {
     ///{|type:|} This is an existing comment
     void M()
     {
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     /// <summary>
 /// $0This is an existing comment
@@ -65,23 +55,17 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     void M()
     {
     }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter_WithComment_NoSpace(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_CommentCharacter_WithComment_NoSpace(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("/", @"class A
 {
     ///{|type:|}This is an existing comment
     void M()
     {
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     /// <summary>
 /// $0This is an existing comment
@@ -89,43 +73,31 @@ public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     void M()
     {
     }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacter_VB(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"Class A
+    public Task OnAutoInsert_CommentCharacter_VB(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("'", @"Class A
     '''{|type:|}
     Sub M()
     End Sub
-End Class";
-        var expected =
-@"Class A
+End Class", @"Class A
     ''' <summary>
 ''' $0
 ''' </summary>
     Sub M()
     End Sub
-End Class";
-        await VerifyMarkupAndExpected("'", markup, expected, mutatingLspWorkspace, languageName: LanguageNames.VisualBasic);
-    }
+End Class", mutatingLspWorkspace, languageName: LanguageNames.VisualBasic);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_ParametersAndReturns(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_ParametersAndReturns(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("/", @"class A
 {
     ///{|type:|}
     string M(int foo, bool bar)
     {
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     /// <summary>
 /// $0
@@ -136,43 +108,31 @@ End Class";
     string M(int foo, bool bar)
     {
     }
-}";
-        await VerifyMarkupAndExpected("/", markup, expected, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_CommentCharacterInsideMethod_Ignored(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_CommentCharacterInsideMethod_Ignored(bool mutatingLspWorkspace)
+        => VerifyNoResult("/", @"class A
 {
     void M()
     {
         ///{|type:|}
     }
-}";
-        await VerifyNoResult("/", markup, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_VisualBasicCommentCharacter_Ignored(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_VisualBasicCommentCharacter_Ignored(bool mutatingLspWorkspace)
+        => VerifyNoResult("'", @"class A
 {
     '''{|type:|}
     void M()
     {
     }
-}";
-        await VerifyNoResult("'", markup, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_EnterKey(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_EnterKey(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("\n", @"class A
 {
     /// <summary>
     /// Foo
@@ -181,9 +141,7 @@ End Class";
     void M()
     {
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     /// <summary>
     /// Foo
@@ -192,15 +150,11 @@ End Class";
     void M()
     {
     }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_EnterKey2(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_EnterKey2(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("\n", @"class A
 {
     /// <summary>
     /// Foo
@@ -209,9 +163,7 @@ End Class";
     void M()
     {
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     /// <summary>
     /// Foo
@@ -220,24 +172,18 @@ End Class";
     void M()
     {
     }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("\n", @"class A
 {
     ///
 {|type:|}
     string M(int foo, bool bar)
     {
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     /// <summary>
     /// $0
@@ -248,70 +194,46 @@ End Class";
     string M(int foo, bool bar)
     {
     }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
-    {
-        // The test starts with the closing brace already on a new line.
-        // In LSP, hitting enter will first trigger a didChange event for the new line character
-        // (bringing the server text to the form below) and then trigger OnAutoInsert
-        // for the new line character.
-        var markup =
-@"class A
+    public Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("\n", @"class A
 {
     void M() {{|type:|}
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     void M()
     {
         $0
     }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
-    }
+}", mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormattingWithTabs(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_BraceFormattingWithTabs(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("\n", @"class A
 {
     void M() {{|type:|}
     }
-}";
-        // Use show whitespace when modifying the expected value.
-        // The method braces and caret location should be indented with tabs.
-        var expected =
-@"class A
+}", @"class A
 {
     void M()
 	{
 		$0
 	}
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
-    }
+}", mutatingLspWorkspace, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormattingInsideMethod(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_BraceFormattingInsideMethod(bool mutatingLspWorkspace)
+        => VerifyMarkupAndExpected("\n", @"class A
 {
     void M()
     {
         if (true) {{|type:|}
         }
     }
-}";
-        var expected =
-@"class A
+}", @"class A
 {
     void M()
     {
@@ -320,61 +242,39 @@ End Class";
             $0
         }
     }
-}";
-        await VerifyMarkupAndExpected("\n", markup, expected, mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
-    }
+}", mutatingLspWorkspace, serverKind: WellKnownLspServerKinds.RazorLspServer);
 
     [Theory, CombinatorialData]
-    public async Task OnAutoInsert_BraceFormattingNoResultInInterpolation(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"class A
+    public Task OnAutoInsert_BraceFormattingNoResultInInterpolation(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", @"class A
 {
     void M()
     {
         var s = $""Hello {{|type:|}
         }
-}";
-        await VerifyNoResult("\n", markup, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
-    public async Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines(bool mutatingLspWorkspace)
-    {
-        // The test starts with the closing brace already on a new line.
-        // In LSP, hitting enter will first trigger a didChange event for the new line character
-        // (bringing the server text to the form below) and then trigger OnAutoInsert
-        // for the new line character.
-        var markup =
-@"class A
+    public Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", @"class A
 {
     void M()
     {
         
         {|type:|}
     }
-}";
-        await VerifyNoResult("\n", markup, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
-    public async Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces(bool mutatingLspWorkspace)
-    {
-        // The test starts with the closing brace already on a new line.
-        // In LSP, hitting enter will first trigger a didChange event for the new line character
-        // (bringing the server text to the form below) and then trigger OnAutoInsert
-        // for the new line character.
-        var markup =
-@"class A
+    public Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces(bool mutatingLspWorkspace)
+        => VerifyNoResult("\n", @"class A
 {
     void M()
     {{|type:|}
 
 
     }
-}";
-        await VerifyNoResult("\n", markup, mutatingLspWorkspace);
-    }
+}", mutatingLspWorkspace);
 
     private async Task VerifyMarkupAndExpected(
         string characterTyped,

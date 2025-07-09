@@ -214,16 +214,6 @@ class {|caret:ABC|}
                 </Project>
             </Workspace>
             """;
-
-        var expectedText = """
-            class C
-            {
-                private static readonly int value = 10;
-
-                public static int Value => value;
-            }
-            """;
-
         await using var testLspServer = await CreateXmlTestLspServerAsync(xmlWorkspace, mutatingLspWorkspace);
         var titlePath = new string[] { string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value") };
         var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
@@ -246,7 +236,14 @@ class {|caret:ABC|}
         var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);
         var edits = textDocumentEdit[0].Edits.Select(e => (LSP.TextEdit)e.Value!).ToArray();
         var updatedText = ApplyTextEdits(edits, originalText);
-        Assert.Equal(expectedText, updatedText);
+        Assert.Equal("""
+            class C
+            {
+                private static readonly int value = 10;
+
+                public static int Value => value;
+            }
+            """, updatedText);
 
     }
 

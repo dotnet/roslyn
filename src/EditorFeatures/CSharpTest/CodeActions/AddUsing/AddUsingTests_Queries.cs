@@ -14,9 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 public sealed partial class AddUsingTests
 {
     [Fact]
-    public async Task TestSimpleQuery()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleQuery()
+        => TestInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 
@@ -38,12 +37,10 @@ class Program
         var q = from x in args
                 select x}
 }");
-    }
 
     [Fact]
-    public async Task TestSimpleWhere()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestSimpleWhere()
+        => TestInRegularAndScriptAsync(
 @"class Test
 {
     public void SimpleWhere()
@@ -74,5 +71,4 @@ class Test
                       select n;
     }
 }");
-    }
 }

@@ -21,9 +21,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
     public class SymbolIsBannedInAnalyzersTests
     {
         [Fact]
-        public async Task UseBannedApi_EnforcementEnabled_CSharp()
-        {
-            await new VerifyCS.Test
+        public Task UseBannedApi_EnforcementEnabled_CSharp()
+            => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 TestCode = @"
@@ -56,12 +55,10 @@ build_property.EnforceExtendedAnalyzerRules = true
 "), },
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task UseBannedApi_EnforcementEnabled_Generator_CSharp()
-        {
-            await new VerifyCS.Test
+        public Task UseBannedApi_EnforcementEnabled_Generator_CSharp()
+            => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 TestCode = @"
@@ -98,12 +95,10 @@ build_property.EnforceExtendedAnalyzerRules = true
 "), },
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task UseBannedApi_EnforcementNotSpecified_CSharp()
-        {
-            await new VerifyCS.Test
+        public Task UseBannedApi_EnforcementNotSpecified_CSharp()
+            => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 TestCode = @"
@@ -129,12 +124,10 @@ class C
                     VerifyCS.Diagnostic("RS1036").WithSpan(7, 7, 7, 17).WithArguments("MyAnalyzer"),
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task UseBannedApi_EnforcementDisabled_CSharp()
-        {
-            await new VerifyCS.Test
+        public Task UseBannedApi_EnforcementDisabled_CSharp()
+            => new VerifyCS.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
                 TestCode = @"
@@ -164,12 +157,10 @@ build_property.EnforceExtendedAnalyzerRules = false
                     },
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task UseBannedApi_EnforcementEnabled_Basic()
-        {
-            await new VerifyVB.Test
+        public Task UseBannedApi_EnforcementEnabled_Basic()
+            => new VerifyVB.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest,
                 TestCode = @"
@@ -201,12 +192,10 @@ build_property.EnforceExtendedAnalyzerRules = true
                     },
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task UseBannedApi_EnforcementNotSpecified_Basic()
-        {
-            await new VerifyVB.Test
+        public Task UseBannedApi_EnforcementNotSpecified_Basic()
+            => new VerifyVB.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest,
                 TestCode = @"
@@ -230,12 +219,10 @@ End Class
                     VerifyVB.Diagnostic("RS1036").WithSpan(7, 7, 7, 27).WithArguments("MyDiagnosticAnalyzer"),
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task UseBannedApi_EnforcementDisabled_Basic()
-        {
-            await new VerifyVB.Test
+        public Task UseBannedApi_EnforcementDisabled_Basic()
+            => new VerifyVB.Test
             {
                 LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Latest,
                 TestCode = @"
@@ -262,12 +249,10 @@ build_property.EnforceExtendedAnalyzerRules = false
                     },
                 }
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task UseBannedApi_ISourceGenerator()
-        {
-            await new VerifyCS.Test
+        public Task UseBannedApi_ISourceGenerator()
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.Default.WithPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis.Common", "4.5.0"))),
                 TestCode = """
@@ -306,6 +291,5 @@ build_property.EnforceExtendedAnalyzerRules = false
                     VerifyCS.Diagnostic("RS1035").WithLocation(1).WithArguments("GeneratorExecutionContext", ": Non-incremental source generators should not be used, implement IIncrementalGenerator instead"),
                 }
             }.RunAsync();
-        }
     }
 }

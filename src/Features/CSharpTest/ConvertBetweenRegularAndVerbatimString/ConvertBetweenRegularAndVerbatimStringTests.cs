@@ -20,9 +20,8 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
         => new ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider();
 
     [Fact]
-    public async Task EmptyRegularString()
-    {
-        await TestMissingAsync("""
+    public Task EmptyRegularString()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -31,12 +30,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithMissingCloseQuote()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithMissingCloseQuote()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -45,12 +42,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithMissingCloseQuote()
-    {
-        await TestMissingAsync("""
+    public Task VerbatimStringWithMissingCloseQuote()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -59,12 +54,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task EmptyVerbatimString()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task EmptyVerbatimString()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -82,12 +75,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestLeadingAndTrailingTrivia()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task TestLeadingAndTrailingTrivia()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -109,12 +100,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithBasicText()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithBasicText()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -123,12 +112,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithBasicText()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task VerbatimStringWithBasicText()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -146,12 +133,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithUnicodeEscape()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithUnicodeEscape()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -160,12 +145,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithEscapedNewLine()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task RegularStringWithEscapedNewLine()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -184,12 +167,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithNewLine()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task VerbatimStringWithNewLine()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -208,12 +189,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithEscapedNull()
-    {
-        await TestMissingAsync("""
+    public Task RegularStringWithEscapedNull()
+        => TestMissingAsync("""
             class Test
             {
                 void Method()
@@ -222,12 +201,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task RegularStringWithEscapedQuote()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task RegularStringWithEscapedQuote()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -245,12 +222,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task VerbatimStringWithEscapedQuote()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task VerbatimStringWithEscapedQuote()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -268,12 +243,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotEscapeCurlyBracesInRegularString()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task DoNotEscapeCurlyBracesInRegularString()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -292,12 +265,10 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task DoNotEscapeCurlyBracesInVerbatimString()
-    {
-        await TestInRegularAndScript1Async("""
+    public Task DoNotEscapeCurlyBracesInVerbatimString()
+        => TestInRegularAndScript1Async("""
             class Test
             {
                 void Method()
@@ -316,5 +287,4 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                 }
             }
             """);
-    }
 }

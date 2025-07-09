@@ -109,8 +109,7 @@ namespace N
     {
         var scopeString = scope != null ? $@", {scope}" : string.Empty;
         var targetString = target != null ? $@", {target}" : string.Empty;
-
-        var input = $@"
+        await VerifyCS.VerifyCodeFixAsync($@"
 [{attributeTarget}: [|System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""Id: Title"", Justification = ""Pending""{scopeString}{targetString})|]]
 
 namespace N
@@ -121,9 +120,7 @@ namespace N
         public int P {{ get; }}
         public void M() {{ }}
     }}
-}}";
-
-        var fixedCode = $@"
+}}", $@"
 
 namespace N
 {{
@@ -133,8 +130,7 @@ namespace N
         public int P {{ get; }}
         public void M() {{ }}
     }}
-}}";
-        await VerifyCS.VerifyCodeFixAsync(input, fixedCode);
+}}");
     }
 
     [Fact]
@@ -143,8 +139,7 @@ namespace N
         var attributePrefix = @"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""Id: Title"", Justification = ""Pending""";
         var validSuppression = $@"{attributePrefix}, Scope = ""member"", Target = ""~T:C"")";
         var invalidSuppression = $@"[|{attributePrefix}, Scope = ""member"", Target = """")|]";
-
-        var input = $@"
+        await VerifyCS.VerifyCodeFixAsync($@"
 [assembly: {validSuppression}]
 [assembly: {invalidSuppression}]
 [assembly: {validSuppression}, {validSuppression}]
@@ -154,9 +149,7 @@ namespace N
 [assembly: {invalidSuppression}, {validSuppression}, {invalidSuppression}, {validSuppression}]
 
 class C {{ }}
-";
-
-        var fixedCode = $@"
+", $@"
 [assembly: {validSuppression}]
 [assembly: {validSuppression}, {validSuppression}]
 [assembly: {validSuppression}]
@@ -164,8 +157,7 @@ class C {{ }}
 [assembly: {validSuppression}, {validSuppression}]
 
 class C {{ }}
-";
-        await VerifyCS.VerifyCodeFixAsync(input, fixedCode);
+");
     }
 
     [Theory]

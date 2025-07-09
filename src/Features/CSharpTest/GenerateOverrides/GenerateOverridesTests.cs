@@ -21,9 +21,8 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
         => new GenerateOverridesCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-    public async Task Test1()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task Test1()
+        => TestWithPickMembersDialogAsync(
             """
             class C
             {
@@ -49,13 +48,11 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """, ["Equals", "GetHashCode", "ToString"]);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-    public async Task TestAtEndOfFile()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestAtEndOfFile()
+        => TestWithPickMembersDialogAsync(
             """
             class C[||]
             """,
@@ -79,13 +76,11 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
             }
 
             """, ["Equals", "GetHashCode", "ToString"]);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/48295")]
-    public async Task TestOnRecordWithSemiColon()
-    {
-        await TestWithPickMembersDialogAsync("""
+    public Task TestOnRecordWithSemiColon()
+        => TestWithPickMembersDialogAsync("""
             record C[||];
             """, """
             record C
@@ -102,13 +97,11 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
             }
 
             """, ["GetHashCode", "ToString"]);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/17698")]
-    public async Task TestRefReturns()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestRefReturns()
+        => TestWithPickMembersDialogAsync(
             """
             using System;
 
@@ -150,12 +143,10 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """, ["X", "Y", "this[]"]);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-    public async Task TestInitOnlyProperty()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestInitOnlyProperty()
+        => TestWithPickMembersDialogAsync(
             """
             class Base
             {
@@ -178,12 +169,10 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                 public override int Property { init => base.Property = value; }
             }
             """, ["Property"]);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-    public async Task TestInitOnlyIndexer()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestInitOnlyIndexer()
+        => TestWithPickMembersDialogAsync(
             """
             class Base
             {
@@ -206,39 +195,33 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                 public override int this[int i] { init => base[i] = value; }
             }
             """, ["this[]"]);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/21601")]
-    public async Task TestMissingInStaticClass1()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInStaticClass1()
+        => TestMissingAsync(
             """
             static class C
             {
                 [||]
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/21601")]
-    public async Task TestMissingInStaticClass2()
-    {
-        await TestMissingAsync(
+    public Task TestMissingInStaticClass2()
+        => TestMissingAsync(
             """
             static class [||]C
             {
 
             }
             """);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/53012")]
-    public async Task TestNullableTypeParameter()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestNullableTypeParameter()
+        => TestWithPickMembersDialogAsync(
             """
             class C
             {
@@ -266,12 +249,10 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                 }
             }
             """, ["M"]);
-    }
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-    public async Task TestRequiredProperty()
-    {
-        await TestWithPickMembersDialogAsync(
+    public Task TestRequiredProperty()
+        => TestWithPickMembersDialogAsync(
             """
             class Base
             {
@@ -294,5 +275,4 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                 public override required int Property { get => base.Property; set => base.Property = value; }
             }
             """, ["Property"]);
-    }
 }

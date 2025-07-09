@@ -27,9 +27,8 @@ public sealed partial class UseIsNullCheckForCastAndEqualityOperatorTests : Abst
         => (new CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer(), new CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider());
 
     [Fact]
-    public async Task TestEquality()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEquality()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -54,12 +53,10 @@ public sealed partial class UseIsNullCheckForCastAndEqualityOperatorTests : Abst
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
-    public async Task TestIsNullTitle()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task TestIsNullTitle()
+        => TestExactActionSetOfferedAsync(
             """
             using System;
 
@@ -73,12 +70,10 @@ public sealed partial class UseIsNullCheckForCastAndEqualityOperatorTests : Abst
             }
             """,
 [CSharpAnalyzersResources.Use_is_null_check]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
-    public async Task TestIsObjectTitle()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task TestIsObjectTitle()
+        => TestExactActionSetOfferedAsync(
             """
             using System;
 
@@ -93,12 +88,10 @@ public sealed partial class UseIsNullCheckForCastAndEqualityOperatorTests : Abst
             """,
 [CSharpAnalyzersResources.Use_is_object_check],
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
-    public async Task TestIsNotNullTitle()
-    {
-        await TestExactActionSetOfferedAsync(
+    public Task TestIsNotNullTitle()
+        => TestExactActionSetOfferedAsync(
             """
             using System;
 
@@ -113,12 +106,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
             """,
 [CSharpAnalyzersResources.Use_is_not_null_check],
 new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
-    }
 
     [Fact]
-    public async Task TestEqualitySwapped()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestEqualitySwapped()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -143,12 +134,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotEquality_CSharp8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNotEquality_CSharp8()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -173,12 +162,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
-    }
 
     [Fact]
-    public async Task TestNotEquality_CSharp9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNotEquality_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -203,12 +190,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact]
-    public async Task TestNotEqualitySwapped_CSharp8()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNotEqualitySwapped_CSharp8()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -233,12 +218,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
-    }
 
     [Fact]
-    public async Task TestNotEqualitySwapped_CSharp9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestNotEqualitySwapped_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -263,12 +246,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact]
-    public async Task TestMissingPreCSharp7()
-    {
-        await TestMissingAsync(
+    public Task TestMissingPreCSharp7()
+        => TestMissingAsync(
             """
             using System;
 
@@ -281,12 +262,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """, parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-    }
 
     [Fact]
-    public async Task TestOnlyForObjectCast()
-    {
-        await TestMissingAsync(
+    public Task TestOnlyForObjectCast()
+        => TestMissingAsync(
             """
             using System;
 
@@ -299,12 +278,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAll1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -335,12 +312,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAllNested1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFixAllNested1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -365,12 +340,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia1()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -395,12 +368,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestTrivia2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestTrivia2()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -425,12 +396,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestConstrainedTypeParameter()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestConstrainedTypeParameter()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -455,12 +424,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestUnconstrainedTypeParameter()
-    {
-        await TestMissingAsync(
+    public Task TestUnconstrainedTypeParameter()
+        => TestMissingAsync(
             """
             using System;
 
@@ -473,12 +440,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestComplexExpr()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestComplexExpr()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -503,12 +468,10 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestNotOnDefault()
-    {
-        await TestMissingAsync(
+    public Task TestNotOnDefault()
+        => TestMissingAsync(
             """
             using System;
 
@@ -521,5 +484,4 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """);
-    }
 }

@@ -25,9 +25,8 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
         => (null, new CSharpAddAnonymousTypeMemberNameCodeFixProvider());
 
     [Fact]
-    public async Task Test1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task Test1()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -46,12 +45,10 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestExistingName()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestExistingName()
+        => TestInRegularAndScript1Async(
             """
             class C
             {
@@ -70,12 +67,10 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestFixAll1()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll1()
+        => TestInRegularAndScript1Async(
         """
         class C
         {
@@ -94,12 +89,10 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task TestFixAll2()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll2()
+        => TestInRegularAndScript1Async(
         """
         class C
         {
@@ -118,12 +111,10 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
             }
         }
         """);
-    }
 
     [Fact]
-    public async Task TestFixAll3()
-    {
-        await TestInRegularAndScript1Async(
+    public Task TestFixAll3()
+        => TestInRegularAndScript1Async(
         """
         class C
         {
@@ -142,5 +133,4 @@ public sealed class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticPr
             }
         }
         """);
-    }
 }

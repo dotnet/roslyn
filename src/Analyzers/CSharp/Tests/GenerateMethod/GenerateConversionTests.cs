@@ -22,9 +22,8 @@ public sealed class GenerateConversionTests(ITestOutputHelper logger)
         => (null, new GenerateConversionCodeFixProvider());
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionGenericClass()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateImplicitConversionGenericClass()
+        => TestInRegularAndScriptAsync(
 @"class Program
 {
     void Test(int[] a)
@@ -53,12 +52,10 @@ class C<T>
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionClass()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateImplicitConversionClass()
+        => TestInRegularAndScriptAsync(
 @"class Program
 {
     void Test(int[] a)
@@ -87,12 +84,10 @@ class C
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact]
-    public async Task TestGenerateImplicitConversionClass_CodeStyle()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateImplicitConversionClass_CodeStyle()
+        => TestInRegularAndScriptAsync(
 @"class Program
 {
     void Test(int[] a)
@@ -119,12 +114,10 @@ class C
     public static implicit operator C(int v) => throw new NotImplementedException();
 }",
 options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement));
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionAwaitExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateImplicitConversionAwaitExpression()
+        => TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -152,12 +145,10 @@ class Program
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateImplicitConversionTargetTypeNotInSource()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateImplicitConversionTargetTypeNotInSource()
+        => TestInRegularAndScriptAsync(
 @"class Digit
 {
     public Digit(double d)
@@ -201,12 +192,10 @@ class Program
         double num = dig;
     }
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionGenericClass()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateExplicitConversionGenericClass()
+        => TestInRegularAndScriptAsync(
 @"class Program
 {
     void Test(int[] a)
@@ -235,12 +224,10 @@ class C<T>
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionClass()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateExplicitConversionClass()
+        => TestInRegularAndScriptAsync(
 @"class Program
 {
     void Test(int[] a)
@@ -269,12 +256,10 @@ class C
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionAwaitExpression()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateExplicitConversionAwaitExpression()
+        => TestInRegularAndScriptAsync(
 @"using System;
 using System.Threading.Tasks;
 
@@ -302,12 +287,10 @@ class Program
         throw new NotImplementedException();
     }
 }");
-    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-    public async Task TestGenerateExplicitConversionTargetTypeNotInSource()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestGenerateExplicitConversionTargetTypeNotInSource()
+        => TestInRegularAndScriptAsync(
 @"class Digit
 {
     public Digit(double d)
@@ -351,5 +334,4 @@ class Program
         double num = (double)dig;
     }
 }");
-    }
 }

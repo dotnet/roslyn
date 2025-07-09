@@ -21,7 +21,15 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
     [Fact]
     public async Task AddParameter_Formatting_KeepCountsPerLine()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(5),
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(3),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class C
 {
     void $$Method(int a, int b, int c,
@@ -32,16 +40,7 @@ class C
             2, 3,
             4, 5, 6);
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(5),
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(3),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class C
 {
     void Method(int f, int e, int d,
@@ -52,14 +51,20 @@ class C
             5, 4,
             34, 3, 2, 1);
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
     public async Task AddParameter_Formatting_KeepTrivia()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(3),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(5)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class C
 {
     void $$Method(
@@ -71,15 +76,7 @@ class C
             1, 2, 3,
             4, 5, 6);
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(3),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(5)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class C
 {
     void Method(
@@ -91,14 +88,20 @@ class C
             2, 3, 4,
             34, 5, 6);
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
     public async Task AddParameter_Formatting_KeepTrivia_WithArgumentNames()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(2),
+            new AddedParameterOrExistingIndex(3),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(4),
+            new AddedParameterOrExistingIndex(5)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class C
 {
     void $$Method(
@@ -110,15 +113,7 @@ class C
             a: 1, b: 2, c: 3,
             d: 4, e: 5, f: 6);
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(2),
-            new AddedParameterOrExistingIndex(3),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(4),
-            new AddedParameterOrExistingIndex(5)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class C
 {
     void Method(
@@ -130,14 +125,17 @@ class C
             b: 2, c: 3, d: 4,
             bb: 34, e: 5, f: 6);
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact]
     public async Task AddParameter_Formatting_Method()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class C
 {
     void $$Method(int a, 
@@ -146,12 +144,7 @@ class C
         Method(1,
             2);
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class C
 {
     void Method(int b,
@@ -160,14 +153,17 @@ class C
         Method(2,
             34, 1);
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact]
     public async Task AddParameter_Formatting_Constructor()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class SomeClass
 {
     $$SomeClass(int a,
@@ -176,12 +172,7 @@ class SomeClass
         new SomeClass(1,
             2);
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class SomeClass
 {
     SomeClass(int b,
@@ -190,14 +181,17 @@ class SomeClass
         new SomeClass(2,
             34, 1);
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact]
     public async Task AddParameter_Formatting_Indexer()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class SomeClass
 {
     public int $$this[int a,
@@ -209,12 +203,7 @@ class SomeClass
                 2];
         }
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class SomeClass
 {
     public int this[int b,
@@ -226,14 +215,17 @@ class SomeClass
                 34, 1];
         }
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact]
     public async Task AddParameter_Formatting_Delegate()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class SomeClass
 {
     delegate void $$MyDelegate(int a,
@@ -246,12 +238,7 @@ class SomeClass
         myDel(1,
             2);
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class SomeClass
 {
     delegate void MyDelegate(int b,
@@ -264,14 +251,17 @@ class SomeClass
         myDel(2,
             34, 1);
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact]
     public async Task AddParameter_Formatting_AnonymousMethod()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class SomeClass
 {
     delegate void $$MyDelegate(int a,
@@ -285,12 +275,7 @@ class SomeClass
             // Nothing
         };
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class SomeClass
 {
     delegate void MyDelegate(int b,
@@ -304,14 +289,17 @@ class SomeClass
             // Nothing
         };
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact]
     public async Task AddParameter_Formatting_ConstructorInitializers()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 class B
 {
     public $$B(int x, int y) { }
@@ -325,12 +313,7 @@ class D : B
     public D() : base(1,
         2)
     { }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 class B
 {
     public B(int y, byte bb, int x) { }
@@ -344,176 +327,161 @@ class D : B
     public D() : base(2,
         34, 1)
     { }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact]
     public async Task AddParameter_Formatting_Attribute()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(0)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 [Custom(1,
     2)]
 class CustomAttribute : System.Attribute
 {
     public $$CustomAttribute(int x, int y) { }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(0)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 [Custom(2,
     34, 1)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int y, byte bb, int x) { }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
     public async Task AddParameter_Formatting_Attribute_KeepTrivia()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte") };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 [Custom(
     1, 2)]
 class CustomAttribute : System.Attribute
 {
     public $$CustomAttribute(int x, int y) { }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte") };
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 [Custom(
     2, 34)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int y, byte bb) { }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
     public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingSecond()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte")};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 [Custom(
     1, 2)]
 class CustomAttribute : System.Attribute
 {
     public $$CustomAttribute(int x, int y) { }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte")};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 [Custom(
     1, 34)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int x, byte bb) { }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
     public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingBothAddingNew()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte")};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 [Custom(
     1, 2)]
 class CustomAttribute : System.Attribute
 {
     public $$CustomAttribute(int x, int y) { }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte")};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 [Custom(
     34)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(byte bb) { }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/28156")]
     public async Task AddParameter_Formatting_Attribute_KeepTrivia_RemovingBeforeNewlineComma()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(1),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
+            new AddedParameterOrExistingIndex(2)};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"
 [Custom(1
     , 2, 3)]
 class CustomAttribute : System.Attribute
 {
     public $$CustomAttribute(int x, int y, int z) { }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(1),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte"),
-            new AddedParameterOrExistingIndex(2)};
-        var expectedUpdatedCode = @"
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 [Custom(2, 34, 3)]
 class CustomAttribute : System.Attribute
 {
     public CustomAttribute(int y, byte bb, int z) { }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946220")]
     public async Task AddParameter_Formatting_LambdaAsArgument()
     {
-        var markup = @"class C
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(0),
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte")};
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, @"class C
 {
     void M(System.Action<int, int> f, int z$$)
     {
         M((x, y) => System.Console.WriteLine(x + y), 5);
     }
-}";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(0),
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "byte", "bb", CallSiteKind.Value, "34"), "byte")};
-        var expectedUpdatedCode = @"class C
+}", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"class C
 {
     void M(System.Action<int, int> f, byte bb)
     {
         M((x, y) => System.Console.WriteLine(x + y), 34);
     }
-}";
-        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+}");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46595")]
     public async Task AddParameter_Formatting_PreserveIndentBraces()
     {
-        var markup =
-@"public class C
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
+        await TestChangeSignatureViaCommandAsync(
+            LanguageNames.CSharp, @"public class C
     {
     public void M$$()
         {
         }
-    }";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
-        var expectedUpdatedCode =
-@"public class C
+    }", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"public class C
     {
     public void M(int a)
         {
         }
-    }";
-        await TestChangeSignatureViaCommandAsync(
-            LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode,
+    }",
             options: Option(CSharpFormattingOptions2.IndentBraces, true));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/46595")]
     public async Task AddParameter_Formatting_PreserveIndentBraces_Editorconfig()
     {
-        var markup = @"
+        var updatedSignature = new[] {
+            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
+        await TestChangeSignatureViaCommandAsync("XML", @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath=""file.cs"">
@@ -528,18 +496,13 @@ public class C
 csharp_indent_braces = true
         </AnalyzerConfigDocument>
     </Project>
-</Workspace>";
-        var updatedSignature = new[] {
-            new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "a", CallSiteKind.Value, "12345"), "int")};
-        var expectedUpdatedCode = @"
+</Workspace>", updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: @"
 public class C
     {
     public void M(int a)
         {
         }
     }
-        ";
-
-        await TestChangeSignatureViaCommandAsync("XML", markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        ");
     }
 }

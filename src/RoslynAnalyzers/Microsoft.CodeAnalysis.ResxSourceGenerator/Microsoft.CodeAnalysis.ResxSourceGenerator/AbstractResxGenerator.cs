@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator
                     }
                     catch (Exception ex)
                     {
-                        var exceptionLines = ex.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                        var exceptionLines = ex.ToString().Split([Environment.NewLine], StringSplitOptions.None);
                         var text = string.Join("", exceptionLines.Select(line => "#error " + line + Environment.NewLine));
                         var errorText = SourceText.From(text, Encoding.UTF8, SourceHashAlgorithm.Sha256);
                         context.AddSource($"{resourceInformation.ResourceHintName}.Error", errorText);
@@ -768,7 +768,7 @@ Imports System.Reflection
 
                 var escapedTrimmedValue = new XElement("summary", value).ToString();
 
-                foreach (var line in escapedTrimmedValue.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+                foreach (var line in escapedTrimmedValue.Split(["\r\n", "\r", "\n"], StringSplitOptions.None))
                 {
                     strings.Append(memberIndent).Append(docCommentStart).Append(' ');
                     strings.AppendLine(line);

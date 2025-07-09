@@ -182,12 +182,8 @@ Script directives:
     }
 
     [IdeFact]
-    public async Task VerifyHashCls()
-    {
-        await TestServices.InteractiveWindow.SubmitTextAsync("#cls", HangMitigatingCancellationToken);
-        // TODO implement GetErrorListErrorCount: https://github.com/dotnet/roslyn/issues/18035
-        // VerifyErrorCount(0);
-    }
+    public Task VerifyHashCls()
+        => TestServices.InteractiveWindow.SubmitTextAsync("#cls", HangMitigatingCancellationToken);
 
     [IdeFact]
     public async Task VerifyHashReset()

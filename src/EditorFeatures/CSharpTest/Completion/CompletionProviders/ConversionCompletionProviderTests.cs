@@ -69,10 +69,8 @@ public sealed class ConversionCompletionProviderTests : AbstractCSharpCompletion
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionIsNotOfferedAfterNumberLiteral()
-    {
-        // User may want to type a floating point literal.
-        await VerifyNoItemsExistAsync("""
+    public Task ExplicitUserDefinedConversionIsNotOfferedAfterNumberLiteral()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static explicit operator float(C c) => 0;
@@ -86,12 +84,10 @@ public sealed class ConversionCompletionProviderTests : AbstractCSharpCompletion
                 }
             }
             """, SourceCodeKind.Regular);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionIsSuggestedAfterDot()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ExplicitUserDefinedConversionIsSuggestedAfterDot()
+        => VerifyItemExistsAsync("""
             public class C
             {
                 public static explicit operator float(C c) => 0;
@@ -106,12 +102,10 @@ public sealed class ConversionCompletionProviderTests : AbstractCSharpCompletion
                 }
             }
             """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionIsSuggestedIfMemberNameIsPartiallyWritten()
-    {
-        await VerifyItemExistsAsync("""
+    public Task ExplicitUserDefinedConversionIsSuggestedIfMemberNameIsPartiallyWritten()
+        => VerifyItemExistsAsync("""
             public class C
             {
                 public void fly() { }
@@ -127,7 +121,6 @@ public sealed class ConversionCompletionProviderTests : AbstractCSharpCompletion
                 }
             }
             """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("c.$$", true)]
@@ -167,9 +160,8 @@ public class Program
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionIsNotSuggestedOnStaticAccess()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task ExplicitUserDefinedConversionIsNotSuggestedOnStaticAccess()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static explicit operator float(C c) => 0;
@@ -183,12 +175,10 @@ public class Program
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionIsNotSuggestedInNameofContext()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task ExplicitUserDefinedConversionIsNotSuggestedInNameofContext()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static explicit operator float(C c) => 0;
@@ -203,7 +193,6 @@ public class Program
                 }
             }
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("", "Nested1.C", "Nested2.C")]
@@ -281,9 +270,8 @@ namespace N1
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionIgnoresConversionLikeMethods()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task ExplicitUserDefinedConversionIgnoresConversionLikeMethods()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static bool op_Explicit(C c) => false;
@@ -298,12 +286,10 @@ namespace N1
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionIgnoreMalformedOperators()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task ExplicitUserDefinedConversionIgnoreMalformedOperators()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static explicit operator int() => 0;
@@ -318,12 +304,10 @@ namespace N1
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionFromOtherTypeToTargetIsNotSuggested()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task ExplicitUserDefinedConversionFromOtherTypeToTargetIsNotSuggested()
+        => VerifyNoItemsExistAsync("""
             public class C
             {
                 public static explicit operator C(D d) => null;
@@ -341,13 +325,10 @@ namespace N1
                 }
             }
             """);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitConversionOfNullableStructToNullableStructIsOffered()
-    {
-        // Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
-        await VerifyItemExistsAsync("""
+    public Task ExplicitConversionOfNullableStructToNullableStructIsOffered()
+        => VerifyItemExistsAsync("""
             public struct S {
                 public static explicit operator int(S _) => 0;
             }
@@ -360,7 +341,6 @@ namespace N1
                 }
             }
             """, "int?", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public async Task ExplicitConversionDescriptionIsIsGiven()
@@ -613,10 +593,8 @@ public class Program
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionInheritedConversions()
-    {
-        // Base class lookup rule: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#processing-of-user-defined-explicit-conversions
-        await VerifyItemExistsAsync("""
+    public Task ExplicitUserDefinedConversionInheritedConversions()
+        => VerifyItemExistsAsync("""
             public class Base {
                 public static explicit operator int(Base b) => 0;
             }
@@ -632,14 +610,12 @@ public class Program
                 }
             }
             """, "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     [InlineData("C", "byte")]
     [InlineData("byte", "C")]
-    public async Task ExplicitBuiltinConversionWithAlias(string fromType, string expected)
-    {
-        await VerifyItemExistsAsync(@$"
+    public Task ExplicitBuiltinConversionWithAlias(string fromType, string expected)
+        => VerifyItemExistsAsync(@$"
 using C = System.Char;
 public class Program
 {{
@@ -650,7 +626,6 @@ public class Program
     }}
 }}
 ", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
     public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever()
@@ -826,9 +801,8 @@ public class Program
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
-    public async Task ExplicitUserDefinedConversionOfDerefenrencedPointerIsNotOffered()
-    {
-        await VerifyNoItemsExistAsync("""
+    public Task ExplicitUserDefinedConversionOfDerefenrencedPointerIsNotOffered()
+        => VerifyNoItemsExistAsync("""
             public struct S {
                 public static explicit operator int(S s) => 0;
             }
@@ -844,5 +818,4 @@ public class Program
                 }
             }
             """);
-    }
 }

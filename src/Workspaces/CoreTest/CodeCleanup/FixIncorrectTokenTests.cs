@@ -20,132 +20,96 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup;
 public sealed class FixIncorrectTokensTests
 {
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithMatchingIf()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_WithMatchingIf()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
             System.Console.WriteLine(args)
         endif|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
             System.Console.WriteLine(args)
         End If
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithMatchingIf_Directive()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_WithMatchingIf_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
-#Endif|]";
-
-        var expected = @"
+#Endif|]", @"
 #If c = 0 Then
-#End If";
-        await VerifyAsync(code, expected);
-    }
+#End If");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithoutMatchingIf()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_WithoutMatchingIf()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|EndIf|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         End If
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithoutMatchingIf_Directive()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_WithoutMatchingIf_Directive()
+        => VerifyAsync(@"[|
 Class X
 End Class
 
-#Endif|]";
-
-        var expected = @"
+#Endif|]", @"
 Class X
 End Class
 
-#End If";
-        await VerifyAsync(code, expected);
-    }
+#End If");
 
     [Fact(Skip = "889521")]
     [WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_SameLineAsIf()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_SameLineAsIf()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then [|EndIf|]        
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
         End If
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_SameLineAsIf_Invalid()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_SameLineAsIf_Invalid()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing [|EndIf|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing EndIf
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_SameLineAsIf_Directive()
-    {
-        var code = @"[|
-#If c = 0 Then #Endif|]";
-
-        var expected = @"
-#If c = 0 Then #Endif";
-        await VerifyAsync(code, expected);
-    }
+    public Task FixEndIfKeyword_SameLineAsIf_Directive()
+        => VerifyAsync(@"[|
+#If c = 0 Then #Endif|]", @"
+#If c = 0 Then #Endif");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingTrivia()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_WithLeadingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -153,9 +117,7 @@ Module Program
 ' Dummy Endif
         EndIf|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
@@ -163,54 +125,41 @@ Module Program
             ' Dummy Endif
         End If
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingTrivia_Directive()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_WithLeadingTrivia_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
 '#Endif
 #Endif
-|]";
-
-        var expected = @"
+|]", @"
 #If c = 0 Then
 '#Endif
 #End If
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_InvocationExpressionArgument()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_InvocationExpressionArgument()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
             System.Console.WriteLine(args)
         InvocationExpression EndIf|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
             System.Console.WriteLine(args)
             InvocationExpression EndIf
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_InvalidDirectiveCases()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_InvalidDirectiveCases()
+        => VerifyAsync(@"[|
 ' BadDirective cases
 #If c = 0 Then
 #InvocationExpression #Endif
@@ -234,9 +183,7 @@ InvocationExpression#
 #If c = 0 Then
 InvocationExpression
 #Endif
-|]";
-
-        var expected = @"
+|]", @"
 ' BadDirective cases
 #If c = 0 Then
 #InvocationExpression #Endif
@@ -260,75 +207,57 @@ InvocationExpression#
 #If c = 0 Then
 InvocationExpression
 #End If
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithTrailingTrivia()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_WithTrailingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
             System.Console.WriteLine(args)
         EndIf ' Dummy EndIf|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
             System.Console.WriteLine(args)
         End If ' Dummy EndIf
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithTrailingTrivia_Directive()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_WithTrailingTrivia_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
 #Endif '#Endif
-|]";
-
-        var expected = @"
+|]", @"
 #If c = 0 Then
 #End If '#Endif
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithIdentifierTokenTrailingTrivia()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_WithIdentifierTokenTrailingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
             System.Console.WriteLine(args)
         EndIf IdentifierToken|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
             System.Console.WriteLine(args)
         End If IdentifierToken
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_InvalidDirectiveCases_02()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_InvalidDirectiveCases_02()
+        => VerifyAsync(@"[|
 ' BadDirective cases
 #If c = 0 Then
 #Endif #IdentifierToken
@@ -352,9 +281,7 @@ IdentifierToken#
 #If c = 0 Then
 #Endif
 IdentifierToken
-|]";
-
-        var expected = @"
+|]", @"
 ' BadDirective cases
 #If c = 0 Then
 #End If #IdentifierToken
@@ -378,14 +305,11 @@ IdentifierToken#
 #If c = 0 Then
 #End If
 IdentifierToken
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingTrivia()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_WithLeadingAndTrailingTrivia()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -394,9 +318,7 @@ Module Program
 EndIf
 ' Dummy EndIf|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
@@ -405,31 +327,23 @@ Module Program
         End If
         ' Dummy EndIf
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingTrivia_Directive()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_WithLeadingAndTrailingTrivia_Directive()
+        => VerifyAsync(@"[|
 #If c = 0 Then
 '#Endif
 #Endif '#Endif
-|]";
-
-        var expected = @"
+|]", @"
 #If c = 0 Then
 '#Endif
 #End If '#Endif
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions()
-    {
-        var code = @"
+    public Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions()
+        => VerifyAsync(@"
 Module Program
     Sub Main(args As String())
         [|If args IsNot Nothing Then
@@ -438,9 +352,7 @@ IdentifierToken
 EndIf
 IdentifierToken|]
     End Sub
-End Module";
-
-        var expected = @"
+End Module", @"
 Module Program
     Sub Main(args As String())
         If args IsNot Nothing Then
@@ -449,14 +361,11 @@ Module Program
         End If
         IdentifierToken
     End Sub
-End Module";
-        await VerifyAsync(code, expected);
-    }
+End Module");
 
     [Fact, WorkItem(17313, "DevDiv_Projects/Roslyn")]
-    public async Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions_Directive()
-    {
-        var code = @"[|
+    public Task FixEndIfKeyword_WithLeadingAndTrailingInvocationExpressions_Directive()
+        => VerifyAsync(@"[|
 ' BadDirective cases
 #If c = 0 Then
 #InvalidTrivia #Endif #InvalidTrivia
@@ -480,9 +389,7 @@ InvalidTrivia
 #If c = 0 Then
 InvalidTrivia#
 #Endif InvalidTrivia#
-|]";
-
-        var expected = @"
+|]", @"
 ' BadDirective cases
 #If c = 0 Then
 #InvalidTrivia #Endif #InvalidTrivia
@@ -506,14 +413,11 @@ InvalidTrivia
 #If c = 0 Then
 InvalidTrivia#
 #End If InvalidTrivia#
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
-    public async Task FixPrimitiveTypeKeywords_ValidCases()
-    {
-        var code = @"[|
+    public Task FixPrimitiveTypeKeywords_ValidCases()
+        => VerifyAsync(@"[|
 Imports SystemAlias = System
 Imports SystemInt16Alias = System.Short
 Imports SystemUInt16Alias = System.ushort
@@ -554,9 +458,7 @@ Module Program
         Dim c7 As SystemDateTimeAlias = Nothing
     End Sub
 End Module
-|]";
-
-        var expected = @"
+|]", @"
 Imports SystemAlias = System
 Imports SystemInt16Alias = System.Int16
 Imports SystemUInt16Alias = System.UInt16
@@ -597,9 +499,7 @@ Module Program
         Dim c7 As SystemDateTimeAlias = Nothing
     End Sub
 End Module
-";
-        await VerifyAsync(code, expected);
-    }
+");
 
     [Fact, WorkItem(5722, "DevDiv_Projects/Roslyn")]
     public async Task FixPrimitiveTypeKeywords_InvalidCases()
@@ -685,9 +585,8 @@ End Module
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/606015")]
-    public async Task FixFullWidthSingleQuotes()
-    {
-        var code = @"[|
+    public Task FixFullWidthSingleQuotes()
+        => VerifyAsync(@"[|
 ‘ｆｕｌｌｗｉｄｔｈ 1　
 ’ｆｕｌｌｗｉｄｔｈ 2
 ‘‘ｆｕｌｌｗｉｄｔｈ 3
@@ -695,9 +594,7 @@ End Module
 '‘ｆｕｌｌｗｉｄｔｈ 5
 ‘’ｆｕｌｌｗｉｄｔｈ 6
 ‘’‘’ｆｕｌｌｗｉｄｔｈ 7
-'‘’‘’ｆｕｌｌｗｉｄｔｈ 8|]";
-
-        var expected = @"
+'‘’‘’ｆｕｌｌｗｉｄｔｈ 8|]", @"
 'ｆｕｌｌｗｉｄｔｈ 1　
 'ｆｕｌｌｗｉｄｔｈ 2
 '‘ｆｕｌｌｗｉｄｔｈ 3
@@ -705,9 +602,7 @@ End Module
 '‘ｆｕｌｌｗｉｄｔｈ 5
 '’ｆｕｌｌｗｉｄｔｈ 6
 '’‘’ｆｕｌｌｗｉｄｔｈ 7
-'‘’‘’ｆｕｌｌｗｉｄｔｈ 8";
-        await VerifyAsync(code, expected);
-    }
+'‘’‘’ｆｕｌｌｗｉｄｔｈ 8");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707135")]
     public async Task FixFullWidthSingleQuotes2()
@@ -718,11 +613,7 @@ End Module
         {
             System.Threading.Thread.CurrentThread.CurrentCulture =
                 System.Globalization.CultureInfo.CreateSpecificCulture("zh-CN");
-
-            var code = @"[|‘’ｆｕｌｌｗｉｄｔｈ 1|]";
-
-            var expected = @"'’ｆｕｌｌｗｉｄｔｈ 1";
-            await VerifyAsync(code, expected);
+            await VerifyAsync(@"[|‘’ｆｕｌｌｗｉｄｔｈ 1|]", @"'’ｆｕｌｌｗｉｄｔｈ 1");
         }
         finally
         {
