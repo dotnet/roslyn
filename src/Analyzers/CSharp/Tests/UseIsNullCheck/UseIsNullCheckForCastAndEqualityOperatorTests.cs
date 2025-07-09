@@ -69,7 +69,7 @@ public sealed partial class UseIsNullCheckForCastAndEqualityOperatorTests : Abst
                 }
             }
             """,
-[CSharpAnalyzersResources.Use_is_null_check]);
+            [CSharpAnalyzersResources.Use_is_null_check]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
     public Task TestIsObjectTitle()
@@ -86,8 +86,8 @@ public sealed partial class UseIsNullCheckForCastAndEqualityOperatorTests : Abst
                 }
             }
             """,
-[CSharpAnalyzersResources.Use_is_object_check],
-new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
+            [CSharpAnalyzersResources.Use_is_object_check],
+            new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58483")]
     public Task TestIsNotNullTitle()
@@ -104,8 +104,8 @@ new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(
                 }
             }
             """,
-[CSharpAnalyzersResources.Use_is_not_null_check],
-new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+            [CSharpAnalyzersResources.Use_is_not_null_check],
+            new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
 
     [Fact]
     public Task TestEqualitySwapped()

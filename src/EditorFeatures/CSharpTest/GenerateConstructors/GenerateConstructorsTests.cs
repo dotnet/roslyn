@@ -403,7 +403,7 @@ public sealed class GenerateConstructorsTests : AbstractCSharpCodeActionTest
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestDelegatingConstructorWithNullabilityDifferences()
@@ -445,7 +445,7 @@ index: 1);
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestMissingWithExistingConstructor()
@@ -691,7 +691,7 @@ index: 1);
                 HashSet<string> s;|]
             }
             """,
-string.Format(CodeFixesResources.Generate_constructor_0_1, "Program", "bool b, HashSet<string> s"));
+            string.Format(CodeFixesResources.Generate_constructor_0_1, "Program", "bool b, HashSet<string> s"));
 
     [Fact]
     public Task TestSmartTagText2()
@@ -710,7 +710,7 @@ string.Format(CodeFixesResources.Generate_constructor_0_1, "Program", "bool b, H
                 }
             }
             """,
-string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1, "Program", "bool b, HashSet<string> s"));
+            string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1, "Program", "bool b, HashSet<string> s"));
 
     [Fact]
     public Task TestSmartTagText3()
@@ -729,8 +729,8 @@ string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1, "Prog
                 }
             }
             """,
-string.Format(FeaturesResources.Generate_delegating_constructor_0_1, "Program", "bool b, HashSet<string> s"),
-index: 1);
+            string.Format(FeaturesResources.Generate_delegating_constructor_0_1, "Program", "bool b, HashSet<string> s"),
+            index: 1);
 
     [Fact]
     public Task TestContextualKeywordName()

@@ -542,6 +542,6 @@ public sealed class EventKeywordRecommenderTests : KeywordRecommenderTests
                     }
                 }
                 """,
-                CSharpNextParseOptions,
-                CSharpNextScriptParseOptions);
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

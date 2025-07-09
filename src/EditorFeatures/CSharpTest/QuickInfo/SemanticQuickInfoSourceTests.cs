@@ -2279,7 +2279,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """,
-MainDescription("E.B = 1 << 1"));
+            MainDescription("E.B = 1 << 1"));
 
     [Fact]
     public Task EnumMemberNameFromSource2()
@@ -2300,7 +2300,7 @@ MainDescription("E.B = 1 << 1"));
                 }
             }
             """,
-MainDescription("E.B = 1"));
+            MainDescription("E.B = 1"));
 
     [Fact]
     public Task Parameter_InMethod_Minimal()
@@ -2346,7 +2346,7 @@ MainDescription("E.B = 1"));
                 return para$$m + 1;
             }
             """,
-MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+            MainDescription($"({FeaturesResources.parameter}) int param = 42"));
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public Task Lambda_Parameter_DefaultValue_02()
@@ -2356,7 +2356,7 @@ MainDescription($"({FeaturesResources.parameter}) int param = 42"));
                 return param + 1;
             }
             """,
-MainDescription($"{FeaturesResources.struct_} System.Int32"));
+            MainDescription($"{FeaturesResources.struct_} System.Int32"));
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public Task Lambda_Parameter_DefaultValue_03()
@@ -2366,7 +2366,7 @@ MainDescription($"{FeaturesResources.struct_} System.Int32"));
                 return param + 1;
             }
             """,
-MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 2147483647"));
+            MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 2147483647"));
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public Task Lambda_Parameter_ParamsArray()
@@ -2376,7 +2376,7 @@ MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 214748
                 return x$$s.Length;
             }
             """,
-MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
+            MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
 
     [Fact]
     public Task Parameter_Params()
@@ -3736,7 +3736,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             $$select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Select<int, int>(Func<int, int> selector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Select<int, int>(Func<int, int> selector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoSelectMappedQueryable()
@@ -3747,7 +3747,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             $$select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IQueryable<int> IQueryable<int>.Select<int, int>(System.Linq.Expressions.Expression<Func<int, int>> selector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IQueryable<int> IQueryable<int>.Select<int, int>(System.Linq.Expressions.Expression<Func<int, int>> selector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoSelectMappedCustom()
@@ -3774,7 +3774,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             }
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) Lazy<object> Lazy<object>.Select<object, object>(Func<object, object> selector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) Lazy<object> Lazy<object>.Select<object, object>(Func<object, object> selector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoSelectNotMapped()
@@ -3797,7 +3797,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
         AnonymousTypes($$"""
 
             {{FeaturesResources.Types_colon}}
@@ -3814,7 +3814,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Where<int>(Func<int, bool> predicate)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Where<int>(Func<int, bool> predicate)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByOneProperty()
@@ -3826,7 +3826,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByOnePropertyWithOrdering1()
@@ -3838,7 +3838,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByOnePropertyWithOrdering2()
@@ -3861,7 +3861,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByTwoPropertiesWithComma2()
@@ -3873,7 +3873,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByTwoPropertiesWithOrdering1()
@@ -3885,7 +3885,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByTwoPropertiesWithOrdering2()
@@ -3908,7 +3908,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach1()
@@ -3931,7 +3931,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach3()
@@ -3954,7 +3954,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoOrderByIncomplete()
@@ -3966,7 +3966,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             orderby$$ 
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, ?>(Func<int, ?> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, ?>(Func<int, ?> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoSelectMany1()
@@ -3978,7 +3978,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoSelectMany2()
@@ -3990,7 +3990,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                             select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoGroupBy1()
@@ -4001,7 +4001,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 $$group i by i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoGroupBy2()
@@ -4012,7 +4012,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 group i $$by i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoGroupByInto()
@@ -4024,7 +4024,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select g;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoJoin1()
@@ -4036,7 +4036,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoJoin2()
@@ -4048,7 +4048,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoJoin3()
@@ -4060,7 +4060,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoJoin4()
@@ -4072,7 +4072,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoJoinInto1()
@@ -4084,7 +4084,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select g;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IEnumerable<int>> IEnumerable<int>.GroupJoin<int, int, int, IEnumerable<int>>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, IEnumerable<int>, IEnumerable<int>> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IEnumerable<int>> IEnumerable<int>.GroupJoin<int, int, int, IEnumerable<int>>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, IEnumerable<int>, IEnumerable<int>> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoJoinInto2()
@@ -4116,7 +4116,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoRangeVariableSimple2()
@@ -4127,7 +4127,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoRangeVariableSelectMany1()
@@ -4139,7 +4139,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, double, int>(Func<int, IEnumerable<double>> collectionSelector, Func<int, double, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, double, int>(Func<int, IEnumerable<double>> collectionSelector, Func<int, double, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoRangeVariableSelectMany2()
@@ -4151,7 +4151,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoRangeVariableJoin1()
@@ -4163,7 +4163,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoRangeVariableJoin2()
@@ -4175,7 +4175,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> System.Collections.IEnumerable.Cast<int>()"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> System.Collections.IEnumerable.Cast<int>()"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoRangeVariableJoin3()
@@ -4187,7 +4187,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public Task QueryMethodinfoRangeVariableJoin4()
@@ -4199,7 +4199,7 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
                                 select i1;
 
             """,
-        MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
+            MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543205")]
     public Task TestErrorGlobal()
@@ -6539,7 +6539,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
 
             """,
-        MainDescription("T Test.F<T>()"));
+            MainDescription("T Test.F<T>()"));
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=403665&_a=edit")]
     public Task TestExceptionWithCrefToConstructorDoesNotCrash()
@@ -6555,7 +6555,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
 
             """,
-        MainDescription("Test.Test()"));
+            MainDescription("Test.Test()"));
 
     [Fact]
     public Task TestRefStruct()
@@ -6645,7 +6645,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 }
             }
             """,
-        MainDescription($"ConsoleApplication1.A ConsoleApplication1.B.F()"));
+            MainDescription($"ConsoleApplication1.A ConsoleApplication1.B.F()"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2644")]
     public Task PropertyWithSameNameAsOtherType2()
@@ -6672,7 +6672,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 }
             }
             """,
-        MainDescription($"void Program.Test<Bar>()"));
+            MainDescription($"void Program.Test<Bar>()"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23883")]
     public Task InMalformedEmbeddedStatement_01()
@@ -6709,7 +6709,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
 
             """,
-        MainDescription($"({FeaturesResources.parameter}) ? b"));
+            MainDescription($"({FeaturesResources.parameter}) ? b"));
 
     [Fact]
     public Task EnumConstraint()
@@ -8133,8 +8133,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 }
             }
             """,
-MainDescription("string Person.First { get; init; }"),
-Documentation("The person's first name."));
+            MainDescription("string Person.First { get; init; }"),
+            Documentation("The person's first name."));
 
     [Fact]
     public Task QuickInfoFieldKeyword()
@@ -8150,7 +8150,7 @@ Documentation("The person's first name."));
                 }
             }
             """,
-MainDescription("(field) int C.Prop.field"));
+            MainDescription("(field) int C.Prop.field"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51615")]
     public Task TestVarPatternOnVarKeyword()
@@ -8597,7 +8597,7 @@ MainDescription("(field) int C.Prop.field"));
             }
 
             """,
-MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
+            MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
 AnonymousTypes(
     $"""
 
