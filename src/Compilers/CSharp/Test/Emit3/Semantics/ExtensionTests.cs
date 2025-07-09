@@ -20604,7 +20604,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "Get1Get2" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -20644,7 +20644,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1234" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -20776,7 +20776,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -20815,7 +20815,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -20909,7 +20909,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "123423" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -20948,7 +20948,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -21037,7 +21037,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -21269,6 +21269,11 @@ static class E
             """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (17,24): error CS8945: 'nonexistent' is not a valid parameter name from 'E.extension(int).M(InterpolationHandler)'.
+            //         public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("nonexistent")] InterpolationHandler h) {}
+            Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument(""nonexistent"")").WithArguments("nonexistent", "E.extension(int).M(InterpolationHandler)").WithLocation(17, 24)
+        );
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -21315,6 +21320,11 @@ static class E
             """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (15,16): error CS8945: 'nonexistent' is not a valid parameter name from 'E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)'.
+            //     extension([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("nonexistent")] InterpolationHandler i)
+            Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument(""nonexistent"")").WithArguments("nonexistent", "E.extension(InterpolationHandler).<Extension>$(InterpolationHandler)").WithLocation(15, 16)
+        );
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -21329,6 +21339,57 @@ static class E
         var implM = underlying.ContainingType.GetMember<MethodSymbol>("M");
         Assert.True(implM.Parameters[0].HasInterpolatedStringHandlerArgumentError);
         Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    public void InterpolationHandler_ParameterErrors_MappedCorrectly_03()
+    {
+        var src = """
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, int i)
+                {
+                    System.Console.WriteLine(i);
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+            }
+
+            public static class E
+            {
+                extension(int i)
+                {
+                    public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (17,24): error CS8944: 'E.extension(int).M(InterpolationHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
+            //         public void M([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler h) {}
+            Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("""")").WithArguments("E.extension(int).M(InterpolationHandler)").WithLocation(17, 24)
+        );
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
+
+        var symbol = model.GetDeclaredSymbol(extension);
+        AssertExtensionDeclaration(symbol);
+        var underlying = symbol.GetSymbol<NamedTypeSymbol>();
+        var m = underlying.GetMember<MethodSymbol>("M");
+        Assert.False(underlying.ExtensionParameter.HasInterpolatedStringHandlerArgumentError);
+        Assert.True(underlying.ExtensionParameter.InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        Assert.True(m.Parameters[0].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(m.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        var implM = underlying.ContainingType.GetMember<MethodSymbol>("M");
+        Assert.False(implM.Parameters[0].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(implM.Parameters[0].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
+        Assert.True(implM.Parameters[1].HasInterpolatedStringHandlerArgumentError);
+        Assert.True(implM.Parameters[1].InterpolatedStringHandlerArgumentIndexes.IsEmpty);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
@@ -21454,7 +21515,7 @@ static class E
                     System.Console.Write(param1);
                 }
                 public void AppendLiteral(string value) { System.Console.Write(value); }
-                public void AppendFormatted<T>(T hole, int alignment = 0, string? format = null) { System.Console.Write(hole); }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) { System.Console.Write(hole); }
             }
 
             public static class E
@@ -21474,7 +21535,7 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
@@ -21541,6 +21602,9 @@ static class E
             """;
 
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (16,42): error CS8944: 'E.extension(int).StaticMethod(InterpolationHandler)' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
+            //         public static void StaticMethod([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i")] InterpolationHandler h)
+            Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"System.Runtime.CompilerServices.InterpolatedStringHandlerArgument(""i"")").WithArguments("E.extension(int).StaticMethod(InterpolationHandler)").WithLocation(16, 42)
         );
     }
 
@@ -21600,16 +21664,14 @@ static class E
 
             } // end of class InterpolationHandler
 
-            .class public auto ansi abstract sealed beforefieldinit E
-                extends [mscorlib]System.Object
+            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
             {
                 .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
                     extends [mscorlib]System.Object
                 {
-                    // Methods
-                    .method private hidebysig specialname static void '<Extension>$' (int32 i) cil managed 
+                    .method private hidebysig specialname static void '<Extension>$'(int32 i) cil managed 
                     {
                         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
                         ret
@@ -21622,7 +21684,6 @@ static class E
                         ldnull
                         throw
                     } // end of method '<>E__0'::StaticMethod
-
                 } // end of class <>E__0
 
                 // Methods
@@ -21630,7 +21691,6 @@ static class E
                 {
                     .param [1]
                     .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 01 69 00 00)
-                    nop
                     ret
                 } // end of method E::StaticMethod
             } // end of class E
@@ -21660,6 +21720,167 @@ static class E
             // (2,16): error CS1615: Argument 3 may not be passed with the 'out' keyword
             // E.StaticMethod($"");
             Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(2, 16)
+        );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    public void InterpolationHandler_InstanceExtensionMethod_ReferencesInstanceParameter_FromMetadata()
+    {
+        // Equivalent to:
+        // [System.Runtime.CompilerServices.InterpolatedStringHandler]
+        // public struct InterpolationHandler
+        // {
+        //     public InterpolationHandler(int literalLength, int formattedCount, string param)
+        //     {
+        //     }
+        //     public void AppendLiteral(string value) { }
+        //     public void AppendFormatted<T>(T hole, int alignment = 0, string? format = null) { }
+        // }
+
+        // public static class E
+        // {
+        //     extension(int i)
+        //     {
+        //         public void InstanceMethod([System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("")] InterpolationHandler h)
+        //         {
+        //         }
+        //     }
+        // }
+
+        var il = """
+            .class public sequential ansi sealed beforefieldinit InterpolationHandler
+                extends [mscorlib]System.ValueType
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute::.ctor() = (01 00 00 00)
+                .pack 0
+                .size 1
+
+                // Methods
+                .method public hidebysig specialname rtspecialname 
+                    instance void .ctor (int32 literalLength, int32 formattedCount, int32 param) cil managed 
+                {
+                    nop
+                    ret
+                } // end of method InterpolationHandler::.ctor
+
+                .method public hidebysig instance void AppendLiteral (string 'value') cil managed 
+                {
+                    nop
+                    ret
+                } // end of method InterpolationHandler::AppendLiteral
+
+                .method public hidebysig instance void AppendFormatted<T> (!!T hole, [opt] int32 'alignment', [opt] string format) cil managed 
+                {
+                    .param [2] = int32(0)
+                    .param [3] = nullref
+                    nop
+                    ret
+                } // end of method InterpolationHandler::AppendFormatted
+
+            } // end of class InterpolationHandler
+
+            .class public auto ansi abstract sealed beforefieldinit E extends [mscorlib]System.Object
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
+                // Nested Types
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+                    extends [mscorlib]System.Object
+                {
+                    .method private hidebysig specialname static void '<Extension>$'(int32 i) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (01 00 00 00)
+                        ret
+                    } // end of method '<>E__0'::'<Extension>$'
+
+                    .method public hidebysig void InstanceMethod(valuetype InterpolationHandler h) cil managed 
+                    {
+                        .param [1]
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
+                        ldnull
+                        throw
+                    } // end of method '<>E__0'::StaticMethod
+                } // end of class <>E__0
+
+                // Methods
+                .method public hidebysig static void InstanceMethod(int32 i, valuetype InterpolationHandler h) cil managed 
+                {
+                    .param [2]
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute::.ctor(string) = (01 00 00 00 00)
+                    ret
+                } // end of method E::StaticMethod
+            } // end of class E
+            """;
+
+        var src = """
+            1.InstanceMethod($"");
+            E.InstanceMethod(1, $"");
+            """;
+
+        CreateCompilationWithIL(src, ilSource: il, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,18): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'InterpolationHandler h' is malformed and cannot be interpreted. Construct an instance of 'InterpolationHandler' manually.
+            // 1.InstanceMethod($"");
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("InterpolationHandler h", "InterpolationHandler").WithLocation(1, 18),
+            // (1,18): error CS7036: There is no argument given that corresponds to the required parameter 'param' of 'InterpolationHandler.InterpolationHandler(int, int, int)'
+            // 1.InstanceMethod($"");
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("param", "InterpolationHandler.InterpolationHandler(int, int, int)").WithLocation(1, 18),
+            // (1,18): error CS1615: Argument 3 may not be passed with the 'out' keyword
+            // 1.InstanceMethod($"");
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(1, 18),
+            // (2,21): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'InterpolationHandler h' is malformed and cannot be interpreted. Construct an instance of 'InterpolationHandler' manually.
+            // E.InstanceMethod(1, $"");
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("InterpolationHandler h", "InterpolationHandler").WithLocation(2, 21),
+            // (2,21): error CS7036: There is no argument given that corresponds to the required parameter 'param' of 'InterpolationHandler.InterpolationHandler(int, int, int)'
+            // E.InstanceMethod(1, $"");
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("param", "InterpolationHandler.InterpolationHandler(int, int, int)").WithLocation(2, 21),
+            // (2,21): error CS1615: Argument 3 may not be passed with the 'out' keyword
+            // E.InstanceMethod(1, $"");
+            Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(2, 21)
+        );
+    }
+
+    [Fact]
+    public void InterpolationHandler_Indexer_InObjectInitializer()
+    {
+        var code = """
+            _ = new C() { [$"{1}"] = 1 };
+
+            public class C
+            {
+            }
+
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, C c)
+                {
+                }
+
+                public void AppendFormatted(int i) {}
+            }
+
+            public static class CExt
+            {
+                extension(C c)
+                {
+                    public int this[[System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("c")] CustomHandler h]
+                    {
+                        get => throw null!;
+                    }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp);
+
+        // When extension indexers are supported, this should start reporting ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers,
+        // instead of the current errors.
+        comp.VerifyDiagnostics(
+            // (1,15): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = new C() { [$"{1}"] = 1 };
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, @"[$""{1}""]").WithArguments("C").WithLocation(1, 15),
+            // (21,20): error CS9282: This member is not allowed in an extension block
+            //         public int this[[System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("c")] CustomHandler h]
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(21, 20)
         );
     }
 
@@ -44225,30 +44446,30 @@ _ = 42.P2;
         // but no specialname on skeleton type
         var ilSrc = """
 .class public auto ansi abstract sealed beforefieldinit E
-	extends [mscorlib]System.Object
+    extends [mscorlib]System.Object
 {
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
-	.class nested public auto ansi sealed beforefieldinit '<>E__0'
-		extends [mscorlib]System.Object
-	{
-		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
-		{
-			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-			IL_0000: ret
-		}
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+        extends [mscorlib]System.Object
+    {
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
+        {
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ret
+        }
 
-		.method public hidebysig static void M () cil managed
-		{
-			IL_0000: ldnull
-			IL_0001: throw
-		}
-	}
+        .method public hidebysig static void M () cil managed
+        {
+            IL_0000: ldnull
+            IL_0001: throw
+        }
+    }
 
-	.method public hidebysig static void M () cil managed
-	{
-		IL_0000: nop
-		IL_0001: ret
-	}
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
 }
 """;
         string source = """
