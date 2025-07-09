@@ -283,6 +283,10 @@ public sealed class DocumentationCommentTests
     public void TrimEachLine()
     {
         var multiLineText = """
+
+
+
+
             Hello
                  World     .        
             +
@@ -298,12 +302,12 @@ public sealed class DocumentationCommentTests
 
         var fullXml = $"""
             <summary>{multiLineText}</summary>
-            <returns>{multiLineText}</returns>
-            <value>{multiLineText}</value>
-            <example>{multiLineText}</example>
-            <param name="goo">{multiLineText}</param>
-            <typeparam name="T">{multiLineText}</typeparam>
-            <remarks>{multiLineText}</remarks>
+                              <returns>{multiLineText}</returns>
+                              <value>{multiLineText}</value>
+                              <example>{multiLineText}</example>
+                              <param name="goo">{multiLineText}</param>
+                              <typeparam name="T">{multiLineText}</typeparam>
+                              <remarks>{multiLineText}</remarks>
             """;
 
         var expected = """
@@ -330,28 +334,32 @@ public sealed class DocumentationCommentTests
     public void TrimEachLineCommonOffset()
     {
         var multiLineText = """
-            Hello
-              World     .        
-            +
-            .......
 
 
 
 
+              Hello
+                World     .        
+              +
+              .......
+                     
 
-              123
 
-                                                     1
+
+
+                123
+
+                                                       1
             """;
 
         var fullXml = $"""
             <summary>{multiLineText}</summary>
-            <returns>{multiLineText}</returns>
-            <value>{multiLineText}</value>
-            <example>{multiLineText}</example>
-            <param name="goo">{multiLineText}</param>
-            <typeparam name="T">{multiLineText}</typeparam>
-            <remarks>{multiLineText}</remarks>
+                              <returns>{multiLineText}</returns>
+                              <value>{multiLineText}</value>
+                              <example>{multiLineText}</example>
+                              <param name="goo">{multiLineText}</param>
+                              <typeparam name="T">{multiLineText}</typeparam>
+                              <remarks>{multiLineText}</remarks>
             """;
 
         var expected = """

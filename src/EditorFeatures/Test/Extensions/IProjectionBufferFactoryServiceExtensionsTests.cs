@@ -28,9 +28,9 @@ public sealed class IProjectionBufferFactoryServiceExtensionsTests
         var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
         var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
             """
-            line 1
-            line 2
-            line 3
+              line 1
+              line 2
+              line 3
             """, contentTypeRegistryService.GetContentType("text"));
 
         var elisionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBufferWithoutIndentation(
@@ -56,10 +56,10 @@ public sealed class IProjectionBufferFactoryServiceExtensionsTests
         var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
         var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
             """
-            line 1
-            line 2
-            line 3
-            line 4
+              line 1
+              line 2
+              line 3
+              line 4
             """, contentTypeRegistryService.GetContentType("text"));
 
         var projectionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBuffer(
@@ -88,10 +88,10 @@ public sealed class IProjectionBufferFactoryServiceExtensionsTests
         var contentTypeRegistryService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
         var textBuffer = exportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer(
             """
-            line 1
-            line 2
-            line 3
-              line 4
+              line 1
+              line 2
+              line 3
+                line 4
             """, contentTypeRegistryService.GetContentType("text"));
 
         var projectionBuffer = IProjectionBufferFactoryServiceExtensions.CreateProjectionBufferWithoutIndentation(

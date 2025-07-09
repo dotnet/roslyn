@@ -864,7 +864,7 @@ public sealed class SyntaxGeneratorTests
             "partial void m()\r\n{\r\n    y;\r\n}");
 
         VerifySyntax<MethodDeclarationSyntax>(
-               Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
+            Generator.MethodDeclaration("m", modifiers: DeclarationModifiers.Partial | DeclarationModifiers.Async, statements: null),
             "partial void m();");
     }
 

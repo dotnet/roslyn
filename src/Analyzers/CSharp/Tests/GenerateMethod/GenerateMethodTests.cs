@@ -1880,7 +1880,7 @@ public sealed class GenerateMethodTests(ITestOutputHelper logger) : AbstractCSha
                 protected abstract void Goo();
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537906")]
     public Task TestMethodReturningDynamic()
@@ -2108,7 +2108,7 @@ index: 1);
                 }
             }
             """,
-count: 1);
+            count: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527278")]
     public Task TestInvocationOffOfBase()
@@ -2426,7 +2426,7 @@ count: 1);
                 internal abstract void M();
             }
             """,
-index: 1);
+            index: 1);
 
     [Fact]
     public Task TestGenerateIntoPartialClass1()
@@ -4990,7 +4990,7 @@ index: 1);
                 }
             }
             """,
-new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
+            new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
 
     [Theory]
     [InlineData("class")]

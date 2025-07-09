@@ -192,9 +192,9 @@ public sealed partial class MetadataAsSourceTests
             var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText, "'''");
 
             Assert.Equal("""
-                <summary>
-                I am the very model of a modern major general.
-                </summary>
+                 <summary>
+                 I am the very model of a modern major general.
+                 </summary>
                 """, extractedXMLFragment);
         }
 

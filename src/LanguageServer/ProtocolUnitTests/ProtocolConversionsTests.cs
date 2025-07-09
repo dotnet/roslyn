@@ -234,6 +234,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
             {
                 var x = 5;
             }
+
             """; // add additional end line 
 
         var sourceText = SourceText.From(markup);

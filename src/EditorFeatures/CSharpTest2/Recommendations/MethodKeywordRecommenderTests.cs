@@ -244,6 +244,6 @@ public sealed class MethodKeywordRecommenderTests : KeywordRecommenderTests
                     }
                 }
                 """,
-                CSharpNextParseOptions,
-                CSharpNextScriptParseOptions);
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
 }

@@ -65,6 +65,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             using System;
             using System.Text;
 
@@ -102,6 +103,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var markup = isInUsingStatement
             ? @"global using static Task{|caret:|}"
             : """
+
             class A
             {
                 void M()
@@ -177,6 +179,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             namespace NS2
             {
                 public static class ExtensionClass
@@ -259,6 +262,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             /// <summ{|caret:|}
             class A { }
             """;
@@ -309,6 +313,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             using System;
             using System.Text;
 
@@ -668,6 +673,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             namespace Namespace1
             {
                 class MyClass {}
@@ -738,6 +744,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             using System.Collections.Generic;
             using System.Linq;
             public class C
@@ -825,6 +832,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             public class A
             {
                 public void M()
@@ -1062,6 +1070,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         var markup =
             """
+
             public class Z
             {
                 public int M()

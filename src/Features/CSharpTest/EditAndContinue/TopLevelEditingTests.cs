@@ -8086,8 +8086,8 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Delete [[DllImport("msvcrt.dll")]
                 public static extern int puts(string c);]@74
             """,
-             "Delete [(string c)]@134",
-             "Delete [string c]@135");
+            "Delete [(string c)]@134",
+            "Delete [string c]@135");
 
         edits.VerifySemanticDiagnostics(
             Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "puts(string c)")));

@@ -57,7 +57,7 @@ public sealed class MakeStructReadOnlyTests
                 readonly int i;
             }
             """,
-LanguageVersion.CSharp7_2);
+            LanguageVersion.CSharp7_2);
 
     [Fact]
     public Task TestMissingWithAlreadyReadOnlyStruct()
@@ -386,7 +386,7 @@ LanguageVersion.CSharp7_2);
                 readonly int i;
             }
             """,
-LanguageVersion.CSharp12);
+            LanguageVersion.CSharp12);
 
     [Fact]
     public Task TestNestedStructs1()

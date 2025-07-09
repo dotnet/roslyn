@@ -22,6 +22,7 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
             // comment
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
@@ -37,6 +38,7 @@ public sealed class MultipleBlankLinesTests
             // comment
             """,
             FixedCode = """
+
             // comment
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
@@ -47,6 +49,8 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
+
             // comment
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.TrueWithSuggestionEnforcement } }
@@ -63,6 +67,7 @@ public sealed class MultipleBlankLinesTests
             // comment
             """,
             FixedCode = """
+
             // comment
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
@@ -80,6 +85,7 @@ public sealed class MultipleBlankLinesTests
             // comment
             """,
             FixedCode = """
+
             // comment
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
@@ -91,6 +97,7 @@ public sealed class MultipleBlankLinesTests
         {
             TestCode = """
 
+
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -101,8 +108,11 @@ public sealed class MultipleBlankLinesTests
         {
             TestCode = """
             [||]
+
+
             """,
             FixedCode = """
+
 
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
@@ -114,8 +124,12 @@ public sealed class MultipleBlankLinesTests
         {
             TestCode = """
             [||]
+
+
+
             """,
             FixedCode = """
+
 
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
@@ -127,8 +141,13 @@ public sealed class MultipleBlankLinesTests
         {
             TestCode = """
             [||]
+
+
+
+
             """,
             FixedCode = """
+
 
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
@@ -154,6 +173,7 @@ public sealed class MultipleBlankLinesTests
             class C
             {
             }
+
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -166,6 +186,8 @@ public sealed class MultipleBlankLinesTests
             class C
             {
             }
+
+
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -179,11 +201,15 @@ public sealed class MultipleBlankLinesTests
             {
             }
             [||]
+
+
             """,
             FixedCode = """
             class C
             {
             }
+
+
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -197,11 +223,16 @@ public sealed class MultipleBlankLinesTests
             {
             }
             [||]
+
+
+
             """,
             FixedCode = """
             class C
             {
             }
+
+
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -215,11 +246,17 @@ public sealed class MultipleBlankLinesTests
             {
             }
             [||]
+
+
+
+
             """,
             FixedCode = """
             class C
             {
             }
+
+
             """,
             Options = { { CodeStyleOptions2.AllowMultipleBlankLines, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
@@ -512,6 +549,7 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
             /// <summary/>
             class C
             {
@@ -525,6 +563,7 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
             /// <summary/>
 
             class C
@@ -539,6 +578,7 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
             /// <summary/>
             [||]
 
@@ -547,6 +587,7 @@ public sealed class MultipleBlankLinesTests
             }
             """,
             FixedCode = """
+
             /// <summary/>
 
             class C
@@ -561,6 +602,7 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
             /// <summary/>
             [||]
 
@@ -570,6 +612,7 @@ public sealed class MultipleBlankLinesTests
             }
             """,
             FixedCode = """
+
             /// <summary/>
 
             class C
@@ -584,6 +627,7 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
             /// <summary/>
             [||]
 
@@ -594,6 +638,7 @@ public sealed class MultipleBlankLinesTests
             }
             """,
             FixedCode = """
+
             /// <summary/>
 
             class C
@@ -624,6 +669,7 @@ public sealed class MultipleBlankLinesTests
         => new Verify.Test
         {
             TestCode = """
+
             /// <summary/>
 
             //
@@ -659,6 +705,7 @@ public sealed class MultipleBlankLinesTests
             }
             """,
             FixedCode = """
+
             /// <summary/>
 
             //
@@ -698,6 +745,7 @@ public sealed class MultipleBlankLinesTests
             }
             """,
             FixedCode = """
+
             /// <summary/>
 
             //
@@ -741,6 +789,7 @@ public sealed class MultipleBlankLinesTests
             }
             """,
             FixedCode = """
+
             /// <summary/>
 
             //

@@ -211,6 +211,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
     {
         var markup =
             """
+
             class A
             {
                 /// <summary>
@@ -267,15 +268,15 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             ```csharp
             void A.AMethod(int i)
             ```
-
+              
             A cref&nbsp;A\.AMethod\(int\)  
             **strong text**  
             _italic text_  
             <u>underline text</u>  
-
+              
             •&nbsp;Item 1\.  
             •&nbsp;Item 2\.  
-
+              
             [link text](https://google.com)
             """, results.Documentation.Value.Second.Value);
     }
@@ -285,6 +286,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
     {
         var markup =
             """
+
             class A
             {
                 /// <summary>

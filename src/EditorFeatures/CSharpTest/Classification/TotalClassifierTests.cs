@@ -2142,17 +2142,17 @@ Punctuation.CloseCurly);
             }
             """,
             testHost,
-Keyword("class"),
-Class("C"),
-Punctuation.OpenCurly,
-Keyword("static"),
-Class("C"),
-Static("C"),
-Punctuation.OpenParen,
-Punctuation.CloseParen,
-Punctuation.OpenCurly,
-Punctuation.CloseCurly,
-Punctuation.CloseCurly);
+            Keyword("class"),
+            Class("C"),
+            Punctuation.OpenCurly,
+            Keyword("static"),
+            Class("C"),
+            Static("C"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/55313")]
@@ -2165,17 +2165,17 @@ Punctuation.CloseCurly);
             }
             """,
             testHost,
-Keyword("interface"),
-Interface("C"),
-Punctuation.OpenCurly,
-Keyword("static"),
-Interface("C"),
-Static("C"),
-Punctuation.OpenParen,
-Punctuation.CloseParen,
-Punctuation.OpenCurly,
-Punctuation.CloseCurly,
-Punctuation.CloseCurly);
+            Keyword("interface"),
+            Interface("C"),
+            Punctuation.OpenCurly,
+            Keyword("static"),
+            Interface("C"),
+            Static("C"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
@@ -2188,15 +2188,15 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-ControlKeyword("foreach"),
-Punctuation.OpenParen,
-Keyword("var"),
-Local("arg"),
-ControlKeyword("in"),
-Keyword("args"),
-Punctuation.CloseParen,
-Punctuation.OpenCurly,
-Punctuation.CloseCurly);
+            ControlKeyword("foreach"),
+            Punctuation.OpenParen,
+            Keyword("var"),
+            Local("arg"),
+            ControlKeyword("in"),
+            Keyword("args"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/59569")]
@@ -2215,15 +2215,15 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-ControlKeyword("foreach"),
-Punctuation.OpenParen,
-Keyword("var"),
-Local("arg"),
-ControlKeyword("in"),
-Parameter("args"),
-Punctuation.CloseParen,
-Punctuation.OpenCurly,
-Punctuation.CloseCurly);
+            ControlKeyword("foreach"),
+            Punctuation.OpenParen,
+            Keyword("var"),
+            Local("arg"),
+            ControlKeyword("in"),
+            Parameter("args"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2237,12 +2237,12 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-Keyword("class"),
-Class("Test"),
-Punctuation.OpenCurly,
-Keyword("public"),
-Keyword("async"),
-Punctuation.CloseCurly);
+            Keyword("class"),
+            Class("Test"),
+            Punctuation.OpenCurly,
+            Keyword("public"),
+            Keyword("async"),
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2260,12 +2260,12 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-Keyword("class"),
-Class("Test"),
-Punctuation.OpenCurly,
-Keyword("public"),
-Class("async"),
-Punctuation.CloseCurly);
+            Keyword("class"),
+            Class("Test"),
+            Punctuation.OpenCurly,
+            Keyword("public"),
+            Class("async"),
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2279,13 +2279,13 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-Keyword("void"),
-Method("M"),
-Punctuation.OpenParen,
-Punctuation.CloseParen,
-Punctuation.OpenCurly,
-Keyword("async"),
-Punctuation.CloseCurly);
+            Keyword("void"),
+            Method("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Keyword("async"),
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2303,13 +2303,13 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-Keyword("void"),
-Method("M"),
-Punctuation.OpenParen,
-Punctuation.CloseParen,
-Punctuation.OpenCurly,
-Class("async"),
-Punctuation.CloseCurly);
+            Keyword("void"),
+            Method("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Class("async"),
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2326,9 +2326,9 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-Keyword("async"),
-Local("a"),
-Punctuation.Semicolon);
+            Keyword("async"),
+            Local("a"),
+            Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2347,9 +2347,9 @@ Punctuation.Semicolon);
             """,
             testHost,
             parseOptions: null,
-Class("async"),
-Local("a"),
-Punctuation.Semicolon);
+            Class("async"),
+            Local("a"),
+            Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2363,15 +2363,15 @@ Punctuation.Semicolon);
             """,
             testHost,
             parseOptions: null,
-Keyword("public"),
-Keyword("async"),
-Property("Prop"),
-Punctuation.OpenCurly,
-Keyword("get"),
-Punctuation.Semicolon,
-Keyword("set"),
-Punctuation.Semicolon,
-Punctuation.CloseCurly);
+            Keyword("public"),
+            Keyword("async"),
+            Property("Prop"),
+            Punctuation.OpenCurly,
+            Keyword("get"),
+            Punctuation.Semicolon,
+            Keyword("set"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2387,15 +2387,15 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-Keyword("public"),
-Class("async"),
-Property("Prop"),
-Punctuation.OpenCurly,
-Keyword("get"),
-Punctuation.Semicolon,
-Keyword("set"),
-Punctuation.Semicolon,
-Punctuation.CloseCurly);
+            Keyword("public"),
+            Class("async"),
+            Property("Prop"),
+            Punctuation.OpenCurly,
+            Keyword("get"),
+            Punctuation.Semicolon,
+            Keyword("set"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2409,11 +2409,11 @@ Punctuation.CloseCurly);
             """,
             testHost,
             parseOptions: null,
-Keyword("public"),
-Keyword("async"),
-Method("M"),
-Punctuation.OpenParen,
-Punctuation.CloseParen);
+            Keyword("public"),
+            Keyword("async"),
+            Method("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2429,11 +2429,11 @@ Punctuation.CloseParen);
             """,
             testHost,
             parseOptions: null,
-Keyword("public"),
-Class("async"),
-Method("M"),
-Punctuation.OpenParen,
-Punctuation.CloseParen);
+            Keyword("public"),
+            Class("async"),
+            Method("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2455,11 +2455,11 @@ Punctuation.CloseParen);
             """,
             testHost,
             parseOptions: null,
-Class("C"),
-Operators.Dot,
-Field("async"),
-Static("async"),
-Punctuation.Semicolon);
+            Class("C"),
+            Operators.Dot,
+            Field("async"),
+            Static("async"),
+            Punctuation.Semicolon);
 
     [Theory, CombinatorialData]
     [WorkItem(60399, "https://github.com/dotnet/roslyn/issues/60339")]
@@ -2477,10 +2477,10 @@ Punctuation.Semicolon);
             """,
             testHost,
             parseOptions: null,
-Delegate("Action"),
-Local("a"),
-Operators.Equals,
-Keyword("async"));
+            Delegate("Action"),
+            Local("a"),
+            Operators.Equals,
+            Keyword("async"));
 
     [Theory, CombinatorialData]
     public Task TestPartialInIncompleteMember1(TestHost testHost)

@@ -70,51 +70,65 @@ public sealed class EnableNullableTests
     public async Task EnabledOnNullableEnable(string directive)
     {
         var code1 = $$"""
+
             {{directive}}
 
             class Example
             {
               string? value;
             }
+
             """;
         var code2 = """
+
             class Example2
             {
               string value;
             }
+
             """;
         var code3 = """
+
             class Example3
             {
             #nullable enable
               string? value;
             #nullable restore
             }
+
             """;
         var code4 = """
+
             #nullable disable
 
             class Example4
             {
               string value;
             }
+
             """;
 
         var fixedCode1 = """
+
+
             class Example
             {
               string? value;
             }
+
             """;
         var fixedCode2 = """
+
             #nullable disable
 
             class Example2
             {
               string value;
             }
+
             """;
         var fixedCode3 = """
+
             #nullable disable
 
             class Example3
@@ -123,14 +137,17 @@ public sealed class EnableNullableTests
               string? value;
             #nullable disable
             }
+
             """;
         var fixedCode4 = """
+
             #nullable disable
 
             class Example4
             {
               string value;
             }
+
             """;
 
         await new VerifyCS.Test
@@ -163,12 +180,14 @@ public sealed class EnableNullableTests
     public async Task PlacementAfterHeader()
     {
         var code1 = """
+
             #nullable enable$$
 
             class Example
             {
               string? value;
             }
+
             """;
         var code2 = """
             // File header line 1
@@ -178,6 +197,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var code3 = """
             #region File Header
@@ -189,13 +209,17 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
 
         var fixedCode1 = """
+
+
             class Example
             {
               string? value;
             }
+
             """;
         var fixedCode2 = """
             // File header line 1
@@ -207,6 +231,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var fixedCode3 = """
             #region File Header
@@ -220,6 +245,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
 
         await new VerifyCS.Test
@@ -250,12 +276,14 @@ public sealed class EnableNullableTests
     public async Task PlacementBeforeDocComment()
     {
         var code1 = """
+
             #nullable enable$$
 
             class Example
             {
               string? value;
             }
+
             """;
         var code2 = """
             // Line comment
@@ -263,6 +291,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var code3 = """
             /*
@@ -272,6 +301,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var code4 = """
             /// <summary>Single line doc comment</summary>
@@ -279,6 +309,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var code5 = """
             /**
@@ -288,13 +319,17 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
 
         var fixedCode1 = """
+
+
             class Example
             {
               string? value;
             }
+
             """;
         var fixedCode2 = """
             // Line comment
@@ -304,6 +339,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var fixedCode3 = """
             /*
@@ -315,6 +351,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var fixedCode4 = """
             #nullable disable
@@ -324,6 +361,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var fixedCode5 = """
             #nullable disable
@@ -335,6 +373,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
 
         await new VerifyCS.Test
@@ -369,51 +408,66 @@ public sealed class EnableNullableTests
     public async Task OmitLeadingRestore()
     {
         var code1 = """
+
             #nullable enable$$
 
             class Example
             {
               string? value;
             }
+
             """;
         var code2 = """
+
             #nullable enable
 
             class Example2
             {
               string? value;
             }
+
             """;
         var code3 = """
+
             #nullable enable warnings
 
             class Example3
             {
               string value;
             }
+
             """;
         var code4 = """
+
             #nullable enable annotations
 
             class Example4
             {
               string? value;
             }
+
             """;
 
         var fixedCode1 = """
+
+
             class Example
             {
               string? value;
             }
+
             """;
         var fixedCode2 = """
+
+
             class Example2
             {
               string? value;
             }
+
             """;
         var fixedCode3 = """
+
             #nullable disable
 
             #nullable restore warnings
@@ -422,8 +476,10 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var fixedCode4 = """
+
             #nullable disable
 
             #nullable restore annotations
@@ -432,6 +488,7 @@ public sealed class EnableNullableTests
             {
               string? value;
             }
+
             """;
 
         await new VerifyCS.Test
@@ -464,12 +521,14 @@ public sealed class EnableNullableTests
     public async Task IgnoreGeneratedCode()
     {
         var code1 = """
+
             #nullable enable$$
 
             class Example
             {
               string? value;
             }
+
             """;
         var generatedCode1 = """
             // <auto-generated/>
@@ -480,6 +539,7 @@ public sealed class EnableNullableTests
             {
               string? value;
             }
+
             """;
         var generatedCode2 = """
             // <auto-generated/>
@@ -490,6 +550,7 @@ public sealed class EnableNullableTests
             {
               string value;
             }
+
             """;
         var generatedCode3 = """
             // <auto-generated/>
@@ -500,13 +561,17 @@ public sealed class EnableNullableTests
             {
               string {|#0:value|};
             }
+
             """;
 
         var fixedCode1 = """
+
+
             class Example
             {
               string? value;
             }
+
             """;
 
         await new VerifyCS.Test
@@ -548,7 +613,9 @@ public sealed class EnableNullableTests
         => new VerifyCS.Test
         {
             TestCode = """
+
             #nullable enable$$
+
             """,
             SolutionTransforms =
             {
@@ -574,7 +641,9 @@ public sealed class EnableNullableTests
     public async Task DisabledForUnsupportedLanguageVersion(LanguageVersion languageVersion)
     {
         var code = """
+
             #{|#0:nullable|} enable$$
+
             """;
 
         var error = languageVersion switch
@@ -620,55 +689,68 @@ public sealed class EnableNullableTests
     public async Task EnabledOnNullableRestore(string directive)
     {
         var code1 = $$"""
+
             {{directive}}
 
             class Example
             {
               string value;
             }
+
             """;
         var code2 = """
+
             class Example2
             {
               string value;
             }
+
             """;
         var code3 = """
+
             class Example3
             {
             #nullable enable
               string? value;
             #nullable restore
             }
+
             """;
         var code4 = """
+
             #nullable disable
 
             class Example4
             {
               string value;
             }
+
             """;
 
         var fixedDirective = directive.Replace("$$", "").Replace("restore", "disable");
 
         var fixedCode1 = $$"""
+
             {{fixedDirective}}
 
             class Example
             {
               string value;
             }
+
             """;
         var fixedCode2 = """
+
             #nullable disable
 
             class Example2
             {
               string value;
             }
+
             """;
         var fixedCode3 = """
+
             #nullable disable
 
             class Example3
@@ -677,14 +759,17 @@ public sealed class EnableNullableTests
               string? value;
             #nullable disable
             }
+
             """;
         var fixedCode4 = """
+
             #nullable disable
 
             class Example4
             {
               string value;
             }
+
             """;
 
         await new VerifyCS.Test
@@ -725,6 +810,7 @@ public sealed class EnableNullableTests
     public async Task EnabledOnNullableDisable(string directive)
     {
         var code1 = $$"""
+
             {{directive}}
 
             class Example
@@ -733,33 +819,41 @@ public sealed class EnableNullableTests
             }
 
             #nullable restore
+
             """;
         var code2 = """
+
             class Example2
             {
               string value;
             }
+
             """;
         var code3 = """
+
             class Example3
             {
             #nullable enable
               string? value;
             #nullable restore
             }
+
             """;
         var code4 = """
+
             #nullable disable
 
             class Example4
             {
               string value;
             }
+
             """;
 
         var fixedDirective = directive.Replace("$$", "");
 
         var fixedCode1 = $$"""
+
             {{fixedDirective}}
 
             class Example
@@ -768,16 +862,20 @@ public sealed class EnableNullableTests
             }
 
             #nullable disable
+
             """;
         var fixedCode2 = """
+
             #nullable disable
 
             class Example2
             {
               string value;
             }
+
             """;
         var fixedCode3 = """
+
             #nullable disable
 
             class Example3
@@ -786,14 +884,17 @@ public sealed class EnableNullableTests
               string? value;
             #nullable disable
             }
+
             """;
         var fixedCode4 = """
+
             #nullable disable
 
             class Example4
             {
               string value;
             }
+
             """;
 
         await new VerifyCS.Test

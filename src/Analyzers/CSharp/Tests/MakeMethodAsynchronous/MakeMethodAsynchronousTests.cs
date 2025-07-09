@@ -1033,7 +1033,7 @@ public sealed partial class MakeMethodAsynchronousTests(ITestOutputHelper logger
                 }
             }
             """,
-index: 1);
+            index: 1);
 
     [Theory]
     [InlineData(0, "void", "Task", "M2Async")]

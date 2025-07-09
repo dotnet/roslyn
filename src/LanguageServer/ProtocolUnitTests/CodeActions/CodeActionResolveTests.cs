@@ -117,6 +117,8 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         {
             GenerateTextEdit("""
                 private const int V = 1;
+
+
                 """, new LSP.Range { Start = new Position(2, 4), End = new Position(2, 4) }),
             GenerateTextEdit("V", new LSP.Range { Start = new Position(4, 16), End = new Position(4, 17) })
         };
@@ -143,6 +145,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     public async Task TestRename(bool mutatingLspWorkspace)
     {
         var markUp = """
+
             class {|caret:ABC|}
             {
             }
@@ -256,6 +259,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     public async Task TestMoveTypeToDifferentFile(bool mutatingLspWorkspace)
     {
         var markUp = """
+
             class {|caret:ABC|}
             {
             }
@@ -328,6 +332,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
                             class ABC
                             {
                             }
+
                             """
                         }
                     ]

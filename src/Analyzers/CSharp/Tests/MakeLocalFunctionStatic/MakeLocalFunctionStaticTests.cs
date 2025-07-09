@@ -61,7 +61,7 @@ public sealed partial class MakeLocalFunctionStaticTests : AbstractCSharpDiagnos
                 }
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
     public Task TestWithOptionOff()
@@ -481,7 +481,7 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     public Task TestCallingNestedLocalFunction()
@@ -524,7 +524,7 @@ parseOptions: CSharp8ParseOptions);
                 }
             }
             """,
-parseOptions: CSharp8ParseOptions);
+            parseOptions: CSharp8ParseOptions);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
     [WorkItem("https://github.com/dotnet/roslyn/issues/53179")]

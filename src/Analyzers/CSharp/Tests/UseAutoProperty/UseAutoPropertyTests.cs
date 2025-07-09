@@ -410,7 +410,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 public int P { get; private set; }
             }
             """,
-        CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
 
     [Fact]
     public Task TestCSharp5_2()

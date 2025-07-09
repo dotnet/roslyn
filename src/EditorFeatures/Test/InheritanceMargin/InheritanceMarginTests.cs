@@ -1955,7 +1955,7 @@ public sealed class InheritanceMarginTests
                     End Class
             """,
             LanguageNames.VisualBasic,
-             testHost,
+            testHost,
             itemForBar1,
             itemForBar,
             itemForFooInBar1,

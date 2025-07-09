@@ -186,6 +186,8 @@ class {|Identifier:A{{v}}|}
                 class {|Identifier:A|}
                 {
                 }
+
+
                 """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
@@ -359,13 +361,13 @@ class {|Identifier:A{{v}}|}
             var workspaceXml =
                 $"""
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
-                        <Document FilePath="C:\C.cs">{csharpMarkup}</Document>
-                    </Project>
-                    <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
-                        <Document FilePath="C:\T.ts">{typeScriptMarkup}</Document>
-                    </Project>
-                </Workspace>
+                            <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                                <Document FilePath="C:\C.cs">{csharpMarkup}</Document>
+                            </Project>
+                            <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
+                                <Document FilePath="C:\T.ts">{typeScriptMarkup}</Document>
+                            </Project>
+                        </Workspace>
                 """;
 
             await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
@@ -483,6 +485,8 @@ class {|Identifier:A{{v}}|}
                 class {|Identifier:A|}
                 {
                 }
+
+
                 """;
             var markup2 = "";
             await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);

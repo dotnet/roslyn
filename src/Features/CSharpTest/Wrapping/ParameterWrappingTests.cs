@@ -391,7 +391,7 @@ public sealed class ParameterWrappingTests : AbstractWrappingTests
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo(int i,
@@ -475,7 +475,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo(int i,
@@ -564,7 +564,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo(int iiiii,
@@ -642,7 +642,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(20),
+            GetIndentionColumn(20),
 """
 class C {
     void Goo(int iiiii,
@@ -702,7 +702,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo(int i,
@@ -790,7 +790,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo(
@@ -868,7 +868,7 @@ class C {
                 }
             }
             """,
-GetIndentionColumn(30),
+            GetIndentionColumn(30),
 """
 class C {
     void Goo(int i,
