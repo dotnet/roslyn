@@ -18,9 +18,8 @@ public sealed class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest_
         => new CSharpConvertIfToSwitchCodeRefactoringProvider();
 
     [Fact]
-    public async Task ConvertIfToSwitchStatement_FixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertIfToSwitchStatement_FixAllInDocument()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -83,12 +82,10 @@ public sealed class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest_
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task ConvertIfToSwitchExpression_FixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertIfToSwitchExpression_FixAllInDocument()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -143,12 +140,10 @@ public sealed class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest_
         };
     }
 }", index: 1);
-    }
 
     [Fact]
-    public async Task ConvertIfToSwitchStatement_Nested_FixAllInDocument()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertIfToSwitchStatement_Nested_FixAllInDocument()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i, int j)
@@ -193,12 +188,10 @@ public sealed class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest_
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task ConvertIfToSwitchStatement_FixAllInProject()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertIfToSwitchStatement_FixAllInProject()
+        => TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -322,12 +315,10 @@ class C3
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task ConvertIfToSwitchStatement_FixAllInSolution()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertIfToSwitchStatement_FixAllInSolution()
+        => TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -452,12 +443,10 @@ class C3
         </Document>
     </Project>
 </Workspace>");
-    }
 
     [Fact]
-    public async Task ConvertIfToSwitchStatement_FixAllInContainingMember()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertIfToSwitchStatement_FixAllInContainingMember()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -519,12 +508,10 @@ class C3
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task ConvertIfToSwitchStatement_FixAllInContainingType()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConvertIfToSwitchStatement_FixAllInContainingType()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -621,5 +608,4 @@ class C2
         }
     }
 }");
-    }
 }

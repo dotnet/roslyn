@@ -18,34 +18,26 @@ public sealed class VisualBasicInlayHintTests : AbstractInlayHintTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"Class A
+    public Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
+        => RunVerifyInlayHintAsync(@"Class A
     Sub M(x As Integer)
     End Sub
 
     Sub M2()
         M({|x:|}5)
     End Sub
-End Class";
-        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
-    }
+End Class", mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
-    public async Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
-    {
-        var markup =
-@"Class A
+    public Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
+        => RunVerifyInlayHintAsync(@"Class A
     Sub M(x As Integer, y As Boolean)
     End Sub
 
     Sub M2()
         M({|x:|}5, {|y:|}True)
     End Sub
-End Class";
-        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
-    }
+End Class", mutatingLspWorkspace);
 
     private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace)
     {

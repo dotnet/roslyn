@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class UseNameofInAttributeTests
 {
     [Fact]
-    public async Task TestOnMethod()
-    {
-        await new VerifyCS.Test
+    public Task TestOnMethod()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -44,12 +43,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithInterpolation()
-    {
-        await new VerifyCS.Test
+    public Task TestWithInterpolation()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -72,12 +69,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestTrivia()
-    {
-        await new VerifyCS.Test
+    public Task TestTrivia()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -100,12 +95,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestFullAttributeName()
-    {
-        await new VerifyCS.Test
+    public Task TestFullAttributeName()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -128,12 +121,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNamedArg()
-    {
-        await new VerifyCS.Test
+    public Task TestNamedArg()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -156,12 +147,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotBeforeCSharp11()
-    {
-        await new VerifyCS.Test
+    public Task NotBeforeCSharp11()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Diagnostics.CodeAnalysis;
@@ -175,12 +164,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOnIncorrectAttributeName()
-    {
-        await new VerifyCS.Test
+    public Task NotOnIncorrectAttributeName()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Diagnostics.CodeAnalysis;
@@ -194,12 +181,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenMissingArguments()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenMissingArguments()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Diagnostics.CodeAnalysis;
@@ -213,12 +198,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOnIncorrectReferencedName()
-    {
-        await new VerifyCS.Test
+    public Task NotOnIncorrectReferencedName()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Diagnostics.CodeAnalysis;
@@ -232,12 +215,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestOnParameter()
-    {
-        await new VerifyCS.Test
+    public Task TestOnParameter()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -258,12 +239,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestForProperty()
-    {
-        await new VerifyCS.Test
+    public Task TestForProperty()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -304,12 +283,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMultipleArguments()
-    {
-        await new VerifyCS.Test
+    public Task TestMultipleArguments()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Diagnostics.CodeAnalysis;
@@ -354,12 +331,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCallerArgumentExpression1()
-    {
-        await new VerifyCS.Test
+    public Task TestCallerArgumentExpression1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Runtime.CompilerServices;
@@ -380,12 +355,10 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestCallerArgumentExpression2()
-    {
-        await new VerifyCS.Test
+    public Task TestCallerArgumentExpression2()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System.Runtime.CompilerServices;
@@ -406,5 +379,4 @@ public sealed class UseNameofInAttributeTests
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
-    }
 }

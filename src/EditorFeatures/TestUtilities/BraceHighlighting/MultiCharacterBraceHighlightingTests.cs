@@ -89,149 +89,107 @@ public sealed class MultiCharacterBraceHighlightingTests : AbstractBraceHighligh
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotOnBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotOnBrace()
+        => TestBraceHighlightingAsync(
 "$$ <@    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestOnLeftOfStartBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestOnLeftOfStartBrace()
+        => TestBraceHighlightingAsync(
 "$$[|<@|]    [|@>|]");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestInsideStartBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestInsideStartBrace()
+        => TestBraceHighlightingAsync(
 "[|<$$@|]    [|@>|]");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotOnRightOfStartBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotOnRightOfStartBrace()
+        => TestBraceHighlightingAsync(
 "<@$$    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotOnLeftOfCloseBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotOnLeftOfCloseBrace()
+        => TestBraceHighlightingAsync(
 "<@    $$@>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestInsideCloseBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestInsideCloseBrace()
+        => TestBraceHighlightingAsync(
 "[|<@|]    [|@$$>|]");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestOnRightOfCloseBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestOnRightOfCloseBrace()
+        => TestBraceHighlightingAsync(
 "[|<@|]    [|@>$$|]");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotAfterBrace()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotAfterBrace()
+        => TestBraceHighlightingAsync(
 "<@    @> $$");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotOnBrace2()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotOnBrace2()
+        => TestBraceHighlightingAsync(
 "$$ <@    @><@    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestOnLeftOfStartBrace2()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestOnLeftOfStartBrace2()
+        => TestBraceHighlightingAsync(
 "$$[|<@|]    [|@>|]<@    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestInsideStartBrace2()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestInsideStartBrace2()
+        => TestBraceHighlightingAsync(
 "[|<$$@|]    [|@>|]<@    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotOnRightOfStartBrace2()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotOnRightOfStartBrace2()
+        => TestBraceHighlightingAsync(
 "<@$$    @><@    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotOnLeftOfCloseBrace2()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotOnLeftOfCloseBrace2()
+        => TestBraceHighlightingAsync(
 "<@    $$@><@    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestInsideCloseBrace3()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestInsideCloseBrace3()
+        => TestBraceHighlightingAsync(
 "[|<@|]    [|@$$>|]<@    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestOnRightOfCloseBrace2()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestOnRightOfCloseBrace2()
+        => TestBraceHighlightingAsync(
 "[|<@|]    [|@>|]$$[|<@|]    [|@>|]");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestInSecondBracePair()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestInSecondBracePair()
+        => TestBraceHighlightingAsync(
 "<@    @>[|<$$@|]    [|@>|]");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotAfterSecondBracePairStart()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotAfterSecondBracePairStart()
+        => TestBraceHighlightingAsync(
 "<@    @><@$$    @>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotBeforeSecondBracePairEnd()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotBeforeSecondBracePairEnd()
+        => TestBraceHighlightingAsync(
 "<@    @><@    $$@>");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestInSecondBracePairEnd()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestInSecondBracePairEnd()
+        => TestBraceHighlightingAsync(
 "<@    @>[|<@|]    [|@$$>|]");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestAtSecondBracePairEnd()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestAtSecondBracePairEnd()
+        => TestBraceHighlightingAsync(
 "<@    @>[|<@|]    [|@>|]$$");
-    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/18050")]
-    public async Task TestNotAfterSecondBracePairEnd()
-    {
-        await TestBraceHighlightingAsync(
+    public Task TestNotAfterSecondBracePairEnd()
+        => TestBraceHighlightingAsync(
 "<@    @><@    @>  $$");
-    }
 }

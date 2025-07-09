@@ -68,7 +68,7 @@ public class Test {{
         [InlineData("NamespaceDeclarationSyntax")]
         public Task NoDiagnostic(string type)
         {
-            var code = $@"
+            return VerifyCS.VerifyAnalyzerAsync($@"
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -76,9 +76,7 @@ public class Test {{
     public void M(SemanticModel semanticModel, {type} syntax) {{
         var x = semanticModel.GetDeclaredSymbol(syntax);
     }}
-}}";
-
-            return VerifyCS.VerifyAnalyzerAsync(code);
+}}");
         }
 
         [Fact]

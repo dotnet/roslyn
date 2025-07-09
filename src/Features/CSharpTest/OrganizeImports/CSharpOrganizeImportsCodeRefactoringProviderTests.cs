@@ -16,9 +16,8 @@ using VerifyCS = CSharpCodeRefactoringVerifier<OrganizeImportsCodeRefactoringPro
 public sealed class CSharpOrganizeImportsCodeRefactoringProviderTests
 {
     [Fact]
-    public async Task Test1()
-    {
-        await new VerifyCS.Test
+    public Task Test1()
+        => new VerifyCS.Test
         {
             TestCode = """
                 [||]using System.Collections;
@@ -31,12 +30,10 @@ public sealed class CSharpOrganizeImportsCodeRefactoringProviderTests
 
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithinNamespace()
-    {
-        await new VerifyCS.Test
+    public Task TestWithinNamespace()
+        => new VerifyCS.Test
         {
             TestCode = """
                 namespace N
@@ -53,12 +50,10 @@ public sealed class CSharpOrganizeImportsCodeRefactoringProviderTests
                 }
                 """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNotWhenAlreadySorted()
-    {
-        await new VerifyCS.Test
+    public Task TestNotWhenAlreadySorted()
+        => new VerifyCS.Test
         {
             TestCode = """
                 [||]using System;
@@ -69,5 +64,4 @@ public sealed class CSharpOrganizeImportsCodeRefactoringProviderTests
                 using System.Collections;
                 """,
         }.RunAsync();
-    }
 }

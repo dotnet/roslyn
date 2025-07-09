@@ -114,12 +114,8 @@ public void $$Run()
 
         AssertExecuteInInteractive(exampleWithIfDirective,
 @"public void Run()");
-
-        var exampleWithDefine =
-$@"#define DEF
-{exampleWithIfDirective}";
-
-        AssertExecuteInInteractive(exampleWithDefine,
+        AssertExecuteInInteractive($@"#define DEF
+{exampleWithIfDirective}",
 @"public void Run()
 {
 }");

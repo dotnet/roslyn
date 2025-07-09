@@ -39,7 +39,10 @@ public sealed class UpdateLegacySuppressionsTests
     [Theory]
     public async Task LegacySuppressions(string scope, string target, string fixedTarget)
     {
-        var input = $$"""
+        var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
+                                    .WithLocation(0)
+                                    .WithArguments(target);
+        await VerifyCS.VerifyCodeFixAsync($$"""
             [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = {|#0:"{{target}}"|})]
 
             namespace N
@@ -57,13 +60,7 @@ public sealed class UpdateLegacySuppressionsTests
                     }
                 }
             }
-            """;
-
-        var expectedDiagnostic = VerifyCS.Diagnostic(AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer.LegacyFormatTargetDescriptor)
-                                    .WithLocation(0)
-                                    .WithArguments(target);
-
-        var fixedCode = $$"""
+            """, expectedDiagnostic, $$"""
             [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Category", "Id: Title", Scope = "{{scope}}", Target = "{{fixedTarget}}")]
 
             namespace N
@@ -81,7 +78,6 @@ public sealed class UpdateLegacySuppressionsTests
                     }
                 }
             }
-            """;
-        await VerifyCS.VerifyCodeFixAsync(input, expectedDiagnostic, fixedCode);
+            """);
     }
 }

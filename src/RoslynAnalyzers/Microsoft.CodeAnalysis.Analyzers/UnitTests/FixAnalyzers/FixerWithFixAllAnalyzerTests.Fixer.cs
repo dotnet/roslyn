@@ -18,9 +18,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.FixAnalyzers
         #region CSharp tests
 
         [Fact]
-        public async Task CSharp_VerifyFix_NonSealedTypeAsync()
-        {
-            var source = @"
+        public Task CSharp_VerifyFix_NonSealedTypeAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -45,8 +44,7 @@ class {|RS1016:C1|} : CodeFixProvider
         return null;
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -76,15 +74,11 @@ class C1 : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+");
 
         [Fact]
-        public async Task CSharp_VerifyFix_SealedTypeAsync()
-        {
-            var source = @"
+        public Task CSharp_VerifyFix_SealedTypeAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -109,8 +103,7 @@ sealed class {|RS1016:C1|} : CodeFixProvider
         return null;
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -140,10 +133,7 @@ sealed class C1 : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+");
 
         [Fact]
         public async Task CSharp_NoDiagnosticAsync()
@@ -206,9 +196,8 @@ class C2 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_VerifyFixAllAsync()
-        {
-            var source = @"
+        public Task CSharp_VerifyFixAllAsync()
+            => VerifyCS.VerifyCodeFixAsync(@"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -251,8 +240,7 @@ sealed class {|RS1016:C2|} : CodeFixProvider
         return null;
     }
 }
-";
-            var fixedSource = @"
+", @"
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -305,19 +293,15 @@ sealed class C2 : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 }
-";
-
-            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
-        }
+");
 
         #endregion
 
         #region VisualBasic tests
 
         [Fact()]
-        public async Task VisualBasic_VerifyFix_NonSealedTypeAsync()
-        {
-            var source = @"
+        public Task VisualBasic_VerifyFix_NonSealedTypeAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -340,8 +324,7 @@ Class {|RS1016:C1|}
 		Return Nothing
 	End Function
 End Class
-";
-            var fixedSource = @"
+", @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -368,14 +351,11 @@ Class C1
         Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
-";
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
-        }
+");
 
         [Fact]
-        public async Task VisualBasic_VerifyFix_SealedTypeAsync()
-        {
-            var source = @"
+        public Task VisualBasic_VerifyFix_SealedTypeAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -398,8 +378,7 @@ NotInheritable Class {|RS1016:C1|}
 		Return Nothing
 	End Function
 End Class
-";
-            var fixedSource = @"
+", @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -426,9 +405,7 @@ NotInheritable Class C1
         Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
-";
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
-        }
+");
 
         [Fact]
         public async Task VisualBasic_NoDiagnosticAsync()
@@ -485,9 +462,8 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyFixAllAsync()
-        {
-            var source = @"
+        public Task VisualBasic_VerifyFixAllAsync()
+            => VerifyVB.VerifyCodeFixAsync(@"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -526,8 +502,7 @@ NotInheritable Class {|RS1016:C2|}
 		Return Nothing
 	End Function
 End Class
-";
-            var fixedSource = @"
+", @"
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks
@@ -574,10 +549,7 @@ NotInheritable Class C2
         Return WellKnownFixAllProviders.BatchFixer
     End Function
 End Class
-";
-
-            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
-        }
+");
 
         #endregion
     }

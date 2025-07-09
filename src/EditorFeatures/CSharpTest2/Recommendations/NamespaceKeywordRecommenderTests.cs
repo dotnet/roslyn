@@ -12,109 +12,86 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
-    public async Task TestNotInUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInUsingAlias()
+        => VerifyAbsenceAsync(
 @"using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotInGlobalUsingAlias()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotInGlobalUsingAlias()
+        => VerifyAbsenceAsync(
 @"global using Goo = $$");
-    }
 
     [Fact]
-    public async Task TestNotAfterClass_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterClass_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C { }
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalStatement_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalStatement_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestNotAfterGlobalVariableDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             int i = 0;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotInEmptyStatement()
-    {
-        await VerifyAbsenceAsync(AddInsideMethod(
+    public Task TestNotInEmptyStatement()
+        => VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-    }
 
     [Fact]
-    public async Task TestAtRoot()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAtRoot()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
 @"$$");
-    }
 
     [Fact]
-    public async Task TestAtRoot_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAtRoot_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-    }
 
     [Fact]
     public async Task TestNotAfterNamespaceKeyword()
         => await VerifyAbsenceAsync(@"namespace $$");
 
     [Fact]
-    public async Task TestAfterPreviousNamespace()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterPreviousNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             namespace N {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterPreviousFileScopedNamespace()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotAfterPreviousFileScopedNamespace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             namespace N;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterUsingInFileScopedNamespace()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotAfterUsingInFileScopedNamespace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             namespace N;
             using U;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUsingInNamespace()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterUsingInNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             namespace N
             {
@@ -122,53 +99,43 @@ public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAfterPreviousNamespace_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterPreviousNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             namespace N {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterExtern()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterExtern()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             extern alias goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterExtern_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterExtern_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             extern alias goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterExternInFileScopedNamespace()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Regular,
+    public Task TestNotAfterExternInFileScopedNamespace()
+        => VerifyAbsenceAsync(SourceCodeKind.Regular,
             """
             namespace N;
             extern alias A;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterExternInNamespace()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterExternInNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             namespace N
             {
@@ -176,348 +143,280 @@ public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUsing()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterUsing()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalUsing()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterGlobalUsing()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             global using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUsing_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalUsing_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalUsing_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             global using Goo;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUsingAlias()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterUsingAlias()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             using Goo = Bar;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterUsingAlias_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterUsingAlias_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             using Goo = Bar;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalUsingAlias()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterGlobalUsingAlias()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             global using Goo = Bar;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalUsingAlias_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalUsingAlias_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             global using Goo = Bar;
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterClassDeclaration()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterClassDeclaration()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             class C {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterClassDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterClassDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             class C {}
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterDelegateDeclaration()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterDelegateDeclaration()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             delegate void D();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterDelegateDeclaration_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterDelegateDeclaration_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             delegate void D();
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedDelegateDeclaration()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedDelegateDeclaration()
+        => VerifyAbsenceAsync(
             """
             class C {
                 delegate void D();
                 $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedMember()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedMember()
+        => VerifyAbsenceAsync("""
             class A {
                 class C {}
                 $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideNamespace()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestInsideNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             namespace N {
                 $$
             """);
-    }
 
     [Fact]
-    public async Task TestInsideNamespace_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestInsideNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             namespace N {
                 $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNamespaceKeyword_InsideNamespace()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNamespaceKeyword_InsideNamespace()
+        => VerifyAbsenceAsync("""
             namespace N {
                 namespace $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterPreviousNamespace_InsideNamespace()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterPreviousNamespace_InsideNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             namespace N {
                namespace N1 {}
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterPreviousNamespace_InsideNamespace_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterPreviousNamespace_InsideNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             namespace N {
                namespace N1 {}
                $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeUsing_InsideNamespace()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotBeforeUsing_InsideNamespace()
+        => VerifyAbsenceAsync("""
             namespace N {
                 $$
                 using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestAfterMember_InsideNamespace()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterMember_InsideNamespace()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             namespace N {
                 class C {}
                 $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterMember_InsideNamespace_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterMember_InsideNamespace_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             namespace N {
                 class C {}
                 $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedMember_InsideNamespace()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotAfterNestedMember_InsideNamespace()
+        => VerifyAbsenceAsync("""
             namespace N {
                 class A {
                   class C {}
                   $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeExtern()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotBeforeExtern()
+        => VerifyAbsenceAsync("""
             $$
             extern alias Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeUsing()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotBeforeUsing()
+        => VerifyAbsenceAsync("""
             $$
             using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBeforeGlobalUsing()
-    {
-        await VerifyAbsenceAsync("""
+    public Task TestNotBeforeGlobalUsing()
+        => VerifyAbsenceAsync("""
             $$
             global using Goo;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBetweenUsings()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBetweenUsings()
+        => VerifyAbsenceAsync(
             """
             using Goo;
             $$
             using Bar;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBetweenGlobalUsings_01()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBetweenGlobalUsings_01()
+        => VerifyAbsenceAsync(
             """
             global using Goo;
             $$
             using Bar;
             """);
-    }
 
     [Fact]
-    public async Task TestNotBetweenGlobalUsings_02()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotBetweenGlobalUsings_02()
+        => VerifyAbsenceAsync(
             """
             global using Goo;
             $$
             global using Bar;
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalAttribute()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterGlobalAttribute()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
             """
             [assembly: Goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterGlobalAttribute_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterGlobalAttribute_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
             """
             [assembly: Goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterAttribute()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterAttribute()
+        => VerifyAbsenceAsync(
             """
             [Goo]
             $$
             """);
-    }
 
     [Fact]
-    public async Task TestNotAfterNestedAttribute()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestNotAfterNestedAttribute()
+        => VerifyAbsenceAsync(
             """
             class C {
               [Goo]
               $$
             """);
-    }
 
     [Fact]
-    public async Task TestAfterRegion()
-    {
-        await VerifyKeywordAsync(SourceCodeKind.Regular,
+    public Task TestAfterRegion()
+        => VerifyKeywordAsync(SourceCodeKind.Regular,
     """
     #region EDM Relationship Metadata
 
@@ -527,12 +426,10 @@ public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
 
     $$
     """);
-    }
 
     [Fact]
-    public async Task TestAfterRegion_Interactive()
-    {
-        await VerifyAbsenceAsync(SourceCodeKind.Script,
+    public Task TestAfterRegion_Interactive()
+        => VerifyAbsenceAsync(SourceCodeKind.Script,
     """
     #region EDM Relationship Metadata
 
@@ -542,12 +439,10 @@ public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
 
     $$
     """);
-    }
 
     [Fact]
-    public async Task TestWithinExtension()
-    {
-        await VerifyAbsenceAsync(
+    public Task TestWithinExtension()
+        => VerifyAbsenceAsync(
             """
             static class C
             {
@@ -557,5 +452,4 @@ public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
                 }
             }
             """, CSharpNextParseOptions);
-    }
 }

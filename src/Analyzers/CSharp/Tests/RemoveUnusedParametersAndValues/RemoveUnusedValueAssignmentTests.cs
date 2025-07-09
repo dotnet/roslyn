@@ -42,9 +42,8 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
         => VerifyCS.VerifyStandardProperty(property);
 
     [Fact]
-    public async Task Initialization_Suppressed()
-    {
-        await new VerifyCS.Test
+    public Task Initialization_Suppressed()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -62,12 +61,10 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Assignment_Suppressed()
-    {
-        await new VerifyCS.Test
+    public Task Assignment_Suppressed()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -86,14 +83,12 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Initialization_ConstantValue(object option)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_ConstantValue(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -121,14 +116,12 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/48070")]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives(object option)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C {
@@ -166,12 +159,10 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Initialization_ConstantValue_RemoveUnusedParametersSuppressed()
-    {
-        await new VerifyCS.Test
+    public Task Initialization_ConstantValue_RemoveUnusedParametersSuppressed()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -199,12 +190,10 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CodeStyleOptions2.UnusedParameters, UnusedParametersPreference.NonPublicMethods, NotificationOption2.None },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Initialization_ConstantValue_RemoveUnusedParametersNotApplicable()
-    {
-        await new VerifyCS.Test
+    public Task Initialization_ConstantValue_RemoveUnusedParametersNotApplicable()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -232,14 +221,12 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CodeStyleOptions2.UnusedParameters, UnusedParametersPreference.NonPublicMethods, NotificationOption2.Silent },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Assignment_ConstantValue(object option)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_ConstantValue(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -269,14 +256,12 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Assignment_ConstantValue_NoReads(object option)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_ConstantValue_NoReads(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -301,12 +286,10 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Assignment_NonConstantValue_NoReads_PreferDiscard()
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_NoReads_PreferDiscard()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -336,12 +319,10 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Assignment_NonConstantValue_NoReads_PreferUnusedLocal()
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_NoReads_PreferUnusedLocal()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -360,14 +341,12 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.UnusedLocalVariable },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Initialization_NonConstantValue_ParameterReference(object option)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_NonConstantValue_ParameterReference(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -395,14 +374,12 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Assignment_NonConstantValue_ParameterReference(object option)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_ParameterReference(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -432,7 +409,6 @@ public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData]
     public async Task Initialization_NonConstantValue_LocalReference(
@@ -556,9 +532,8 @@ class C
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Initialization_NonConstantValue_DefaultExpression(object option)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_NonConstantValue_DefaultExpression(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             struct C
@@ -586,14 +561,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Initialization_NonConstantValue_CastExpression(object option)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_NonConstantValue_CastExpression(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             struct C
@@ -621,14 +594,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Initialization_NonConstantValue_FieldReferenceWithThisReceiver(object option)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_NonConstantValue_FieldReferenceWithThisReceiver(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -658,14 +629,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Assignment_NonConstantValue_FieldReferenceWithNullReceiver(object option)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_FieldReferenceWithNullReceiver(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -697,14 +666,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable, "_")]
     [InlineData(UnusedValuePreference.UnusedLocalVariable, "int unused")]
-    public async Task Assignment_NonConstantValue_FieldReferenceWithReceiver(object option, string fix)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_FieldReferenceWithReceiver(object option, string fix)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -737,14 +704,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable, "_")]
     [InlineData(UnusedValuePreference.UnusedLocalVariable, "int unused")]
-    public async Task Initialization_NonConstantValue_PropertyReference(object option, string fix)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_NonConstantValue_PropertyReference(object option, string fix)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -777,14 +742,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable, "_")]
     [InlineData(UnusedValuePreference.UnusedLocalVariable, "int unused")]
-    public async Task Initialization_NonConstantValue_MethodInvocation(object option, string fix)
-    {
-        await new VerifyCS.Test
+    public Task Initialization_NonConstantValue_MethodInvocation(object option, string fix)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -817,14 +780,10 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_PreferDiscard_CSharp6()
-    {
-        // Discard not supported in C# 6.0, so we fallback to unused local variable.
-
-        await new VerifyCS.Test
+    public Task Initialization_NonConstantValue_PreferDiscard_CSharp6()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -858,14 +817,12 @@ class C
             },
             LanguageVersion = LanguageVersion.CSharp6,
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable, "_")]
     [InlineData(UnusedValuePreference.UnusedLocalVariable, "int unused")]
-    public async Task Assignment_NonConstantValue_MethodInvocation(object option, string fix)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_MethodInvocation(object option, string fix)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -900,14 +857,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task Assignment_NonConstantValue_ImplicitConversion(object option)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_ImplicitConversion(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -935,14 +890,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable, "_")]
     [InlineData(UnusedValuePreference.UnusedLocalVariable, "int unused")]
-    public async Task Assignment_NonConstantValue_UserDefinedConversion(object option, string fix)
-    {
-        await new VerifyCS.Test
+    public Task Assignment_NonConstantValue_UserDefinedConversion(object option, string fix)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -991,7 +944,6 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData]
     public async Task NestedAssignment_ConstantValue(
@@ -1171,9 +1123,8 @@ class C
     [Theory]
     [InlineData(UnusedValuePreference.DiscardVariable)]
     [InlineData(UnusedValuePreference.UnusedLocalVariable)]
-    public async Task ReadAndWriteInSameExpression_MethodInvocation(object option)
-    {
-        await new VerifyCS.Test
+    public Task ReadAndWriteInSameExpression_MethodInvocation(object option)
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -1193,7 +1144,6 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData]
     public async Task IncrementOrDecrementOperator_ValueUsed_SameStatement(
@@ -1365,11 +1315,10 @@ class C
     }
 
     [Theory, CombinatorialData]
-    public async Task CompoundAssignmentOperator_ValueUsed_LaterStatement(
+    public Task CompoundAssignmentOperator_ValueUsed_LaterStatement(
         [CombinatorialValues("1" /*Constant*/, "M2()" /*Non-constant*/)] string rightHandSide,
         [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             class C
@@ -1388,14 +1337,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData]
-    public async Task CompoundLogicalOrOperator_ValueUsed_LaterStatement(
+    public Task CompoundLogicalOrOperator_ValueUsed_LaterStatement(
         [CombinatorialValues("true" /*Constant*/, "M2()" /*Non-constant*/)] string rightHandSide,
         [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             class C
@@ -1414,14 +1361,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory, CombinatorialData]
-    public async Task CompoundLogicalOrOperator_ValueUsed_LaterStatement_02(
+    public Task CompoundLogicalOrOperator_ValueUsed_LaterStatement_02(
         [CombinatorialValues("true" /*Constant*/, "M2()" /*Non-constant*/)] string rightHandSide,
         [CombinatorialValues(UnusedValuePreference.DiscardVariable, UnusedValuePreference.UnusedLocalVariable)] object option)
-    {
-        await new VerifyCS.Test
+        => new VerifyCS.Test
         {
             TestCode = $$"""
             class C
@@ -1441,14 +1386,12 @@ class C
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
             },
         }.RunAsync();
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task CompoundAssignmentOperator_ValueNotUsed_ConstantValue(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompoundAssignmentOperator_ValueNotUsed_ConstantValue(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1466,14 +1409,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "int unused")]
-    public async Task CompoundAssignmentOperator_ValueNotUsed_NonConstantValue(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CompoundAssignmentOperator_ValueNotUsed_NonConstantValue(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             $$"""
             class C
             {
@@ -1496,14 +1437,12 @@ class C
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NullCoalescing_ReadWrite(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NullCoalescing_ReadWrite(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1517,14 +1456,12 @@ class C
                 C M2() => null;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task LValueFlowCapture_Assignment_ControlFlowInAssignedTarget(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task LValueFlowCapture_Assignment_ControlFlowInAssignedTarget(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1538,14 +1475,12 @@ class C
                 C M2() => null;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "var unused")]
-    public async Task LValueFlowCapture_Assignment_ControlFlowInAssignedValue_01(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LValueFlowCapture_Assignment_ControlFlowInAssignedValue_01(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1572,14 +1507,12 @@ class C
                 C M2() => null;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task LValueFlowCapture_Assignment_ControlFlowInAssignedValue_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task LValueFlowCapture_Assignment_ControlFlowInAssignedValue_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1593,14 +1526,12 @@ class C
                 C M2() => null;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedTarget(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedTarget(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1614,14 +1545,12 @@ class C
                 C M2() => null;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "var unused")]
-    public async Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedValue_01(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedValue_01(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1649,14 +1578,12 @@ class C
                 C M2() => null;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedValue_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task LValueFlowCapture_DeconstructionAssignment_ControlFlowInAssignedValue_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1670,12 +1597,10 @@ class C
                 C M2() => null;
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_NoReferences_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_NoReferences_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1698,12 +1623,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_NoReferences_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_NoReferences_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1715,12 +1638,10 @@ class C
                 int M2() => 0;
             }
             """, new TestParameters(options: PreferUnusedLocal));
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_NoReadReferences_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_NoReadReferences_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1745,12 +1666,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_NoReadReferences_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_NoReadReferences_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -1763,14 +1682,12 @@ class C
                 int M2() => 0;
             }
             """, new TestParameters(options: PreferUnusedLocal));
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task Initialization_ConstantValue_FirstField(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_ConstantValue_FirstField(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1793,14 +1710,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task Initialization_ConstantValue_MiddleField(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_ConstantValue_MiddleField(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1823,14 +1738,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task Initialization_ConstantValue_LastField(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_ConstantValue_LastField(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1853,12 +1766,10 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_FirstField_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_FirstField_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1886,12 +1797,10 @@ class C
                 void M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_FirstField_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_FirstField_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1918,12 +1827,10 @@ class C
                 void M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_MiddleField_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_MiddleField_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1952,12 +1859,10 @@ class C
                 void M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_MiddleField_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_MiddleField_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -1984,12 +1889,10 @@ class C
                 void M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_LastField_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_LastField_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2017,12 +1920,10 @@ class C
                 void M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task Initialization_NonConstantValue_LastField_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Initialization_NonConstantValue_LastField_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2049,14 +1950,12 @@ class C
                 void M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task Assignment_BeforeUseAsOutArgument(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task Assignment_BeforeUseAsOutArgument(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2084,14 +1983,12 @@ class C
                 void M2(out int x) => x = 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NonRedundantAssignment_BeforeUseAsRefArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NonRedundantAssignment_BeforeUseAsRefArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2106,14 +2003,12 @@ class C
                 void M2(ref int x) => x = 0;
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40717")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NonRedundantAssignment_AfterUseAsRefArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NonRedundantAssignment_AfterUseAsRefArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2136,14 +2031,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40483")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NonRedundantAssignment_AfterUseAsRefArgument_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NonRedundantAssignment_AfterUseAsRefArgument_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -2169,14 +2062,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NonRedundantAssignment_BeforeUseAsInArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NonRedundantAssignment_BeforeUseAsInArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2191,12 +2082,10 @@ class C
                 void M2(in int x) { }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task OutArgument_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OutArgument_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2225,12 +2114,10 @@ class C
                 void M2(out int x) => x = 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task OutArgument_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OutArgument_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2260,12 +2147,10 @@ class C
                 void M2(out int x) => x = 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task OutVarArgument_ExpressionBody_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OutVarArgument_ExpressionBody_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2280,12 +2165,10 @@ class C
                 void M2(out int x) => x = 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task OutArgument_NoReads_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OutArgument_NoReads_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2315,12 +2198,10 @@ class C
                 void M2(out int x) => x = 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task OutArgument_NoReads_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task OutArgument_NoReads_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2333,14 +2214,12 @@ class C
                 void M2(out int x) => x = 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "var unused")]
-    public async Task OutDeclarationExpressionArgument(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task OutDeclarationExpressionArgument(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2367,14 +2246,12 @@ class C
                 void M2(out int x) => x = 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NonRedundantRefArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NonRedundantRefArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2388,14 +2265,12 @@ class C
                 void M2(ref int x) => x = 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NonRedundantInArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NonRedundantInArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2409,14 +2284,12 @@ class C
                 void M2(in int x) { }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "unused")]
-    public async Task DeconstructionDeclarationExpression(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeconstructionDeclarationExpression(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2439,12 +2312,10 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task DeconstructionAssignment_01_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeconstructionAssignment_01_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2469,12 +2340,10 @@ class C
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task DeconstructionAssignment_01_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeconstructionAssignment_01_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2500,14 +2369,12 @@ class C
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task DeconstructionAssignment_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DeconstructionAssignment_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2519,14 +2386,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "var unused")]
-    public async Task TupleExpressionWithDeclarationExpressions(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TupleExpressionWithDeclarationExpressions(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2549,12 +2414,10 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2583,12 +2446,10 @@ class C
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact]
-    public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard_CSharp9()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferDiscard_CSharp9()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2617,13 +2478,11 @@ class C
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
-    }
 
     [Theory, CombinatorialData]
-    public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferUnusedLocal(
+    public Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_PreferUnusedLocal(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
-    {
-        await TestMissingInRegularAndScriptAsync(
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2638,7 +2497,6 @@ class C
                 }
             }
             """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion)));
-    }
 
     [Theory, CombinatorialData]
     public async Task DeclarationPatternInSwitchCase_WithOnlyWriteReference_TypePattern(
@@ -2707,9 +2565,8 @@ class C
     }
 
     [Fact]
-    public async Task DeclarationPatternInIsPattern_WithNoReference_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInIsPattern_WithNoReference_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2732,12 +2589,10 @@ class C
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task DeclarationPatternInIsPattern_WithNoReference_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DeclarationPatternInIsPattern_WithNoReference_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2749,12 +2604,10 @@ class C
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2779,12 +2632,10 @@ class C
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DeclarationPatternInIsPattern_WithOnlyWriteReference_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2797,14 +2648,12 @@ class C
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "C")]
     [InlineData(nameof(PreferUnusedLocal), "C unused")]
-    public async Task DeclarationPatternInIsPattern_WithReadAndWriteReference(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInIsPattern_WithReadAndWriteReference(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2831,12 +2680,10 @@ class C
                 }
             }
             """, optionName: optionName);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
-    public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInRecursivePattern_WithNoReference_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2855,14 +2702,12 @@ class C
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
-    public async Task DeclarationPatternInRecursivePattern_WithNoReference_PreferUnusedLocal(
+    public Task DeclarationPatternInRecursivePattern_WithNoReference_PreferUnusedLocal(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
-    {
-        await TestMissingInRegularAndScriptAsync(
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2872,7 +2717,6 @@ class C
                 }
             }
             """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
@@ -2931,9 +2775,8 @@ class C
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
-    public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -2965,14 +2808,12 @@ class C
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
-    public async Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferUnusedLocal(
+    public Task DeclarationPatternInRecursivePattern_WithOnlyWriteReference_PreferUnusedLocal(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
-    {
-        await TestMissingInRegularAndScriptAsync(
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -2988,7 +2829,6 @@ class C
                 }
             }
             """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
@@ -3068,9 +2908,8 @@ class C
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "unused")]
-    public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3100,14 +2939,12 @@ class C
                 }
             }
             """, optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [InlineData(nameof(PreferDiscard), "")]
     [InlineData(nameof(PreferUnusedLocal), " unused")]
-    public async Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference_TypePatternxxxxxxxxxxxxxxxxxxxxxx(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInRecursivePattern_WithReadAndWriteReference_TypePatternxxxxxxxxxxxxxxxxxxxxxx(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -3137,7 +2974,6 @@ class C
                 }
             }
             """, optionName: optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32271")]
     [CombinatorialData]
@@ -3240,9 +3076,8 @@ class C
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_WithInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_WithInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3260,14 +3095,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_WithInvocation_DefinedAtStart(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_WithInvocation_DefinedAtStart(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3285,14 +3118,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_WithInvocation_DefinedAtEnd(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_WithInvocation_DefinedAtEnd(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3310,14 +3141,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_WithoutInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseInLambda_WithoutInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3347,14 +3176,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_WithoutInvocation_DefinedAtStart(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseInLocalFunction_WithoutInvocation_DefinedAtStart(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3384,14 +3211,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_WithoutInvocation_DefinedAtEnd(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UseInLocalFunction_WithoutInvocation_DefinedAtEnd(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3421,14 +3246,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NotUseInLambda_WithInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotUseInLambda_WithInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3458,14 +3281,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NotUseInLocalFunction_WithInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotUseInLocalFunction_WithInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3495,14 +3316,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NotUseInLambda_WithoutInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotUseInLambda_WithoutInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3530,14 +3349,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NotUseInLocalFunction_WithoutInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotUseInLocalFunction_WithoutInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3565,14 +3382,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task RedundantWriteInLambda_WithInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantWriteInLambda_WithInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3602,14 +3417,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task RedundantWriteInLocalFunction_WithInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantWriteInLocalFunction_WithInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -3639,14 +3452,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task WriteThenReadInLambda_WithInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task WriteThenReadInLambda_WithInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3663,14 +3474,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task WriteThenReadInLocalFunction_WithInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task WriteThenReadInLocalFunction_WithInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3687,14 +3496,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task RedundantWriteInLambda_WithoutInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RedundantWriteInLambda_WithoutInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3709,14 +3516,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task RedundantWriteInLocalFunction_WithoutInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RedundantWriteInLocalFunction_WithoutInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3731,14 +3536,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_Nested(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_Nested(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3763,14 +3566,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_NestedLocalFunction(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_NestedLocalFunction(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3795,14 +3596,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_NestedLocalFunction(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_NestedLocalFunction(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3822,14 +3621,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_NestedLambda(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_NestedLambda(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3850,14 +3647,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInNestedLambda_InvokedInOuterFunction(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInNestedLambda_InvokedInOuterFunction(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3879,14 +3674,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInNestedLocalFunction_InvokedInOuterFunction(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInNestedLocalFunction_InvokedInOuterFunction(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3909,14 +3702,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_ArgumentToLambda(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_ArgumentToLambda(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3929,14 +3720,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_ArgumentToLambda_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_ArgumentToLambda_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3949,14 +3738,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_PassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_PassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -3974,14 +3761,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_PassedAsArgument_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_PassedAsArgument_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4007,14 +3792,12 @@ class C
                 private static bool M2(C c) => c.Flag;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_PassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_PassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4034,14 +3817,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_PassedAsArgument_CustomDelegate(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_PassedAsArgument_CustomDelegate(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4061,14 +3842,12 @@ class C
                 void M2(MyAction a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_PassedAsArgument_CustomDelegate(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_PassedAsArgument_CustomDelegate(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4090,15 +3869,12 @@ class C
                 void M2(MyAction a) => a();
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UnusedInExpressionTree_PassedAsArgument(string optionName)
-    {
-        // Currently we bail out of analysis in presence of expression trees.
-        await TestMissingInRegularAndScriptAsync(
+    public Task UnusedInExpressionTree_PassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -4115,15 +3891,12 @@ class C
                 private int M3() { return 0; }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ReadInExpressionTree_PassedAsArgument(string optionName)
-    {
-        // Currently we bail out of analysis in presence of expression trees.
-        await TestMissingInRegularAndScriptAsync(
+    public Task ReadInExpressionTree_PassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -4140,15 +3913,12 @@ class C
                 private int M3(object o) { return 0; }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31744")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task OnlyWrittenInExpressionTree_PassedAsArgument(string optionName)
-    {
-        // Currently we bail out of analysis in presence of expression trees.
-        await TestMissingInRegularAndScriptAsync(
+    public Task OnlyWrittenInExpressionTree_PassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Linq.Expressions;
@@ -4165,14 +3935,12 @@ class C
                 private int M3(out object o) { o = null; return 0; }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_PassedAsArgument_CastFromDelegateType(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_PassedAsArgument_CastFromDelegateType(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4193,14 +3961,12 @@ class C
                 void M2(object a) => ((Action)a)();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_PassedAsArgument_CastFromDelegateType(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_PassedAsArgument_CastFromDelegateType(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4221,14 +3987,12 @@ class C
                 void M2(object a) => ((Action)a)();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_DelegateCreationPassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_DelegateCreationPassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4246,14 +4010,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_DelegateCreationPassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_DelegateCreationPassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4273,14 +4035,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_DelegatePassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_DelegatePassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4300,14 +4060,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_DelegatePassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_DelegatePassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4328,14 +4086,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task WrittenInLambda_DelegatePassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task WrittenInLambda_DelegatePassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4357,14 +4113,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task WrittenInLocalFunction_DelegatePassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task WrittenInLocalFunction_DelegatePassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4386,14 +4140,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task WrittenInLambdaAndLocalFunctionTargets_DelegatePassedAsArgument(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task WrittenInLambdaAndLocalFunctionTargets_DelegatePassedAsArgument(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4430,14 +4182,12 @@ class C
                 void M2(Action a) => a();
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_ReturnedDelegateCreation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_ReturnedDelegateCreation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4453,14 +4203,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_ReturnedDelegateCreation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_ReturnedDelegateCreation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4478,14 +4226,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_ReturnedDelegate(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_ReturnedDelegate(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4503,14 +4249,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_ReturnedDelegate(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_ReturnedDelegate(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4528,14 +4272,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_InvokedDelegate_ControlFlow(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_InvokedDelegate_ControlFlow(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4556,14 +4298,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_InvokedDelegate_ControlFlow(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_InvokedDelegate_ControlFlow(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4585,14 +4325,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_LambdaAndLocalFunctionTargets(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_LambdaAndLocalFunctionTargets(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4615,16 +4353,12 @@ class C
                 void M2() { }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NotUsed_LambdaAndLocalFunctionTargets(string optionName)
-    {
-        // Below should be changed to verify diagnostic/fix once we
-        // perform points-to-analysis for accurate delegate target tracking.
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotUsed_LambdaAndLocalFunctionTargets(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4646,14 +4380,12 @@ class C
                 void M2() { }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_LambdaAndLocalFunctionTargets_ThroughLocalsAndParameters(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_LambdaAndLocalFunctionTargets_ThroughLocalsAndParameters(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4711,14 +4443,12 @@ class C
                 void M2() { }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NotUsed_LambdaAndLocalFunctionTargets_ThroughLocalsAndParameters(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NotUsed_LambdaAndLocalFunctionTargets_ThroughLocalsAndParameters(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -4828,14 +4558,12 @@ class C
                 void M2() { }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLambda_UsedAfterInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInLambda_UsedAfterInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4853,14 +4581,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLocalFunction_UsedAfterInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInLocalFunction_UsedAfterInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4879,14 +4605,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLambda_UsedAfterSecondInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInLambda_UsedAfterSecondInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4906,14 +4630,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLocalFunction_UsedAfterSecondInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInLocalFunction_UsedAfterSecondInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4933,14 +4655,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLambda_MayBeUsedAfterOneOfTheInvocations(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInLambda_MayBeUsedAfterOneOfTheInvocations(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -4968,14 +4688,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLocalFunction_MayBeUsedAfterOneOfTheInvocations(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInLocalFunction_MayBeUsedAfterOneOfTheInvocations(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5003,14 +4721,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLambda_NotUsedAfterInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AssignedInLambda_NotUsedAfterInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5040,14 +4756,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInLocalFunction_NotUsedAfterInvocation(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AssignedInLocalFunction_NotUsedAfterInvocation(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5079,14 +4793,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_WithRecursiveInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_WithRecursiveInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5105,14 +4817,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task NotUseInLocalFunction_WithRecursiveInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotUseInLocalFunction_WithRecursiveInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5130,15 +4840,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task Lambda_WithNonReachableExit(string optionName)
-    {
-        // We bail out from analysis for delegate passed an argument.
-        await TestMissingInRegularAndScriptAsync(
+    public Task Lambda_WithNonReachableExit(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5158,14 +4865,12 @@ class C
                 void M2(Action a) { }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task Lambda_WithMultipleInvocations(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task Lambda_WithMultipleInvocations(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5189,12 +4894,10 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task UnusedValue_DelegateTypeOptionalParameter_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UnusedValue_DelegateTypeOptionalParameter_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5221,12 +4924,10 @@ class C
                 C M2(Action c = null) => null;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task UnusedValue_DelegateTypeOptionalParameter_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UnusedValue_DelegateTypeOptionalParameter_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5240,14 +4941,12 @@ class C
                 C M2(Action c = null) => null;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLocalFunction_NestedInvocation(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLocalFunction_NestedInvocation(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -5274,14 +4973,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "unused")]
-    public async Task DeclarationPatternInSwitchCase_WithReadAndWriteReferences(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInSwitchCase_WithReadAndWriteReferences(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5312,12 +5009,10 @@ class C
                 }
             }
             """, optionName, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact]
-    public async Task CatchClause_ExceptionVariable_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CatchClause_ExceptionVariable_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5350,12 +5045,10 @@ class C
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task CatchClause_ExceptionVariable_PreferUnusedLocal_01()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task CatchClause_ExceptionVariable_PreferUnusedLocal_01()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5372,12 +5065,10 @@ class C
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task CatchClause_ExceptionVariable_PreferUnusedLocal_02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CatchClause_ExceptionVariable_PreferUnusedLocal_02()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -5414,14 +5105,12 @@ class C
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedOutsideTry_UsedOnlyInCatchClause(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedOutsideTry_UsedOnlyInCatchClause(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5440,14 +5129,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedOutsideTry_UsedOnlyInCatchFilter(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedOutsideTry_UsedOnlyInCatchFilter(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5465,14 +5152,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedOutsideTry_UsedOnlyInFinally(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedOutsideTry_UsedOnlyInFinally(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5491,14 +5176,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInsideTry_UsedOnlyInCatchClause(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInsideTry_UsedOnlyInCatchClause(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5517,14 +5200,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInsideNestedBlockInTry_UsedOnlyInCatchClause(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInsideNestedBlockInTry_UsedOnlyInCatchClause(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5546,14 +5227,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInCatchClause_UsedAfterTryCatch(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInCatchClause_UsedAfterTryCatch(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5573,14 +5252,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInNestedCatchClause_UsedInOuterFinally(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInNestedCatchClause_UsedInOuterFinally(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5605,14 +5282,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInCatchClause_UsedInFinally(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInCatchClause_UsedInFinally(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5634,14 +5309,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInCatchFilter_UsedAfterTryCatch(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInCatchFilter_UsedAfterTryCatch(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5662,14 +5335,12 @@ class C
                 bool M2(out int x) { x = 0; return true; }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInFinally_UsedAfterTryFinally(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInFinally_UsedAfterTryFinally(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5689,14 +5360,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInNestedFinally_UsedInOuterFinally(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInNestedFinally_UsedInOuterFinally(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -5721,12 +5390,10 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task IfElse_AssignedInCondition_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IfElse_AssignedInCondition_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5765,12 +5432,10 @@ class C
                 bool M2(out int x) => x = 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task IfElse_DeclaredInCondition_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IfElse_DeclaredInCondition_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5808,12 +5473,10 @@ class C
                 bool M2(out int x) => x = 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task IfElseAssignedInCondition_ReadAfter_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IfElseAssignedInCondition_ReadAfter_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5857,12 +5520,10 @@ class C
                 bool M2(out int x) => x = 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task IfElse_AssignedInCondition_NoReads_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task IfElse_AssignedInCondition_NoReads_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -5882,12 +5543,10 @@ class C
                 bool M2(out int x) => x = 0;
             }
             """, new TestParameters(options: PreferUnusedLocal));
-    }
 
     [Fact]
-    public async Task IfElse_DeclaredInCondition_ReadAfter_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task IfElse_DeclaredInCondition_ReadAfter_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -5929,12 +5588,10 @@ class C
                 bool M2(out int x) => x = 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task IfElse_DeclaredInCondition_NoReads_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task IfElse_DeclaredInCondition_NoReads_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -5953,7 +5610,6 @@ class C
                 bool M2(out int x) => x = 0;
             }
             """, new TestParameters(options: PreferUnusedLocal));
-    }
 
     [Theory]
     // Simple if-else.
@@ -5970,9 +5626,8 @@ class C
     //Multi-level nesting.
     [InlineData(@"if(flag) { x = 1; } else { if(flag2) { if(flag3) { x = 2; } else { x = 3; } } else { x = 4; } }",
                 @"x = 5;")]
-    public async Task IfElse_OverwrittenInAllControlFlowPaths(string ifBranchCode, string elseBranchCode)
-    {
-        await TestInRegularAndScriptWithAllOptionsAsync(
+    public Task IfElse_OverwrittenInAllControlFlowPaths(string ifBranchCode, string elseBranchCode)
+        => TestInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -6011,7 +5666,6 @@ class C
                 }
             }
             """);
-    }
 
     [Theory]
     // Overwrite missing in if path.
@@ -6030,9 +5684,8 @@ class C
     // Overwrite missing in one path with multi-level nesting.
     [InlineData(@"if(flag) { x = 1; } else { if(flag2) { if(flag3) { x = 2; } } else { x = 3; } }",
                 @"x = 4;")]
-    public async Task IfElse_OverwrittenInSomeControlFlowPaths(string ifBranchCode, string elseBranchCode)
-    {
-        await TestMissingInRegularAndScriptWithAllOptionsAsync(
+    public Task IfElse_OverwrittenInSomeControlFlowPaths(string ifBranchCode, string elseBranchCode)
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -6052,16 +5705,14 @@ class C
                 }
             }
             """);
-    }
 
     [Theory]
     // Overitten in condition when true, overwritten in else code block when false.
     [InlineData("flag && M2(out x)", ";", "x = 2;")]
     // Overitten in condition when false, overwritten in if code block when true.
     [InlineData("flag || M2(out x)", "x = 2;", ";")]
-    public async Task IfElse_Overwritten_CodeInOneBranch_ConditionInOtherBranch(string condition, string ifBranchCode, string elseBranchCode)
-    {
-        await TestInRegularAndScriptWithAllOptionsAsync(
+    public Task IfElse_Overwritten_CodeInOneBranch_ConditionInOtherBranch(string condition, string ifBranchCode, string elseBranchCode)
+        => TestInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -6106,7 +5757,6 @@ class C
                 int M3() => 0;
             }
             """);
-    }
 
     [Theory]
     // Overwrite missing in condition when left of || is true.
@@ -6115,9 +5765,8 @@ class C
     [InlineData("flag && M2(out x)")]
     // Overwrite missing in condition when left of || is true, but both both sides of && have an overwrite.
     [InlineData("flag || M2(out x) && (x = M3()) > 0")]
-    public async Task IfElse_MayBeOverwrittenInCondition_LogicalOperators(string condition)
-    {
-        await TestMissingInRegularAndScriptWithAllOptionsAsync(
+    public Task IfElse_MayBeOverwrittenInCondition_LogicalOperators(string condition)
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -6138,7 +5787,6 @@ class C
                 int M3() => 0;
             }
             """);
-    }
 
     [Theory]
     [InlineData("M2(out x) || flag")]
@@ -6149,9 +5797,8 @@ class C
     [InlineData("(flag || M2(out x)) && (x = M3()) > 0")]
     [InlineData("M2(out x) && flag || (x = M3()) > 0")]
     [InlineData("flag && M2(out x) || (x = M3()) > 0 && flag")]
-    public async Task IfElse_OverwrittenInCondition_LogicalOperators(string condition)
-    {
-        await TestInRegularAndScriptWithAllOptionsAsync(
+    public Task IfElse_OverwrittenInCondition_LogicalOperators(string condition)
+        => TestInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -6192,14 +5839,12 @@ class C
         int M3() => 0;
     }
     """);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ElselessIf(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task ElselessIf(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -6215,14 +5860,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UnusedDefinition_NotFlagged_InUnreachableBlock(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UnusedDefinition_NotFlagged_InUnreachableBlock(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -6245,12 +5888,10 @@ class C
                 bool M2(out int x) { x = 0; return true; }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task SwitchCase_UnusedValueWithOnlyWrite_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SwitchCase_UnusedValueWithOnlyWrite_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6289,12 +5930,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task SwitchCase_UnusedValueWithOnlyWrite_PreferUnusedLocal()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task SwitchCase_UnusedValueWithOnlyWrite_PreferUnusedLocal()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -6314,14 +5953,12 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task SwitchCase_UnusedConstantValue_WithReadsAndWrites(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SwitchCase_UnusedConstantValue_WithReadsAndWrites(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6361,14 +5998,12 @@ class C
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard), "_")]
     [InlineData(nameof(PreferUnusedLocal), "int unused")]
-    public async Task SwitchCase_UnusedNonConstantValue_WithReadsAndWrites(string optionName, string fix)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task SwitchCase_UnusedNonConstantValue_WithReadsAndWrites(string optionName, string fix)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6409,7 +6044,6 @@ class C
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory]
     // For loop, assignment in body, read on back edge.
@@ -6437,10 +6071,9 @@ class C
                               while(i++ < 10)
         """,
                      "x = 2;")]
-    public async Task Loops_Overwritten_InSomeControlFlowPaths(
+    public Task Loops_Overwritten_InSomeControlFlowPaths(
         string loopHeader, string loopBody, string? loopFooter = null)
-    {
-        await TestMissingInRegularAndScriptWithAllOptionsAsync(
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -6458,7 +6091,6 @@ class C
                 void M2(int x) { }
             }
             """);
-    }
 
     [Theory]
     // For loop, assignment in body, re-assigned on back edge before read in loop and re-assigned at loop exit.
@@ -6508,11 +6140,10 @@ class C
                                               M2(x);
                     """,
                   "x = 4;")]
-    public async Task Loops_Overwritten_InAllControlFlowPaths(
+    public Task Loops_Overwritten_InAllControlFlowPaths(
         string loopHeader, string loopBody, string loopFooter,
         string fixedLoopHeader, string fixedLoopBody, string fixedLoopFooter)
-    {
-        await TestInRegularAndScriptWithAllOptionsAsync(
+        => TestInRegularAndScriptWithAllOptionsAsync(
             $$"""
             class C
             {
@@ -6547,12 +6178,10 @@ class C
                 void M2(int x) { }
             }
             """);
-    }
 
     [Fact]
-    public async Task FixAll_NonConstantValue_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAll_NonConstantValue_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6643,12 +6272,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task FixAll_NonConstantValue_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAll_NonConstantValue_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6744,14 +6371,12 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task FixAll_ConstantValue_RemoveRedundantAssignments(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAll_ConstantValue_RemoveRedundantAssignments(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6844,12 +6469,10 @@ class C
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task FixAll_MoveMultipleVariableDeclarations_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAll_MoveMultipleVariableDeclarations_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6908,12 +6531,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task FixAll_MoveMultipleVariableDeclarations_PreferUnusedLocal()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task FixAll_MoveMultipleVariableDeclarations_PreferUnusedLocal()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -6971,12 +6592,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task NonConstantValue_Trivia_PreferDiscard_01()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NonConstantValue_Trivia_PreferDiscard_01()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7009,12 +6628,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task NonConstantValue_Trivia_PreferDiscard_02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NonConstantValue_Trivia_PreferDiscard_02()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7049,12 +6666,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task NonConstantValue_Trivia_PreferUnusedLocal_01()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NonConstantValue_Trivia_PreferUnusedLocal_01()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7089,12 +6704,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task NonConstantValue_Trivia_PreferUnusedLocal_02()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NonConstantValue_Trivia_PreferUnusedLocal_02()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7130,14 +6743,12 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ConstantValue_Trivia_01(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConstantValue_Trivia_01(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7172,14 +6783,12 @@ class C
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ConstantValue_Trivia_02(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ConstantValue_Trivia_02(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7215,12 +6824,10 @@ class C
                 int M2() => 0;
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task ExistingDiscardDeclarationInLambda_UseOutsideLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExistingDiscardDeclarationInLambda_UseOutsideLambda()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7259,12 +6866,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task ExistingDiscardDeclarationInLambda_UseInsideLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ExistingDiscardDeclarationInLambda_UseInsideLambda()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7303,14 +6908,12 @@ class C
                 int M2() => 0;
             }
             """, options: PreferDiscard);
-    }
 
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task ValueOverwrittenByOutVar_ConditionalAndExpression(string optionName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task ValueOverwrittenByOutVar_ConditionalAndExpression(string optionName)
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -7370,14 +6973,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory]
     [InlineData("var")]
     [InlineData("int")]
-    public async Task UnusedOutVariableDeclaration_PreferDiscard(string typeName)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UnusedOutVariableDeclaration_PreferDiscard(string typeName)
+        => TestInRegularAndScriptAsync(
             $$"""
             class C
             {
@@ -7412,12 +7013,10 @@ class C
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact]
-    public async Task UnusedOutVariableDeclaration_MethodOverloads_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UnusedOutVariableDeclaration_MethodOverloads_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7464,14 +7063,12 @@ class C
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31583")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task MissingImports(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task MissingImports(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -7481,14 +7078,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/31583")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UsedAssignment_ConditionalPreprocessorDirective(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedAssignment_ConditionalPreprocessorDirective(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             #define DEBUG
 
@@ -7504,14 +7099,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32855")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task RefLocalInitialization(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RefLocalInitialization(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class Test
             {
@@ -7524,14 +7117,12 @@ class C
               }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32855")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task RefLocalAssignment(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task RefLocalAssignment(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class Test
             {
@@ -7545,14 +7136,12 @@ class C
               }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32903")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task DelegateCreationWrappedInATuple_UsedInReturnedLambda(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateCreationWrappedInATuple_UsedInReturnedLambda(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -7570,12 +7159,10 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32923")]
-    public async Task UnusedLocal_ForEach()
-    {
-        await TestDiagnosticsAsync(
+    public Task UnusedLocal_ForEach()
+        => TestDiagnosticsAsync(
             """
             using System;
 
@@ -7602,12 +7189,10 @@ class C
             }
             """, new TestParameters(options: PreferDiscard, retainNonFixableDiagnostics: true),
 Diagnostic("IDE0059"));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60030")]
-    public async Task UnusedLocal_ForEach_TopLevelStatement()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UnusedLocal_ForEach_TopLevelStatement()
+        => TestMissingInRegularAndScriptAsync(
             """
             var items = new[] { new { x = 1 } };
 
@@ -7615,16 +7200,14 @@ Diagnostic("IDE0059"));
             {
             }
             """, PreferDiscard, new CSharpParseOptions(LanguageVersion.CSharp9));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32923")]
     [InlineData("_", nameof(PreferDiscard))]
     [InlineData("_", nameof(PreferUnusedLocal))]
     [InlineData("_1", nameof(PreferDiscard))]
     [InlineData("_1", nameof(PreferUnusedLocal))]
-    public async Task UnusedLocal_SpecialName_01(string variableName, string optionName)
-    {
-        await TestDiagnosticMissingAsync(
+    public Task UnusedLocal_SpecialName_01(string variableName, string optionName)
+        => TestDiagnosticMissingAsync(
             $$"""
             using System;
 
@@ -7650,16 +7233,14 @@ Diagnostic("IDE0059"));
                 }
             }
             """, new TestParameters(options: GetOptions(optionName), retainNonFixableDiagnostics: true));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/32923")]
     [InlineData("_", nameof(PreferDiscard))]
     [InlineData("_", nameof(PreferUnusedLocal))]
     [InlineData("_3", nameof(PreferDiscard))]
     [InlineData("_3", nameof(PreferUnusedLocal))]
-    public async Task UnusedLocal_SpecialName_02(string variableName, string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UnusedLocal_SpecialName_02(string variableName, string optionName)
+        => TestMissingInRegularAndScriptAsync(
             $$"""
             using System;
 
@@ -7671,12 +7252,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, optionName);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32959")]
-    public async Task UsedVariable_BailOutOnSemanticError()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedVariable_BailOutOnSemanticError()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -7691,12 +7270,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32959")]
-    public async Task UnusedVariable_BailOutOnSemanticError()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UnusedVariable_BailOutOnSemanticError()
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -7711,12 +7288,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
-    public async Task DelegateEscape_01()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateEscape_01()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -7729,12 +7304,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
-    public async Task DelegateEscape_02()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateEscape_02()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -7748,12 +7321,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
-    public async Task DelegateEscape_03()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateEscape_03()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -7767,12 +7338,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
-    public async Task DelegateEscape_04()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateEscape_04()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -7786,12 +7355,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32946")]
-    public async Task DelegateEscape_05()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateEscape_05()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -7807,12 +7374,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32924")]
-    public async Task DelegateEscape_06()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateEscape_06()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -7825,12 +7390,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32924")]
-    public async Task DelegateEscape_07()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task DelegateEscape_07()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -7846,12 +7409,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32856")]
-    public async Task RedundantAssignment_IfStatementParent()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantAssignment_IfStatementParent()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7876,12 +7437,10 @@ Diagnostic("IDE0059"));
                 bool M2() => true;
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32856")]
-    public async Task RedundantAssignment_LoopStatementParent()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantAssignment_LoopStatementParent()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7902,12 +7461,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-    public async Task RedundantAssignment_ForStatementVariableDeclarationConstant()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantAssignment_ForStatementVariableDeclarationConstant()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7930,12 +7487,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-    public async Task RedundantAssignment_ForStatementVariableDeclarationMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantAssignment_ForStatementVariableDeclarationMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7962,12 +7517,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-    public async Task RedundantAssignment_ForStatementVariableDeclarationStaticMethod()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantAssignment_ForStatementVariableDeclarationStaticMethod()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -7994,12 +7547,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-    public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUsedLambda()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantAssignment_ForStatementVariableDeclarationInsideUsedLambda()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -8034,13 +7585,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40336")]
-    public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUnusedLambda()
-    {
-        //NOTE: Currently the diagnostic is only reported on the outer unused variable a. 
-        await TestDiagnosticMissingAsync(
+    public Task RedundantAssignment_ForStatementVariableDeclarationInsideUnusedLambda()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -8057,12 +7605,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
-    public async Task NullCoalesceAssignment_01()
-    {
-        await TestMissingInRegularAndScriptWithAllOptionsAsync(
+    public Task NullCoalesceAssignment_01()
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
             """
             class C
             {
@@ -8075,12 +7621,10 @@ Diagnostic("IDE0059"));
                 private static C M2() => null;
             }
             """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
-    public async Task NullCoalesceAssignment_02()
-    {
-        await TestMissingInRegularAndScriptWithAllOptionsAsync(
+    public Task NullCoalesceAssignment_02()
+        => TestMissingInRegularAndScriptWithAllOptionsAsync(
             """
             class C
             {
@@ -8091,12 +7635,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
-    public async Task NullCoalesceAssignment_03()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NullCoalesceAssignment_03()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8115,12 +7657,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
-    public async Task NullCoalesceAssignment_04()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NullCoalesceAssignment_04()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8139,12 +7679,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33299")]
-    public async Task NullCoalesceAssignment_05()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task NullCoalesceAssignment_05()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8159,12 +7697,10 @@ Diagnostic("IDE0059"));
                     => x ?? new C();
             }
             """, optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
-    public async Task RedundantAssignment_WithLeadingAndTrailingComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RedundantAssignment_WithLeadingAndTrailingComment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8197,12 +7733,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
-    public async Task MultipleRedundantAssignment_WithLeadingAndTrailingComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MultipleRedundantAssignment_WithLeadingAndTrailingComment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8240,12 +7774,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
-    public async Task MultipleRedundantAssignment_WithInnerComment()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MultipleRedundantAssignment_WithInnerComment()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8274,12 +7806,10 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
-    public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInSwitchCase_WithTrivia_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8310,14 +7840,12 @@ Diagnostic("IDE0059"));
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Theory, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     [CombinatorialData]
-    public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferUnusedLocal(
+    public Task DeclarationPatternInSwitchCase_WithTrivia_PreferUnusedLocal(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
-    {
-        await TestMissingInRegularAndScriptAsync(
+        => TestMissingInRegularAndScriptAsync(
             """
             class C
             {
@@ -8333,7 +7861,6 @@ Diagnostic("IDE0059"));
                 }
             }
             """, PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion));
-    }
 
     [Theory, WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
     [CombinatorialData]
@@ -8408,9 +7935,8 @@ class C
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33949")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UsedInArgumentAfterAnArgumentWithControlFlow(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedInArgumentAfterAnArgumentWithControlFlow(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class A
             {
@@ -8426,14 +7952,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33949")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task CompoundAssignmentWithControlFlowInValue(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task CompoundAssignmentWithControlFlowInValue(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             class A
             {
@@ -8446,14 +7970,12 @@ class C
                 private static int M2(int? x) => 0;
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UsedValueWithUsingStatementAndLocalFunction(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedValueWithUsingStatementAndLocalFunction(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8470,14 +7992,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UsedValueWithUsingStatementAndLambda(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedValueWithUsingStatementAndLambda(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8494,14 +8014,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UsedValueWithUsingStatementAndLambda_02(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedValueWithUsingStatementAndLambda_02(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8520,14 +8038,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33843")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UsedValueWithUsingStatementAndLambda_03(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsedValueWithUsingStatementAndLambda_03(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8546,14 +8062,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33937")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInCatchUsedInFinally_ThrowInCatch(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInCatchUsedInFinally_ThrowInCatch(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8581,14 +8095,12 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33937")]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task AssignedInCatchUsedInFinally_NoThrowInCatch(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task AssignedInCatchUsedInFinally_NoThrowInCatch(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8612,12 +8124,10 @@ class C
                 }
             }
             """, optionName);
-    }
 
     [Fact]
-    public async Task DoesNotUseLocalFunctionName_PreferUnused()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoesNotUseLocalFunctionName_PreferUnused()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8648,12 +8158,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task CanUseLocalFunctionParameterName_PreferUnused()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CanUseLocalFunctionParameterName_PreferUnused()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -8684,12 +8192,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal);
-    }
 
     [Fact]
-    public async Task DoesNotUseLambdaFunctionParameterNameWithCSharpLessThan8_PreferUnused()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DoesNotUseLambdaFunctionParameterNameWithCSharpLessThan8_PreferUnused()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -8722,12 +8228,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3));
-    }
 
     [Fact]
-    public async Task CanUseLambdaFunctionParameterNameWithCSharp8_PreferUnused()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task CanUseLambdaFunctionParameterNameWithCSharp8_PreferUnused()
+        => TestInRegularAndScriptAsync(
             """
             using System;
             class C
@@ -8760,12 +8264,10 @@ class C
                 int M2() => 0;
             }
             """, options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33464")]
-    public async Task UsingDeclaration()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsingDeclaration()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8782,12 +8284,10 @@ class C
             }
             """, options: PreferDiscard,
 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33464")]
-    public async Task UsingDeclarationWithInitializer()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UsingDeclarationWithInitializer()
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -8805,12 +8305,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             }
             """, options: PreferDiscard,
 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37709")]
-    public async Task RefParameter_WrittenBeforeThrow()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_WrittenBeforeThrow()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -8826,12 +8324,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37709")]
-    public async Task OutParameter_WrittenBeforeThrow()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task OutParameter_WrittenBeforeThrow()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -8851,12 +8347,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37871")]
-    public async Task RefParameter_RefAssignmentFollowedByAssignment()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_RefAssignmentFollowedByAssignment()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -8872,12 +8366,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37871")]
-    public async Task RefParameter_RefConditionalAssignment()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task RefParameter_RefConditionalAssignment()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -8893,12 +8385,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task LocalFunction_OutParameter_UsedInCaller()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task LocalFunction_OutParameter_UsedInCaller()
+        => TestDiagnosticMissingAsync(
             """
             public class C
             {
@@ -8917,12 +8407,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TupleMember_UsedAfterContinueBranch()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task TupleMember_UsedAfterContinueBranch()
+        => TestDiagnosticMissingAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -8943,12 +8431,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
-    public async Task DeclarationPatternInSwitchExpressionArm_UsedLocal()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task DeclarationPatternInSwitchExpressionArm_UsedLocal()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -8962,14 +8448,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
     [CombinatorialData]
-    public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferUnusedLocal(
+    public Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferUnusedLocal(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
-    {
-        await TestDiagnosticMissingAsync(
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -8983,12 +8467,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
-    public async Task LocalUsedWithPropertySubPattern()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task LocalUsedWithPropertySubPattern()
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -9000,12 +8482,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
-    public async Task UnusedLocalDefinedInPropertySubPattern_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UnusedLocalDefinedInPropertySubPattern_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -9026,12 +8506,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
-    public async Task UnusedLocalDefinedInPropertySubPattern_TypePattern()
-    {
-        await new VerifyCS.Test
+    public Task UnusedLocalDefinedInPropertySubPattern_TypePattern()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9061,14 +8539,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
             },
         }.RunAsync();
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
     [CombinatorialData]
-    public async Task UnusedVarLocalDefinedInPropertySubPattern_PreferDiscard(
+    public Task UnusedVarLocalDefinedInPropertySubPattern_PreferDiscard(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
-    {
-        await TestInRegularAndScriptAsync(
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -9089,14 +8565,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(languageVersion));
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/40499")]
     [CombinatorialData]
-    public async Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal(
+    public Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal(
         [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
-    {
-        await TestDiagnosticMissingAsync(
+        => TestDiagnosticMissingAsync(
             """
             class C
             {
@@ -9107,12 +8581,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(languageVersion)));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
-    public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferDiscard()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferDiscard()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -9139,12 +8611,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38640")]
-    public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_TypePattern()
-    {
-        await new VerifyCS.Test
+    public Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_TypePattern()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9178,12 +8648,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
             },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39344")]
-    public async Task AssignmentInTry_UsedInFinally_NoDiagnostic()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task AssignmentInTry_UsedInFinally_NoDiagnostic()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -9209,12 +8677,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39755")]
-    public async Task AssignmentInTry_UsedInFinally_NoDiagnostic_02()
-    {
-        await TestDiagnosticMissingAsync(
+    public Task AssignmentInTry_UsedInFinally_NoDiagnostic_02()
+        => TestDiagnosticMissingAsync(
             """
             using System;
 
@@ -9242,12 +8708,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 bool Some(IntPtr a) => true;
             }
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39755")]
-    public async Task AssignmentInTry_NotUsedInFinally_Diagnostic()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task AssignmentInTry_NotUsedInFinally_Diagnostic()
+        => TestInRegularAndScriptAsync(
             """
             using System;
 
@@ -9289,12 +8753,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
-    public async Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
-    {
-        var source = """
+    public Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 C M(C x)
@@ -9304,29 +8766,22 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
 
                 C M2() => new C();
             }
-            """;
-
-        await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
-    }
+            """, [CodeFixesResources.Remove_redundant_assignment]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
-    public async Task TestCodeFixTitleForExpressionBodyRedundantCompoundAssignmentReturn()
-    {
-        var source = """
+    public Task TestCodeFixTitleForExpressionBodyRedundantCompoundAssignmentReturn()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 C M(C x) => [|x ??= M2()|];
 
                 C M2() => new C();
             }
-            """;
-        await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
-    }
+            """, [CodeFixesResources.Remove_redundant_assignment]);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38507")]
-    public async Task TestCodeFixTitleForPatternMatching()
-    {
-        var source = """
+    public Task TestCodeFixTitleForPatternMatching()
+        => TestExactActionSetOfferedAsync("""
             class C
             {
                 void M()
@@ -9339,15 +8794,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
 
                 C M2() => new C();
             }
-            """;
-
-        await TestExactActionSetOfferedAsync(source, [CodeFixesResources.Remove_redundant_assignment]);
-    }
+            """, [CodeFixesResources.Remove_redundant_assignment]);
 
     [Fact, WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
     public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
     {
-        var source = """
+        await TestInRegularAndScriptAsync("""
             using System;
             namespace ConsoleApp
             {
@@ -9369,8 +8821,7 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                     }
             	}
             }
-            """;
-        var expected = """
+            """, """
             using System;
             namespace ConsoleApp
             {
@@ -9392,14 +8843,12 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                     }
             	}
             }
-            """;
-        await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
+            """, options: PreferDiscard).ConfigureAwait(false);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
-    public async Task UnusedVarPattern_PartOfCase()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UnusedVarPattern_PartOfCase()
+        => TestInRegularAndScriptAsync(
             """
             static class Program
             {
@@ -9430,12 +8879,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
-    public async Task UnusedVarPattern_PartOfIs()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UnusedVarPattern_PartOfIs()
+        => TestInRegularAndScriptAsync(
             """
             static class Program
             {
@@ -9458,12 +8905,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45768")]
-    public async Task UnusedVarPattern_TestTrivia()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task UnusedVarPattern_TestTrivia()
+        => TestInRegularAndScriptAsync(
             """
             static class Program
             {
@@ -9486,15 +8931,13 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, options: PreferDiscard);
-    }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/57650")]
     [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
-    public async Task UseInLambda_WithInvocationOutsideLocalScope(string optionName)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task UseInLambda_WithInvocationOutsideLocalScope(string optionName)
+        => TestMissingInRegularAndScriptAsync(
             """
             using System;
 
@@ -9511,12 +8954,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """, optionName);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
-    public async Task TestImplicitObjectCreationInInitialization()
-    {
-        await new VerifyCS.Test
+    public Task TestImplicitObjectCreationInInitialization()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9542,12 +8983,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             },
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
-    public async Task TestImplicitObjectCreationInAssignment()
-    {
-        await new VerifyCS.Test
+    public Task TestImplicitObjectCreationInAssignment()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9575,12 +9014,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             },
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
-    public async Task TestPropertyPatternAssignment1()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyPatternAssignment1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9612,12 +9049,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             },
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
-    public async Task TestPropertyPatternAssignment2()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyPatternAssignment2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9649,12 +9084,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             },
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
-    public async Task TestPropertyPatternAssignment3()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyPatternAssignment3()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9686,12 +9119,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             },
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
-    public async Task TestPropertyPatternAssignment4()
-    {
-        await new VerifyCS.Test
+    public Task TestPropertyPatternAssignment4()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9723,12 +9154,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             },
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
-    public async Task TestListPatternAssignment1()
-    {
-        await new VerifyCS.Test
+    public Task TestListPatternAssignment1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9761,12 +9190,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
-    public async Task TestListPatternAssignment2()
-    {
-        await new VerifyCS.Test
+    public Task TestListPatternAssignment2()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9799,12 +9226,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
-    public async Task TestListPatternAssignment3()
-    {
-        await new VerifyCS.Test
+    public Task TestListPatternAssignment3()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C
@@ -9837,12 +9262,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69643")]
-    public async Task TestPrimaryConstructorParameterAssignment()
-    {
-        await new VerifyCS.Test
+    public Task TestPrimaryConstructorParameterAssignment()
+        => new VerifyCS.Test
         {
             TestCode = """
             class C(string str) {
@@ -9858,12 +9281,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72829")]
-    public async Task RemoveRedundantAssignment_PreservesUsingVar()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task RemoveRedundantAssignment_PreservesUsingVar()
+        => TestInRegularAndScriptAsync(
             """
             class C
             {
@@ -9887,12 +9308,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestWriteIntoPropertyOfRefStructParameter()
-    {
-        await new VerifyCS.Test
+    public Task TestWriteIntoPropertyOfRefStructParameter()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -9907,12 +9326,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWriteIntoPropertyOfRefStructParameterThenWriteTheParameter()
-    {
-        await new VerifyCS.Test
+    public Task TestWriteIntoPropertyOfRefStructParameterThenWriteTheParameter()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -9929,12 +9346,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWriteIntoPropertyOfStructParameter()
-    {
-        await new VerifyCS.Test
+    public Task TestWriteIntoPropertyOfStructParameter()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -9955,12 +9370,10 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77258")]
-    public async Task TestWriteIntoStructIndexer()
-    {
-        await new VerifyCS.Test
+    public Task TestWriteIntoStructIndexer()
+        => new VerifyCS.Test
         {
             TestCode = """
                 using System;
@@ -9988,5 +9401,4 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
-    }
 }

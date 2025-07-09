@@ -119,35 +119,31 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
             options, skipSpeculation: skipSpeculation);
     }
 
-    private async Task VerifyInFrontOfCommentAsync(
+    private Task VerifyInFrontOfCommentAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
         List<CompletionFilter> matchingFilters, CompletionOptions options, bool skipSpeculation = false)
-    {
-        await VerifyInFrontOfCommentAsync(
+        => VerifyInFrontOfCommentAsync(
             code, position, string.Empty, usePreviousCharAsTrigger, deletedCharTrigger,
             expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
-    }
 
-    private protected async Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
+    private protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool checkForAbsence, Glyph? glyph,
         int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
         List<CompletionFilter> matchingFilters, CompletionOptions options, bool skipSpeculation = false)
-    {
-        await VerifyInFrontOfCommentAsync(
+        => VerifyInFrontOfCommentAsync(
             code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, deletedCharTrigger,
             expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, options, skipSpeculation: skipSpeculation);
-    }
 
     protected static string AddInsideMethod([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text)
     {

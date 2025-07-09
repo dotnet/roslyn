@@ -19,9 +19,8 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (a)[||]")]
     [InlineData("[|if|] (a)")]
     [InlineData("[|if (a)|]")]
-    public async Task MergedOnIfSpans(string ifLine)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnIfSpans(string ifLine)
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -43,12 +42,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnIfExtendedHeaderSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -70,12 +67,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnIfFullSelectionWithoutElseIfClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnIfFullSelectionWithoutElseIfClause()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -103,12 +98,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnIfExtendedFullSelectionWithoutElseIfClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnIfExtendedFullSelectionWithoutElseIfClause()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -136,12 +129,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfFullSelectionWithElseIfClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfFullSelectionWithElseIfClause()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -157,12 +148,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfExtendedFullSelectionWithElseIfClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfExtendedFullSelectionWithElseIfClause()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -178,12 +167,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfFullSelectionWithElseIfElseClauses()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfFullSelectionWithElseIfElseClauses()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -199,12 +186,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }|]
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfExtendedFullSelectionWithElseIfElseClauses()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfExtendedFullSelectionWithElseIfElseClauses()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -220,7 +205,6 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
 |]    }
 }");
-    }
 
     [Theory]
     [InlineData("if ([||]a)")]
@@ -230,9 +214,8 @@ public sealed partial class MergeConsecutiveIfStatementsTests
     [InlineData("if (a[|)|]")]
     [InlineData("if ([|a|])")]
     [InlineData("if [|(a)|]")]
-    public async Task NotMergedOnIfSpans(string ifLine)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfSpans(string ifLine)
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -245,12 +228,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfOverreachingSelection1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfOverreachingSelection1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -263,12 +244,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfOverreachingSelection2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfOverreachingSelection2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -281,12 +260,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfBodySelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -299,12 +276,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfBodyCaret1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfBodyCaret1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -317,12 +292,10 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnIfBodyCaret2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnIfBodyCaret2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -335,5 +308,4 @@ public sealed partial class MergeConsecutiveIfStatementsTests
         }
     }
 }");
-    }
 }

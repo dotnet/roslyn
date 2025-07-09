@@ -19,9 +19,8 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed class EmbeddedStatementPlacementTests
 {
     [Fact]
-    public async Task NoErrorOnWrappedStatement()
-    {
-        await new VerifyCS.Test
+    public Task NoErrorOnWrappedStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -35,12 +34,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ErrorOnNonWrappedIfStatement()
-    {
-        await new VerifyCS.Test
+    public Task ErrorOnNonWrappedIfStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -63,12 +60,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NoErrorOnNonWrappedIfStatement_WhenOptionDisabled()
-    {
-        await new VerifyCS.Test
+    public Task NoErrorOnNonWrappedIfStatement_WhenOptionDisabled()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -81,12 +76,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true, NotificationOption2.Suggestion } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NotOnElseIf()
-    {
-        await new VerifyCS.Test
+    public Task NotOnElseIf()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -102,12 +95,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ErrorOnElseWithNonIfStatementOnSameLine()
-    {
-        await new VerifyCS.Test
+    public Task ErrorOnElseWithNonIfStatementOnSameLine()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -134,12 +125,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ErrorOnIfWithSingleLineBlock()
-    {
-        await new VerifyCS.Test
+    public Task ErrorOnIfWithSingleLineBlock()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -164,12 +153,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NoWrappingForMemberOrLambdaBlock()
-    {
-        await new VerifyCS.Test
+    public Task NoWrappingForMemberOrLambdaBlock()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -192,12 +179,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task WrappingForLocalFunction()
-    {
-        await new VerifyCS.Test
+    public Task WrappingForLocalFunction()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -222,12 +207,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task ErrorOnNonWrappedIfStatementWithEmptyBlock()
-    {
-        await new VerifyCS.Test
+    public Task ErrorOnNonWrappedIfStatementWithEmptyBlock()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -251,12 +234,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task WrapLambdaWithNestedStatement()
-    {
-        await new VerifyCS.Test
+    public Task WrapLambdaWithNestedStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -286,12 +267,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task FixAll1()
-    {
-        await new VerifyCS.Test
+    public Task FixAll1()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -317,12 +296,10 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66017")]
-    public async Task SwitchFollowedByEmptyStatement()
-    {
-        await new VerifyCS.Test
+    public Task SwitchFollowedByEmptyStatement()
+        => new VerifyCS.Test
         {
             TestCode = """
             class TestClass
@@ -350,5 +327,4 @@ public sealed class EmbeddedStatementPlacementTests
             """,
             Options = { { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, CodeStyleOption2.FalseWithSuggestionEnforcement } }
         }.RunAsync();
-    }
 }

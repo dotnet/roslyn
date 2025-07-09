@@ -24,25 +24,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
             new PackageIdentity("Microsoft.CodeAnalysis.CSharp.Workspaces", "2.9.0"),
             new PackageIdentity("Microsoft.Build.Locator", "1.0.18")));
 
-        private static async Task VerifyCSharpAsync(string source, ReferenceAssemblies referenceAssemblies)
-        {
-            await new VerifyCS.Test()
+        private static Task VerifyCSharpAsync(string source, ReferenceAssemblies referenceAssemblies)
+            => new VerifyCS.Test()
             {
                 TestCode = source,
                 FixedCode = source,
                 ReferenceAssemblies = referenceAssemblies,
             }.RunAsync();
-        }
 
-        private static async Task VerifyVisualBasicAsync(string source, ReferenceAssemblies referenceAssemblies)
-        {
-            await new VerifyVB.Test()
+        private static Task VerifyVisualBasicAsync(string source, ReferenceAssemblies referenceAssemblies)
+            => new VerifyVB.Test()
             {
                 TestCode = source,
                 FixedCode = source,
                 ReferenceAssemblies = referenceAssemblies,
             }.RunAsync();
-        }
 
         [Fact]
         public async Task CSharp_VerifyWithMSBuildWorkspaceAsync()

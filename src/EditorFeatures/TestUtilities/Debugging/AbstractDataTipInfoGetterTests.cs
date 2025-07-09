@@ -28,9 +28,8 @@ public abstract class AbstractDataTipInfoGetterTests
     protected Task TestNoDataTipAsync(XElement markup)
         => TestNoDataTipAsync(markup.NormalizedValue());
 
-    protected async Task TestAsync(string markup, string? expectedText = null)
-    {
-        await TestSpanGetterAsync(markup, async (workspace, document, position, expectedSpan) =>
+    protected Task TestAsync(string markup, string? expectedText = null)
+        => TestSpanGetterAsync(markup, async (workspace, document, position, expectedSpan) =>
         {
             var service = document.GetRequiredLanguageService<ILanguageDebugInfoService>();
             var result = await service.GetDataTipInfoAsync(document, position, includeKind: true, CancellationToken.None);
@@ -46,16 +45,13 @@ public abstract class AbstractDataTipInfoGetterTests
                 Assert.Equal(linqExpressionSpans.Single(), result.ExpressionSpan);
             }
         });
-    }
 
-    protected async Task TestNoDataTipAsync(string markup)
-    {
-        await TestSpanGetterAsync(markup, async (workspace, document, position, expectedSpan) =>
+    protected Task TestNoDataTipAsync(string markup)
+        => TestSpanGetterAsync(markup, async (workspace, document, position, expectedSpan) =>
         {
             var result = await DataTipInfoGetter.GetInfoAsync(document, position, includeKind: true, CancellationToken.None);
             Assert.True(result.IsDefault);
         });
-    }
 
     private async Task TestSpanGetterAsync(string markup, Func<EditorTestWorkspace, Document, int, TextSpan?, Task> continuation)
     {

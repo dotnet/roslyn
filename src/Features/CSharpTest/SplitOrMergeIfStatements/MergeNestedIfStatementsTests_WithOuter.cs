@@ -27,9 +27,8 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
     [InlineData("if (b)[||]")]
     [InlineData("[|if|] (b)")]
     [InlineData("[|if (b)|]")]
-    public async Task MergedOnNestedIfSpans(string ifLine)
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnNestedIfSpans(string ifLine)
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -51,12 +50,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnNestedIfExtendedHeaderSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnNestedIfExtendedHeaderSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -78,12 +75,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnNestedIfFullSelection()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnNestedIfFullSelection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -105,12 +100,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedOnNestedIfFullSelectionWithElseClause()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedOnNestedIfFullSelectionWithElseClause()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -141,12 +134,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnNestedIfFullSelectionWithoutElseClause()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnNestedIfFullSelectionWithoutElseClause()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -165,7 +156,6 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Theory]
     [InlineData("if ([||]b)")]
@@ -175,9 +165,8 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
     [InlineData("if (b[|)|]")]
     [InlineData("if ([|b|])")]
     [InlineData("if [|(b)|]")]
-    public async Task NotMergedOnNestedIfSpans(string ifLine)
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnNestedIfSpans(string ifLine)
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -190,12 +179,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnNestedIfOverreachingSelection1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnNestedIfOverreachingSelection1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -208,12 +195,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnNestedIfOverreachingSelection2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnNestedIfOverreachingSelection2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -226,12 +211,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnNestedIfBodySelection()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnNestedIfBodySelection()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -244,12 +227,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnNestedIfBodyCaret1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnNestedIfBodyCaret1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -262,12 +243,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnNestedIfBodyCaret2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnNestedIfBodyCaret2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -280,12 +259,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnSingleIfInsideBlock()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnSingleIfInsideBlock()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -297,12 +274,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedOnSingleIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedOnSingleIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -312,12 +287,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithAndExpressions()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithAndExpressions()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -339,12 +312,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithOrExpressionParenthesized1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithOrExpressionParenthesized1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -366,12 +337,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithOrExpressionParenthesized2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithOrExpressionParenthesized2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -393,12 +362,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithBitwiseOrExpressionNotParenthesized1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithBitwiseOrExpressionNotParenthesized1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -420,12 +387,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithBitwiseOrExpressionNotParenthesized2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithBitwiseOrExpressionNotParenthesized2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -447,12 +412,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMixedExpressions1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMixedExpressions1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -474,12 +437,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMixedExpressions2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMixedExpressions2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b, bool c, bool d)
@@ -501,13 +462,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithNestedIfInsideWhileLoop()
-    {
-        // Do not consider the while loop to be a simple block (as might be suggested by some language-agnostic helpers).
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithNestedIfInsideWhileLoop()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -519,13 +477,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
                 }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithNestedIfInsideBlockInsideUsingStatement()
-    {
-        // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithNestedIfInsideBlockInsideUsingStatement()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -539,13 +494,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithNestedIfInsideUsingStatementInsideBlock()
-    {
-        // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithNestedIfInsideUsingStatementInsideBlock()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -559,12 +511,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithNestedIfInsideNestedBlockStatementInsideBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithNestedIfInsideNestedBlockStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -590,12 +540,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithNestedIfInsideNestedBlockStatementWithoutBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithNestedIfInsideNestedBlockStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -617,12 +565,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a && b);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithNestedIfInsideBlockStatementInsideBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithNestedIfInsideBlockStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -646,12 +592,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithNestedIfInsideBlockStatementWithoutBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithNestedIfInsideBlockStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -671,12 +615,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a && b);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithNestedIfWithoutBlockStatementInsideBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithNestedIfWithoutBlockStatementInsideBlock()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -698,12 +640,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithNestedIfWithoutBlockStatementWithoutBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithNestedIfWithoutBlockStatementWithoutBlock()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -721,12 +661,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a && b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClauseOnNestedIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClauseOnNestedIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -740,12 +678,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfClauseOnNestedIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfClauseOnNestedIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -759,12 +695,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfElseClausesOnNestedIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfElseClausesOnNestedIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -780,12 +714,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClauseOnOuterIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClauseOnOuterIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -799,12 +731,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfClauseOnOuterIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfClauseOnOuterIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -818,12 +748,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfElseClausesOnOuterIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfElseClausesOnOuterIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -839,12 +767,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfElseClauses1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfElseClauses1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -860,12 +786,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfElseClauses2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfElseClauses2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -881,12 +805,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfClauses1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfClauses1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -902,12 +824,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfClauses2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfClauses2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -923,12 +843,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfClauses3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfClauses3()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -948,12 +866,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseIfClauses4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseIfClauses4()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -971,12 +887,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClauses1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClauses1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -996,12 +910,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClauses2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClauses2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1017,12 +929,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClauses3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClauses3()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1040,13 +950,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClauses4()
-    {
-        // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClauses4()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1065,12 +972,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
                 System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoElseIfWithUnmatchingElseClauses1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1092,12 +997,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoElseIfWithUnmatchingElseClauses2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1115,12 +1018,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoElseIfWithUnmatchingElseClauses3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses3()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1140,13 +1041,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoElseIfWithUnmatchingElseClauses4()
-    {
-        // Do not consider the using statement to be a simple block (as might be suggested by some language-agnostic helpers).
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoElseIfWithUnmatchingElseClauses4()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1167,12 +1065,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
                 System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseClauses1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseClauses1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1198,12 +1094,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseClauses2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseClauses2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1235,12 +1129,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseIfClauses()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseIfClauses()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1266,12 +1158,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseIfElseClauses()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseIfElseClauses()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1303,12 +1193,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseClausesWithDifferenceInBlocks1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseClausesWithDifferenceInBlocks1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1336,12 +1224,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseClausesWithDifferenceInBlocks2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseClausesWithDifferenceInBlocks2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1371,12 +1257,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseClausesWithDifferenceInBlocks3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseClausesWithDifferenceInBlocks3()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1412,12 +1296,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseIfClausesWithDifferenceInBlocks()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseIfClausesWithDifferenceInBlocks()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1445,12 +1327,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseIfElseClausesWithDifferenceInBlocks()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseIfElseClausesWithDifferenceInBlocks()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1488,12 +1368,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoElseIfWithMatchingElseClauses1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoElseIfWithMatchingElseClauses1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1523,12 +1401,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoElseIfWithMatchingElseClauses2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoElseIfWithMatchingElseClauses2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1564,12 +1440,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClauseOnNestedIfWithoutBlock()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClauseOnNestedIfWithoutBlock()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1581,12 +1455,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
                 System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithUnmatchingElseClausesForNestedIfWithoutBlock()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithUnmatchingElseClausesForNestedIfWithoutBlock()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1600,12 +1472,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithMatchingElseClausesForNestedIfWithoutBlock()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithMatchingElseClausesForNestedIfWithoutBlock()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1629,12 +1499,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithSingleLineFormatting()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithSingleLineFormatting()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1653,12 +1521,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraUnmatchingStatementBelowNestedIf()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraUnmatchingStatementBelowNestedIf()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1676,12 +1542,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraUnmatchingStatementBelowOuterIf()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraUnmatchingStatementBelowOuterIf()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1711,12 +1575,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraUnmatchingStatementsIfControlFlowContinues()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraUnmatchingStatementsIfControlFlowContinues()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1738,12 +1600,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraUnmatchingStatementsIfControlFlowQuits()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraUnmatchingStatementsIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1763,12 +1623,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraPrecedingMatchingStatementsIfControlFlowQuits()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraPrecedingMatchingStatementsIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1788,12 +1646,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             System.Console.WriteLine(a);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues1()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues1()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1815,12 +1671,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues2()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues2()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1842,12 +1696,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
             return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues3()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues3()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1878,12 +1730,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues4()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraMatchingStatementsIfControlFlowContinues4()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1908,12 +1758,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowContinues()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoElseIfWithExtraMatchingStatementsIfControlFlowContinues()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1939,12 +1787,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         System.Console.WriteLine();
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits1()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -1976,12 +1822,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits2()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2018,12 +1862,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         System.Console.WriteLine(b);
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits3()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits3()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2073,12 +1915,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits4()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits4()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2129,12 +1969,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits5()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits5()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2188,12 +2026,10 @@ public sealed partial class MergeNestedIfStatementsTests : AbstractCSharpCodeAct
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsIfControlFlowQuits6()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuits6()
+        => TestInRegularAndScriptAsync(
 @"bool a = bool.Parse("""");
 bool b = bool.Parse("""");
 
@@ -2239,13 +2075,10 @@ switch (a)
         goto start;
 }
 ");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsIfControlFlowQuitsInSwitchSection()
-    {
-        // Switch sections are interesting in that they are blocks of statements that aren't BlockSyntax.
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsIfControlFlowQuitsInSwitchSection()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2283,12 +2116,10 @@ switch (a)
         }
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedIntoElseIfWithExtraMatchingStatementsIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2332,12 +2163,10 @@ switch (a)
         return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraMatchingStatementsInsideExtraBlockIfControlFlowQuits()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraMatchingStatementsInsideExtraBlockIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2355,12 +2184,10 @@ switch (a)
         return;
     }
 }");
-    }
 
     [Fact]
-    public async Task MergedWithExtraMatchingStatementsInsideInnermostBlockIfControlFlowQuits()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task MergedWithExtraMatchingStatementsInsideInnermostBlockIfControlFlowQuits()
+        => TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2388,12 +2215,10 @@ switch (a)
         return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2410,12 +2235,10 @@ switch (a)
         return;
     }
 }");
-    }
 
     [Fact]
-    public async Task NotMergedIntoElseIfWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
-    {
-        await TestMissingInRegularAndScriptAsync(
+    public Task NotMergedIntoElseIfWithExtraMatchingStatementInOuterScopeOfEmbeddedStatementIfControlFlowQuits()
+        => TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -2434,5 +2257,4 @@ switch (a)
         return;
     }
 }");
-    }
 }

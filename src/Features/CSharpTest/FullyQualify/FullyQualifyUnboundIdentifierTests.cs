@@ -32,9 +32,8 @@ public sealed class FullyQualifyUnboundIdentifierTests : AbstractCSharpDiagnosti
         => FlattenActions(actions);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
-    public async Task TestFullyQualifyUnboundIdentifier1()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFullyQualifyUnboundIdentifier1()
+        => TestInRegularAndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -57,12 +56,10 @@ class Test
 {
     Program.Inner
 }");
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
-    public async Task TestFullyQualifyUnboundIdentifier2()
-    {
-        await TestInRegularAndScriptAsync(
+    public Task TestFullyQualifyUnboundIdentifier2()
+        => TestInRegularAndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -85,5 +82,4 @@ class Test
 {
     public Program.Inner
 }");
-    }
 }

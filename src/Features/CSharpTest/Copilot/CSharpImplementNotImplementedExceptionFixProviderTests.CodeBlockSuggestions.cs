@@ -28,9 +28,8 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
     [Theory]
     [MemberData(nameof(TestMethodCodeBlockSuggestions))]
-    public async Task FixerResponse_ReplacesCodeBlockCorrectly(string notImplementedCodeBlock, string replacementCodeBlock)
-    {
-        await new CustomCompositionCSharpTest
+    public Task FixerResponse_ReplacesCodeBlockCorrectly(string notImplementedCodeBlock, string replacementCodeBlock)
+        => new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = $$"""
@@ -62,7 +61,6 @@ public class TestService
             };
         })
         .RunAsync();
-    }
 
     private static readonly Dictionary<string, object[]> s_codeBlockSuggestions = new()
     {

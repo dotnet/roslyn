@@ -50,9 +50,8 @@ End Namespace
 #pragma warning restore RS0030 // Do not use banned APIs
 
         [Fact]
-        public async Task ReturnEmptyArrayCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ReturnEmptyArrayCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -64,12 +63,10 @@ class C
 " + _csharpSpecializedCollectionsDefinition,
                 GetCSharpEmptyEnumerableResultAt(6, 36),
                 GetCSharpEmptyEnumerableResultAt(7, 36));
-        }
 
         [Fact]
-        public async Task ReturnSingletonArrayCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ReturnSingletonArrayCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -83,12 +80,10 @@ class C
                 GetCSharpSingletonEnumerableResultAt(6, 36),
                 GetCSharpSingletonEnumerableResultAt(7, 36),
                 GetCSharpSingletonEnumerableResultAt(8, 36));
-        }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ReturnLinqEmptyEnumerableCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -98,12 +93,10 @@ class C
 }
 " + _csharpSpecializedCollectionsDefinition,
                 GetCSharpEmptyEnumerableResultAt(7, 36));
-        }
 
         [Fact(Skip = "855425")]
-        public async Task ReturnArrayWithinExpressionCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ReturnArrayWithinExpressionCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -115,12 +108,10 @@ class C
                 GetCSharpSingletonEnumerableResultAt(6, 45),
                 GetCSharpSingletonEnumerableResultAt(6, 59),
                 GetCSharpEmptyEnumerableResultAt(7, 44));
-        }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableWithinExpressionCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ReturnLinqEmptyEnumerableWithinExpressionCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -132,12 +123,10 @@ class C
 " + _csharpSpecializedCollectionsDefinition,
                 GetCSharpEmptyEnumerableResultAt(7, 45),
                 GetCSharpEmptyEnumerableResultAt(8, 44));
-        }
 
         [Fact]
-        public async Task ReturnMultiElementArrayCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ReturnMultiElementArrayCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -148,12 +137,10 @@ class C
     int[] M4() { return new[] { 1, 2 }; }
 }
 " + _csharpSpecializedCollectionsDefinition);
-        }
 
         [Fact]
-        public async Task ReturnJaggedArrayCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ReturnJaggedArrayCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -164,12 +151,10 @@ class C
 }
 " + _csharpSpecializedCollectionsDefinition,
                 GetCSharpSingletonEnumerableResultAt(7, 38));
-        }
 
         [Fact(Skip = "855425")]
-        public async Task ImplicitConversionToNestedEnumerableCSharpAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task ImplicitConversionToNestedEnumerableCSharpAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
 
 class C
@@ -179,12 +164,10 @@ class C
 " + _csharpSpecializedCollectionsDefinition,
                 GetCSharpSingletonEnumerableResultAt(5, 49),
                 GetCSharpSingletonEnumerableResultAt(5, 57));
-        }
 
         [Fact]
-        public async Task ReturnEmptyArrayBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ReturnEmptyArrayBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -198,12 +181,10 @@ End Class
 " + _basicSpecializedCollectionsDefinition,
             GetBasicEmptyEnumerableResultAt(6, 16),
             GetBasicEmptyEnumerableResultAt(9, 16));
-        }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ReturnLinqEmptyEnumerableBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 Imports System.Linq
 
@@ -214,12 +195,10 @@ Class C
 End Class
 " + _basicSpecializedCollectionsDefinition,
                 GetBasicEmptyEnumerableResultAt(7, 16));
-        }
 
         [Fact]
-        public async Task ReturnSingletonArrayBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ReturnSingletonArrayBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -233,12 +212,10 @@ End Class
 " + _basicSpecializedCollectionsDefinition,
                 GetBasicSingletonEnumerableResultAt(6, 16),
                 GetBasicSingletonEnumerableResultAt(9, 16));
-        }
 
         [Fact(Skip = "855425")]
-        public async Task ReturnArrayWithinExpressionBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ReturnArrayWithinExpressionBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -253,12 +230,10 @@ End Class
                 GetBasicSingletonEnumerableResultAt(6, 25),
                 GetBasicSingletonEnumerableResultAt(6, 30),
                 GetBasicSingletonEnumerableResultAt(9, 25));
-        }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableWithinExpressionBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ReturnLinqEmptyEnumerableWithinExpressionBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 Imports System.Linq
 
@@ -273,12 +248,10 @@ End Class
 " + _basicSpecializedCollectionsDefinition,
                 GetBasicEmptyEnumerableResultAt(7, 25),
                 GetBasicEmptyEnumerableResultAt(10, 25));
-        }
 
         [Fact]
-        public async Task ReturnMultiElementArrayBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ReturnMultiElementArrayBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -290,12 +263,10 @@ Class C
     End Function
 End Class
 " + _basicSpecializedCollectionsDefinition);
-        }
 
         [Fact]
-        public async Task ReturnJaggedArrayBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ReturnJaggedArrayBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -311,12 +282,10 @@ Class C
 End Class
 " + _basicSpecializedCollectionsDefinition,
                 GetBasicSingletonEnumerableResultAt(9, 16));
-        }
 
         [Fact(Skip = "855425")]
-        public async Task ImplicitConversionToNestedEnumerableBasicAsync()
-        {
-            await VerifyVB.VerifyAnalyzerAsync(@"
+        public Task ImplicitConversionToNestedEnumerableBasicAsync()
+            => VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
 
 Class C
@@ -327,6 +296,5 @@ End Class
 " + _basicSpecializedCollectionsDefinition,
                 GetBasicSingletonEnumerableResultAt(6, 16),
                 GetBasicSingletonEnumerableResultAt(6, 17));
-        }
     }
 }

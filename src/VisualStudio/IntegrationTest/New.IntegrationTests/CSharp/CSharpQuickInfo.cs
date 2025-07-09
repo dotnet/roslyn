@@ -92,7 +92,6 @@ class C
 
         await TestServices.Editor.InvokeQuickInfoAsync(HangMitigatingCancellationToken);
         var quickInfo = await TestServices.Editor.GetQuickInfoAsync(HangMitigatingCancellationToken);
-        var expected = "(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception";
-        Assert.Equal(expected, quickInfo);
+        Assert.Equal("(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception", quickInfo);
     }
 }

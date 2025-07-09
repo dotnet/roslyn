@@ -38,15 +38,14 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickCancelAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        var expectedText = @"
+        Assert.Contains(@"
 Class C
     Dim i as Integer
     Dim j as String
     Dim k as Boolean
 
 
-End Class";
-        Assert.Contains(expectedText, actualText);
+End Class", actualText);
     }
 
     [IdeFact]
@@ -68,7 +67,7 @@ End Class", HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickOKAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        var expectedText = @"
+        Assert.Contains(@"
 Imports TestProj
 
 Class C
@@ -83,7 +82,6 @@ Class C
                j = c.j AndAlso
                k = c.k
     End Function
-End Class";
-        Assert.Contains(expectedText, actualText);
+End Class", actualText);
     }
 }

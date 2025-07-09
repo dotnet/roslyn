@@ -76,9 +76,8 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
     }
 
     [Fact]
-    public async Task TestEqualsSingleField()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsSingleField()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -106,12 +105,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsSingleField_CSharp7()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsSingleField_CSharp7()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -138,12 +135,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp7,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
-    public async Task TestEqualsSingleField_PreferExplicitType()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsSingleField_PreferExplicitType()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -171,12 +166,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferExplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestReferenceIEquatable()
-    {
-        await new VerifyCS.Test
+    public Task TestReferenceIEquatable()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -210,12 +203,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestNullableReferenceIEquatable()
-    {
-        await new VerifyCS.Test
+    public Task TestNullableReferenceIEquatable()
+        => new VerifyCS.Test
         {
             TestCode = """
             #nullable enable
@@ -257,12 +248,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             CodeActionIndex = 1,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestValueIEquatable()
-    {
-        await new VerifyCS.Test
+    public Task TestValueIEquatable()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -296,12 +285,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsLongName()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsLongName()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -329,12 +316,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsKeywordName()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsKeywordName()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -362,12 +347,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsProperty()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsProperty()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -400,12 +383,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsBaseTypeWithNoEquals()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsBaseTypeWithNoEquals()
+        => new VerifyCS.Test
         {
             TestCode = """
             class Base
@@ -437,12 +418,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsBaseWithOverriddenEquals()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsBaseWithOverriddenEquals()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -492,12 +471,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsOverriddenDeepBase()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsOverriddenDeepBase()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -555,12 +532,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsStruct()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsStruct()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System.Collections.Generic;
 
@@ -603,12 +578,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEqualsStructCSharpLatest()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsStructCSharpLatest()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System.Collections.Generic;
 
@@ -651,12 +624,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEqualsStructAlreadyImplementsIEquatable()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsStructAlreadyImplementsIEquatable()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -696,12 +667,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEqualsStructAlreadyHasOperators()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsStructAlreadyHasOperators()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -741,12 +710,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
                 public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEqualsStructAlreadyImplementsIEquatableAndHasOperators()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsStructAlreadyImplementsIEquatableAndHasOperators()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -782,12 +749,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
                 public static bool operator !=(ReallyLongName left, ReallyLongName right) => false;
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEqualsGenericType()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsGenericType()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -813,12 +778,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsNullableContext()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsNullableContext()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             #nullable enable
 
@@ -841,12 +804,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestGetHashCodeSingleField1()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeSingleField1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -880,12 +841,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeSingleField2()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeSingleField2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -919,12 +878,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeWithBaseHashCode1()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeWithBaseHashCode1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -969,12 +926,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeWithBaseHashCode2()
-    {
-        await new TestWithDialog
+    public Task TestGetHashCodeWithBaseHashCode2()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1017,12 +972,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeSingleField_CodeStyle1()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeSingleField_CodeStyle1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1056,12 +1009,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             CodeActionIndex = 1,
             LanguageVersion = LanguageVersion.CSharp6,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeTypeParameter()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeTypeParameter()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1095,12 +1046,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeGenericType()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeGenericType()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1134,12 +1083,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeMultipleMembers()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeMultipleMembers()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1181,12 +1128,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSmartTagText1()
-    {
-        await new VerifyCS.Test
+    public Task TestSmartTagText1()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1226,12 +1171,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             CodeActionEquivalenceKey = FeaturesResources.Generate_Equals_object,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Generate_Equals_object, codeAction.Title),
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSmartTagText2()
-    {
-        await new VerifyCS.Test
+    public Task TestSmartTagText2()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1280,12 +1223,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             CodeActionEquivalenceKey = FeaturesResources.Generate_Equals_and_GetHashCode,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Generate_Equals_and_GetHashCode, codeAction.Title),
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestSmartTagText3()
-    {
-        await new VerifyCS.Test
+    public Task TestSmartTagText3()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1334,12 +1275,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             CodeActionEquivalenceKey = FeaturesResources.Generate_Equals_and_GetHashCode,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Generate_Equals_and_GetHashCode, codeAction.Title),
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Tuple_Disabled()
-    {
-        await new VerifyCS.Test
+    public Task Tuple_Disabled()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1367,12 +1306,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Tuples_Equals()
-    {
-        await new VerifyCS.Test
+    public Task Tuples_Equals()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1400,12 +1337,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TupleWithNames_Equals()
-    {
-        await new VerifyCS.Test
+    public Task TupleWithNames_Equals()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1433,12 +1368,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Tuple_HashCode()
-    {
-        await new VerifyCS.Test
+    public Task Tuple_HashCode()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1472,12 +1405,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TupleWithNames_HashCode()
-    {
-        await new VerifyCS.Test
+    public Task TupleWithNames_HashCode()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1511,12 +1442,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task StructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
-    {
-        await new VerifyCS.Test
+    public Task StructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1558,12 +1487,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task StructWithGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
-    {
-        await new VerifyCS.Test
+    public Task StructWithGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1607,12 +1534,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NullableStructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
-    {
-        await new VerifyCS.Test
+    public Task NullableStructWithoutGetHashCodeOverride_ShouldCallGetHashCodeDirectly()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1654,12 +1579,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task StructTypeParameter_ShouldCallGetHashCodeDirectly()
-    {
-        await new VerifyCS.Test
+    public Task StructTypeParameter_ShouldCallGetHashCodeDirectly()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1693,12 +1616,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task NullableStructTypeParameter_ShouldCallGetHashCodeDirectly()
-    {
-        await new VerifyCS.Test
+    public Task NullableStructTypeParameter_ShouldCallGetHashCodeDirectly()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1732,12 +1653,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task Enum_ShouldCallGetHashCodeDirectly()
-    {
-        await new VerifyCS.Test
+    public Task Enum_ShouldCallGetHashCodeDirectly()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1779,12 +1698,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task PrimitiveValueType_ShouldCallGetHashCodeDirectly()
-    {
-        await new VerifyCS.Test
+    public Task PrimitiveValueType_ShouldCallGetHashCodeDirectly()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1818,12 +1735,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDialog1()
-    {
-        await new TestWithDialog
+    public Task TestWithDialog1()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1856,12 +1771,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDialog2()
-    {
-        await new TestWithDialog
+    public Task TestWithDialog2()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1896,12 +1809,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestWithDialog3()
-    {
-        await new TestWithDialog
+    public Task TestWithDialog3()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -1934,12 +1845,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17643")]
-    public async Task TestWithDialogNoBackingField()
-    {
-        await new TestWithDialog
+    public Task TestWithDialogNoBackingField()
+        => new TestWithDialog
         {
             TestCode = """
             class Program
@@ -1964,12 +1873,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25690")]
-    public async Task TestWithDialogNoIndexer()
-    {
-        await new TestWithDialog
+    public Task TestWithDialogNoIndexer()
+        => new TestWithDialog
         {
             TestCode = """
             class Program
@@ -1993,12 +1900,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25707")]
-    public async Task TestWithDialogNoSetterOnlyProperty()
-    {
-        await new TestWithDialog
+    public Task TestWithDialogNoSetterOnlyProperty()
+        => new TestWithDialog
         {
             TestCode = """
             class Program
@@ -2022,12 +1927,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41958")]
-    public async Task TestWithDialogInheritedMembers()
-    {
-        await new TestWithDialog
+    public Task TestWithDialogInheritedMembers()
+        => new TestWithDialog
         {
             TestCode = """
             class Base
@@ -2071,12 +1974,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGenerateOperators1()
-    {
-        await new TestWithDialog
+    public Task TestGenerateOperators1()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2117,12 +2018,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGenerateOperators2()
-    {
-        await new TestWithDialog
+    public Task TestGenerateOperators2()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2159,12 +2058,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGenerateOperators3()
-    {
-        await new TestWithDialog
+    public Task TestGenerateOperators3()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2199,12 +2096,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGenerateOperators4()
-    {
-        await new TestWithDialog
+    public Task TestGenerateOperators4()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2249,12 +2144,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGenerateLiftedOperators()
-    {
-        await new VerifyCS.Test
+    public Task TestGenerateLiftedOperators()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2301,12 +2194,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task LiftedOperatorIsNotUsedWhenDirectOperatorWouldNotBeUsed()
-    {
-        await new VerifyCS.Test
+    public Task LiftedOperatorIsNotUsedWhenDirectOperatorWouldNotBeUsed()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System;
@@ -2369,12 +2260,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnStruct()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnStruct()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2409,12 +2298,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25708")]
-    public async Task TestOverrideEqualsOnRefStructReturnsFalse()
-    {
-        await new TestWithDialog
+    public Task TestOverrideEqualsOnRefStructReturnsFalse()
+        => new TestWithDialog
         {
             TestCode = """
             ref struct Program
@@ -2435,12 +2322,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25708")]
-    public async Task TestImplementIEquatableOnRefStructSkipsIEquatable()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnRefStructSkipsIEquatable()
+        => new TestWithDialog
         {
             TestCode = """
             ref struct Program
@@ -2466,12 +2351,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             // is not available it will not be shown.
             OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnStructInNullableContextWithUnannotatedMetadata()
+        => new TestWithDialog
         {
             TestCode = """
             #nullable enable
@@ -2506,12 +2389,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnStructInNullableContextWithAnnotatedMetadata()
+        => new TestWithDialog
         {
             TestCode = """
             #nullable enable
@@ -2550,12 +2431,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnClass_CSharp6()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnClass_CSharp6()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2591,12 +2470,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnClass_CSharp7()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnClass_CSharp7()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2632,12 +2509,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp7,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnClass_CSharp8()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnClass_CSharp8()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2673,12 +2548,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp8,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnClass_CSharp9()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnClass_CSharp9()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2714,12 +2587,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp9,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnClassInNullableContextWithUnannotatedMetadata()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnClassInNullableContextWithUnannotatedMetadata()
+        => new TestWithDialog
         {
             TestCode = """
             #nullable enable
@@ -2755,12 +2626,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
-    {
-        await new TestWithDialog
+    public Task TestImplementIEquatableOnClassInNullableContextWithAnnotatedMetadata()
+        => new TestWithDialog
         {
             TestCode = """
             #nullable enable
@@ -2800,12 +2669,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
-    {
-        await new TestWithDialog
+    public Task TestDoNotOfferIEquatableIfTypeAlreadyImplementsIt()
+        => new TestWithDialog
         {
             TestCode = """
             using System.Collections.Generic;
@@ -2836,12 +2703,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestMissingReferences1()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingReferences1()
+        => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp6,
             CodeActionIndex = 1,
@@ -2944,12 +2809,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             },
             ReferenceAssemblies = ReferenceAssemblies.Default.WithAssemblies([]),
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeInCheckedContext()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeInCheckedContext()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -3001,12 +2864,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 },
             },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestGetHashCodeStruct()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeStruct()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -3054,7 +2915,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
     public async Task TestGetHashCodeSystemHashCodeOneMember()
@@ -3125,11 +2985,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37297")]
     public async Task TestPublicSystemHashCodeOtherProject()
     {
-        var publicHashCode =
-            """
-            using System.Collections.Generic;
-            namespace System { public struct HashCode { } }
-            """;
         var code =
             """
             struct S
@@ -3180,7 +3035,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 {
                     ["P1"] =
                     {
-                        Sources = { ("HashCode.cs", publicHashCode) },
+                        Sources = { ("HashCode.cs", """
+            using System.Collections.Generic;
+            namespace System { public struct HashCode { } }
+            """) },
                     },
                 },
                 Sources = { code },
@@ -3204,11 +3062,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37297")]
     public async Task TestInternalSystemHashCode()
     {
-        var internalHashCode =
-            """
-            using System.Collections.Generic;
-            namespace System { internal struct HashCode { } }
-            """;
         var code =
             """
             struct S
@@ -3224,7 +3077,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 {
                     ["P1"] =
                     {
-                        Sources = { ("HashCode.cs", internalHashCode) },
+                        Sources = { ("HashCode.cs", """
+            using System.Collections.Generic;
+            namespace System { internal struct HashCode { } }
+            """) },
                     },
                 },
                 Sources = { code },
@@ -3343,9 +3199,8 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
     }
 
     [Fact]
-    public async Task TestGetHashCodeSystemHashCodeNineMembers()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeSystemHashCodeNineMembers()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -3413,12 +3268,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39916")]
-    public async Task TestGetHashCodeSystemHashCodeNineMembers_Explicit()
-    {
-        await new VerifyCS.Test
+    public Task TestGetHashCodeSystemHashCodeNineMembers_Explicit()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -3486,12 +3339,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferExplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact]
-    public async Task TestEqualsSingleField_Patterns()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsSingleField_Patterns()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System.Collections.Generic;
 
@@ -3514,12 +3365,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEqualsSingleFieldInStruct_Patterns()
-    {
-        await VerifyCS.VerifyRefactoringAsync(
+    public Task TestEqualsSingleFieldInStruct_Patterns()
+        => VerifyCS.VerifyRefactoringAsync(
             """
             using System.Collections.Generic;
 
@@ -3557,12 +3406,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task TestEqualsBaseWithOverriddenEquals_Patterns()
-    {
-        await new VerifyCS.Test
+    public Task TestEqualsBaseWithOverriddenEquals_Patterns()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -3609,12 +3456,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33601")]
-    public async Task TestPartialSelection()
-    {
-        await new VerifyCS.Test
+    public Task TestPartialSelection()
+        => new VerifyCS.Test
         {
             TestCode = """
             using System.Collections.Generic;
@@ -3625,7 +3470,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             }
             """,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40053")]
     public async Task TestEqualityOperatorsNullableAnnotationWithReferenceType()
@@ -3694,9 +3538,8 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40053")]
-    public async Task TestEqualityOperatorsNullableAnnotationWithValueType()
-    {
-        await new TestWithDialog
+    public Task TestEqualityOperatorsNullableAnnotationWithValueType()
+        => new TestWithDialog
         {
             TestCode = """
             #nullable enable
@@ -3743,12 +3586,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             LanguageVersion = LanguageVersion.Default,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
-    public async Task TestPartialTypes1()
-    {
-        await new TestWithDialog
+    public Task TestPartialTypes1()
+        => new TestWithDialog
         {
             TestState =
             {
@@ -3803,12 +3644,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
-    public async Task TestPartialTypes2()
-    {
-        await new TestWithDialog
+    public Task TestPartialTypes2()
+        => new TestWithDialog
         {
             TestState =
             {
@@ -3861,12 +3700,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
-    public async Task TestPartialTypes3()
-    {
-        await new TestWithDialog
+    public Task TestPartialTypes3()
+        => new TestWithDialog
         {
             TestState =
             {
@@ -3919,12 +3756,10 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42574")]
-    public async Task TestPartialTypes4()
-    {
-        await new TestWithDialog
+    public Task TestPartialTypes4()
+        => new TestWithDialog
         {
             TestState =
             {
@@ -3979,7 +3814,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
             MemberNames = ["bar"],
             CodeActionIndex = 1,
         }.RunAsync();
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43290")]
     public async Task TestAbstractBase()
@@ -4048,9 +3882,8 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76916")]
-    public async Task TestMissingWithPrimaryConstructorAndNoFields()
-    {
-        await new VerifyCS.Test
+    public Task TestMissingWithPrimaryConstructorAndNoFields()
+        => new VerifyCS.Test
         {
             TestCode = """
                 class C(int a)
@@ -4060,5 +3893,4 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
-    }
 }

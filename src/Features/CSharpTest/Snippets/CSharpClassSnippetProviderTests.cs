@@ -15,9 +15,8 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     protected override string SnippetIdentifier => "class";
 
     [Fact]
-    public async Task InsertClassSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetInBlockNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace
             {
                 $$
@@ -31,12 +30,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetInFileScopedNamespaceTest()
+        => VerifySnippetAsync("""
             namespace Namespace;
 
             $$
@@ -48,12 +45,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             class {|0:MyClass|}
@@ -61,12 +56,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassTopLevelSnippetTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassTopLevelSnippetTest()
+        => VerifySnippetAsync("""
             System.Console.WriteLine();
             $$
             """, """
@@ -76,12 +69,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassSnippetInClassTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetInClassTest()
+        => VerifySnippetAsync("""
             class MyClass
             {
                 $$
@@ -95,12 +86,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassSnippetInRecordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetInRecordTest()
+        => VerifySnippetAsync("""
             record MyRecord
             {
                 $$
@@ -114,12 +103,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassSnippetInStructTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetInStructTest()
+        => VerifySnippetAsync("""
             struct MyStruct
             {
                 $$
@@ -133,12 +120,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassSnippetInInterfaceTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetInInterfaceTest()
+        => VerifySnippetAsync("""
             interface MyInterface
             {
                 $$
@@ -152,12 +137,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertClassSnippetWithModifiersTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertClassSnippetWithModifiersTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             public class {|0:MyClass|}
@@ -171,23 +154,19 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact]
-    public async Task NoClassSnippetInEnumTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoClassSnippetInEnumTest()
+        => VerifySnippetIsAbsentAsync("""
             enum MyEnum
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoClassSnippetInMethodTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoClassSnippetInMethodTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -196,12 +175,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoClassSnippetInConstructorTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoClassSnippetInConstructorTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public Program()
@@ -210,13 +187,11 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertClassSnippetAfterAccessibilityModifier(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertClassSnippetAfterAccessibilityModifier(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} class {|0:MyClass|}
@@ -224,13 +199,11 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 $$
             }
             """);
-    }
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertClassSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertClassSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} class {|0:MyClass|}
@@ -244,16 +217,14 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Theory]
     [InlineData("abstract")]
     [InlineData("sealed")]
     [InlineData("static")]
     [InlineData("unsafe")]
-    public async Task InsertClassSnippetAfterValidModifiersTest(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task InsertClassSnippetAfterValidModifiersTest(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
             {{modifier}} class {|0:MyClass|}
@@ -261,23 +232,19 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("ref")]
     [InlineData("readonly")]
-    public async Task NoClassSnippetAfterInvalidModifiersTest(string modifier)
-    {
-        await VerifySnippetIsAbsentAsync($"""
+    public Task NoClassSnippetAfterInvalidModifiersTest(string modifier)
+        => VerifySnippetIsAbsentAsync($"""
             {modifier} $$
             """);
-    }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
-    {
-        await VerifySnippetAsync($"""
+    public Task NoAdditionalAccessibilityModifiersIfAfterPartialKeywordTest(string modifier)
+        => VerifySnippetAsync($"""
             {modifier} partial $$
             """, $$"""
             {{modifier}} partial class {|0:MyClass|}
@@ -291,12 +258,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
-    public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderAfterPartialKeywordTest()
+        => VerifySnippetAsync("""
             partial $$
             """, """
             public partial class {|0:MyClass|}
@@ -310,12 +275,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             """);
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69600")]
-    public async Task EnsureCorrectModifierOrderAfterPartialKeywordTest_InvalidPreferredModifiersList()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderAfterPartialKeywordTest_InvalidPreferredModifiersList()
+        => VerifySnippetAsync("""
             partial $$
             """, """
             public partial class {|0:MyClass|}
@@ -331,12 +294,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             
             csharp_preferred_modifier_order = invalid!
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers()
+        => VerifySnippetAsync("""
             sealed unsafe $$
             """, """
             public sealed unsafe class {|0:MyClass|}
@@ -352,12 +313,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             
             csharp_preferred_modifier_order = public,sealed,unsafe
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers_NotAllModifiersInTheList()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers_NotAllModifiersInTheList()
+        => VerifySnippetAsync("""
             sealed unsafe $$
             """, """
             public sealed unsafe class {|0:MyClass|}
@@ -373,12 +332,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             
             csharp_preferred_modifier_order = public,sealed
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBetweenOthers()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBetweenOthers()
+        => VerifySnippetAsync("""
             sealed unsafe $$
             """, """
             sealed public unsafe class {|0:MyClass|}
@@ -394,12 +351,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             
             csharp_preferred_modifier_order = sealed,public,unsafe
             """);
-    }
 
     [Fact]
-    public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierAfterAllOthers()
-    {
-        await VerifySnippetAsync("""
+    public Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierAfterAllOthers()
+        => VerifySnippetAsync("""
             sealed unsafe $$
             """, """
             sealed unsafe public class {|0:MyClass|}
@@ -415,5 +370,4 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             
             csharp_preferred_modifier_order = sealed,unsafe,public
             """);
-    }
 }
