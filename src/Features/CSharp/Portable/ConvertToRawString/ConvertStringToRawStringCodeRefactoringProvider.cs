@@ -36,9 +36,12 @@ internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider() 
             s_kindToEquivalenceKeyMap[i] = i.ToString(CultureInfo.InvariantCulture);
     }
 
-    private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders = [ConvertRegularStringToRawStringProvider.Instance, ConvertInterpolatedStringToRawStringProvider.Instance];
+    private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders =
+        [ConvertRegularStringToRawStringProvider.Instance, ConvertInterpolatedStringToRawStringProvider.Instance];
 
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+
+    protected override CodeActionCleanup Cleanup => CodeActionCleanup.SyntaxOnly;
 
     private static bool CanConvert(
         ParsedDocument parsedDocument,
