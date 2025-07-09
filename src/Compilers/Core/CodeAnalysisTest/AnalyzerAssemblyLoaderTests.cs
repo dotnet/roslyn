@@ -825,13 +825,13 @@ Delta: Gamma: Beta: Test B
     @"Delta: Gamma: Test G
 Delta.2: Epsilon: Test E
 ",
-    actual);
+                    actual);
 #else
                 Assert.Equal(
     @"Delta: Gamma: Test G
 Delta: Epsilon: Test E
 ",
-    actual);
+                    actual);
 
 #endif
             });
@@ -891,7 +891,7 @@ Delta: Epsilon: Test E
                     Assert.Equal(
     @"Delta.2: Epsilon: Test E
 ",
-    actual);
+                        actual);
                 }
             });
         }
@@ -1060,7 +1060,7 @@ Delta: Epsilon: Test E
                 Assert.Equal(
     @"Delta: Epsilon: Test E
 ",
-    actual);
+                    actual);
             });
         }
 
@@ -1114,7 +1114,7 @@ Delta: Epsilon: Test E
     @"Delta: Gamma: Test G
 Delta.2: Epsilon: Test E
 ",
-    actual);
+                        actual);
                 }
                 else
                 {
@@ -1122,7 +1122,7 @@ Delta.2: Epsilon: Test E
     @"Delta: Gamma: Test G
 Delta: Epsilon: Test E
 ",
-    actual);
+                        actual);
                 }
             });
         }
@@ -1152,7 +1152,7 @@ Delta: Epsilon: Test E
                 Assert.Equal(
     @"Delta: Gamma: Test G
 ",
-    actual);
+                    actual);
             });
         }
 
@@ -1332,7 +1332,7 @@ Delta: Epsilon: Test E
     @"Delta.2: Gamma: Test G
 Delta.2: Epsilon: Test E
 ",
-    actual);
+                    actual);
             });
         }
 
@@ -1362,7 +1362,7 @@ Delta.2: Epsilon: Test E
     @"Delta: Test D1
 Delta.2: Test D2
 ",
-    actual);
+                    actual);
             });
         }
 
@@ -1499,7 +1499,7 @@ Delta.2: Test D2
                 Assert.Equal(
     @"Delta: Test D
 ",
-    actual);
+                    actual);
             });
         }
 

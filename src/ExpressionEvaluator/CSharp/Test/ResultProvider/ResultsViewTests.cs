@@ -1745,7 +1745,7 @@ class C
                         "S",
                         DkmEvaluationResultFlags.RawString,
                         DkmEvaluationResultCategory.Other,
-                        editableValue: "\"\""));
+                       editableValue: "\"\""));
 
                 // array (unchanged)
                 evalResult = FormatPropertyValue(runtime, value, "T");

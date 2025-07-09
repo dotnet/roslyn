@@ -3019,7 +3019,7 @@ public class Program
 
             Assert.Equal(
                 "/// <seealso href=\"https://dotnet.microsoft.com/\">.NET</seealso>",
-                docComment.ToFullString());
+                 docComment.ToFullString());
         }
 
         [Fact]

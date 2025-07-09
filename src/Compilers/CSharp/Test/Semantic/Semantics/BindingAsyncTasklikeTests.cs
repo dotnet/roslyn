@@ -258,7 +258,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         public void TasklikeB7g_ic1() => VerifyTaskOverloads("f(async () => 3)",
                                                              "f<T>(Func<ValueTask<T>> lambda)",
                                                              "f<T>(Func<Task<T>> lambda)",
-                                                             implicitConversionToTask: true);
+                                                            implicitConversionToTask: true);
 
         [Fact]
         public void TasklikeB7n_ic0() => VerifyTaskOverloads("f(async () => {})",
@@ -270,7 +270,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         public void TasklikeB7n_ic1() => VerifyTaskOverloads("f(async () => {})",
                                                              "f(Func<ValueTask> lambda)",
                                                              "f(Func<Task> lambda)",
-                                                             implicitConversionToTask: true);
+                                                            implicitConversionToTask: true);
 
         [Fact]
         public void TasklikeC1() => VerifyTaskOverloads("f(async () => 3)",
