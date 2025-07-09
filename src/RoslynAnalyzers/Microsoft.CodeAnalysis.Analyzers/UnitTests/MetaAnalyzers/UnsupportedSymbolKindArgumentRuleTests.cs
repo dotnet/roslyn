@@ -67,8 +67,8 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetCSharpExpectedDiagnostic(21, 13, unsupportedSymbolKind: SymbolKind.Alias),
                 GetCSharpExpectedDiagnostic(22, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
                 GetCSharpExpectedDiagnostic(23, 13, unsupportedSymbolKind: SymbolKind.Assembly),
@@ -82,7 +82,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(38, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
                 GetCSharpExpectedDiagnostic(39, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
                 GetCSharpExpectedDiagnostic(40, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
-            };
+            ];
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
@@ -133,8 +133,8 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetBasicExpectedDiagnostic(18, 13, unsupportedSymbolKind: SymbolKind.Alias),
                 GetBasicExpectedDiagnostic(19, 13, unsupportedSymbolKind: SymbolKind.ArrayType),
                 GetBasicExpectedDiagnostic(20, 13, unsupportedSymbolKind: SymbolKind.Assembly),
@@ -148,7 +148,7 @@ End Class
                 GetBasicExpectedDiagnostic(35, 13, unsupportedSymbolKind: SymbolKind.Preprocessing),
                 GetBasicExpectedDiagnostic(36, 13, unsupportedSymbolKind: SymbolKind.RangeVariable),
                 GetBasicExpectedDiagnostic(37, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
-            };
+            ];
 
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }

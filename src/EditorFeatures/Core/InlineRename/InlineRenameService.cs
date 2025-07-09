@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class InlineRenameService(
     IThreadingContext threadingContext,
-    IUIThreadOperationExecutor uiThreadOperationExecutor,
     ITextBufferAssociatedViewService textBufferAssociatedViewService,
     ITextBufferFactoryService textBufferFactoryService,
     ITextBufferCloneService textBufferCloneService,
@@ -38,7 +37,6 @@ internal sealed class InlineRenameService(
     IAsynchronousOperationListenerProvider listenerProvider) : IInlineRenameService
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
     private readonly ITextBufferAssociatedViewService _textBufferAssociatedViewService = textBufferAssociatedViewService;
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
     private readonly ITextBufferFactoryService _textBufferFactoryService = textBufferFactoryService;
@@ -107,7 +105,6 @@ internal sealed class InlineRenameService(
             renameInfo,
             options,
             previewChanges,
-            _uiThreadOperationExecutor,
             _textBufferAssociatedViewService,
             _textBufferFactoryService,
             _textBufferCloneService,

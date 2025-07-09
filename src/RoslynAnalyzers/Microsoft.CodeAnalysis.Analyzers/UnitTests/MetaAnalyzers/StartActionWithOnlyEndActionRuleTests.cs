@@ -66,12 +66,12 @@ class MyAnalyzer : DiagnosticAnalyzer
         operationBlockContext.RegisterOperationBlockEndAction(null);
     }
 }";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetCSharpExpectedDiagnostic(21, 48, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
                 GetCSharpExpectedDiagnostic(35, 47, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
                 GetCSharpExpectedDiagnostic(40, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
-            };
+            ];
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
@@ -119,12 +119,12 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetBasicExpectedDiagnostic(19, 17, parameterName: "compilationContext", kind: StartActionKind.CompilationStartAction),
                 GetBasicExpectedDiagnostic(32, 46, parameterName: "codeBlockContext", kind: StartActionKind.CodeBlockStartAction),
                 GetBasicExpectedDiagnostic(36, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
-            };
+            ];
 
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
@@ -375,7 +375,7 @@ End Class
                     throw new ArgumentException("Unsupported argument kind", nameof(kind));
             }
 
-            return new[] { parameterName, endActionName, statelessActionName, arg4 };
+            return [parameterName, endActionName, statelessActionName, arg4];
         }
 
         private enum StartActionKind

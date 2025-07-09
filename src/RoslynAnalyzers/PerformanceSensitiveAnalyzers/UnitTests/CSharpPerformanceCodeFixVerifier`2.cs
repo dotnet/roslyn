@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;
@@ -72,8 +73,11 @@ namespace Roslyn.Utilities
         public static Task VerifyCodeFixAsync(string source, string fixedSource)
             => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
-        public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
-            => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
+        public static Task VerifyCodeFixAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+            DiagnosticResult expected,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource)
+            => VerifyCodeFixAsync(source, [expected], fixedSource);
 
         public static async Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
         {

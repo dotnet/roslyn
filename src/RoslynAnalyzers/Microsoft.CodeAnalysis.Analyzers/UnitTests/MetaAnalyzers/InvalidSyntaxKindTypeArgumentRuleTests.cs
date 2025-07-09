@@ -57,11 +57,11 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
                 GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
-            };
+            ];
 
             await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
@@ -99,11 +99,11 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            DiagnosticResult[] expected = new[]
-            {
+            DiagnosticResult[] expected =
+            [
                 GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
                 GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
-            };
+            ];
 
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
