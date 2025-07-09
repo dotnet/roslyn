@@ -26,9 +26,8 @@ public sealed class ConvertNamespaceRefactoringFixAllTests : AbstractCSharpCodeA
         => this.Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Warning);
 
     [Fact]
-    public async Task TestConvertToFileScope_FixAllInProject()
-    {
-        await TestInRegularAndScript1Async(@"
+    public Task TestConvertToFileScope_FixAllInProject()
+        => TestInRegularAndScript1Async(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -89,12 +88,10 @@ namespace N6
     </Project>
 </Workspace>
 ", new TestParameters(options: PreferBlockScopedNamespace));
-    }
 
     [Fact]
-    public async Task TestConvertToFileScope_FixAllInSolution()
-    {
-        await TestInRegularAndScript1Async(@"
+    public Task TestConvertToFileScope_FixAllInSolution()
+        => TestInRegularAndScript1Async(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -153,24 +150,20 @@ namespace N6;
     </Project>
 </Workspace>
 ", new TestParameters(options: PreferBlockScopedNamespace));
-    }
 
     [Theory]
     [InlineData("FixAllInDocument")]
     [InlineData("FixAllInContainingType")]
     [InlineData("FixAllInContainingMember")]
-    public async Task TestConvertToFileScope_UnsupportedFixAllScopes(string fixAllScope)
-    {
-        await TestMissingInRegularAndScriptAsync($@"
+    public Task TestConvertToFileScope_UnsupportedFixAllScopes(string fixAllScope)
+        => TestMissingInRegularAndScriptAsync($@"
 namespace {{|{fixAllScope}:|}}N1
 {{
 }}", new TestParameters(options: PreferBlockScopedNamespace));
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScope_FixAllInProject()
-    {
-        await TestInRegularAndScript1Async(@"
+    public Task TestConvertToBlockScope_FixAllInProject()
+        => TestInRegularAndScript1Async(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -230,12 +223,10 @@ namespace N6;
     </Project>
 </Workspace>
 ", new TestParameters(options: PreferFileScopedNamespace));
-    }
 
     [Fact]
-    public async Task TestConvertToBlockScope_FixAllInSolution()
-    {
-        await TestInRegularAndScript1Async(@"
+    public Task TestConvertToBlockScope_FixAllInSolution()
+        => TestInRegularAndScript1Async(@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -296,16 +287,13 @@ namespace N6
     </Project>
 </Workspace>
 ", new TestParameters(options: PreferFileScopedNamespace));
-    }
 
     [Theory]
     [InlineData("FixAllInDocument")]
     [InlineData("FixAllInContainingType")]
     [InlineData("FixAllInContainingMember")]
-    public async Task TestConvertToBlockScope_UnsupportedFixAllScopes(string fixAllScope)
-    {
-        await TestMissingInRegularAndScriptAsync($@"
+    public Task TestConvertToBlockScope_UnsupportedFixAllScopes(string fixAllScope)
+        => TestMissingInRegularAndScriptAsync($@"
 namespace {{|{fixAllScope}:|}}N1;
 ", new TestParameters(options: PreferFileScopedNamespace));
-    }
 }

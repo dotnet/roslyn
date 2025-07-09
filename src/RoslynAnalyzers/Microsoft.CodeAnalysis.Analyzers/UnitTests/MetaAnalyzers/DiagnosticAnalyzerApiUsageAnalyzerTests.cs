@@ -560,9 +560,8 @@ End Class
         }
 
         [Fact]
-        public async Task IndirectlyAccessedType_StaticMember_DiagnosticAsync()
-        {
-            await VerifyCSharpAnalyzerAsync(@"
+        public Task IndirectlyAccessedType_StaticMember_DiagnosticAsync()
+            => VerifyCSharpAnalyzerAsync(@"
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -599,7 +598,6 @@ class Fixer : CodeFixProvider
 ",
             // Test0.cs(12,7): warning RS1022: Change diagnostic analyzer type 'MyAnalyzer' to remove all direct and/or indirect accesses to type(s) 'Fixer', which access type(s) 'Microsoft.CodeAnalysis.CodeFixes.CodeFixContext, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider'.
             GetCSharpExpectedDiagnostic(0, "MyAnalyzer", "Fixer", "Microsoft.CodeAnalysis.CodeFixes.CodeFixContext, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider"));
-        }
 
         [Fact]
         public async Task IndirectlyAccessedType_ExtensionMethod_DiagnosticAsync()

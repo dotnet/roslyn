@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

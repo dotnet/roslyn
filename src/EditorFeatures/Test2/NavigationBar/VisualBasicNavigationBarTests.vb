@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -84,9 +83,9 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                     Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
-                    Item("Operator +(C, C) As C", Glyph.Operator, bolded:=True),
-                    Item("Operator +(C, Integer) As C", Glyph.Operator, bolded:=True),
-                    Item("Operator -", Glyph.Operator, bolded:=True)}))
+                    Item("Operator +(C, C) As C", Glyph.OperatorPublic, bolded:=True),
+                    Item("Operator +(C, Integer) As C", Glyph.OperatorPublic, bolded:=True),
+                    Item("Operator -", Glyph.OperatorPublic, bolded:=True)}))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
@@ -107,7 +106,7 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                     Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
-                    Item("Narrowing Operator CType", Glyph.Operator, bolded:=True)}))
+                    Item("Narrowing Operator CType", Glyph.OperatorPublic, bolded:=True)}))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797455")>
@@ -132,8 +131,8 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                     Item("New", Glyph.MethodPublic, bolded:=False, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=False, hasNavigationSymbolId:=False),
-                    Item("Narrowing Operator CType(C) As Integer", Glyph.Operator, bolded:=True),
-                    Item("Narrowing Operator CType(C) As String", Glyph.Operator, bolded:=True)}))
+                    Item("Narrowing Operator CType(C) As Integer", Glyph.OperatorPublic, bolded:=True),
+                    Item("Narrowing Operator CType(C) As String", Glyph.OperatorPublic, bolded:=True)}))
         End Function
 
         <Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544993")>

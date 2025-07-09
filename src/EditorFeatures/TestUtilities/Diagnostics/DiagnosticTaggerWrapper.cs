@@ -73,14 +73,12 @@ internal sealed class DiagnosticTaggerWrapper<TProvider, TTag>
         }
     }
 
-    public async Task WaitForTags()
-    {
-        await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
+    public Task WaitForTags()
+        => _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
             _workspace,
             FeatureAttribute.Workspace,
             FeatureAttribute.SolutionCrawlerLegacy,
             FeatureAttribute.DiagnosticService,
             FeatureAttribute.ErrorSquiggles,
             FeatureAttribute.Classification);
-    }
 }

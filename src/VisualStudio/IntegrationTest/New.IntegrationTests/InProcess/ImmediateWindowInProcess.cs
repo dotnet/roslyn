@@ -15,10 +15,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 [TestService]
 internal sealed partial class ImmediateWindowInProcess
 {
-    public async Task ShowAsync(CancellationToken cancellationToken)
-    {
-        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Debug.Immediate, cancellationToken);
-    }
+    public Task ShowAsync(CancellationToken cancellationToken)
+        => TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Debug.Immediate, cancellationToken);
 
     public async Task ClearAllAsync(CancellationToken cancellationToken)
     {

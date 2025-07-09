@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;

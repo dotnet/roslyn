@@ -9,14 +9,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -130,7 +129,7 @@ public sealed class CSharpEditAndContinueAnalyzerTests
     [Fact]
     public void ErrorSpans_TopLevel()
     {
-        var source = @"
+        TestSpans(@"
 /*<span>*/extern alias A;/*</span>*/
 /*<span>*/using Z = Goo.Bar;/*</span>*/
 
@@ -202,14 +201,16 @@ public sealed class CSharpEditAndContinueAnalyzerTests
     [A]/*<span>*/operator +(Z d, int x)/*</span>*/ { return 1; }
     
 }
-";
-        TestSpans(source, SyntaxComparer.TopLevel.HasLabel);
+", SyntaxComparer.TopLevel.HasLabel);
     }
 
     [Fact]
     public void ErrorSpans_StatementLevel_Update()
     {
-        var source = @"
+        // TODO: test
+        // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
+        // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
+        TestSpans(@"
 class C
 {
     void M()
@@ -255,11 +256,7 @@ class C
         F(from a in b /*<span>*/group/*</span>*/ a by b select d);
     }
 }
-";
-        // TODO: test
-        // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
-        // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
-        TestSpans(source, SyntaxComparer.Statement.HasLabel);
+", SyntaxComparer.Statement.HasLabel);
     }
 
     /// <summary>
@@ -315,7 +312,7 @@ class C
         var baseActiveStatements = new ActiveStatementsMap(
             ImmutableDictionary.CreateRange(
             [
-                KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
+                KeyValuePair.Create(newDocument.FilePath, ImmutableArray.Create(
                     new ActiveStatement(
                         new ActiveStatementId(0),
                         ActiveStatementFlags.LeafFrame,

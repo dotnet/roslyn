@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup;
@@ -262,9 +261,8 @@ End Class", LanguageNames.VisualBasic);
         => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
     [Fact, WorkItem(12848, "DevDiv_Projects/Roslyn")]
-    public async Task DoNotCrash_VB()
-    {
-        var code = @"#If DEBUG OrElse TRACE Then
+    public Task DoNotCrash_VB()
+        => VerifyRange(@"#If DEBUG OrElse TRACE Then
 Imports System.Diagnostics
 #ElseIf SILVERLIGHT Then
 Imports System.Diagnostics
@@ -276,10 +274,7 @@ Imports System.Diagnostics
     Region|} ""Region""
 #Region ""more""
 #End Region 
-#End Region";
-
-        await VerifyRange(code, LanguageNames.VisualBasic);
-    }
+#End Region", LanguageNames.VisualBasic);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
     public async Task DoNotCrash_VB_2()
@@ -320,9 +315,8 @@ End Class
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
-    public async Task TestCodeCleanupWithinNonStructuredTrivia()
-    {
-        var code = @"
+    public Task TestCodeCleanupWithinNonStructuredTrivia()
+        => VerifyRange(@"
 #Const ccConst = 0
 #If {|b:
 |}Then
@@ -334,10 +328,7 @@ Module Program
     Sub Main(args As String())
  
     End Sub
-End Module";
-
-        await VerifyRange(code, LanguageNames.VisualBasic);
-    }
+End Module", LanguageNames.VisualBasic);
 
     [Fact]
     public async Task RangeWithTransformation_OutsideOfRange()

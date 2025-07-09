@@ -152,7 +152,8 @@ internal sealed class OrganizeDocumentCommandHandler(
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        using var _ = backgroundWorkContext.SuppressAutoCancel();
+        var disposable = await backgroundWorkContext.SuppressAutoCancelAsync().ConfigureAwait(true);
+        await using var _ = disposable.ConfigureAwait(true);
 
         commandArgs.SubjectBuffer.ApplyChanges(changes);
     }

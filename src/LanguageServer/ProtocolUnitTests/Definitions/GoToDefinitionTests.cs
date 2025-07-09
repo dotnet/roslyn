@@ -72,18 +72,16 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestGotoDefinitionAsync_MappedFile(bool mutatingLspWorkspace)
     {
-        var markup =
-@"class A
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        AddMappedDocument(testLspServer.TestWorkspace, @"class A
 {
     string aString = 'hello';
     void M()
     {
         var len = aString.Length;
     }
-}";
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
-
-        AddMappedDocument(testLspServer.TestWorkspace, markup);
+}");
 
         var position = new LSP.Position { Line = 5, Character = 18 };
         var results = await RunGotoDefinitionAsync(testLspServer, new LSP.Location
@@ -164,12 +162,12 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
             public partial class C
             {
-                partial void {|caret:|}P();
+                partial void {|caret:|}{|definition:P|}();
             }
 
             public partial class C
             {
-                partial void {|definition:P|}()
+                partial void P()
                 {
                     Console.WriteLine(");
                 }
@@ -191,12 +189,12 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
             public partial class C
             {
-                partial int {|caret:|}Prop { get; set; }
+                partial int {|caret:|}{|definition:Prop|} { get; set; }
             }
 
             public partial class C
             {
-                partial int {|definition:Prop|} { get => 1; set { } }
+                partial int Prop { get => 1; set { } }
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
@@ -213,12 +211,12 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
             public partial class C
             {
-                partial event Action {|caret:|}E;
+                partial event Action {|caret:|}{|definition:E|};
             }
 
             public partial class C
             {
-                partial event Action {|definition:E|} { add { } remove { } }
+                partial event Action E { add { } remove { } }
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
@@ -235,12 +233,12 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
             public partial class C
             {
-                partial {|caret:|}C();
+                partial {|caret:|}{|definition:C|}();
             }
 
             public partial class C
             {
-                partial {|definition:C|}() { }
+                partial C() { }
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
@@ -285,18 +283,15 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
                 }
             }
             """;
-        var generated =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator("""
             namespace M
             {
                 class B
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+            """), testLspServer.TestWorkspace);
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         var result = Assert.Single(results);

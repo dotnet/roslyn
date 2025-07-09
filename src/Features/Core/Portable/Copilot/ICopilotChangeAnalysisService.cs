@@ -11,7 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -255,22 +257,36 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         var diagnosticIdToProviderName = new Dictionary<string, HashSet<string>>();
         var providerNameToApplicationTime = new Dictionary<string, TimeSpan>();
         var providerNameToHasConflict = new Dictionary<string, bool>();
+        var providerNameToTotalCount = new Dictionary<string, int>();
+        var providerNameToSuccessCount = new Dictionary<string, int>();
 
         var totalApplicationTimeStopWatch = SharedStopwatch.StartNew();
-        await ProducerConsumer<(CodeFixCollection collection, TimeSpan elapsedTime)>.RunParallelAsync(
+        await ProducerConsumer<(CodeFixCollection collection, bool success, TimeSpan elapsedTime)>.RunParallelAsync(
             codeFixCollections,
             produceItems: static async (codeFixCollection, callback, args, cancellationToken) =>
             {
-                var (@this, solution, _, _, _, _, _) = args;
+                var (@this, solution, _, _, _, _, _, _, _) = args;
                 var firstAction = GetFirstAction(codeFixCollection.Fixes[0]);
 
                 var applicationTimeStopWatch = SharedStopwatch.StartNew();
-                var result = await firstAction.GetPreviewOperationsAsync(solution, cancellationToken).ConfigureAwait(false);
-                callback((codeFixCollection, applicationTimeStopWatch.Elapsed));
+                var success = true;
+                try
+                {
+                    await firstAction
+                        .GetPreviewOperationsAsync(solution, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                {
+                    success = false;
+                }
+
+                callback((codeFixCollection, success, applicationTimeStopWatch.Elapsed));
             },
             consumeItems: static async (values, args, cancellationToken) =>
             {
-                var (@this, solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime, providerNameToHasConflict) = args;
+                var (@this, solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName,
+                    providerNameToApplicationTime, providerNameToHasConflict, providerNameToTotalCount, providerNameToSuccessCount) = args;
 
                 // Track which text span each code fix says it will be fixing.  We can use this to efficiently determine
                 // which codefixes 'conflict' with some other codefix (in that that multiple features think they can fix
@@ -278,7 +294,7 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 // order to have a good experience in such a case.
                 var intervalTree = new SimpleMutableIntervalTree<CodeFixCollection, CodeFixCollectionIntervalIntrospector>(new CodeFixCollectionIntervalIntrospector());
 
-                await foreach (var (codeFixCollection, applicationTime) in values)
+                await foreach (var (codeFixCollection, success, applicationTime) in values)
                 {
                     var diagnosticId = codeFixCollection.FirstDiagnostic.Id;
                     var providerName = GetProviderName(codeFixCollection);
@@ -287,6 +303,10 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                     IncrementElapsedTime(diagnosticIdToApplicationTime, diagnosticId, applicationTime);
                     diagnosticIdToProviderName.MultiAdd(diagnosticId, providerName);
                     IncrementElapsedTime(providerNameToApplicationTime, providerName, applicationTime);
+                    IncrementCount(providerNameToTotalCount, providerName);
+
+                    if (success)
+                        IncrementCount(providerNameToSuccessCount, providerName);
 
                     intervalTree.AddIntervalInPlace(codeFixCollection);
                 }
@@ -311,7 +331,8 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                     providerNameToHasConflict[providerName] = storedHasConflictValue || newHasConflictValue;
                 }
             },
-            args: (@this: this, newDocument.Project.Solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName, providerNameToApplicationTime, providerNameToHasConflict),
+            args: (@this: this, newDocument.Project.Solution, diagnosticIdToCount, diagnosticIdToApplicationTime, diagnosticIdToProviderName,
+            providerNameToApplicationTime, providerNameToHasConflict, providerNameToTotalCount, providerNameToSuccessCount),
             cancellationToken).ConfigureAwait(false);
         var totalApplicationTime = totalApplicationTimeStopWatch.Elapsed;
 
@@ -322,7 +343,9 @@ internal sealed class DefaultCopilotChangeAnalysisService(
             diagnosticIdToApplicationTime,
             diagnosticIdToProviderName,
             providerNameToApplicationTime,
-            providerNameToHasConflict);
+            providerNameToHasConflict,
+            providerNameToTotalCount,
+            providerNameToSuccessCount);
 
         Task<ImmutableArray<CodeFixCollection>> ComputeCodeFixCollectionsAsync()
         {

@@ -9,18 +9,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Shared.Collections;
-
-#if DEBUG
-using System.Linq;
-#endif
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -189,13 +185,13 @@ namespace Microsoft.CodeAnalysis
                     return ImmutableArray.Create(map(items[0], 0, arg), map(items[1], 1, arg), map(items[2], 2, arg), map(items[3], 3, arg));
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(items.Length);
+                    var builder = new FixedSizeArrayBuilder<TResult>(items.Length);
                     for (int i = 0; i < items.Length; i++)
                     {
                         builder.Add(map(items[i], i, arg));
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return builder.MoveToImmutable();
             }
         }
 
@@ -522,12 +518,13 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<TResult>.Empty;
             }
 
-            var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
+            var builder = new FixedSizeArrayBuilder<TResult>(self.Length);
             for (int i = 0; i < self.Length; i++)
             {
                 builder.Add(map(self[i], other[i], i, arg));
             }
-            return builder.ToImmutableAndFree();
+
+            return builder.MoveToImmutable();
         }
 
         /// <summary>
@@ -615,38 +612,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static bool Any<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
-        {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
-            {
-                var a = array[i];
-
-                if (predicate(a, arg))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static bool All<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
-        {
-            int n = array.Length;
-            for (int i = 0; i < n; i++)
-            {
-                var a = array[i];
-
-                if (!predicate(a, arg))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         public static async Task<bool> AnyAsync<T>(this ImmutableArray<T> array, Func<T, Task<bool>> predicateAsync)
         {
             int n = array.Length;
@@ -693,45 +658,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return default;
-        }
-
-        public static TValue? FirstOrDefault<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
-        {
-            foreach (var val in array)
-            {
-                if (predicate(val, arg))
-                {
-                    return val;
-                }
-            }
-
-            return default;
-        }
-
-        public static TValue Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
-        {
-            var hasValue = false;
-            TValue? value = default;
-            foreach (var item in array)
-            {
-                if (predicate(item, arg))
-                {
-                    if (hasValue)
-                    {
-                        throw ExceptionUtilities.Unreachable();
-                    }
-
-                    value = item;
-                    hasValue = true;
-                }
-            }
-
-            if (!hasValue)
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-
-            return value!;
         }
 
         /// <summary>
@@ -808,34 +734,6 @@ namespace Microsoft.CodeAnalysis
                 { } underlying => underlying
             };
 
-        /// <summary>
-        /// Returns an array of distinct elements, preserving the order in the original array.
-        /// If the array has no duplicates, the original array is returned. The original array must not be null.
-        /// </summary>
-        public static ImmutableArray<T> Distinct<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
-        {
-            Debug.Assert(!array.IsDefault);
-
-            if (array.Length < 2)
-            {
-                return array;
-            }
-
-            var set = new HashSet<T>(comparer);
-            var builder = ArrayBuilder<T>.GetInstance();
-            foreach (var a in array)
-            {
-                if (set.Add(a))
-                {
-                    builder.Add(a);
-                }
-            }
-
-            var result = (builder.Count == array.Length) ? array : builder.ToImmutable();
-            builder.Free();
-            return result;
-        }
-
         // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
         // This helps to avoid depending on accidentally sorted arrays.
         internal static ImmutableArray<T> ConditionallyDeOrder<T>(this ImmutableArray<T> array)
@@ -881,138 +779,6 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-        {
-            return first.AddRange(second);
-        }
-
-        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
-        {
-            var builder = new T[first.Length + second.Length + third.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
-        {
-            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
-            var index = 0;
-
-            foreach (var item in first)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in second)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in third)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fourth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in fifth)
-            {
-                builder[index++] = item;
-            }
-
-            foreach (var item in sixth)
-            {
-                builder[index++] = item;
-            }
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
-        }
-
-        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
-        {
-            return first.Add(second);
-        }
-
         internal static ImmutableArray<T> AddRange<T>(this ImmutableArray<T> self, in TemporaryArray<T> items)
         {
             if (items.Count == 0)
@@ -1041,12 +807,25 @@ namespace Microsoft.CodeAnalysis
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+            => array.HasDuplicates(EqualityComparer<T>.Default);
+
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
+            => array.HasDuplicates(static x => x, comparer);
+
+        public static bool HasDuplicates<TItem, TValue>(this ImmutableArray<TItem> array, Func<TItem, TValue> selector)
+            => array.HasDuplicates(selector, EqualityComparer<TValue>.Default);
+
         /// <summary>
-        /// Determines whether duplicates exist using default equality comparer.
+        /// Determines whether duplicates exist using given equality comparer.
         /// </summary>
         /// <param name="array">Array to search for duplicates</param>
         /// <returns>Whether duplicates were found</returns>
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+        /// <remarks>
+        /// API proposal: https://github.com/dotnet/runtime/issues/30582.
+        /// <seealso cref="Roslyn.Utilities.EnumerableExtensions.HasDuplicates{TItem, TValue}(IEnumerable{TItem}, Func{TItem, TValue}, IEqualityComparer{TValue})"/>
+        /// </remarks>
+        internal static bool HasDuplicates<TItem, TValue>(this ImmutableArray<TItem> array, Func<TItem, TValue> selector, IEqualityComparer<TValue> comparer)
         {
             switch (array.Length)
             {
@@ -1055,94 +834,24 @@ namespace Microsoft.CodeAnalysis
                     return false;
 
                 case 2:
-                    return EqualityComparer<T>.Default.Equals(array[0], array[1]);
+                    return comparer.Equals(selector(array[0]), selector(array[1]));
 
                 default:
-                    var set = PooledHashSet<T>.GetInstance();
-                    var foundDuplicate = false;
+                    var set = comparer == EqualityComparer<TValue>.Default ? PooledHashSet<TValue>.GetInstance() : new HashSet<TValue>(comparer);
+                    var result = false;
 
                     foreach (var element in array)
                     {
-                        if (!set.Add(element))
+                        if (!set.Add(selector(element)))
                         {
-                            foundDuplicate = true;
+                            result = true;
                             break;
                         }
                     }
 
-                    set.Free();
-                    return foundDuplicate;
+                    (set as PooledHashSet<TValue>)?.Free();
+                    return result;
             }
-        }
-
-        /// <summary>
-        /// Determines whether duplicates exist using <paramref name="comparer"/>. Use other override
-        /// if you don't need a custom comparer.
-        /// </summary>
-        /// <param name="array">Array to search for duplicates</param>
-        /// <param name="comparer">Comparer to use in search</param>
-        /// <returns>Whether duplicates were found</returns>
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
-        {
-            switch (array.Length)
-            {
-                case 0:
-                case 1:
-                    return false;
-
-                case 2:
-                    comparer ??= EqualityComparer<T>.Default;
-                    return comparer.Equals(array[0], array[1]);
-
-                default:
-                    var set = new HashSet<T>(comparer);
-                    foreach (var element in array)
-                    {
-                        if (!set.Add(element))
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
-            }
-        }
-
-        public static int Count<T>(this ImmutableArray<T> items, Func<T, bool> predicate)
-        {
-            if (items.IsEmpty)
-            {
-                return 0;
-            }
-
-            int count = 0;
-            for (int i = 0; i < items.Length; ++i)
-            {
-                if (predicate(items[i]))
-                {
-                    ++count;
-                }
-            }
-
-            return count;
-        }
-
-        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int> selector)
-        {
-            var sum = 0;
-            foreach (var item in items)
-                sum += selector(item);
-
-            return sum;
-        }
-
-        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int, int> selector)
-        {
-            var sum = 0;
-            for (var i = 0; i < items.Length; i++)
-                sum += selector(items[i], i);
-
-            return sum;
         }
 
         internal static void AddToMultiValueDictionaryBuilder<K, T>(Dictionary<K, object> accumulator, K key, T item)
@@ -1264,36 +973,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
-        {
-            // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we
-            // maintain the same behavior in this extension
-            if (array1.IsDefault)
-            {
-                throw new NullReferenceException();
-            }
-
-            if (array2.IsDefault)
-            {
-                throw new NullReferenceException();
-            }
-
-            if (array1.Length != array2.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < array1.Length; i++)
-            {
-                if (!predicate(array1[i], array2[i], arg))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
 
@@ -1313,66 +992,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
-        }
-
-        // same as Array.BinarySearch but the ability to pass arbitrary value to the comparer without allocation
-        internal static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
-            => BinarySearch(array.AsSpan(), value, comparer);
-
-        internal static int BinarySearch<TElement, TValue>(this ReadOnlySpan<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
-        {
-            int low = 0;
-            int high = array.Length - 1;
-
-            while (low <= high)
-            {
-                int middle = low + ((high - low) >> 1);
-                int comparison = comparer(array[middle], value);
-
-                if (comparison == 0)
-                {
-                    return middle;
-                }
-
-                if (comparison > 0)
-                {
-                    high = middle - 1;
-                }
-                else
-                {
-                    low = middle + 1;
-                }
-            }
-
-            return ~low;
-        }
-
-        internal static int BinarySearch<TElement, TValue>(this ImmutableSegmentedList<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
-        {
-            int low = 0;
-            int high = array.Count - 1;
-
-            while (low <= high)
-            {
-                int middle = low + ((high - low) >> 1);
-                int comparison = comparer(array[middle], value);
-
-                if (comparison == 0)
-                {
-                    return middle;
-                }
-
-                if (comparison > 0)
-                {
-                    high = middle - 1;
-                }
-                else
-                {
-                    low = middle + 1;
-                }
-            }
-
-            return ~low;
         }
 
         public static bool IsSubsetOf<TElement>(this ImmutableArray<TElement> array, ImmutableArray<TElement> other)
@@ -1412,5 +1031,336 @@ namespace Microsoft.CodeAnalysis
             set.Free();
             return true;
         }
+
+        #region Binary Compat
+
+        // These helpers should be in System.Linq namespace below.  However, they are currently
+        // used by partners with IVT access to Roslyn, so they have to stay here for now.
+
+        /// <summary>
+        /// Specialization of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/> for <see cref="ImmutableArray{T}"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+            => first.AddRange(second);
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
+        {
+            var builder = new T[first.Length + second.Length + third.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+            index += fourth.Length;
+            fifth.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
+        {
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
+
+            var index = 0;
+            first.CopyTo(builder, index);
+            index += first.Length;
+            second.CopyTo(builder, index);
+            index += second.Length;
+            third.CopyTo(builder, index);
+            index += third.Length;
+            fourth.CopyTo(builder, index);
+            index += fourth.Length;
+            fifth.CopyTo(builder, index);
+            index += fifth.Length;
+            sixth.CopyTo(builder, index);
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
+        }
+
+        #endregion
+    }
+}
+
+namespace System.Linq
+{
+    /// <remarks>
+    /// Defines polyfill methods and overloads or alternative names of existing methods defined in System.Collections.Immutable.
+    ///
+    /// Extension methods that are available on both <see cref="IEnumerable{T}"/> and <see cref="ImmutableArray{T}"/> in System.Linq namespace
+    /// are defined in System.Linq namespace to avoid accidental boxing of <see cref="ImmutableArray{T}"/>.
+    /// The boxing would occur if the file calling these methods didn't have <c>using System.Linq</c>.
+    /// </remarks>
+    internal static class RoslynImmutableArrayExtensions
+    {
+        /// <summary>
+        /// Variant of <see cref="System.Linq.ImmutableArrayExtensions.FirstOrDefault{T}(ImmutableArray{T}, Func{T, bool})"/>
+        /// </summary>
+        public static TValue? FirstOrDefault<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var val in array)
+            {
+                if (predicate(val, arg))
+                {
+                    return val;
+                }
+            }
+
+            return default;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.ImmutableArrayExtensions.Single{T}(ImmutableArray{T}, Func{T, bool})"/>
+        /// </summary>
+        public static TValue Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            var hasValue = false;
+            TValue? value = default;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                {
+                    if (hasValue)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    value = item;
+                    hasValue = true;
+                }
+            }
+
+            if (!hasValue)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            return value!;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.ImmutableArrayExtensions.SequenceEqual{TDerived, TBase}(ImmutableArray{TBase}, ImmutableArray{TDerived}, Func{TBase, TBase, bool})"/>.
+        /// </summary>
+        public static bool SequenceEqual<TElement, TArg>(this ImmutableArray<TElement> array1, ImmutableArray<TElement> array2, TArg arg, Func<TElement, TElement, TArg, bool> predicate)
+        {
+            // The framework implementation of SequenceEqual forces a NullRef for default array1 and 2, so we
+            // maintain the same behavior in this extension
+            if (array1.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array2.IsDefault)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (array1.Length != array2.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (!predicate(array1[i], array2[i], arg))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Specialization of <see cref="System.Linq.Enumerable.Count{TSource}(IEnumerable{TSource}, Func{TSource, bool})"/> for <see cref="ImmutableArray{T}"/>.
+        /// </summary>
+        public static int Count<T>(this ImmutableArray<T> items, Func<T, bool> predicate)
+        {
+            if (items.IsEmpty)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < items.Length; ++i)
+            {
+                if (predicate(items[i]))
+                {
+                    ++count;
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Specialization of <see cref="System.Linq.Enumerable.Sum(IEnumerable{int})"/> for <see cref="ImmutableArray{T}"/>.
+        /// </summary>
+        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int> selector)
+        {
+            var sum = 0;
+            foreach (var item in items)
+                sum += selector(item);
+
+            return sum;
+        }
+
+        /// <summary>
+        /// Variation of <see cref="System.Linq.Enumerable.Sum(IEnumerable{int})"/> for <see cref="ImmutableArray{T}"/>.
+        /// </summary>
+        public static int Sum<T>(this ImmutableArray<T> items, Func<T, int, int> selector)
+        {
+            var sum = 0;
+            for (var i = 0; i < items.Length; i++)
+                sum += selector(items[i], i);
+
+            return sum;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.Enumerable.Concat{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>.
+        /// </summary>
+        public static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
+            => first.Add(second);
+
+        /// <summary>
+        /// Returns an array of distinct elements, preserving the order in the original array.
+        /// If the array has no duplicates, the original array is returned. The original array must not be null.
+        /// 
+        /// Specialization of <see cref="System.Linq.Enumerable.Distinct{TSource}(IEnumerable{TSource}, IEqualityComparer{TSource}?)"/>.
+        /// </summary>
+        public static ImmutableArray<T> Distinct<T>(this ImmutableArray<T> array, IEqualityComparer<T>? comparer = null)
+        {
+            Debug.Assert(!array.IsDefault);
+
+            if (array.Length < 2)
+            {
+                return array;
+            }
+
+            var set = new HashSet<T>(comparer);
+            var builder = ArrayBuilder<T>.GetInstance();
+            foreach (var a in array)
+            {
+                if (set.Add(a))
+                {
+                    builder.Add(a);
+                }
+            }
+
+            var result = (builder.Count == array.Length) ? array : builder.ToImmutable();
+            builder.Free();
+            return result;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.ImmutableArrayExtensions.Any{T}(ImmutableArray{T}, Func{T, bool})"/>.
+        /// </summary>
+        public static bool Any<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (predicate(a, arg))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Variant of <see cref="System.Linq.ImmutableArrayExtensions.All{T}(ImmutableArray{T}, Func{T, bool})"/>.
+        /// </summary>
+        public static bool All<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            int n = array.Length;
+            for (int i = 0; i < n; i++)
+            {
+                var a = array[i];
+
+                if (!predicate(a, arg))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+    }
+}
+
+namespace System.Collections.Immutable
+{
+    /// <remarks>
+    /// Defines polyfill methods and overloads or alternative names of existing methods defined in System.Collections.Immutable.
+    ///
+    /// Methods that are available on both <see cref="IEnumerable{T}"/> and <see cref="ImmutableArray{T}"/> in System.Collections.Immutable namespace
+    /// are defined in System.Collections.Immutable namespace to avoid accidental boxing of <see cref="ImmutableArray{T}"/>.
+    /// The boxing would occur if the file calling these methods didn't have <c>using System.Collections.Immutable</c>.
+    /// </remarks>
+    internal static class RoslynImmutableArrayExtensions
+    {
+        /// <summary>
+        /// Variant of <see cref="System.Collections.Immutable.ImmutableArray{T}.Contains(T, IEqualityComparer{T})"/>
+        /// </summary>
+        public static bool Contains<T>(this ImmutableArray<T> array, Func<T, bool> predicate)
+            => array.Any(predicate);
+
+        /// <summary>
+        /// Variant of <see cref="System.Collections.Immutable.ImmutableArray.BinarySearch{T}(ImmutableArray{T}, T, IComparer{T}?)"/> 
+        /// with the ability to pass arbitrary value to the comparer without allocation.
+        /// </summary>
+        public static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
+            => array.AsSpan().BinarySearch(value, comparer);
     }
 }

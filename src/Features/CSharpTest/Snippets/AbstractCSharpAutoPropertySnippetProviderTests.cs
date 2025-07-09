@@ -16,70 +16,58 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
     protected abstract string DefaultPropertyBlockText { get; }
 
     [Fact]
-    public async Task NoSnippetInBlockNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInBlockNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInFileScopedNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
 
             $$
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInTopLevelContextTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInTopLevelContextTest()
+        => VerifySnippetIsAbsentAsync("""
             System.Console.WriteLine();
             $$
             """);
-    }
 
     [Fact]
-    public async Task InsertSnippetInClassTest()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public Task InsertSnippetInClassTest()
+        => VerifyDefaultPropertyAsync("""
             class MyClass
             {
                 $$
             }
             """);
-    }
 
     [Theory]
     [InlineData("record")]
     [InlineData("record struct")]
     [InlineData("record class")]
-    public async Task InsertSnippetInRecordTest(string recordType)
-    {
-        await VerifyDefaultPropertyAsync($$"""
+    public Task InsertSnippetInRecordTest(string recordType)
+        => VerifyDefaultPropertyAsync($$"""
             {{recordType}} MyRecord
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertSnippetInStructTest()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public Task InsertSnippetInStructTest()
+        => VerifyDefaultPropertyAsync("""
             struct MyStruct
             {
                 $$
             }
             """);
-    }
 
     [Fact]
     public abstract Task InsertSnippetInReadonlyStructTest();
@@ -96,32 +84,27 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
     public abstract Task VerifySnippetInInterfaceTest();
 
     [Fact]
-    public async Task InsertSnippetNamingTest()
-    {
-        await VerifyDefaultPropertyAsync("""
+    public Task InsertSnippetNamingTest()
+        => VerifyDefaultPropertyAsync("""
             class MyClass
             {
                 public int MyProperty { get; set; }
                 $$
             }
             """, "MyProperty1");
-    }
 
     [Fact]
-    public async Task NoSnippetInEnumTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInEnumTest()
+        => VerifySnippetIsAbsentAsync("""
             enum MyEnum
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInMethodTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInMethodTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -130,12 +113,10 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoSnippetInConstructorTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoSnippetInConstructorTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public Program()
@@ -144,17 +125,14 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
                 }
             }
             """);
-    }
 
-    public virtual async Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
-    {
-        await VerifyPropertyAsync($$"""
+    public virtual Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
+        => VerifyPropertyAsync($$"""
             class Program
             {
                 {{modifier}} $$
             }
             """, $$"""{|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
-    }
 
     protected async Task VerifyPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyMarkup)
     {

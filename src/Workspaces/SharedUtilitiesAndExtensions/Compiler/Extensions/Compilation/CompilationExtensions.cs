@@ -19,8 +19,8 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -80,6 +80,9 @@ internal static class CompilationExtensions
 
     public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+
+    public static INamedTypeSymbol? ArgumentOutOfRangeExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentOutOfRangeException).FullName!);
 
     public static INamedTypeSymbol? ArrayType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Array).FullName!);

@@ -74,7 +74,7 @@ internal static partial class Extensions
 
     public static string GetLogDisplay(this Project project)
         => project.FilePath != null
-            ? $"'{project.FilePath}' ('{project.State.NameAndFlavor.flavor}')"
+            ? $"'{project.FilePath}'" + (project.State.NameAndFlavor.flavor is { } flavor ? $" ('{flavor}')" : "")
             : $"'{project.Name}' ('{project.Id.DebugName}'";
 
     public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
@@ -126,25 +126,14 @@ internal static partial class Extensions
         => filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
             filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase);
 
-    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus, bool isRudeEdit)
+    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ManagedHotReloadDiagnosticSeverity severity)
     {
         var fileSpan = data.DataLocation.MappedFileSpan;
 
         return new(
             data.Id,
             data.Message ?? FeaturesResources.Unknown_error_occurred,
-            isRudeEdit
-                ? data.DefaultSeverity switch
-                {
-                    DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
-                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
-                    _ => throw ExceptionUtilities.UnexpectedValue(data.DefaultSeverity)
-                }
-                : updateStatus == ModuleUpdateStatus.RestartRequired
-                    ? ManagedHotReloadDiagnosticSeverity.RestartRequired
-                    : (data.Severity == DiagnosticSeverity.Error)
-                        ? ManagedHotReloadDiagnosticSeverity.Error
-                        : ManagedHotReloadDiagnosticSeverity.Warning,
+            severity,
             fileSpan.Path ?? "",
             fileSpan.Span.ToSourceSpan());
     }

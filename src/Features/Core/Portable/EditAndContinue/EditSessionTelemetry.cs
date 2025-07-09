@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -84,11 +83,19 @@ internal sealed class EditSessionTelemetry
     public void LogAnalysisTime(TimeSpan span)
         => _analysisTime += span;
 
-    public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<string> errorsIds)
+    public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, IEnumerable<Diagnostic> diagnostics)
     {
         lock (_guard)
         {
-            _emitErrorIds.AddRange(errorsIds);
+            var hasError = false;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error && !diagnostic.IsRudeEdit())
+                {
+                    _emitErrorIds.Add(diagnostic.Id);
+                    hasError = true;
+                }
+            }
 
             switch (summary)
             {
@@ -106,7 +113,7 @@ internal sealed class EditSessionTelemetry
                 case ProjectAnalysisSummary.ValidChanges:
                     _hadValidChanges = true;
 
-                    if (errorsIds.IsEmpty && _projectsWithValidDelta.Count < MaxReportedProjectIds)
+                    if (!hasError && _projectsWithValidDelta.Count < MaxReportedProjectIds)
                     {
                         _projectsWithValidDelta.Add(projectTelemetryId);
                     }
@@ -122,9 +129,6 @@ internal sealed class EditSessionTelemetry
             }
         }
     }
-
-    public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<Diagnostic> emitDiagnostics)
-        => LogProjectAnalysisSummary(summary, projectTelemetryId, emitDiagnostics.SelectAsArray(d => d.Severity == DiagnosticSeverity.Error, d => d.Id));
 
     public void LogRudeEditDiagnostics(ImmutableArray<RudeEditDiagnostic> diagnostics, Guid projectTelemetryId)
     {

@@ -2513,6 +2513,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="_0_may_be_null_here" xml:space="preserve">
     <value>'{0}' may be null here.</value>
   </data>
+  <data name="_0_is_not_nullable_aware" xml:space="preserve">
+    <value>'{0}' is not nullable aware.</value>
+  </data>
   <data name="ChangeSignature_NewParameterInferValue" xml:space="preserve">
     <value>&lt;infer&gt;</value>
   </data>
@@ -3225,5 +3228,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Add_0_check" xml:space="preserve">
     <value>Add '{0}' check</value>
+  </data>
+  <data name="Add_negative_value_check" xml:space="preserve">
+    <value>Add negative value check</value>
+  </data>
+  <data name="Add_negative_value_or_zero_check" xml:space="preserve">
+    <value>Add negative value or zero check</value>
+  </data>
+  <data name="_0_cannot_be_negative" xml:space="preserve">
+    <value>'{0}' cannot be negative</value>
+  </data>
+  <data name="_0_cannot_be_negative_or_zero" xml:space="preserve">
+    <value>'{0}' cannot be negative or zero</value>
   </data>
 </root>

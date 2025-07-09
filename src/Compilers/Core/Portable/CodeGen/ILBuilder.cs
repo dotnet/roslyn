@@ -1277,11 +1277,11 @@ tryAgain:
         private string GetDebuggerDisplay()
         {
 #if DEBUG
-            var visType = Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);
+            var visType = Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Microsoft.CodeAnalysis.Test.Utilities", false);
             if (visType != null)
             {
                 var method = visType.GetTypeInfo().GetDeclaredMethod("ILBuilderToString");
-                return (string)method!.Invoke(null, [this, null, null])!;
+                return (string)method!.Invoke(null, [this, null, null, null])!;
             }
 #endif
 

@@ -50,6 +50,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'DebuggerDisplay' 属性の追加</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_negative_value_check">
+        <source>Add negative value check</source>
+        <target state="new">Add negative value check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_negative_value_or_zero_check">
+        <source>Add negative value or zero check</source>
+        <target state="new">Add negative value or zero check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">すべてのパラメーターに対して null チェックを追加する</target>
@@ -3170,6 +3180,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'{0}' ベース</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_cannot_be_negative">
+        <source>'{0}' cannot be negative</source>
+        <target state="new">'{0}' cannot be negative</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative_or_zero">
+        <source>'{0}' cannot be negative or zero</source>
+        <target state="new">'{0}' cannot be negative or zero</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}' を NULL または空にすることはできません。</target>
@@ -3238,6 +3258,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">ここでは、'{0}' は null ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_not_nullable_aware">
+        <source>'{0}' is not nullable aware.</source>
+        <target state="new">'{0}' is not nullable aware.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">

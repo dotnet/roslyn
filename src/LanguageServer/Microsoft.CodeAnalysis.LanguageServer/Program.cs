@@ -69,7 +69,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var logger = loggerFactory.CreateLogger<Program>();
 
-    logger.Log(serverConfiguration.LaunchDebugger ? LogLevel.Critical : LogLevel.Trace, "Server started with process ID {processId}", Environment.ProcessId);
+    logger.LogInformation("Server started with process ID {processId}", Environment.ProcessId);
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -273,7 +273,6 @@ static CommandLineConfiguration CreateCommandLineParser()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-        var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
@@ -287,7 +286,6 @@ static CommandLineConfiguration CreateCommandLineParser()
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
-            RazorSourceGenerator: razorSourceGenerator,
             RazorDesignTimePath: razorDesignTimePath,
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,

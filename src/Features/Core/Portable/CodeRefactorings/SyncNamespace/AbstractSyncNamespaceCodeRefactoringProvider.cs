@@ -17,6 +17,18 @@ internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNa
     where TCompilationUnitSyntax : SyntaxNode
     where TMemberDeclarationSyntax : SyntaxNode
 {
+    /// <summary>
+    /// Try to get the node that can be used to trigger the refactoring based on current cursor position. 
+    /// </summary>
+    /// <returns>
+    /// (1) a node of type <typeparamref name="TNamespaceDeclarationSyntax"/> node, if cursor in the name and it's the 
+    /// only namespace declaration in the document.
+    /// (2) a node of type <typeparamref name="TCompilationUnitSyntax"/> node, if the cursor is in the name of first 
+    /// declaration in global namespace and there's no namespace declaration in this document.
+    /// (3) otherwise, null.
+    /// </returns>
+    protected abstract Task<SyntaxNode?> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
@@ -28,9 +40,7 @@ internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNa
 
         var state = await State.CreateAsync(this, document, textSpan, cancellationToken).ConfigureAwait(false);
         if (state == null)
-        {
             return;
-        }
 
         // No move file action if rootnamespace isn't a prefix of current declared namespace
         if (state.RelativeDeclaredNamespace != null)
@@ -79,18 +89,4 @@ internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNa
             context.RegisterRefactoring(solutionChangeAction, textSpan);
         }
     }
-
-    /// <summary>
-    /// Try to get the node that can be used to trigger the refactoring based on current cursor position. 
-    /// </summary>
-    /// <returns>
-    /// (1) a node of type <typeparamref name="TNamespaceDeclarationSyntax"/> node, if cursor in the name and it's the 
-    /// only namespace declaration in the document.
-    /// (2) a node of type <typeparamref name="TCompilationUnitSyntax"/> node, if the cursor is in the name of first 
-    /// declaration in global namespace and there's no namespace declaration in this document.
-    /// (3) otherwise, null.
-    /// </returns>
-    protected abstract Task<SyntaxNode?> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
-
-    protected abstract string EscapeIdentifier(string identifier);
 }

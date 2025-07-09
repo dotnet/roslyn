@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
-Imports System.Resources
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities

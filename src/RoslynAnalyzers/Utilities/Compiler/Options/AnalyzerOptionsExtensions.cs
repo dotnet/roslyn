@@ -13,6 +13,8 @@ using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -101,7 +103,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             SyntaxTree tree,
             Compilation compilation)
-            => options.GetOutputKindsOption(rule, tree, compilation, s_defaultOutputKinds);
+            => AnalyzerOptionsExtensions.GetOutputKindsOption(options, rule, tree, compilation, s_defaultOutputKinds);
 
         public static ImmutableHashSet<OutputKind> GetOutputKindsOption(
             this AnalyzerOptions options,
@@ -190,7 +192,7 @@ namespace Analyzer.Utilities
             Compilation compilation,
             bool defaultValue)
         => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetBoolOptionValue(optionName, rule, tree, compilation, defaultValue)
+            ? GetBoolOptionValue(options, optionName, rule, tree, compilation, defaultValue)
             : defaultValue;
 
         public static bool GetBoolOptionValue(
@@ -253,7 +255,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             ISymbol symbol,
             Compilation compilation)
-            => options.IsConfiguredToSkipAnalysis(rule, symbol, symbol, compilation);
+            => IsConfiguredToSkipAnalysis(options, rule, symbol, symbol, compilation);
 
         public static bool IsConfiguredToSkipAnalysis(
             this AnalyzerOptions options,
@@ -342,7 +344,7 @@ namespace Analyzer.Utilities
 
             static SymbolNamesWithValueOption<string?>.NameParts GetParts(string name)
             {
-                var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
+                var split = name.Split(["->"], StringSplitOptions.RemoveEmptyEntries);
 
                 // If we don't find exactly one '->', we assume that there is no given suffix.
                 if (split.Length != 2)
@@ -391,7 +393,7 @@ namespace Analyzer.Utilities
 
             static SymbolNamesWithValueOption<INamedTypeSymbol?>.NameParts GetParts(string name, Compilation compilation)
             {
-                var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
+                var split = name.Split(["->"], StringSplitOptions.RemoveEmptyEntries);
 
                 // If we don't find exactly one '->', we assume that there is no given suffix.
                 if (split.Length != 2)
@@ -486,7 +488,7 @@ namespace Analyzer.Utilities
                     return false;
                 }
 
-                var names = optionValue.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
+                var names = optionValue.Split(['|'], StringSplitOptions.RemoveEmptyEntries).ToImmutableArray();
                 option = SymbolNamesWithValueOption<TValue>.Create(names, arg.compilation, arg.namePrefix, arg.getTypeAndSuffixFunc);
                 return true;
             }

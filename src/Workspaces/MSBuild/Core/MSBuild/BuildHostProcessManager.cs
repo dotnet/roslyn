@@ -30,6 +30,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
 
+    private static string MSBuildWorkspaceDirectory => Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!;
+    private static bool IsLoadedFromNuGetPackage => File.Exists(Path.Combine(MSBuildWorkspaceDirectory, "..", "..", "microsoft.codeanalysis.workspaces.msbuild.nuspec"));
+
     public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, IBinLogPathProvider? binaryLogPathProvider = null, ILoggerFactory? loggerFactory = null)
     {
         _globalMSBuildProperties = globalMSBuildProperties ?? ImmutableDictionary<string, string>.Empty;
@@ -186,10 +189,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     internal static string GetNetCoreBuildHostPath()
     {
-        // The .NET Core build host is deployed as a content folder next to the application into the BuildHost-netcore path
-        var buildHostPath = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
-        AssertBuildHostExists(buildHostPath);
-        return buildHostPath;
+        return GetBuildHostPath("BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
     }
 
     private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo(string pipeName)
@@ -221,16 +221,34 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static string GetDotNetFrameworkBuildHostPath()
     {
-        // The .NET Framework build host is deployed as a content folder next to the application into the BuildHost-net472 path
-        var netFrameworkBuildHost = Path.Combine(Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
-        AssertBuildHostExists(netFrameworkBuildHost);
-        return netFrameworkBuildHost;
+        return GetBuildHostPath("BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
     }
 
-    private static void AssertBuildHostExists(string buildHostPath)
+    private static string GetBuildHostPath(string contentFolderName, string assemblyName)
     {
+        // Possible BuildHost paths are relative to where the Workspaces.MSBuild assembly was loaded.
+        string buildHostPath;
+
+        if (IsLoadedFromNuGetPackage)
+        {
+            // When Workspaces.MSBuild is loaded from the NuGet package (as is the case in .NET Interactive, NCrunch, and possibly other use cases) 
+            // the Build host is deployed under the contentFiles folder.
+            // 
+            // Workspaces.MSBuild.dll Path - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/lib/{tfm}/Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+            // MSBuild.BuildHost.dll Path  - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/contentFiles/any/any/{contentFolderName}/{assemblyName}
+
+            buildHostPath = Path.GetFullPath(Path.Combine(MSBuildWorkspaceDirectory, "..", "..", "contentFiles", "any", "any", contentFolderName, assemblyName));
+        }
+        else
+        {
+            // When Workspaces.MSBuild is deployed as part of an application the build host is deployed as a content folder next to the application.
+            buildHostPath = Path.Combine(MSBuildWorkspaceDirectory, contentFolderName, assemblyName);
+        }
+
         if (!File.Exists(buildHostPath))
             throw new Exception(string.Format(WorkspaceMSBuildResources.The_build_host_could_not_be_found_at_0, buildHostPath));
+
+        return buildHostPath;
     }
 
     private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
@@ -380,7 +398,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             _process.EnableRaisingEvents = true;
             _process.Exited += Process_Exited;
 
-            _process.ErrorDataReceived += Process_ErrorDataReceived;
+            _process.OutputDataReceived += (_, e) => LogProcessOutput(e, "stdout");
+            _process.ErrorDataReceived += (_, e) => LogProcessOutput(e, "stderr");
 
             var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
             pipeClient.Connect(TimeOutMsNewProcess);
@@ -394,7 +413,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             _rpcClient.Disconnected += Process_Exited;
             BuildHost = new RemoteBuildHost(_rpcClient);
 
-            // Call this last so our type is fully constructed before we start firing events
+            // Close the standard input stream so that if any build tasks were to try reading from the console, they won't deadlock waiting for input.
+            _process.StandardInput.Close();
+
+            // Call Begin*ReadLine methods last so so our type is fully constructed before we start firing events.
+            _process.BeginOutputReadLine();
             _process.BeginErrorReadLine();
         }
 
@@ -403,14 +426,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             Disconnected?.Invoke(this, EventArgs.Empty);
         }
 
-        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        private void LogProcessOutput(DataReceivedEventArgs e, string outputName)
         {
             if (e.Data is not null)
             {
                 lock (_processLogMessages)
                     _processLogMessages.AppendLine(e.Data);
 
-                _logger?.LogTrace($"Message from Process: {e.Data}");
+                _logger?.LogTrace($"Message on {outputName}: {e.Data}");
             }
         }
 

@@ -14,9 +14,8 @@ public sealed class CSharpUsingSnippetProviderTests : AbstractCSharpSnippetProvi
     protected override string SnippetIdentifier => "using";
 
     [Fact]
-    public async Task InsertUsingSnippetInMethodTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertUsingSnippetInMethodTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -36,12 +35,10 @@ public sealed class CSharpUsingSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertUsingSnippetInGlobalContextTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertUsingSnippetInGlobalContextTest()
+        => VerifySnippetAsync("""
             $$
             """, """
             using ({|0:resource|})
@@ -49,32 +46,26 @@ public sealed class CSharpUsingSnippetProviderTests : AbstractCSharpSnippetProvi
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoUsingSnippetInBusingNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoUsingSnippetInBusingNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task NoUsingSnippetInFileScopedNamespaceTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoUsingSnippetInFileScopedNamespaceTest()
+        => VerifySnippetIsAbsentAsync("""
             namespace Namespace;
             $$
             """);
-    }
 
     [Fact]
-    public async Task InsertUsingSnippetInConstructorTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertUsingSnippetInConstructorTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -94,23 +85,19 @@ public sealed class CSharpUsingSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task NoUsingSnippetInTypeBodyTest()
-    {
-        await VerifySnippetIsAbsentAsync("""
+    public Task NoUsingSnippetInTypeBodyTest()
+        => VerifySnippetIsAbsentAsync("""
             class Program
             {
                 $$
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertUsingSnippetInLocalFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertUsingSnippetInLocalFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -136,12 +123,10 @@ public sealed class CSharpUsingSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertUsingSnippetInAnonymousFunctionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertUsingSnippetInAnonymousFunctionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -167,12 +152,10 @@ public sealed class CSharpUsingSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 
     [Fact]
-    public async Task InsertUsingSnippetInParenthesizedLambdaExpressionTest()
-    {
-        await VerifySnippetAsync("""
+    public Task InsertUsingSnippetInParenthesizedLambdaExpressionTest()
+        => VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -198,5 +181,4 @@ public sealed class CSharpUsingSnippetProviderTests : AbstractCSharpSnippetProvi
                 }
             }
             """);
-    }
 }

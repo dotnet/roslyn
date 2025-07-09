@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -27,6 +28,6 @@ internal abstract class AbstractInlineHintsService : IInlineHintsService
             ? []
             : await inlineTypeService.GetInlineHintsAsync(document, textSpan, options.TypeOptions, options.DisplayOptions, displayAllOverride, cancellationToken).ConfigureAwait(false);
 
-        return parameters.Concat(types);
+        return [.. parameters, .. types];
     }
 }

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -170,19 +169,16 @@ class B
                 }
             }
             """;
-        var mapped =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+
+        AddMappedDocument(testLspServer.TestWorkspace, """
             namespace M
             {
                 class B
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-
-        AddMappedDocument(testLspServer.TestWorkspace, mapped);
+            """);
 
         var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         var result = Assert.Single(results);
@@ -202,18 +198,15 @@ class B
                 }
             }
             """;
-        var generated =
-            """
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator("""
             namespace M
             {
                 class B
                 {
                 }
             }
-            """;
-
-        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+            """), testLspServer.TestWorkspace);
 
         var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         var result = Assert.Single(results);

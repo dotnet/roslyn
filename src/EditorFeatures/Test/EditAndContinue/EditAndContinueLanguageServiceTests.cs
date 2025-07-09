@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.BrokeredServices.UnitTests;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
@@ -118,7 +120,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
-            .AddTestDocument("test.cs", "class C { }", out var documentId).Project.Solution);
+            .AddTestDocument("class C { }", "test.cs", out var documentId).Project.Solution);
 
         var solution = localWorkspace.CurrentSolution;
         var project = solution.GetRequiredProject(projectId);
@@ -156,15 +158,30 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         // EmitSolutionUpdate
 
-        var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
+        var errorReadingFileDescriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
+        var moduleErrorDescriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Optimized);
+        var syntaxErrorDescriptor = new DiagnosticDescriptor("CS0001", "Syntax error", "Syntax error", "Compiler", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        var compilerHiddenDescriptor = new DiagnosticDescriptor("CS0002", "Hidden", "Emit Hidden", "Compiler", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+        var compilerInfoDescriptor = new DiagnosticDescriptor("CS0003", "Info", "Emit Info", "Compiler", DiagnosticSeverity.Info, isEnabledByDefault: true);
+        var compilerWarningDescriptor = new DiagnosticDescriptor("CS0004", "Emit Warning", "Emit Warning", "Compiler", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        var compilerErrorDescriptor = new DiagnosticDescriptor("CS0005", "Emit Error", "Emit Error", "Compiler", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         mockEncService.EmitSolutionUpdateImpl = (solution, _, _) =>
         {
             var syntaxTree = solution.GetRequiredDocument(documentId).GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
-            var documentDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
-            var projectDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
-            var syntaxError = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
+            var documentDiagnostic = CodeAnalysis.Diagnostic.Create(errorReadingFileDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
+            var projectDiagnostic = CodeAnalysis.Diagnostic.Create(errorReadingFileDescriptor, Location.None, ["proj", "error 2"]);
+            var moduleError = CodeAnalysis.Diagnostic.Create(moduleErrorDescriptor, Location.None, ["proj", "module error"]);
+            var syntaxError = CodeAnalysis.Diagnostic.Create(syntaxErrorDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocHidden = CodeAnalysis.Diagnostic.Create(compilerHiddenDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocInfo = CodeAnalysis.Diagnostic.Create(compilerInfoDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocWarning = CodeAnalysis.Diagnostic.Create(compilerWarningDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocError = CodeAnalysis.Diagnostic.Create(compilerErrorDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerProjectHidden = CodeAnalysis.Diagnostic.Create(compilerHiddenDescriptor, Location.None);
+            var compilerProjectInfo = CodeAnalysis.Diagnostic.Create(compilerInfoDescriptor, Location.None);
+            var compilerProjectWarning = CodeAnalysis.Diagnostic.Create(compilerWarningDescriptor, Location.None);
+            var compilerProjectError = CodeAnalysis.Diagnostic.Create(compilerErrorDescriptor, Location.None);
             var rudeEditDiagnostic = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"]).ToDiagnostic(syntaxTree);
             var deletedDocumentRudeEdit = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["<deleted>"]).ToDiagnostic(tree: null);
 
@@ -172,8 +189,26 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             {
                 Solution = solution,
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
-                Diagnostics = [new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic])],
-                RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic, deletedDocumentRudeEdit])],
+                Diagnostics =
+                [
+                    new ProjectDiagnostics(
+                        project.Id,
+                        [
+                            documentDiagnostic,
+                            projectDiagnostic,
+                            moduleError,
+                            rudeEditDiagnostic,
+                            deletedDocumentRudeEdit,
+                            compilerDocError,
+                            compilerDocWarning,
+                            compilerDocHidden,
+                            compilerDocInfo,
+                            compilerProjectError,
+                            compilerProjectWarning,
+                            compilerProjectHidden,
+                            compilerProjectInfo,
+                        ])
+                ],
                 SyntaxError = syntaxError,
                 ProjectsToRebuild = [project.Id],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
@@ -186,19 +221,93 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         AssertEx.Equal(
         [
-            $"Error ENC0033: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "<deleted>")}",
             $"Error ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
-            $"Error ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}"
+            $"Error ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
+            $"Error ENC2012: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "proj", "module error")}",
+            $"Error ENC0033: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "<deleted>")}",
+            $"Error CS0005: {document.FilePath}(0, 1, 0, 2): Emit Error",
+            $"Warning CS0004: {document.FilePath}(0, 1, 0, 2): Emit Warning",
+            $"Error CS0005: {project.FilePath}(0, 0, 0, 0): Emit Error",
+            $"Warning CS0004: {project.FilePath}(0, 0, 0, 0): Emit Warning",
         ], sessionState.ApplyChangesDiagnostics.Select(Inspect));
 
         AssertEx.Equal(
         [
-            $"Error ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
-            $"Error ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
-            $"Error ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error 3")}",
+            $"RestartRequired ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
+            $"RestartRequired ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
+            $"RestartRequired ENC2012: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "proj", "module error")}",
             $"RestartRequired ENC0033: {document.FilePath}(0, 2, 0, 3): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "x")}",
             $"RestartRequired ENC0033: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "<deleted>")}",
+            $"Error CS0005: {document.FilePath}(0, 1, 0, 2): Emit Error",
+            $"Warning CS0004: {document.FilePath}(0, 1, 0, 2): Emit Warning",
+            $"Error CS0005: {project.FilePath}(0, 0, 0, 0): Emit Error",
+            $"Warning CS0004: {project.FilePath}(0, 0, 0, 0): Emit Warning",
+            $"Error CS0001: {document.FilePath}(0, 1, 0, 2): Syntax error",
         ], updates.Diagnostics.Select(Inspect));
+
+        var moduleId = Guid.NewGuid();
+        var methodId = new ManagedModuleMethodId(token: 0x06000001, version: 2);
+
+        mockEncService.EmitSolutionUpdateImpl = (solution, _, _) =>
+        {
+            var syntaxTree = solution.GetRequiredDocument(documentId).GetSyntaxTreeSynchronously(CancellationToken.None)!;
+
+            return new()
+            {
+                Solution = solution,
+                ModuleUpdates = new ModuleUpdates(
+                    ModuleUpdateStatus.Ready,
+                    [
+                        new ManagedHotReloadUpdate(
+                            moduleId,
+                            "module.dll",
+                            project.Id,
+                            ilDelta: [1],
+                            metadataDelta: [2],
+                            pdbDelta: [3],
+                            updatedTypes: [0x02000001],
+                            requiredCapabilities: ["Baseline"],
+                            updatedMethods: [0x06000002],
+                            sequencePoints: [new SequencePointUpdates("file.cs", [new SourceLineUpdate(1, 2)])],
+                            activeStatements: [new ManagedActiveStatementUpdate(methodId, ilOffset: 1, new(1, 2, 3, 4))],
+                            exceptionRegions: [new ManagedExceptionRegionUpdate(methodId, delta: 1, new(10, 20, 30, 40))])
+                    ]),
+                Diagnostics = [],
+                SyntaxError = null,
+                ProjectsToRebuild = [],
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+            };
+        };
+
+        updates = await localService.GetUpdatesAsync(runningProjects: [project.FilePath], CancellationToken.None);
+
+        Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
+
+        var update = updates.Updates.Single();
+        Assert.Equal(moduleId, update.Module);
+        Assert.Equal("module.dll", update.ModuleName);
+        AssertEx.SequenceEqual([(byte)1], update.ILDelta);
+        AssertEx.SequenceEqual([(byte)2], update.MetadataDelta);
+        AssertEx.SequenceEqual([(byte)3], update.PdbDelta);
+        AssertEx.SequenceEqual([0x02000001], update.UpdatedTypes);
+        AssertEx.SequenceEqual(["Baseline"], update.RequiredCapabilities);
+        AssertEx.SequenceEqual([0x06000002], update.UpdatedMethods);
+
+        var sequencePoint = update.SequencePoints.Single();
+        Assert.Equal("file.cs", sequencePoint.FileName);
+        AssertEx.SequenceEqual(["1->2"], sequencePoint.LineUpdates.Select(u => $"{u.OldLine}->{u.NewLine}"));
+
+        var activeStatement = update.ActiveStatements.Single();
+        Assert.Equal(0x06000001, activeStatement.Method.Token);
+        Assert.Equal(2, activeStatement.Method.Version);
+        Assert.Equal(1, activeStatement.ILOffset);
+        Assert.Equal(new(1, 2, 3, 4), activeStatement.NewSpan);
+
+        var exceptionRegion = update.ExceptionRegions.Single();
+        Assert.Equal(0x06000001, exceptionRegion.Method.Token);
+        Assert.Equal(2, exceptionRegion.Method.Version);
+        Assert.Equal(1, exceptionRegion.Delta);
+        Assert.Equal(new(10, 20, 30, 40), exceptionRegion.NewSpan);
 
         Assert.True(sessionState.IsSessionActive);
 
@@ -236,9 +345,6 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
     public async Task DefaultPdbMatchingSourceTextProvider()
     {
         var source1 = "class C1 { void M() { System.Console.WriteLine(\"a\"); } }";
-        var source2 = "class C1 { void M() { System.Console.WriteLine(\"b\"); } }";
-        var source3 = "class C1 { void M() { System.Console.WriteLine(\"c\"); } }";
-
         var dir = Temp.CreateDirectory();
         var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
 
@@ -267,14 +373,14 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
         var document1 = solution.GetRequiredDocument(documentId);
         _ = await document1.GetTextAsync(CancellationToken.None);
 
-        File.WriteAllText(sourceFile.Path, source2, Encoding.UTF8);
+        File.WriteAllText(sourceFile.Path, "class C1 { void M() { System.Console.WriteLine(\"b\"); } }", Encoding.UTF8);
 
         await languageService.StartSessionAsync(CancellationToken.None);
         await languageService.EnterBreakStateAsync(CancellationToken.None);
 
         workspace.OnDocumentOpened(documentId, new TestSourceTextContainer()
         {
-            Text = SourceText.From(source3, Encoding.UTF8, SourceHashAlgorithm.Sha1)
+            Text = SourceText.From("class C1 { void M() { System.Console.WriteLine(\"c\"); } }", Encoding.UTF8, SourceHashAlgorithm.Sha1)
         });
 
         await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();

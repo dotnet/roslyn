@@ -39,9 +39,7 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
             m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
         }, workspace));
 
-        // Forward workspace change events for all registered LSP workspaces. Requires main thread as it
-        // fires LspSolutionChanged which hasn't been guaranteed to be thread safe.
-        var workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnLspWorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
+        var workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnLspWorkspaceChanged);
 
         lock (_gate)
         {
@@ -94,9 +92,7 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     }
 
     /// <summary>
-    /// Indicates whether the LSP solution has changed in a non-tracked document context.
-    /// 
-    /// <b>IMPORTANT:</b> Implementations of this event handler should do as little synchronous work as possible since this will block.
+    /// Indicates whether the LSP solution has changed in a non-tracked document context. May be raised on any thread.
     /// </summary>
     public EventHandler<WorkspaceChangeEventArgs>? LspSolutionChanged;
 }

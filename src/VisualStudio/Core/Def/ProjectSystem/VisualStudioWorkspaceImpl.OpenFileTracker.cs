@@ -49,12 +49,16 @@ internal partial class VisualStudioWorkspaceImpl
         /// </summary>
         private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker = [];
 
+        #endregion
+
         /// <summary>
         /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.
         /// </summary>
-        private bool _anyDocumentOpened;
-
-        #endregion
+        /// <remarks>
+        /// This is written on the UI thread once it's been enabled, since the enablement can only happen there. It might be read on other threads in deciding to
+        /// do the work on the UI thread, but that's not a problem since <see cref="EnsureSuggestedActionsSourceProviderEnabled"/> is idempotent.
+        /// </remarks>
+        private bool _suggestedActionSourceProviderEnabled;
 
         private OpenFileTracker(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IComponentModel componentModel)
         {
@@ -109,9 +113,9 @@ internal partial class VisualStudioWorkspaceImpl
         {
             _workspace._threadingContext.ThrowIfNotOnUIThread();
 
-            if (!_anyDocumentOpened)
+            if (!_suggestedActionSourceProviderEnabled)
             {
-                _anyDocumentOpened = true;
+                _suggestedActionSourceProviderEnabled = true;
 
                 // First document opened in the workspace.
                 // We enable quick actions from SuggestedActionsSourceProvider via an editor option.
@@ -369,9 +373,18 @@ internal partial class VisualStudioWorkspaceImpl
                             // and if it was actually open, we'll schedule an update asynchronously.
                             if (TryOpeningDocumentsForFilePathCore(w, newFileName, textBuffer, hierarchy: null))
                             {
-                                // The files are now tied to the buffer, but let's schedule work to correctly update the context.
-                                var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(CheckForAddedFileBeingOpenMaybeAsync));
-                                UpdateContextAfterOpenAsync(newFileName).CompletesAsyncOperation(token);
+                                // We've opened the document, but we only have to go to the UI thread if either:
+                                //
+                                // 1. We have multiple documents with the same file path, so we need to ensure the context is actually correct.
+                                // 2. We haven't enabled the suggested actions source provider, which needs to be done once.
+                                var needsContextUpdate = w.CurrentSolution.GetDocumentIdsWithFilePath(newFileName).Length >= 2;
+                                if (needsContextUpdate || !_suggestedActionSourceProviderEnabled)
+                                {
+                                    var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(UpdateContextAfterOpenAndEnableSuggestedActionsSourceProviderAsync));
+
+                                    // Update the context on the UI thread if necessary, and enable the suggested actions source provider no matter what.
+                                    UpdateContextAfterOpenAndEnableSuggestedActionsSourceProviderAsync(needsContextUpdate ? newFileName : null).CompletesAsyncOperation(token);
+                                }
                             }
                         }
                     }
@@ -379,12 +392,17 @@ internal partial class VisualStudioWorkspaceImpl
             }).AsTask();
         }
 
-        private async Task UpdateContextAfterOpenAsync(string filePath)
+        /// <param name="filePath">The file path to update the context on, or null if we're just calling this to ensure suggested actions are enabled.</param>
+        private async Task UpdateContextAfterOpenAndEnableSuggestedActionsSourceProviderAsync(string? filePath)
         {
             await _workspace._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var hierarchy = _openTextBufferProvider.GetDocumentHierarchy(filePath);
-            if (hierarchy != null)
-                RefreshContextForMoniker(filePath, hierarchy);
+
+            if (filePath != null)
+            {
+                var hierarchy = _openTextBufferProvider.GetDocumentHierarchy(filePath);
+                if (hierarchy != null)
+                    RefreshContextForMoniker(filePath, hierarchy);
+            }
 
             EnsureSuggestedActionsSourceProviderEnabled();
         }

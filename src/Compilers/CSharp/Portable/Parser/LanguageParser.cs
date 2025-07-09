@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,7 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using Microsoft.CodeAnalysis.Shared.Collections;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal sealed partial class LanguageParser : SyntaxParser
@@ -4686,7 +4686,7 @@ parse_member_name:;
                 allowTrailingSeparator: false,
                 requireOneElement: forExtension, // For extension declarations, we require at least one receiver parameter
                 allowSemicolonAsSeparator: false);
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider suppressing parsing diagnostics on extension parameters beyond the first one
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider suppressing parsing diagnostics on extension parameters beyond the first one
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);

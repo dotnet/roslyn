@@ -30,7 +30,7 @@ public class CSharpOutlining : AbstractEditorTest
     [IdeFact]
     public async Task Outlining()
     {
-        var input = @"
+        MarkupTestFile.GetSpans(@"
 using [|System;
 using System.Collections.Generic;
 using System.Text;|]
@@ -44,8 +44,7 @@ namespace ConsoleApplication1[|
             Console.WriteLine(""Hello World"");
         }|]
     }|]
-}|]";
-        MarkupTestFile.GetSpans(input, out var text, out var spans);
+}|]", out var text, out var spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
         var actualSpansWithState = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
         var actualSpans = actualSpansWithState.Select(span => span.Span);
@@ -55,7 +54,7 @@ namespace ConsoleApplication1[|
     [IdeFact]
     public async Task OutliningConfigChange()
     {
-        var input = @"
+        MarkupTestFile.GetSpans(@"
 namespace ClassLibrary1[|
 {
     public class Class1[|
@@ -78,8 +77,7 @@ namespace ClassLibrary1[|
 |}|}
 #endif
     }|]
-}|]";
-        MarkupTestFile.GetSpans(input, out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+}|]", out var text, out IDictionary<string, ImmutableArray<TextSpan>> spans);
         await TestServices.Editor.SetTextAsync(text, HangMitigatingCancellationToken);
 
         await VerifySpansInConfigurationAsync(spans, "Release", HangMitigatingCancellationToken);

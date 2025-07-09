@@ -59,9 +59,8 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     }
 
     [Fact]
-    public async Task NameCref()
-    {
-        var text = """
+    public Task NameCref()
+        => VerifyItemExistsAsync("""
             using System;
             namespace Goo
             {
@@ -70,14 +69,11 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                 {
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "AccessViolationException");
-    }
+            """, "AccessViolationException");
 
     [Fact]
-    public async Task QualifiedCref()
-    {
-        var text = """
+    public Task QualifiedCref()
+        => VerifyItemExistsAsync("""
             using System;
             namespace Goo
             {
@@ -88,9 +84,7 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                     void goo() { }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "goo");
-    }
+            """, "goo");
 
     [Fact]
     public async Task CrefArgumentList()
@@ -112,9 +106,8 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     }
 
     [Fact]
-    public async Task CrefTypeParameterInArgumentList()
-    {
-        var text = """
+    public Task CrefTypeParameterInArgumentList()
+        => VerifyItemExistsAsync("""
             using System;
             namespace Goo
             {
@@ -125,14 +118,11 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                     void goo(T i) { }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "Q");
-    }
+            """, "Q");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
-    public async Task PrivateMember()
-    {
-        var text = """
+    public Task PrivateMember()
+        => VerifyItemExistsAsync("""
             using System;
             namespace Goo
             {
@@ -147,14 +137,11 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                     public int Public;
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "Private");
-    }
+            """, "Private");
 
     [Fact]
-    public async Task AfterSingleQuote()
-    {
-        var text = """
+    public Task AfterSingleQuote()
+        => VerifyItemExistsAsync("""
             using System;
             namespace Goo
             {
@@ -163,20 +150,15 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                 {
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "Exception");
-    }
+            """, "Exception");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
-    public async Task EscapePredefinedTypeName()
-    {
-        var text = """
+    public Task EscapePredefinedTypeName()
+        => VerifyItemExistsAsync("""
             using System;
             /// <see cref="@vo$$"/>
             class @void { }
-            """;
-        await VerifyItemExistsAsync(text, "@void");
-    }
+            """, "@void");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
@@ -197,9 +179,8 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531345")]
-    public async Task ShowTypeParameterNames()
-    {
-        var text = """
+    public Task ShowTypeParameterNames()
+        => VerifyItemExistsAsync("""
             /// <see cref="C$$"/>
             class C<TGoo>
             {
@@ -207,9 +188,7 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                 void M(long x) { }
                 void M(string x) { }
             }
-            """;
-        await VerifyItemExistsAsync(text, "C{TGoo}");
-    }
+            """, "C{TGoo}");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531156")]
     public async Task ShowConstructors()
@@ -233,9 +212,8 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598679")]
-    public async Task NoParamsModifier()
-    {
-        var text = """
+    public Task NoParamsModifier()
+        => VerifyItemExistsAsync("""
             /// <summary>
             /// <see cref="C.$$"/>
             /// </summary>
@@ -244,37 +222,27 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                         void M(int x) { }
                         void M(params long[] x) { }
                     }
-            """;
-        await VerifyItemExistsAsync(text, "M(long[])");
-    }
+            """, "M(long[])");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
-    public async Task UnqualifiedTypes()
-    {
-        var text = """
+    public Task UnqualifiedTypes()
+        => VerifyItemExistsAsync("""
             using System.Collections.Generic;
             /// <see cref="List{T}.$$"/>
             class C { }
-            """;
-        await VerifyItemExistsAsync(text, "Enumerator");
-    }
+            """, "Enumerator");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607773")]
-    public async Task CommitUnqualifiedTypes()
-    {
-        var text = """
+    public Task CommitUnqualifiedTypes()
+        => VerifyProviderCommitAsync("""
             using System.Collections.Generic;
             /// <see cref="List{T}.Enum$$"/>
             class C { }
-            """;
-
-        var expected = """
+            """, "Enumerator", """
             using System.Collections.Generic;
             /// <see cref="List{T}.Enumerator "/>
             class C { }
-            """;
-        await VerifyProviderCommitAsync(text, "Enumerator", expected, ' ');
-    }
+            """, ' ');
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/642285")]
     public async Task SuggestOperators()
@@ -308,9 +276,8 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641096")]
-    public async Task SuggestIndexers()
-    {
-        var text = """
+    public Task SuggestIndexers()
+        => VerifyItemExistsAsync("""
             /// <see cref="thi$$"/>
             class Program
             {
@@ -321,26 +288,19 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                     get { return arr[i]; }
                 }
             }
-            """;
-        await VerifyItemExistsAsync(text, "this[int]");
-    }
+            """, "this[int]");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531315")]
-    public async Task CommitEscapedPredefinedTypeName()
-    {
-        var text = """
+    public Task CommitEscapedPredefinedTypeName()
+        => VerifyProviderCommitAsync("""
             using System;
             /// <see cref="@vo$$"/>
             class @void { }
-            """;
-
-        var expected = """
+            """, "@void", """
             using System;
             /// <see cref="@void "/>
             class @void { }
-            """;
-        await VerifyProviderCommitAsync(text, "@void", expected, ' ');
-    }
+            """, ' ');
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598159")]
     public async Task RefOutModifiers()
@@ -391,44 +351,34 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
-    public async Task PermitTypingTypeParameters()
-    {
-        var text = """
+    public Task PermitTypingTypeParameters()
+        => VerifyProviderCommitAsync("""
             using System.Collections.Generic;
             /// <see cref="List$$"/>
             class C { }
-            """;
-
-        var expected = """
+            """, "List{T}", """
             using System.Collections.Generic;
             /// <see cref="List{"/>
             class C { }
-            """;
-        await VerifyProviderCommitAsync(text, "List{T}", expected, '{');
-    }
+            """, '{');
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730338")]
-    public async Task PermitTypingParameterTypes()
-    {
-        var text = """
+    public Task PermitTypingParameterTypes()
+        => VerifyProviderCommitAsync("""
             using System.Collections.Generic;
             /// <see cref="goo$$"/>
             class C 
             { 
                 public void goo(int x) { }
             }
-            """;
-
-        var expected = """
+            """, "goo(int)", """
             using System.Collections.Generic;
             /// <see cref="goo("/>
             class C 
             { 
                 public void goo(int x) { }
             }
-            """;
-        await VerifyProviderCommitAsync(text, "goo(int)", expected, '(');
-    }
+            """, '(');
 
     [Fact]
     public async Task CrefCompletionSpeculatesOutsideTrivia()
@@ -479,54 +429,41 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
     }
 
     [Fact]
-    public async Task NoSuggestionAfterEmptyCref()
-    {
-        var text = """
+    public Task NoSuggestionAfterEmptyCref()
+        => VerifyNoItemsExistAsync("""
             using System;
             /// <see cref="" $$
             class C 
             { 
                 public void goo(int x) { }
             }
-            """;
-
-        await VerifyNoItemsExistAsync(text);
-    }
+            """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23957")]
-    public async Task CRef_InParameter()
-    {
-        var text = """
+    public Task CRef_InParameter()
+        => VerifyItemExistsAsync("""
             using System;
             class C 
             { 
                 /// <see cref="C.My$$
                 public void MyMethod(in int x) { }
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "MyMethod(in int)");
-    }
+            """, "MyMethod(in int)");
 
     [Fact]
-    public async Task CRef_RefReadonlyParameter()
-    {
-        var text = $$"""
+    public Task CRef_RefReadonlyParameter()
+        => VerifyItemExistsAsync($$"""
             using System;
             class C 
             { 
                 /// <see cref="C.My$$
                 public void MyMethod(ref readonly int x) { }
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "MyMethod(ref readonly int)");
-    }
+            """, "MyMethod(ref readonly int)");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")]
-    public async Task ValueTuple1()
-    {
-        var text = """
+    public Task ValueTuple1()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -534,15 +471,11 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                 /// </summary>
                 public void M((string, int) stringAndInt) { }
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
-    }
+            """, "M(ValueTuple{string, int})");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22626")]
-    public async Task ValueTuple2()
-    {
-        var text = """
+    public Task ValueTuple2()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -550,15 +483,11 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
                 /// </summary>
                 public void M((string s, int i) stringAndInt) { }
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "M(ValueTuple{string, int})");
-    }
+            """, "M(ValueTuple{string, int})");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43139")]
-    public async Task TestNonOverload1()
-    {
-        var text = """
+    public Task TestNonOverload1()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -568,15 +497,11 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
 
                 void Dispose() { }
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "Dispose");
-    }
+            """, "Dispose");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43139")]
-    public async Task TestNonOverload2()
-    {
-        var text = """
+    public Task TestNonOverload2()
+        => VerifyItemExistsAsync("""
             class C
             {
                 /// <summary>
@@ -586,10 +511,7 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
 
                 void Dispose() { }
             }
-            """;
-
-        await VerifyItemExistsAsync(text, "Dispose");
-    }
+            """, "Dispose");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43139")]
     public async Task TestOverload1()

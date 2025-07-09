@@ -11,7 +11,6 @@ using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;

@@ -845,7 +845,7 @@ public class A<T1>
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
     public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel()
     {
-        var markup = @"
+        MarkupTestFile.GetPosition(@"
 class C
 {
     void goo()
@@ -856,8 +856,7 @@ class C
         $$
         }
     }
-}";
-        MarkupTestFile.GetPosition(markup, out var text, out int position);
+}", out var text, out int position);
 
         var sourceText = SourceText.From(text);
         var workspace = new AdhocWorkspace();
@@ -889,7 +888,7 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/11193")]
     public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel_InProperty()
     {
-        var markup = @"
+        MarkupTestFile.GetPosition(@"
 class C
 {
     int Prop
@@ -903,8 +902,7 @@ class C
             }
         }
     }
-}";
-        MarkupTestFile.GetPosition(markup, out var text, out int position);
+}", out var text, out int position);
 
         var sourceText = SourceText.From(text);
         var workspace = new AdhocWorkspace();

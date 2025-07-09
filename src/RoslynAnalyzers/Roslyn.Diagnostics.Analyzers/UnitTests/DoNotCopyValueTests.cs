@@ -19,9 +19,8 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class DoNotCopyValueTests
     {
         [Fact]
-        public async Task TestSliceOfStringAsync()
-        {
-            await new VerifyCS.Test
+        public Task TestSliceOfStringAsync()
+            => new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9,
@@ -38,7 +37,6 @@ class C
 }
 ",
             }.RunAsync();
-        }
 
         [Fact]
         public async Task TestAcquireFromReturnByValueAsync()
@@ -245,9 +243,8 @@ End Class");
         }
 
         [Fact]
-        public async Task TestDoNotAcquireFromReturnByReferenceAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TestDoNotAcquireFromReturnByReferenceAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -262,12 +259,10 @@ class C
 ",
                 // /0/Test0.cs(8,19): warning RS0042: Cannot assign a value from a reference to non-copyable type 'System.Runtime.InteropServices.GCHandle'
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.NoAssignValueFromReferenceRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle"));
-        }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/77925")]
-        public async Task TestPassToInstancePropertyGetterAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TestPassToInstancePropertyGetterAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -298,12 +293,10 @@ class C
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
                 // /0/Test0.cs(17,13): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(1).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
-        }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/77925")]
-        public async Task TestPassToInstanceMethodAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TestPassToInstanceMethodAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -334,12 +327,10 @@ class C
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle", "FieldReference"),
                 // /0/Test0.cs(17,13): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(1).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
-        }
 
         [Fact]
-        public async Task TestPassToExtensionMethodAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TestPassToExtensionMethodAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -400,15 +391,13 @@ static class E
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(5).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"),
                 // /0/Test0.cs(37,9): warning RS0042: Unsupported use of non-copyable type 'System.Runtime.InteropServices.GCHandle' in 'LocalReference' operation
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(6).WithArguments("System.Runtime.InteropServices.GCHandle", "LocalReference"));
-        }
 
         [Theory]
         [InlineData("throw null")]
         [InlineData("(true ? throw null : default(GCHandle))")]
         [InlineData("(false ? new GCHandle() : throw null)")]
-        public async Task TestConversionFromThrowNullAsync(string throwExpression)
-        {
-            await VerifyCS.VerifyAnalyzerAsync($@"
+        public Task TestConversionFromThrowNullAsync(string throwExpression)
+            => VerifyCS.VerifyAnalyzerAsync($@"
 using System.Runtime.InteropServices;
 
 class C
@@ -416,7 +405,6 @@ class C
     GCHandle Get() => {throwExpression};
 }}
 ");
-        }
 
         [Fact]
         public async Task TestPassByReferenceAsync()
@@ -441,9 +429,8 @@ End Class");
         }
 
         [Fact]
-        public async Task TestPassByReadOnlyReferenceAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TestPassByReadOnlyReferenceAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -451,12 +438,10 @@ class C
     void Get(in GCHandle handle) => Get(in handle);
 }
 ");
-        }
 
         [Fact]
-        public async Task TestAssignToMemberAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TestAssignToMemberAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -486,12 +471,12 @@ struct CannotCopy
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
 ");
-        }
 
         [Fact]
-        public async Task ReturnLocalByValueAsync()
-        {
-            var source = @"
+        public Task ReturnLocalByValueAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System.Runtime.InteropServices;
 
 class C
@@ -502,19 +487,15 @@ class C
         return handle;
     }
 }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task TestReturnMemberAsync()
-        {
-            var source = @"
+        public Task TestReturnMemberAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System.Runtime.InteropServices;
 
 class C
@@ -610,11 +591,7 @@ struct CannotCopy
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 ExpectedDiagnostics =
                 {
                     // The only reported diagnostic occurs for the invocation of a non-readonly getter of a readonly
@@ -625,14 +602,12 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
                 },
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task NonReadonlyMemberPropertiesAsync()
-        {
-            // Verify that a non-readonly member of a non-copyable type can reference another non-readonly member of the
-            // same type.
-            var source = @"
+        public Task NonReadonlyMemberPropertiesAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System.Runtime.InteropServices;
 
 [NonCopyable]
@@ -644,21 +619,15 @@ struct CannotCopy
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task NonReadonlyMemberMethodsAsync()
-        {
-            // Verify that a non-readonly member of a non-copyable type can reference another non-readonly member of the
-            // same type.
-            var source = @"
+        public Task NonReadonlyMemberMethodsAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System.Runtime.InteropServices;
 
 [NonCopyable]
@@ -670,19 +639,15 @@ struct CannotCopy
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task AllowObjectInitializerAsync()
-        {
-            var source = @"
+        public Task AllowObjectInitializerAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System.Runtime.InteropServices;
 
 class C
@@ -701,19 +666,15 @@ struct CannotCopy
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task AllowCustomForeachEnumeratorAsync()
-        {
-            var source = @"
+        public Task AllowCustomForeachEnumeratorAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System.Runtime.InteropServices;
 
 class C
@@ -740,14 +701,9 @@ struct CannotCopy
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
@@ -755,7 +711,17 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
             [CombinatorialValues("", "ref", "in")] string parameterModifiers,
             [CombinatorialValues("", "readonly")] string getEnumeratorModifiers)
         {
-            var source = $@"
+            var expected = (parameterModifiers, getEnumeratorModifiers) switch
+            {
+                // /0/Test0.cs(8,29): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'ParameterReference' operation
+                ("in", "") => [VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "ParameterReference")],
+
+                _ => DiagnosticResult.EmptyDiagnosticResults,
+            };
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Runtime.InteropServices;
 
 class C
@@ -781,19 +747,7 @@ struct CannotCopy
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            var expected = (parameterModifiers, getEnumeratorModifiers) switch
-            {
-                // /0/Test0.cs(8,29): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'ParameterReference' operation
-                ("in", "") => new[] { VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "ParameterReference") },
-
-                _ => DiagnosticResult.EmptyDiagnosticResults,
-            };
-
-            var test = new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             };
 
@@ -802,9 +756,10 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
         }
 
         [Fact]
-        public async Task AllowCustomForeachEnumeratorDisposableObject1Async()
-        {
-            var source = @"
+        public Task AllowCustomForeachEnumeratorDisposableObject1Async()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -833,19 +788,15 @@ struct CannotCopy : IDisposable
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task AllowCustomForeachEnumeratorDisposableObject2Async()
-        {
-            var source = @"
+        public Task AllowCustomForeachEnumeratorDisposableObject2Async()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -876,23 +827,19 @@ struct CannotCopy : IDisposable
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("new CannotCopy()")]
         [InlineData("default(CannotCopy)")]
         [InlineData("CannotCopy.Create()")]
         [InlineData("CannotCopy.Empty")]
-        public async Task AllowDisposableObjectAsync(string creation)
-        {
-            var source = $@"
+        public Task AllowDisposableObjectAsync(string creation)
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 using System;
 using System.Runtime.InteropServices;
 
@@ -935,19 +882,15 @@ struct CannotCopy : IDisposable
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task AllowCustomForeachReadonlyEnumeratorAsync()
-        {
-            var source = @"
+        public Task AllowCustomForeachReadonlyEnumeratorAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = @"
 using System.Runtime.InteropServices;
 
 class C
@@ -974,22 +917,18 @@ struct CannotCopy
 }
 
 internal sealed class NonCopyableAttribute : System.Attribute { }
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("")]
         [InlineData("ref")]
         [InlineData("in")]
-        public async Task AllowNameOfParameterReferenceAsync(string parameterModifiers)
-        {
-            var source = $@"
+        public Task AllowNameOfParameterReferenceAsync(string parameterModifiers)
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1008,21 +947,17 @@ struct CannotCopy
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("ref")]
         [InlineData("in")]
-        public async Task AllowUnsafeAsRefParameterReferenceAsync(string parameterModifiers)
-        {
-            var source = $@"
+        public Task AllowUnsafeAsRefParameterReferenceAsync(string parameterModifiers)
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1042,22 +977,18 @@ struct CannotCopy
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Theory]
         [CombinatorialData]
-        public async Task AllowUnsafeAsRefParameterReference2Async(
+        public Task AllowUnsafeAsRefParameterReference2Async(
             [CombinatorialValues("ref", "in", "ref readonly")] string parameterModifiers,
             [CombinatorialValues("in", "scoped in", "ref readonly", "scoped ref readonly")] string asRefParameterModifiers)
-        {
-            var source = $@"
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1077,14 +1008,9 @@ struct CannotCopy
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
-        }
 
         [Theory]
         [InlineData("ref")]
@@ -1096,8 +1022,9 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
                 "in" => "ref readonly",
                 _ => parameterModifiers,
             };
-
-            var source = $@"
+            await new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1119,19 +1046,16 @@ struct CannotCopy
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
         }
 
         [Fact]
-        public async Task CannotStoreRefReturnByValueAsync()
-        {
-            var source = $@"
+        public Task CannotStoreRefReturnByValueAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1159,11 +1083,7 @@ struct CannotCopy
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(8,19): warning RS0042: Cannot assign a value from a reference to non-copyable type 'CannotCopy'
@@ -1173,12 +1093,12 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
                 },
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task CannotReturnRefReturnByValueAsync()
-        {
-            var source = $@"
+        public Task CannotReturnRefReturnByValueAsync()
+            => new VerifyCS.Test
+            {
+                TestCode = $@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1198,11 +1118,7 @@ struct CannotCopy
 }}
 
 internal sealed class NonCopyableAttribute : System.Attribute {{ }}
-";
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+",
                 ExpectedDiagnostics =
                 {
                     // /0/Test0.cs(8,16): warning RS0042: Cannot return a value from a reference to non-copyable type 'CannotCopy'
@@ -1210,12 +1126,10 @@ internal sealed class NonCopyableAttribute : System.Attribute {{ }}
                 },
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task TestNonCopyableAttributeAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task TestNonCopyableAttributeAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1243,12 +1157,10 @@ internal sealed class NonCopyableAttribute : System.Attribute { }
 ",
                 // /0/Test0.cs(12,16): warning RS0042: Unsupported use of non-copyable type 'CannotCopy' in 'FieldReference' operation
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("CannotCopy", "FieldReference"));
-        }
 
         [Fact]
-        public async Task DoNotWrapNonCopyableTypeInNullableTAsync()
-        {
-            await VerifyCS.VerifyAnalyzerAsync(@"
+        public Task DoNotWrapNonCopyableTypeInNullableTAsync()
+            => VerifyCS.VerifyAnalyzerAsync(@"
 using System.Runtime.InteropServices;
 
 class C
@@ -1258,7 +1170,6 @@ class C
 ",
                 // /0/Test0.cs(6,21): warning RS0042: Do not wrap non-copyable type 'System.Runtime.InteropServices.GCHandle?' in 'FieldInitializer' operation
                 VerifyCS.Diagnostic(AbstractDoNotCopyValue.AvoidNullableWrapperRule).WithLocation(0).WithArguments("System.Runtime.InteropServices.GCHandle?", "FieldInitializer"));
-        }
 
         [Fact]
         public async Task DoNotDefineNonCopyableFieldInCopyableTypeAsync()
@@ -1404,9 +1315,10 @@ Public NotInheritable Class NonCopyableAttribute : Inherits System.Attribute : E
         }
 
         [Fact]
-        public async Task AllowCopyFromCollectionExpression()
-        {
-            var source = """
+        public Task AllowCopyFromCollectionExpression()
+            => new VerifyCS.Test
+            {
+                TestCode = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -1449,19 +1361,15 @@ Public NotInheritable Class NonCopyableAttribute : Inherits System.Attribute : E
                         public string MethodName { get; }
                     }
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
-        }
 
         [Fact]
-        public async Task DoNotAllowCopyInCollectionExpressionElement()
-        {
-            var source = """
+        public Task DoNotAllowCopyInCollectionExpressionElement()
+            => new VerifyCS.Test
+            {
+                TestCode = """
                 using System;
                 using System.Collections;
                 using System.Collections.Generic;
@@ -1508,17 +1416,12 @@ Public NotInheritable Class NonCopyableAttribute : Inherits System.Attribute : E
                         public string MethodName { get; }
                     }
                 }
-                """;
-
-            await new VerifyCS.Test
-            {
-                TestCode = source,
+                """,
                 LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(25,27): warning RS0042: Unsupported use of non-copyable type 'S' in 'LocalReference' operation
                     VerifyCS.Diagnostic(AbstractDoNotCopyValue.UnsupportedUseRule).WithLocation(0).WithArguments("S", "LocalReference")
                 }
             }.RunAsync();
-        }
     }
 }

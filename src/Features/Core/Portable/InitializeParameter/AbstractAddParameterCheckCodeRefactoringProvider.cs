@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
@@ -42,16 +43,22 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     where TBinaryExpressionSyntax : TExpressionSyntax
     where TSimplifierOptions : SimplifierOptions
 {
-    private const string s_isPrefix = "Is";
-    private const string s_throwIfPrefix = "ThrowIf";
+    private const string IsPrefix = "Is";
+    private const string ThrowIfPrefix = "ThrowIf";
 
-    private const string s_nullSuffix = "Null";
-    private const string s_nullOrEmptySuffix = "NullOrEmpty";
-    private const string s_nullOrWhiteSpaceSuffix = "NullOrWhiteSpace";
+    private const string NullSuffix = "Null";
+    private const string NullOrEmptySuffix = "NullOrEmpty";
+    private const string NullOrWhiteSpaceSuffix = "NullOrWhiteSpace";
 
-    private const string s_throwIfNullName = s_throwIfPrefix + s_nullSuffix;
-    private const string s_throwIfNullOrEmptyName = s_throwIfPrefix + s_nullOrEmptySuffix;
-    private const string s_throwIfNullOrWhiteSpaceName = s_throwIfPrefix + s_nullOrWhiteSpaceSuffix;
+    private const string NegativeSuffix = "Negative";
+    private const string NegativeOrZeroSuffix = "NegativeOrZero";
+
+    private const string ThrowIfNullName = ThrowIfPrefix + NullSuffix;
+    private const string ThrowIfNullOrEmptyName = ThrowIfPrefix + NullOrEmptySuffix;
+    private const string ThrowIfNullOrWhiteSpaceName = ThrowIfPrefix + NullOrWhiteSpaceSuffix;
+
+    private const string ThrowIfNegativeName = ThrowIfPrefix + NegativeSuffix;
+    private const string ThrowIfNegativeOrZeroName = ThrowIfPrefix + NegativeOrZeroSuffix;
 
     protected abstract bool CanOffer(SyntaxNode body);
     protected abstract bool PrefersThrowExpression(TSimplifierOptions options);
@@ -118,20 +125,39 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             {
                 result.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Add_0_check, "string.IsNullOrEmpty"),
-                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrEmptySuffix, simplifierOptions, cancellationToken),
+                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, NullOrEmptySuffix, simplifierOptions, cancellationToken),
                     "Add_string_IsNullOrEmpty_check"));
 
                 result.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Add_0_check, "string.IsNullOrWhiteSpace"),
-                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
+                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, NullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
                     "Add_string_IsNullOrWhiteSpace_check"));
             }
 
             return result.ToImmutableAndClear();
         }
 
+        var compilation = semanticModel.Compilation;
+
+        if (ParameterValidForNumericCheck(parameter, blockStatement))
+        {
+            var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var negativeCheckAction = CodeAction.Create(
+                FeaturesResources.Add_negative_value_check,
+                cancellationToken => AddNumericCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, includeZero: false, simplifierOptions, cancellationToken),
+                nameof(FeaturesResources.Add_negative_value_check));
+
+            var negativeOrZeroCheckAction = CodeAction.Create(
+                FeaturesResources.Add_negative_value_or_zero_check,
+                cancellationToken => AddNumericCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, includeZero: true, simplifierOptions, cancellationToken),
+                nameof(FeaturesResources.Add_negative_value_or_zero_check));
+
+            return [negativeCheckAction, negativeOrZeroCheckAction];
+        }
+
         // Provide 'Enum.IsDefined' check for suitable enum parameters
-        if (ParameterValidForEnumIsDefinedCheck(parameter, semanticModel.Compilation, blockStatement))
+        if (ParameterValidForEnumIsDefinedCheck(parameter, compilation, blockStatement))
         {
             var action = CodeAction.Create(
                 string.Format(FeaturesResources.Add_0_check, "Enum.IsDefined"),
@@ -182,7 +208,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             // commonly used in this regard according to telemetry and UX testing.
             if (parameter.Type.SpecialType == SpecialType.System_String)
             {
-                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatement, s_nullOrEmptySuffix, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
+                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatement, NullOrEmptySuffix, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 
@@ -264,6 +290,51 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         return false;
     }
 
+    private static bool IsIfNumericCheck(IOperation statement, IParameterSymbol parameter)
+    {
+        if (statement is IConditionalOperation ifStatement)
+        {
+            var condition = ifStatement.Condition.UnwrapImplicitConversion();
+
+            // parameter < num
+            // parameter <= num
+            // parameter > num
+            // parameter >= num
+            // num < parameter
+            // num <= parameter
+            // num > parameter
+            // num >= parameter
+            if (condition is IBinaryOperation { OperatorKind: BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual or BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual } binaryOperator &&
+                IsNumericCheckOperands(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter))
+            {
+                return true;
+            }
+            // parameter is < num
+            // parameter is <= num
+            // parameter is > num
+            // parameter is >= num
+            else if (condition is IIsPatternOperation
+            {
+                Pattern: IRelationalPatternOperation
+                {
+                    OperatorKind: BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual or BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual,
+                    Value: ILiteralOperation value
+                }
+            } && value.Type.IsNumericType())
+            {
+                return true;
+            }
+        }
+
+        return false;
+
+        static bool IsNumericCheckOperands(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
+        {
+            return (IsParameterReference(operand1, parameter) && operand2.IsNumericLiteral()) ||
+                   (operand1.IsNumericLiteral() && IsParameterReference(operand2, parameter));
+        }
+    }
+
     private bool ParameterValidForNullCheck(Document document, IParameterSymbol parameter, SemanticModel semanticModel,
         IBlockOperation? blockStatement, CancellationToken cancellationToken)
     {
@@ -311,6 +382,35 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                 {
                     return false;
                 }
+            }
+        }
+
+        return true;
+    }
+
+    private bool ParameterValidForNumericCheck(IParameterSymbol parameter, IBlockOperation? blockStatement)
+    {
+        if (parameter.RefKind == RefKind.Out)
+            return false;
+
+        if (parameter.IsDiscard)
+            return false;
+
+        if (!parameter.Type.IsSignedIntegralType())
+            return false;
+
+        if (blockStatement is not null)
+        {
+            if (!CanOffer(blockStatement.Syntax))
+                return false;
+
+            foreach (var statement in blockStatement.Operations)
+            {
+                if (IsIfNumericCheck(statement, parameter))
+                    return false;
+
+                if (IsAnyThrowIfNumericCheckInvocation(statement, parameter))
+                    return false;
             }
         }
 
@@ -388,7 +488,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         return false;
     }
 
-    private static bool IsAnyThrowIfNullInvocation(IOperation statement, IParameterSymbol? parameter)
+    private static bool IsAnyThrowInvocation(IOperation statement, IParameterSymbol? parameter, ReadOnlySpan<string> possibleTypeNames, Func<string, bool> methodNamePredicate)
     {
         if (statement is IExpressionStatementOperation
             {
@@ -396,18 +496,30 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                 {
                     TargetMethod:
                     {
-                        ContainingType.Name: nameof(ArgumentNullException) or nameof(ArgumentException),
-                        Name: s_throwIfNullName or s_throwIfNullOrEmptyName or s_throwIfNullOrWhiteSpaceName,
+                        ContainingType.Name: var containingTypeName,
+                        Name: var methodName,
                     },
                     Arguments: [{ Value: var argumentValue }, ..]
                 }
-            })
+            } &&
+            possibleTypeNames.Contains(containingTypeName) &&
+            methodNamePredicate(methodName))
         {
             if (argumentValue.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference)
                 return parameter is null || parameter.Equals(parameterReference.Parameter);
         }
 
         return false;
+    }
+
+    private static bool IsAnyThrowIfNullInvocation(IOperation statement, IParameterSymbol? parameter)
+    {
+        return IsAnyThrowInvocation(statement, parameter, [nameof(ArgumentNullException), nameof(ArgumentException)], m => m is ThrowIfNullName or ThrowIfNullOrEmptyName or ThrowIfNullOrWhiteSpaceName);
+    }
+
+    private static bool IsAnyThrowIfNumericCheckInvocation(IOperation statement, IParameterSymbol? parameter)
+    {
+        return IsAnyThrowInvocation(statement, parameter, [nameof(ArgumentOutOfRangeException)], m => m.StartsWith(ThrowIfPrefix));
     }
 
     private static bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
@@ -443,7 +555,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             return modifiedDocument;
 
         // If we can't, then just offer to add an "if (s == null)" statement.
-        return await AddNullCheckStatementAsync(
+        return await AddCheckStatementAsync(
             document, parameter, functionDeclaration, method, blockStatement,
             (s, g) => CreateNullCheckStatement(s, g, parameter, options),
             cancellationToken).ConfigureAwait(false);
@@ -459,41 +571,57 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         TSimplifierOptions options,
         CancellationToken cancellationToken)
     {
-        return await AddNullCheckStatementAsync(
+        return await AddCheckStatementAsync(
             document, parameter, functionDeclaration, method, blockStatement,
             (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodNameSuffix, options),
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<Document> AddNullCheckStatementAsync(
+    private async Task<Document> AddNumericCheckAsync(
         Document document,
         IParameterSymbol parameter,
         SyntaxNode functionDeclaration,
         IMethodSymbol method,
         IBlockOperation? blockStatement,
-        Func<SemanticModel, SyntaxGenerator, TStatementSyntax> generateNullCheck,
+        bool includeZero,
+        TSimplifierOptions options,
+        CancellationToken cancellationToken)
+    {
+        return await AddCheckStatementAsync(
+            document, parameter, functionDeclaration, method, blockStatement,
+            (s, g) => CreateNumericCheckStatement(s.Compilation, g, parameter, includeZero, options),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<Document> AddCheckStatementAsync(
+        Document document,
+        IParameterSymbol parameter,
+        SyntaxNode functionDeclaration,
+        IMethodSymbol method,
+        IBlockOperation? blockStatement,
+        Func<SemanticModel, SyntaxGenerator, TStatementSyntax> generateCheck,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
-        var nullCheckStatement = generateNullCheck(semanticModel, editor.Generator);
+        var checkStatement = generateCheck(semanticModel, editor.Generator);
 
         // We may be inserting a statement into a single-line container.  In that case,
         // we don't want the formatting engine to think this construct should stay single-line
         // so add a newline after the check to help dissuade it from thinking we should stay
         // on a single line.
-        nullCheckStatement = nullCheckStatement.WithAppendedTrailingTrivia(
+        checkStatement = checkStatement.WithAppendedTrailingTrivia(
             editor.Generator.ElasticCarriageReturnLineFeed);
 
-        // Find a good location to add the null check. In general, we want the order of checks
+        // Find a good location to add the check. In general, we want the order of checks
         // and assignments in the constructor to match the order of parameters in the method
         // signature.
         var statementToAddAfter = GetStatementToAddCheckAfter(semanticModel, parameter, blockStatement, cancellationToken);
 
         var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
-        initializeParameterService.InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, nullCheckStatement);
+        initializeParameterService.InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, checkStatement);
 
         var newRoot = editor.GetChangedRoot();
         return document.WithSyntaxRoot(newRoot);
@@ -566,15 +694,14 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         if (parameter.Type.IsReferenceType && argumentNullExceptionType != null)
         {
             var throwIfNullMethod = argumentNullExceptionType
-                .GetMembers(s_throwIfNullName)
-                .OfType<IMethodSymbol>()
-                .FirstOrDefault(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, ..]);
+                .GetMembers(ThrowIfNullName)
+                .FirstOrDefault(s => s is IMethodSymbol { Parameters: [{ Type.SpecialType: SpecialType.System_Object }, ..] });
             if (throwIfNullMethod != null)
             {
                 return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
                     generator.MemberAccessExpression(
                         generator.TypeExpression(argumentNullExceptionType),
-                        s_throwIfNullName),
+                        ThrowIfNullName),
                     generator.IdentifierName(parameter.Name)));
             }
         }
@@ -585,17 +712,57 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             options);
     }
 
+    private TStatementSyntax CreateNumericCheckStatement(Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, bool includeZero, TSimplifierOptions options)
+    {
+        var argumentOutOfRangeExceptionType = compilation.ArgumentOutOfRangeExceptionType();
+        if (argumentOutOfRangeExceptionType is not null)
+        {
+            var throwMethodName = includeZero ? ThrowIfNegativeOrZeroName : ThrowIfNegativeName;
+            var throwMethod = argumentOutOfRangeExceptionType
+                .GetMembers(throwMethodName)
+                .FirstOrDefault(s => s is IMethodSymbol { IsStatic: true, Arity: 1, Parameters.Length: 2 });
+            if (throwMethod is not null)
+            {
+                // We found 'ThrowIfX' method. Generate 'ArgumentOutOfRangeException.ThrowIfNegative[OrZero](parameter);'
+                return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
+                    generator.MemberAccessExpression(
+                        generator.TypeExpression(argumentOutOfRangeExceptionType),
+                        throwMethodName),
+                    generator.IdentifierName(parameter.Name)));
+            }
+        }
+
+        // Generate 'manual check' like
+        // if (parameter <[=] 0) throw new ArgumentOutOfRangeException(nameof(parameter), parameter, "message");
+        var parameterNameExpression = generator.IdentifierName(parameter.Name);
+        var zeroLiteralExpression = generator.LiteralExpression(0);
+        var condition = includeZero
+            ? generator.LessThanOrEqualExpression(parameterNameExpression, zeroLiteralExpression)
+            : generator.LessThanExpression(parameterNameExpression, zeroLiteralExpression);
+
+        var parameterNameOfExpression = generator.NameOfExpression(parameterNameExpression);
+        var throwStatement = generator.ThrowStatement(
+            generator.ObjectCreationExpression(
+                GetTypeNode(compilation, generator, typeof(ArgumentOutOfRangeException)),
+                parameterNameOfExpression,
+                parameterNameExpression,
+                CreateExceptionMessageArgument(includeZero
+                    ? FeaturesResources._0_cannot_be_negative_or_zero
+                    : FeaturesResources._0_cannot_be_negative, generator, parameterNameOfExpression)));
+
+        return CreateParameterCheckIfStatement((TExpressionSyntax)condition, (TStatementSyntax)throwStatement, options);
+    }
+
     private TStatementSyntax CreateStringCheckStatement(
         Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodNameSuffix, TSimplifierOptions options)
     {
         var argumentExceptionType = compilation.ArgumentExceptionType();
         if (argumentExceptionType != null)
         {
-            var throwMethodName = "ThrowIf" + methodNameSuffix;
+            var throwMethodName = ThrowIfPrefix + methodNameSuffix;
             var throwIfNullMethod = argumentExceptionType
                 .GetMembers(throwMethodName)
-                .OfType<IMethodSymbol>()
-                .FirstOrDefault(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_String }, ..]);
+                .FirstOrDefault(s => s is IMethodSymbol { Parameters: [{ Type.SpecialType: SpecialType.System_String }, ..] });
             if (throwIfNullMethod != null)
             {
                 return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
@@ -609,7 +776,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         var stringType = compilation.GetSpecialType(SpecialType.System_String);
 
         // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
-        var isMethodName = s_isPrefix + methodNameSuffix;
+        var isMethodName = IsPrefix + methodNameSuffix;
         var condition = (TExpressionSyntax)generator.InvocationExpression(
             generator.MemberAccessExpression(
                 generator.TypeExpression(stringType),
@@ -692,8 +859,12 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                     continue;
                 }
 
-                if (IsEnumIsDefinedCheck(statement, parameterSymbol, enumIsDefinedGenericMethod, enumIsDefinedNonGenericMethod))
+                if (IsAnyThrowIfNumericCheckInvocation(statement, parameterSymbol) ||
+                    IsIfNumericCheck(statement, parameterSymbol) ||
+                    IsEnumIsDefinedCheck(statement, parameterSymbol, enumIsDefinedGenericMethod, enumIsDefinedNonGenericMethod))
+                {
                     return statement;
+                }
 
                 if (statement is IConditionalOperation ifStatement)
                 {
@@ -790,40 +961,45 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     {
         var text = methodName switch
         {
-            nameof(string.IsNullOrEmpty) => new LocalizableResourceString(nameof(FeaturesResources._0_cannot_be_null_or_empty), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
-            nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources._0_cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
+            nameof(string.IsNullOrEmpty) => FeaturesResources._0_cannot_be_null_or_empty,
+            nameof(string.IsNullOrWhiteSpace) => FeaturesResources._0_cannot_be_null_or_whitespace,
             _ => throw ExceptionUtilities.Unreachable(),
         };
 
+        var nameofExpression = generator.NameOfExpression(generator.IdentifierName(parameter.Name));
+
+        return generator.ObjectCreationExpression(
+            GetTypeNode(compilation, generator, typeof(ArgumentException)),
+            CreateExceptionMessageArgument(text, generator, nameofExpression),
+            nameofExpression);
+    }
+
+    private SyntaxNode CreateExceptionMessageArgument(string messageTemplate, SyntaxGenerator generator, SyntaxNode parameterNameOfExpression)
+    {
         // The resource string is written to be shown in a UI and is not necessarily valid code, but we're
         // going to be putting it into a string literal so we need to escape quotes etc. to avoid syntax errors
-        var escapedText = EscapeResourceString(text);
+        var escapedText = EscapeResourceString(messageTemplate);
 
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var content);
 
-        var nameofExpression = generator.NameOfExpression(generator.IdentifierName(parameter.Name));
-
-        var textParts = GetPreAndPostTextParts(text);
+        var textParts = GetPreAndPostTextParts(messageTemplate);
         var escapedTextParts = GetPreAndPostTextParts(escapedText);
         if (textParts.pre is null)
         {
             Debug.Fail("Should have found {0} in the resource string.");
-            content.Add(InterpolatedStringText(generator, escapedText, text));
+            content.Add(InterpolatedStringText(generator, escapedText, messageTemplate));
         }
         else
         {
             content.Add(InterpolatedStringText(generator, escapedTextParts.pre!, textParts.pre));
-            content.Add(generator.Interpolation(nameofExpression));
+            content.Add(generator.Interpolation(parameterNameOfExpression));
             content.Add(InterpolatedStringText(generator, escapedTextParts.post!, textParts.post!));
         }
 
-        return generator.ObjectCreationExpression(
-            GetTypeNode(compilation, generator, typeof(ArgumentException)),
-            generator.InterpolatedStringExpression(
-                generator.CreateInterpolatedStringStartToken(isVerbatim: false),
-                content,
-                generator.CreateInterpolatedStringEndToken()),
-            nameofExpression);
+        return generator.InterpolatedStringExpression(
+            generator.CreateInterpolatedStringStartToken(isVerbatim: false),
+            content,
+            generator.CreateInterpolatedStringEndToken());
     }
 
     private static (string? pre, string? post) GetPreAndPostTextParts(string text)

@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
@@ -21,9 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
 {
     [Theory, CombinatorialData]
-    public async Task PreprocessorSymbols1(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task PreprocessorSymbols1(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
             #if SOME_DEFINED_CONSTANT
@@ -36,14 +34,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                 }
             #endif
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"), preprocessorSymbols: ["SOME_DEFINED_CONSTANT"]);
-    }
+            """, c => c.GetMember("C.M"), preprocessorSymbols: ["SOME_DEFINED_CONSTANT"]);
 
     [Theory, CombinatorialData]
-    public async Task PreprocessorSymbols2(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task PreprocessorSymbols2(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
             #if SOME_DEFINED_CONSTANT
@@ -56,14 +51,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                 }
             #endif
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"));
-    }
+            """, c => c.GetMember("C.M"));
 
     [Theory, CombinatorialData]
-    public async Task Method(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Method(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public void [|M|]()
@@ -71,14 +63,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.M"));
-    }
+            """, c => c.GetMember("C.M"));
 
     [Theory, CombinatorialData]
-    public async Task Constructor(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Constructor(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public [|C|]()
@@ -86,14 +75,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
-    }
+            """, c => c.GetMember("C..ctor"));
 
     [Theory, CombinatorialData]
-    public async Task Parameter(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Parameter(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public void M(int [|a|])
@@ -101,39 +87,29 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember<IMethodSymbol>("C.M").Parameters.First());
-    }
+            """, c => c.GetMember<IMethodSymbol>("C.M").Parameters.First());
 
     [Theory, CombinatorialData]
-    public async Task Class_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Class_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|C|]
             {
                 // this is a comment that wouldn't appear in decompiled source
             }
-            """;
-
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
-    }
+            """, c => c.GetMember("C"));
 
     [Theory, CombinatorialData]
-    public async Task Constructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Constructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|C|]
             {
                 // this is a comment that wouldn't appear in decompiled source
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
-    }
+            """, c => c.GetMember("C..ctor"));
 
     [Theory, CombinatorialData]
-    public async Task NestedClass_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task NestedClass_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class Outer
             {
                 public class [|C|]
@@ -141,14 +117,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
-    }
+            """, c => c.GetMember("Outer.C"));
 
     [Theory, CombinatorialData]
-    public async Task NestedClassConstructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task NestedClassConstructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class Outer
             {
                 public class [|C|]
@@ -156,14 +129,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
-    }
+            """, c => c.GetMember("Outer.C..ctor"));
 
     [Theory, CombinatorialData]
-    public async Task Class_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Class_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|Outer|]
             {
                 public class C
@@ -171,14 +141,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
-    }
+            """, c => c.GetMember("Outer"));
 
     [Theory, CombinatorialData]
-    public async Task Constructor_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Constructor_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|Outer|]
             {
                 public class C
@@ -186,15 +153,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer..ctor"));
-
-    }
+            """, c => c.GetMember("Outer..ctor"));
 
     [Theory, CombinatorialData]
-    public async Task NestedClass_FromMethodDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task NestedClass_FromMethodDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class Outer
             {
                 public class [|C|]
@@ -205,14 +168,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     }
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
-    }
+            """, c => c.GetMember("Outer.C"));
 
     [Theory, CombinatorialData]
-    public async Task NestedClassConstructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task NestedClassConstructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class Outer
             {
                 public class [|C|]
@@ -223,15 +183,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     }
                 }
             }
-            """;
-
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
-    }
+            """, c => c.GetMember("Outer.C..ctor"));
 
     [Theory, CombinatorialData]
-    public async Task Class_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Class_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|Outer|]
             {
                 public class C
@@ -242,15 +198,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     }
                 }
             }
-            """;
-
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
-    }
+            """, c => c.GetMember("Outer"));
 
     [Theory, CombinatorialData]
-    public async Task Constructor_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Constructor_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|Outer|]
             {
                 public class C
@@ -261,15 +213,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     }
                 }
             }
-            """;
-
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer..ctor"));
-    }
+            """, c => c.GetMember("Outer..ctor"));
 
     [Theory, CombinatorialData]
-    public async Task Class_FromMethodDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Class_FromMethodDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|C|]
             {
                 public void M()
@@ -277,14 +225,11 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
-    }
+            """, c => c.GetMember("C"));
 
     [Theory, CombinatorialData]
-    public async Task Constructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Constructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class [|C|]
             {
                 public void M()
@@ -292,62 +237,47 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
-    }
+            """, c => c.GetMember("C..ctor"));
 
     [Theory, CombinatorialData]
-    public async Task Field(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Field(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public int [|f|];
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.f"));
-    }
+            """, c => c.GetMember("C.f"));
 
     [Theory, CombinatorialData]
-    public async Task Property(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Property(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public int [|P|] { get; set; }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.P"));
-    }
+            """, c => c.GetMember("C.P"));
 
     [Theory, CombinatorialData]
-    public async Task Property_WithBody(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Property_WithBody(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public int [|P|] { get { return 1; } }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.P"));
-    }
+            """, c => c.GetMember("C.P"));
 
     [Theory, CombinatorialData]
-    public async Task EventField(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task EventField(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public event System.EventHandler [|E|];
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
-    }
+            """, c => c.GetMember("C.E"));
 
     [Theory, CombinatorialData]
-    public async Task EventField_WithMethod(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task EventField_WithMethod(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public event System.EventHandler [|E|];
@@ -357,49 +287,37 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                     // this is a comment that wouldn't appear in decompiled source
                 }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
-    }
+            """, c => c.GetMember("C.E"));
 
     [Theory, CombinatorialData]
-    public async Task Event(Location pdbLocation, Location sourceLocation)
-    {
-        var source = """
+    public Task Event(Location pdbLocation, Location sourceLocation)
+        => TestAsync(pdbLocation, sourceLocation, """
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-        await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C.E"));
-    }
+            """, c => c.GetMember("C.E"));
 
     [Fact]
-    public async Task ReferenceAssembly_NullResult()
-    {
-        var source = """
+    public Task ReferenceAssembly_NullResult()
+        => TestAsync(Location.OnDisk, Location.OnDisk, """
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-        // A pdb won't be emitted when building a reference assembly so the first two parameters don't actually matter
-        await TestAsync(Location.OnDisk, Location.OnDisk, source, c => c.GetMember("C.E"), buildReferenceAssembly: true, expectNullResult: true);
-    }
+            """, c => c.GetMember("C.E"), buildReferenceAssembly: true, expectNullResult: true);
 
     [Fact]
-    public async Task NugetPackageLayout()
-    {
-        var source = """
+    public Task NugetPackageLayout()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             // Laziest. Nuget package directory layout. Ever.
             Directory.CreateDirectory(Path.Combine(path, "ref"));
@@ -414,22 +332,18 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
         });
-    }
 
     [Fact]
-    public async Task Net6SdkLayout()
-    {
-        var source = """
+    public Task Net6SdkLayout()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 // A change
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
             var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
@@ -450,23 +364,19 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
         });
-    }
 
     [Fact]
-    public async Task Net6SdkLayout_WithOtherReferences()
-    {
-        var source = """
+    public Task Net6SdkLayout_WithOtherReferences()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public void [|M|](string d)
                 {
                 }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
             var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
@@ -494,26 +404,19 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
         });
-    }
 
     [Fact]
-    public async Task Net6SdkLayout_TypeForward()
-    {
-        var source = """
+    public Task Net6SdkLayout_TypeForward()
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class [|C|]
             {
                 public void M(string d)
                 {
                 }
             }
-            """;
-        var typeForwardSource = """
-            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+            """, out var metadataSource, out var expectedSpan);
 
             var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
             var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
@@ -545,7 +448,9 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             assemblyName = "reference";
 
             implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(implementationDllFilePath));
-            sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+            sourceText = SourceText.From("""
+            [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+            """, Encoding.UTF8);
             CompileTestSource(typeForwardDllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
 
             // Create FrameworkList.xml
@@ -556,7 +461,6 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
         });
-    }
 
     [Fact]
     public async Task NoPdb_NullResult()
@@ -703,14 +607,6 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
             """;
-        var source2 = """
-            public class C
-            {
-                // A change
-                public event System.EventHandler E { add { } remove { } }
-            }
-            """;
-
         await RunTestAsync(async path =>
         {
             MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
@@ -722,7 +618,13 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var archivePdbFilePath = pdbFilePath + ".old";
             File.Move(pdbFilePath, archivePdbFilePath);
 
-            CompileTestSource(path, SourceText.From(source2, Encoding.UTF8), project, Location.OnDisk, Location.OnDisk, buildReferenceAssembly: false, windowsPdb: false);
+            CompileTestSource(path, SourceText.From("""
+            public class C
+            {
+                // A change
+                public event System.EventHandler E { add { } remove { } }
+            }
+            """, Encoding.UTF8), project, Location.OnDisk, Location.OnDisk, buildReferenceAssembly: false, windowsPdb: false);
 
             // Move the old file back, so the PDB is now old
             File.Delete(pdbFilePath);
@@ -733,33 +635,28 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
     }
 
     [Theory, CombinatorialData]
-    public async Task SourceFileChecksumIncorrect_NullResult(Location pdbLocation)
-    {
-        var source1 = """
+    public Task SourceFileChecksumIncorrect_NullResult(Location pdbLocation)
+        => RunTestAsync(async path =>
+        {
+            MarkupTestFile.GetSpan("""
             public class C
             {
                 public event System.EventHandler [|E|] { add { } remove { } }
             }
-            """;
-        var source2 = """
+            """, out var metadataSource, out var expectedSpan);
+
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+            File.WriteAllText(GetSourceFilePath(path), """
             public class C
             {
                 // A change
                 public event System.EventHandler E { add { } remove { } }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            MarkupTestFile.GetSpan(source1, out var metadataSource, out var expectedSpan);
-
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
-
-            File.WriteAllText(GetSourceFilePath(path), source2, Encoding.UTF8);
+            """, Encoding.UTF8);
 
             await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, metadataSource, expectedSpan, expectNullResult: true);
         });
-    }
 
     [Theory]
     [InlineData(Location.Embedded, "utf-16")]
@@ -953,18 +850,15 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
     }
 
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7532")]
-    public async Task OpenFileWithDifferentCase()
-    {
-        var source = """
+    public Task OpenFileWithDifferentCase()
+        => RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, """
             public class C
             {
                 public int P { get; set; }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+            """, c => c.GetMember("C.P"));
 
             using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
             var service = workspace.GetService<IMetadataAsSourceFileService>();
@@ -975,21 +869,17 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var result = service.TryAddDocumentToWorkspace(requestPath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
             Assert.True(result);
         });
-    }
 
     [Fact]
-    public async Task OpenThenClose()
-    {
-        var source = """
+    public Task OpenThenClose()
+        => RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, """
             public class C
             {
                 public int P { get; set; }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+            """, c => c.GetMember("C.P"));
 
             using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
             var service = workspace.GetService<IMetadataAsSourceFileService>();
@@ -1001,21 +891,17 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var closeResult = service.TryRemoveDocumentFromWorkspace(file.FilePath);
             Assert.True(closeResult);
         });
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
-    public async Task CloseWithoutOpenDoesNotThrow()
-    {
-        var source = """
+    public Task CloseWithoutOpenDoesNotThrow()
+        => RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, """
             public class C
             {
                 public int P { get; set; }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+            """, c => c.GetMember("C.P"));
 
             using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
             var service = workspace.GetService<IMetadataAsSourceFileService>();
@@ -1024,23 +910,19 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var result = service.TryRemoveDocumentFromWorkspace(file.FilePath);
             Assert.False(result);
         });
-    }
 
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
-    public async Task OpenSameDocument()
-    {
-        var source = """
+    public Task OpenSameDocument()
+        => RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, """
             public class C
             {
                 public int P1 { get; set; }
 
                 public int P2 { get; set; }
             }
-            """;
-
-        await RunTestAsync(async path =>
-        {
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P1"));
+            """, c => c.GetMember("C.P1"));
 
             using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
             var service = workspace.GetService<IMetadataAsSourceFileService>();
@@ -1059,5 +941,4 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             // opened document in the MAS workspace).
             Assert.Throws<System.InvalidOperationException>(() => service.TryAddDocumentToWorkspace(fileTwo.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentIdTwo));
         });
-    }
 }

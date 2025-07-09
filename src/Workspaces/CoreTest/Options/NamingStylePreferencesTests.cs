@@ -42,7 +42,9 @@ public sealed class NamingStylePreferencesTests
     [Fact]
     public void TestCannotUpgrade3To5()
     {
-        var serializedPreferences = @"
+        AssertTrimmedEqual(
+            NamingStylePreferences.DefaultNamingPreferencesString,
+            ReserializePreferences(@"
 <NamingPreferencesInfo SerializationVersion=""3"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""Method"">
@@ -68,11 +70,7 @@ public sealed class NamingStylePreferencesTests
     <SerializableNamingRule SymbolSpecificationID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
     <SerializableNamingRule SymbolSpecificationID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Error"" />
   </NamingRules>
-</NamingPreferencesInfo>";
-
-        AssertTrimmedEqual(
-            NamingStylePreferences.DefaultNamingPreferencesString,
-            ReserializePreferences(serializedPreferences));
+</NamingPreferencesInfo>"));
     }
 
     [Fact]
@@ -152,7 +150,9 @@ public sealed class NamingStylePreferencesTests
     [Fact]
     public void TestCannotDowngradeHigherThanLatestVersion5()
     {
-        var serializedPreferences = @"
+        AssertTrimmedEqual(
+            NamingStylePreferences.DefaultNamingPreferencesString,
+            ReserializePreferences(@"
 <NamingPreferencesInfo SerializationVersion=""6"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" Name=""Method"">
@@ -178,11 +178,7 @@ public sealed class NamingStylePreferencesTests
     <SerializableNamingRule SymbolSpecificationID=""390caed4-f0a9-42bb-adbb-b44c4a302a22"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Info"" />
     <SerializableNamingRule SymbolSpecificationID=""da6a2919-5aa6-4ad1-a24d-576776ed3974"" NamingStyleID=""87e7c501-9948-4b53-b1eb-a6cbe918feee"" EnforcementLevel=""Error"" />
   </NamingRules>
-</NamingPreferencesInfo>";
-
-        AssertTrimmedEqual(
-            NamingStylePreferences.DefaultNamingPreferencesString,
-            ReserializePreferences(serializedPreferences));
+</NamingPreferencesInfo>"));
     }
 
     /// <summary>

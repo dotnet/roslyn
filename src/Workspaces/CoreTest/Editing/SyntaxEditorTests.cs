@@ -204,18 +204,6 @@ public class C
     }
 }
 """;
-        var fixedCode = """
-using System;
-using System.CodeAnalysis;
-
-public class C
-{
-    Type Main([Example(Sample.Attribute)] Type t)
-    {
-    }
-}
-""";
-
         var cu = SyntaxFactory.ParseCompilationUnit(code);
         var cls = cu.Members[0];
 
@@ -231,7 +219,17 @@ public class C
         var newRoot = editor.GetChangedRoot();
 
         VerifySyntax<CompilationUnitSyntax>(
-            newRoot, fixedCode);
+            newRoot, """
+using System;
+using System.CodeAnalysis;
+
+public class C
+{
+    Type Main([Example(Sample.Attribute)] Type t)
+    {
+    }
+}
+""");
     }
 
     [Fact]
@@ -248,18 +246,6 @@ public class C
     }
 }
 """;
-        var fixedCode = """
-using System;
-using System.CodeAnalysis;
-
-public class C
-{
-    Type Main<[Example(Sample.Attribute)] T>()
-    {
-    }
-}
-""";
-
         var cu = SyntaxFactory.ParseCompilationUnit(code);
         var cls = cu.Members[0];
 
@@ -275,7 +261,17 @@ public class C
         var newRoot = editor.GetChangedRoot();
 
         VerifySyntax<CompilationUnitSyntax>(
-            newRoot, fixedCode);
+            newRoot, """
+using System;
+using System.CodeAnalysis;
+
+public class C
+{
+    Type Main<[Example(Sample.Attribute)] T>()
+    {
+    }
+}
+""");
     }
 
     [Fact]
@@ -292,19 +288,6 @@ public class C
     }
 }
 """;
-        var fixedCode = """
-using System;
-using System.CodeAnalysis;
-
-public class C
-{
-    [return: Example(Sample.Attribute)]
-    Type Main(Type t)
-    {
-    }
-}
-""";
-
         var cu = SyntaxFactory.ParseCompilationUnit(code);
         var cls = cu.Members[0];
 
@@ -318,6 +301,17 @@ public class C
         var newRoot = editor.GetChangedRoot();
 
         VerifySyntax<CompilationUnitSyntax>(
-            newRoot, fixedCode);
+            newRoot, """
+using System;
+using System.CodeAnalysis;
+
+public class C
+{
+    [return: Example(Sample.Attribute)]
+    Type Main(Type t)
+    {
+    }
+}
+""");
     }
 }

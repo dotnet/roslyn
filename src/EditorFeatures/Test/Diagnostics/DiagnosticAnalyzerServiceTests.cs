@@ -160,14 +160,12 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         if (enabledWithEditorconfig)
         {
-            var editorconfigText = $"""
+            project = project.AddAnalyzerConfigDocument(".editorconfig", filePath: "z:\\.editorconfig", text: SourceText.From($"""
                 [*.cs]
                 dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_syntaxRule.Id}.severity = warning
                 dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_semanticRule.Id}.severity = warning
                 dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = warning
-                """;
-
-            project = project.AddAnalyzerConfigDocument(".editorconfig", filePath: "z:\\.editorconfig", text: SourceText.From(editorconfigText)).Project;
+                """)).Project;
         }
 
         var document = project.AddDocument("test.cs", SourceText.From("class A {}"), filePath: "z:\\test.cs");
@@ -293,14 +291,13 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         // Escalating the analyzer to non-hidden effective severity through analyzer config options
         // ensures that analyzer executes in full solution analysis.
-        var analyzerConfigText = $"""
-            [*.cs]
-            dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
-            """;
 
         project = project.AddAnalyzerConfigDocument(
             ".editorconfig",
-            text: SourceText.From(analyzerConfigText),
+            text: SourceText.From($"""
+            [*.cs]
+            dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
+            """),
             filePath: "z:\\.editorconfig").Project;
 
         await TestFullSolutionAnalysisForProjectAsync(workspace, project, expectAnalyzerExecuted: true);
@@ -668,11 +665,9 @@ public sealed class DiagnosticAnalyzerServiceTests
                 }
             }
             """;
-        var additionalText = @"This is an additional file!";
-
         using var workspace = TestWorkspace.CreateCSharp(source);
         var project = workspace.CurrentSolution.Projects.Single();
-        project = project.AddAdditionalDocument("additional.txt", additionalText).Project;
+        project = project.AddAdditionalDocument("additional.txt", @"This is an additional file!").Project;
 
         var analyzer = new FilterSpanTestAnalyzer(kind);
         var analyzerId = analyzer.GetAnalyzerId();

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -385,8 +384,10 @@ internal sealed class EditAndContinueLanguageService(
 
         switch (result.ModuleUpdates.Status)
         {
-            case ModuleUpdateStatus.Ready:
-                // We have updates to be applied. The debugger will call Commit/Discard on the solution
+            case ModuleUpdateStatus.Ready when result.ProjectsToRebuild.IsEmpty:
+                // We have updates to be applied and no rude edits.
+                //
+                // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
                 break;
@@ -398,25 +399,25 @@ internal sealed class EditAndContinueLanguageService(
                 break;
         }
 
-        ArrayBuilder<DiagnosticData>? deletedDocumentRudeEdits = null;
-        foreach (var rudeEdit in result.RudeEdits)
+        ArrayBuilder<DiagnosticData>? applyChangesDiagnostics = null;
+        foreach (var diagnostic in result.Diagnostics)
         {
-            if (await solution.GetDocumentAsync(rudeEdit.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            // Report warnings and errors that are not reported when analyzing documents or are reported for deleted documents.
+
+            if (diagnostic.Severity is not (DiagnosticSeverity.Error or DiagnosticSeverity.Warning))
             {
-                deletedDocumentRudeEdits ??= ArrayBuilder<DiagnosticData>.GetInstance();
-                deletedDocumentRudeEdits.Add(rudeEdit);
+                continue;
+            }
+
+            if ((!EditAndContinueDiagnosticDescriptors.IsRudeEdit(diagnostic.Id)) ||
+                await solution.GetDocumentAsync(diagnostic.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            {
+                applyChangesDiagnostics ??= ArrayBuilder<DiagnosticData>.GetInstance();
+                applyChangesDiagnostics.Add(diagnostic);
             }
         }
 
-        if (deletedDocumentRudeEdits != null)
-        {
-            deletedDocumentRudeEdits.AddRange(result.Diagnostics);
-            UpdateApplyChangesDiagnostics(deletedDocumentRudeEdits.ToImmutableAndFree());
-        }
-        else
-        {
-            UpdateApplyChangesDiagnostics(result.Diagnostics);
-        }
+        UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
 
         return new ManagedHotReloadUpdates(
             result.ModuleUpdates.Updates.FromContract(),

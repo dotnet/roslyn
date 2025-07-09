@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
@@ -325,7 +324,7 @@ class C
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal), False,
-                Item("operator checked +(C x, C y)", Glyph.Operator), False)
+                Item("operator checked +(C x, C y)", Glyph.OperatorPublic), False)
         End Function
 
         <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
@@ -345,7 +344,7 @@ class C
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal), False,
-                Item("operator checked -(C x)", Glyph.Operator), False)
+                Item("operator checked -(C x)", Glyph.OperatorPublic), False)
         End Function
 
         <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
@@ -365,7 +364,7 @@ class C
                 </Workspace>,
                 host,
                 Item("C", Glyph.ClassInternal), False,
-                Item("explicit operator checked string(C x)", Glyph.Operator), False)
+                Item("explicit operator checked string(C x)", Glyph.OperatorPublic), False)
         End Function
 
         <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>

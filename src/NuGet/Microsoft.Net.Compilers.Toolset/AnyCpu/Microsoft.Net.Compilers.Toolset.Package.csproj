@@ -62,9 +62,11 @@
 
       <TfmSpecificPackageFile Include="@(_FileWithPath)" PackagePath="%(_FileWithPath.TargetPath)" />
     </ItemGroup>
+  </Target>
 
-    <!-- Used for debugging parts of the toolset (e.g., build tasks).
-      Doesn't work in VS (where `<ProjectReference Targets="Publish" />` doesn't have any effect), hence we set `ContinueOnError="true"`. -->
+  <!-- Used to lay out all DLLs in one folder on disk via `dotnet build -p:InnerTargets=CopyFilesForDebugging`
+    so they can be then used for debugging parts of the toolset (e.g., build tasks). -->
+  <Target Name="CopyFilesForDebugging" DependsOnTargets="_GetFiles">
     <Copy SourceFiles="@(_FileWithPath)"
           DestinationFiles="$(BaseOutputPath)$(Configuration)\%(_FileWithPath.TargetPath)"
           SkipUnchangedFiles="true" />
