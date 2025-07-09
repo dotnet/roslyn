@@ -89,6 +89,7 @@ public sealed class FindReferencesTests : TestBase
     public async Task FindFieldReferencesInSingleDocumentProject()
     {
         var text = """
+
             public class C {
                public int X;
                public int Y = X * X;
@@ -97,6 +98,7 @@ public sealed class FindReferencesTests : TestBase
                  int y = x + X;
                }
             }
+
             """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text);
@@ -112,9 +114,11 @@ public sealed class FindReferencesTests : TestBase
     public async Task FindTypeReference_DuplicateMetadataReferences()
     {
         var text = """
+
             public class C {
                public string X;
             }
+
             """;
         using var workspace = CreateWorkspace();
         var pid = ProjectId.CreateNewId();
@@ -140,9 +144,10 @@ public sealed class FindReferencesTests : TestBase
     {
         var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
             """
+
             Module Module1
                     Declare Function CreateDirectory Lib "kernel32" Alias "CreateDirectoryA" (ByVal lpPathName As String) As Integer
-
+             
                     Private prop As Integer
                     Property Prop1 As Integer
                         Get
@@ -164,6 +169,7 @@ public sealed class FindReferencesTests : TestBase
                    Sub NormalMethod()
                    End Sub
              End Module
+                        
             """);
 
         var prj1Id = ProjectId.CreateNewId();
@@ -199,10 +205,12 @@ public sealed class FindReferencesTests : TestBase
     {
         var tree = Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.ParseText(
             """
+
             Imports System
             Public Class C
                 private readonly property
             End Class
+                        
             """);
 
         var prj1Id = ProjectId.CreateNewId();
@@ -231,6 +239,8 @@ public sealed class FindReferencesTests : TestBase
     {
         var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(
             """
+
+
             using System;
             using System.Collections;
             using System.Collections.Generic;
@@ -266,6 +276,7 @@ public sealed class FindReferencesTests : TestBase
                     {
                     }
                 }
+                            
             """);
 
         var prj1Id = ProjectId.CreateNewId();
@@ -301,6 +312,7 @@ public sealed class FindReferencesTests : TestBase
     public async Task FindReferences_InterfaceMapping()
     {
         var text = """
+
             abstract class C
             {
                 public abstract void Boo(); // Line 3
@@ -309,13 +321,14 @@ public sealed class FindReferencesTests : TestBase
             {
                 void Boo(); // Line 7
             }
-
+             
             class B : C, A
             {
                void A.Boo() { } // Line 12
                public override void Boo() { } // Line 13
                public void Bar() { Boo(); } // Line 14
             }
+
             """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text);
@@ -362,6 +375,7 @@ public sealed class FindReferencesTests : TestBase
         var solution = CreateWorkspace().CurrentSolution;
 
         solution = AddProjectWithMetadataReferences(solution, "NetStandardProject", LanguageNames.CSharp, """
+
             namespace N
             {
                 public interface I
@@ -372,6 +386,7 @@ public sealed class FindReferencesTests : TestBase
             """, NetStandard20.References.All);
 
         solution = AddProjectWithMetadataReferences(solution, "NetCoreProject", LanguageNames.CSharp, """
+
             using N;
 
             namespace N2 
@@ -461,6 +476,7 @@ public sealed class FindReferencesTests : TestBase
 
         // create portable assembly with a virtual method
         solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, """
+
             namespace N
             {
                 public class BaseClass
@@ -468,10 +484,12 @@ public sealed class FindReferencesTests : TestBase
                     public virtual void SomeMethod() { }
                 }
             }
+
             """, MscorlibPP7Ref);
 
         // create a normal assembly with a type derived from the portable base and overriding the method
         solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, """
+
             using N;
             namespace M
             {
@@ -480,6 +498,7 @@ public sealed class FindReferencesTests : TestBase
                     public override void SomeMethod() { }
                 }
             }
+
             """, Net40.References.mscorlib, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
 
         // get symbols for methods
@@ -509,6 +528,7 @@ public sealed class FindReferencesTests : TestBase
     public async Task FindRefereceToUnmanagedConstraint_Type()
     {
         var text = """
+
             interface unmanaged                             // Line 1
             {
             }
@@ -531,6 +551,7 @@ public sealed class FindReferencesTests : TestBase
     public async Task DoNotIncludeConstructorReferenceInTypeList_CSharp()
     {
         var text = """
+
             class C
             {
             }
@@ -542,6 +563,7 @@ public sealed class FindReferencesTests : TestBase
                     C c = new C();
                 }
             }
+
             """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text);
@@ -567,6 +589,7 @@ public sealed class FindReferencesTests : TestBase
     public async Task DoNotIncludeConstructorReferenceInTypeList_VisualBasic()
     {
         var text = """
+
             class C
             end class
 
@@ -575,6 +598,7 @@ public sealed class FindReferencesTests : TestBase
                     dim c as C = new C()
                 end sub
             end class
+
             """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.VisualBasic);
@@ -600,6 +624,7 @@ public sealed class FindReferencesTests : TestBase
     public async Task DoNotIncludeSameNamedAlias()
     {
         var text = """
+
             using NestedDummy = Test.Dummy.NestedDummy;
 
             namespace Test
@@ -617,6 +642,7 @@ public sealed class FindReferencesTests : TestBase
             		public class NestedDummy { }
             	}
             }
+
             """;
         using var workspace = CreateWorkspace();
         var solution = GetSingleDocumentSolution(workspace, text, LanguageNames.CSharp);

@@ -5,6 +5,7 @@
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.EditorConfig;
+
 using static Microsoft.CodeAnalysis.EditorConfig.LanguageConstants;
 
 internal static class LanguageExtensions

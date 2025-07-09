@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using EnvDTE;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -42,6 +40,8 @@ public sealed class FileCodeClassWithMissingBraceTests : AbstractFileCodeElement
 
             class Baz
             {
+
+
             """)
     {
     }

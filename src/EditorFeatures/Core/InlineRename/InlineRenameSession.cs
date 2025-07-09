@@ -726,7 +726,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
 
     /// <remarks>
     /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up its own context correctly.
-    /// When the editorOperationContext is not null it will take ownership of the UI thread and try to create a BackgroundWorkIndicator 
+    /// When the editorOperationContext is not null it will take ownership of the UI thread and try to create a BackgroundWorkIndicator
     /// </remarks>
     public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext)
     {

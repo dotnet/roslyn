@@ -5,12 +5,8 @@
 using System;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Collections;
-
-#if DEBUG
-using System.Diagnostics;
-#endif
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -158,72 +154,10 @@ namespace Roslyn.Utilities
         }
 
         internal string Add(string chars, int start, int len)
-        {
-            var hashCode = Hash.GetFNVHashCode(chars, start, len);
-
-            // capture array to avoid extra range checks
-            var arr = _localTable;
-            var idx = LocalIdxFromHash(hashCode);
-
-            var text = arr[idx].Text;
-
-            if (text != null && arr[idx].HashCode == hashCode)
-            {
-                var result = arr[idx].Text;
-                if (StringTable.TextEquals(result, chars, start, len))
-                {
-                    return result;
-                }
-            }
-
-            string? shared = FindSharedEntry(chars, start, len, hashCode);
-            if (shared != null)
-            {
-                // PERF: the following code does element-wise assignment of a struct
-                //       because current JIT produces better code compared to
-                //       arr[idx] = new Entry(...)
-                arr[idx].HashCode = hashCode;
-                arr[idx].Text = shared;
-
-                return shared;
-            }
-
-            return AddItem(chars, start, len, hashCode);
-        }
+            => Add(chars.AsSpan(start, len));
 
         internal string Add(char chars)
-        {
-            var hashCode = Hash.GetFNVHashCode(chars);
-
-            // capture array to avoid extra range checks
-            var arr = _localTable;
-            var idx = LocalIdxFromHash(hashCode);
-
-            var text = arr[idx].Text;
-
-            if (text != null)
-            {
-                var result = arr[idx].Text;
-                if (text.Length == 1 && text[0] == chars)
-                {
-                    return result;
-                }
-            }
-
-            string? shared = FindSharedEntry(chars, hashCode);
-            if (shared != null)
-            {
-                // PERF: the following code does element-wise assignment of a struct
-                //       because current JIT produces better code compared to
-                //       arr[idx] = new Entry(...)
-                arr[idx].HashCode = hashCode;
-                arr[idx].Text = shared;
-
-                return shared;
-            }
-
-            return AddItem(chars, hashCode);
-        }
+            => Add([chars]);
 
         internal string Add(StringBuilder chars)
         {
@@ -260,39 +194,7 @@ namespace Roslyn.Utilities
         }
 
         internal string Add(string chars)
-        {
-            var hashCode = Hash.GetFNVHashCode(chars);
-
-            // capture array to avoid extra range checks
-            var arr = _localTable;
-            var idx = LocalIdxFromHash(hashCode);
-
-            var text = arr[idx].Text;
-
-            if (text != null && arr[idx].HashCode == hashCode)
-            {
-                var result = arr[idx].Text;
-                if (result == chars)
-                {
-                    return result;
-                }
-            }
-
-            string? shared = FindSharedEntry(chars, hashCode);
-            if (shared != null)
-            {
-                // PERF: the following code does element-wise assignment of a struct
-                //       because current JIT produces better code compared to
-                //       arr[idx] = new Entry(...)
-                arr[idx].HashCode = hashCode;
-                arr[idx].Text = shared;
-
-                return shared;
-            }
-
-            AddCore(chars, hashCode);
-            return chars;
-        }
+            => Add(chars.AsSpan());
 
         private static string? FindSharedEntry(ReadOnlySpan<char> chars, int hashCode)
         {
@@ -330,39 +232,7 @@ namespace Roslyn.Utilities
         }
 
         private static string? FindSharedEntry(string chars, int start, int len, int hashCode)
-        {
-            var arr = s_sharedTable;
-            int idx = SharedIdxFromHash(hashCode);
-
-            string? e = null;
-            // we use quadratic probing here
-            // bucket positions are (n^2 + n)/2 relative to the masked hashcode
-            for (int i = 1; i < SharedBucketSize + 1; i++)
-            {
-                e = arr[idx].Text;
-                int hash = arr[idx].HashCode;
-
-                if (e != null)
-                {
-                    if (hash == hashCode && TextEquals(e, chars, start, len))
-                    {
-                        break;
-                    }
-
-                    // this is not e we are looking for
-                    e = null;
-                }
-                else
-                {
-                    // once we see unfilled entry, the rest of the bucket will be empty
-                    break;
-                }
-
-                idx = (idx + i) & SharedSizeMask;
-            }
-
-            return e;
-        }
+            => FindSharedEntry(chars.AsSpan(start, len), hashCode);
 
         private static string? FindSharedEntryASCII(int hashCode, ReadOnlySpan<byte> asciiChars)
         {
@@ -400,38 +270,7 @@ namespace Roslyn.Utilities
         }
 
         private static string? FindSharedEntry(char chars, int hashCode)
-        {
-            var arr = s_sharedTable;
-            int idx = SharedIdxFromHash(hashCode);
-
-            string? e = null;
-            // we use quadratic probing here
-            // bucket positions are (n^2 + n)/2 relative to the masked hashcode
-            for (int i = 1; i < SharedBucketSize + 1; i++)
-            {
-                e = arr[idx].Text;
-
-                if (e != null)
-                {
-                    if (e.Length == 1 && e[0] == chars)
-                    {
-                        break;
-                    }
-
-                    // this is not e we are looking for
-                    e = null;
-                }
-                else
-                {
-                    // once we see unfilled entry, the rest of the bucket will be empty
-                    break;
-                }
-
-                idx = (idx + i) & SharedSizeMask;
-            }
-
-            return e;
-        }
+            => FindSharedEntry([chars], hashCode);
 
         private static string? FindSharedEntry(StringBuilder chars, int hashCode)
         {
@@ -469,39 +308,7 @@ namespace Roslyn.Utilities
         }
 
         private static string? FindSharedEntry(string chars, int hashCode)
-        {
-            var arr = s_sharedTable;
-            int idx = SharedIdxFromHash(hashCode);
-
-            string? e = null;
-            // we use quadratic probing here
-            // bucket positions are (n^2 + n)/2 relative to the masked hashcode
-            for (int i = 1; i < SharedBucketSize + 1; i++)
-            {
-                e = arr[idx].Text;
-                int hash = arr[idx].HashCode;
-
-                if (e != null)
-                {
-                    if (hash == hashCode && e == chars)
-                    {
-                        break;
-                    }
-
-                    // this is not e we are looking for
-                    e = null;
-                }
-                else
-                {
-                    // once we see unfilled entry, the rest of the bucket will be empty
-                    break;
-                }
-
-                idx = (idx + i) & SharedSizeMask;
-            }
-
-            return e;
-        }
+            => FindSharedEntry(chars.AsSpan(), hashCode);
 
         private string AddItem(ReadOnlySpan<char> chars, int hashCode)
         {
@@ -512,17 +319,16 @@ namespace Roslyn.Utilities
 
         private string AddItem(string chars, int start, int len, int hashCode)
         {
+            // Don't defer to ReadOnlySpan<char> here, as it would cause an extra allocation
+            // in the case where start/len exactly match the full span of chars.
+
             var text = chars.Substring(start, len);
             AddCore(text, hashCode);
             return text;
         }
 
         private string AddItem(char chars, int hashCode)
-        {
-            var text = new String(chars, 1);
-            AddCore(text, hashCode);
-            return text;
-        }
+            => AddItem([chars], hashCode);
 
         private string AddItem(StringBuilder chars, int hashCode)
         {

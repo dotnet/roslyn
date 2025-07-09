@@ -2782,6 +2782,7 @@ public sealed class SyntaxGeneratorTests
         VerifySyntaxRaw<CompilationUnitSyntax>(
             newCu,
             """
+
             public class C
             {
             }

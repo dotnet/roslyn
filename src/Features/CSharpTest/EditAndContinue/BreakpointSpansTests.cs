@@ -6028,6 +6028,7 @@ public sealed class BreakpointSpansTests
     public void TopLevelStatements()
     {
         VerifyAllSpansInDeclaration<CompilationUnitSyntax>("""
+
             $$[|int d = 5;|]
             [|int a = 1|], [|b = 2|], [|c = 3|];
             for ([|int i = 0|], [|j = 1|], [|k = 2|]; [|i < 10|]; [|i++|], [|j++|], [|k--|])

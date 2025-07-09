@@ -380,7 +380,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/79300"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeNotCapitalizedRename()
     {
         var markup = """

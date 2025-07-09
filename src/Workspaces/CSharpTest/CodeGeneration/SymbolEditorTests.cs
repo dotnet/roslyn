@@ -653,6 +653,7 @@ public sealed class SymbolEditorTests
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
         Assert.Equal("""
+
             partial class C
             {
             }
@@ -682,6 +683,7 @@ public sealed class SymbolEditorTests
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
         Assert.Equal("""
+
 
             """, actual);
     }

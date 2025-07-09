@@ -332,6 +332,7 @@ public sealed class AddImportsTests
             """,
 
             """
+
             class C
             {
                 public int F;
@@ -531,6 +532,7 @@ public sealed class AddImportsTests
             """,
 
             """
+
             namespace N
             {
                 class C
